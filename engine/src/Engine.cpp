@@ -31,6 +31,6 @@ void Engine::run() {
     window->pollInput();
 }
 
-Engine:: ~Engine() {
+Engine::~Engine() {
 
 }
