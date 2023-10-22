@@ -1,12 +1,19 @@
 #pragma once
-#include <GLFW/glfw3.h>
+#include <Window.hpp>
+#include <memory>
+#include <ExecutorService.hpp>
+#include <VulkanContext.hpp>
 
 class Engine {
+
 public:
     Engine();
-    void run();
     ~Engine();
+    void run();
 
 private:
-    GLFWwindow* window;
+    std::unique_ptr<Window> window;
+    std::unique_ptr<ExecutorService> threadPool;
+    std::unique_ptr<VulkanContext> vulkanCxt;
+
 };

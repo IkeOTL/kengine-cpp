@@ -1,7 +1,16 @@
 add_library(engine)
 
-target_sources(engine PRIVATE
-    src/Engine.cpp
+target_sources(engine 
+    PRIVATE
+        src/Engine.cpp
+        src/Window.cpp
+        src/VulkanContext.cpp
+
+        include/public/Engine.hpp
+        include/public/Window.hpp
+        include/public/VulkanContext.hpp
+        
+        include/public/ExecutorService.hpp
 )
 
 target_include_directories(engine PUBLIC include/public)

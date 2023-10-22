@@ -1,5 +1,4 @@
 #include "Engine.hpp"
-
 #include <glm/glm.hpp>
 
 int main() {
