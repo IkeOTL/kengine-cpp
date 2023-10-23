@@ -11,19 +11,26 @@ public:
     ~VulkanContext();
 
     void init(Window& window, bool validationOn);
-    void createVkInstance(bool validationOn);
-    void setupDebugging();
-    void grabFirstPhysicalDevice();
 
 private:
     VkInstance vkInstance = VK_NULL_HANDLE;
     VkDebugReportCallbackEXT debugCallbackHandle = VK_NULL_HANDLE;
 
-    VkSurfaceKHR surface = VK_NULL_HANDLE;
+    VkSurfaceKHR vkSurface = VK_NULL_HANDLE;
 
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkPhysicalDeviceProperties2 physicalDeviceProps{};
+    VkPhysicalDevice vkPhysicalDevice = VK_NULL_HANDLE;
+    VkPhysicalDeviceProperties2 vkPhysicalDeviceProps{};
     ColorFormatAndSpace colorFormatAndSpace{};
-    VkPhysicalDeviceMemoryProperties2 physicalDeviceMemoryProps{};
+    VkPhysicalDeviceMemoryProperties2 vkPhysicalDeviceMemoryProps{};
     QueueFamilies queueFamilies{};
+    VkDevice vkDevice = VK_NULL_HANDLE;
+
+    unsigned int gfxQueueFamilyIndex;
+    unsigned int compQueueFamilyIndex;
+    unsigned int xferQueueFamilyIndex;
+
+    void createVkInstance(bool validationOn);
+    void setupDebugging();
+    void grabFirstPhysicalDevice();
+    void createDevice();
 };

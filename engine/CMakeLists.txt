@@ -7,12 +7,14 @@ target_sources(engine
         src/VulkanContext.cpp
         src/ColorFormatAndSpace.cpp
         src/QueueFamilies.cpp
+        src/VulkanQueue.cpp
 
         include/public/Engine.hpp
         include/public/Window.hpp
         include/public/VulkanContext.hpp
         include/public/ColorFormatAndSpace.hpp
         include/public/QueueFamilies.hpp
+        include/public/VulkanQueue.hpp
 
         include/public/ExecutorService.hpp
 )

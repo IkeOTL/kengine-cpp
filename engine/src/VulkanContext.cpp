@@ -24,10 +24,16 @@ void VulkanContext::init(Window& window, bool validationOn) {
     if (validationOn)
         setupDebugging();
 
-    window.createSurface(vkInstance, surface);
+    window.createSurface(vkInstance, vkSurface);
     grabFirstPhysicalDevice();
-    colorFormatAndSpace.init(physicalDevice, surface);
-    queueFamilies.init(physicalDevice);
+    colorFormatAndSpace.init(vkPhysicalDevice, vkSurface);
+
+    queueFamilies.init(vkPhysicalDevice);
+    gfxQueueFamilyIndex = queueFamilies.getGfxCompXferQueues()[0];
+    compQueueFamilyIndex = gfxQueueFamilyIndex;
+    xferQueueFamilyIndex = queueFamilies.getTransferQueues()[0];
+
+    createDevice();
 }
 
 void VulkanContext::createVkInstance(bool validationOn) {
@@ -164,15 +170,51 @@ void VulkanContext::grabFirstPhysicalDevice() {
             continue;
 
         // for now simply return the first one we see
-        physicalDevice = device;
+        vkPhysicalDevice = device;
         break;
     }
 
     // load up gpu details
-    physicalDeviceProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-    vkGetPhysicalDeviceProperties2(physicalDevice, &physicalDeviceProps);
+    vkPhysicalDeviceProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    vkGetPhysicalDeviceProperties2(vkPhysicalDevice, &vkPhysicalDeviceProps);
 
     // grab memory props
-    physicalDeviceMemoryProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
-    vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &physicalDeviceMemoryProps);
+    vkPhysicalDeviceMemoryProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
+    vkGetPhysicalDeviceMemoryProperties2(vkPhysicalDevice, &vkPhysicalDeviceMemoryProps);
+}
+
+void VulkanContext::createDevice() {
+    auto graphicsQueuePriority = 1.0f;
+    auto graphicsQueueCreateInfo = VkDeviceQueueCreateInfo{};
+    graphicsQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    graphicsQueueCreateInfo.queueFamilyIndex = gfxQueueFamilyIndex;
+    graphicsQueueCreateInfo.queueCount = 1;
+    graphicsQueueCreateInfo.pQueuePriorities = &graphicsQueuePriority;
+
+    auto transferQueuePriority = 1.0f;
+    auto transferQueueCreateInfo = VkDeviceQueueCreateInfo{};
+    transferQueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    transferQueueCreateInfo.queueFamilyIndex = xferQueueFamilyIndex;
+    transferQueueCreateInfo.queueCount = 1;
+    transferQueueCreateInfo.pQueuePriorities = &transferQueuePriority;
+
+    auto sync2Features = VkPhysicalDeviceSynchronization2FeaturesKHR{};
+    sync2Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR;
+    sync2Features.synchronization2 = true;
+
+    VkDeviceQueueCreateInfo queueCreateInfos[2] = { graphicsQueueCreateInfo, transferQueueCreateInfo };
+
+    std::vector<const char*> desiredLayers = {
+         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+         VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME
+    };
+
+    auto createDeviceInfo = VkDeviceCreateInfo{};
+    createDeviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createDeviceInfo.pNext = &sync2Features;
+    createDeviceInfo.queueCreateInfoCount = 2;
+    createDeviceInfo.pQueueCreateInfos = queueCreateInfos;
+    createDeviceInfo.ppEnabledExtensionNames = desiredLayers.data();
+
+    vkCreateDevice(vkPhysicalDevice, &createDeviceInfo, nullptr, &vkDevice);
 }
