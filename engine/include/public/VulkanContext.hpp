@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 #include <ColorFormatAndSpace.hpp>
+#include <QueueFamilies.hpp>
 
 class VulkanContext {
 public:
@@ -21,6 +22,8 @@ private:
     VkSurfaceKHR surface = VK_NULL_HANDLE;
 
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkPhysicalDeviceProperties physicalDeviceProps{};
+    VkPhysicalDeviceProperties2 physicalDeviceProps{};
     ColorFormatAndSpace colorFormatAndSpace{};
+    VkPhysicalDeviceMemoryProperties2 physicalDeviceMemoryProps{};
+    QueueFamilies queueFamilies{};
 };

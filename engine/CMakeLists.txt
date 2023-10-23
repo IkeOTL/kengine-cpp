@@ -5,14 +5,16 @@ target_sources(engine
         src/Engine.cpp
         src/Window.cpp
         src/VulkanContext.cpp
+        src/ColorFormatAndSpace.cpp
+        src/QueueFamilies.cpp
 
         include/public/Engine.hpp
         include/public/Window.hpp
         include/public/VulkanContext.hpp
         include/public/ColorFormatAndSpace.hpp
+        include/public/QueueFamilies.hpp
 
         include/public/ExecutorService.hpp
-        include/public/ColorFormatAndSpace.hpp
 )
 
 target_include_directories(engine PUBLIC include/public)

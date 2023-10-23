@@ -4,18 +4,16 @@
 #include <vector>
 #include <algorithm>
 
-VulkanContext::VulkanContext()
-{
-}
+VulkanContext::VulkanContext() {}
 
-VulkanContext::~VulkanContext()
-{
+VulkanContext::~VulkanContext() {
     if (vkInstance != VK_NULL_HANDLE) {
         auto funcDestroyDebug = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
         if (funcDestroyDebug)
             funcDestroyDebug(vkInstance, debugCallbackHandle, nullptr);
 
         //keeps crashing look into it later
+        // destory window first?
         vkDestroyInstance(vkInstance, nullptr);
     }
 }
@@ -28,12 +26,11 @@ void VulkanContext::init(Window& window, bool validationOn) {
 
     window.createSurface(vkInstance, surface);
     grabFirstPhysicalDevice();
-
     colorFormatAndSpace.init(physicalDevice, surface);
+    queueFamilies.init(physicalDevice);
 }
 
-void VulkanContext::createVkInstance(bool validationOn)
-{
+void VulkanContext::createVkInstance(bool validationOn) {
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "Demo";
@@ -53,7 +50,8 @@ void VulkanContext::createVkInstance(bool validationOn)
 
     const char* myExts[] = {
         VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
-        VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME
+        VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME,
+        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
     };
     const size_t myExtCnt = sizeof(myExts) / sizeof(myExts[0]);
 
@@ -122,8 +120,7 @@ void VulkanContext::createVkInstance(bool validationOn)
 }
 
 
-void VulkanContext::setupDebugging()
-{
+void VulkanContext::setupDebugging() {
     auto flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
 
     VkDebugReportCallbackCreateInfoEXT vkDebugCbCreateInfo{};
@@ -172,5 +169,10 @@ void VulkanContext::grabFirstPhysicalDevice() {
     }
 
     // load up gpu details
-    vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProps);
+    physicalDeviceProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    vkGetPhysicalDeviceProperties2(physicalDevice, &physicalDeviceProps);
+
+    // grab memory props
+    physicalDeviceMemoryProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
+    vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &physicalDeviceMemoryProps);
 }
