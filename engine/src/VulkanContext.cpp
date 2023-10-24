@@ -34,6 +34,7 @@ void VulkanContext::init(Window& window, bool validationOn) {
     xferQueueFamilyIndex = queueFamilies.getTransferQueues()[0];
 
     createDevice();
+    createQueues();
 }
 
 void VulkanContext::createVkInstance(bool validationOn) {
@@ -59,9 +60,9 @@ void VulkanContext::createVkInstance(bool validationOn) {
         VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME,
         VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
     };
-    const size_t myExtCnt = sizeof(myExts) / sizeof(myExts[0]);
+    const auto myExtCnt = sizeof(myExts) / sizeof(myExts[0]);
 
-    std::vector<const char*> allExts(glfwExts, glfwExts + glfwExtCnt);
+    auto allExts = std::vector<const char*>(glfwExts, glfwExts + glfwExtCnt);
     allExts.insert(allExts.end(), myExts, myExts + myExtCnt);
 
     if (allExts.size()) {
@@ -86,7 +87,7 @@ void VulkanContext::createVkInstance(bool validationOn) {
     if (lPropsResult != VK_SUCCESS)
         throw std::runtime_error("Failed to get the number of instance layers.");
 
-    std::vector<VkLayerProperties> availableLayers(layerCount);
+    auto availableLayers = std::vector<VkLayerProperties>(layerCount);
 
     lPropsResult = vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
@@ -129,7 +130,7 @@ void VulkanContext::createVkInstance(bool validationOn) {
 void VulkanContext::setupDebugging() {
     auto flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
 
-    VkDebugReportCallbackCreateInfoEXT vkDebugCbCreateInfo{};
+    auto vkDebugCbCreateInfo = VkDebugReportCallbackCreateInfoEXT{};
     vkDebugCbCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
     vkDebugCbCreateInfo.flags = flags;
     vkDebugCbCreateInfo.pfnCallback = +[](VkDebugReportFlagsEXT flags,
@@ -214,7 +215,17 @@ void VulkanContext::createDevice() {
     createDeviceInfo.pNext = &sync2Features;
     createDeviceInfo.queueCreateInfoCount = 2;
     createDeviceInfo.pQueueCreateInfos = queueCreateInfos;
+    createDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(desiredLayers.size());
     createDeviceInfo.ppEnabledExtensionNames = desiredLayers.data();
 
-    vkCreateDevice(vkPhysicalDevice, &createDeviceInfo, nullptr, &vkDevice);
+    vkCreateDevice(vkPhysicalDevice, &createDeviceInfo, nullptr, &vkDevice);       
+}
+
+void VulkanContext::createQueues() {
+    graphicsQueue = &VulkanQueue(vkDevice, gfxQueueFamilyIndex);
+    computeQueue = graphicsQueue;
+    transferQueue = &VulkanQueue(vkDevice, xferQueueFamilyIndex);
+
+    graphicsQueue->init();
+    transferQueue->init();
 }

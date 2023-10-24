@@ -4,6 +4,7 @@
 #include <memory>
 #include <ColorFormatAndSpace.hpp>
 #include <QueueFamilies.hpp>
+#include <VulkanQueue.hpp>
 
 class VulkanContext {
 public:
@@ -11,6 +12,7 @@ public:
     ~VulkanContext();
 
     void init(Window& window, bool validationOn);
+    VkResult queueSubmit(VkQueue queue, unsigned int submitCnt, VkSubmitInfo2* submits, VkFence fence);
 
 private:
     VkInstance vkInstance = VK_NULL_HANDLE;
@@ -29,8 +31,13 @@ private:
     unsigned int compQueueFamilyIndex;
     unsigned int xferQueueFamilyIndex;
 
+    VulkanQueue* graphicsQueue;
+    VulkanQueue* computeQueue;
+    VulkanQueue* transferQueue;
+
     void createVkInstance(bool validationOn);
     void setupDebugging();
     void grabFirstPhysicalDevice();
     void createDevice();
+    void createQueues();
 };

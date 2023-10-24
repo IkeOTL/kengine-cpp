@@ -5,15 +5,17 @@
 class VulkanQueue {
 
 private:
-    const VkDevice device;
+    const VkDevice vkDevice;
     const unsigned int famIdx;
-    VkQueue queue;
+    VkQueue queue = VK_NULL_HANDLE;
+
+    PFN_vkQueueSubmit2KHR pfnVkQueueSubmit2KHR = nullptr;
 
     // sync queue commands
     std::recursive_mutex mtx;
 
 public:
-    VulkanQueue(VkDevice device, unsigned int famIdx);
+    VulkanQueue(VkDevice vkDevice, unsigned int famIdx);
     ~VulkanQueue();
 
     void init();
