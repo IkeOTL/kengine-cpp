@@ -10,9 +10,10 @@ private:
     VkQueue queue = VK_NULL_HANDLE;
 
     PFN_vkQueueSubmit2KHR pfnVkQueueSubmit2KHR = nullptr;
+    PFN_vkQueuePresentKHR pfnVkQueuePresentKHR = nullptr;
 
     // sync queue commands
-    std::recursive_mutex mtx;
+    std::mutex mtx;
 
 public:
     VulkanQueue(VkDevice vkDevice, unsigned int famIdx);
@@ -21,4 +22,6 @@ public:
     void init();
 
     VkResult submit(unsigned int submitCnt, VkSubmitInfo2* submits, VkFence fence);
+    VkResult present(VkPresentInfoKHR* presentInfo);
+    VkResult waitIdle();
 };
