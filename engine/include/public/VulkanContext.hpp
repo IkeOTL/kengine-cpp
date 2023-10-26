@@ -26,6 +26,7 @@ private:
     VkPhysicalDeviceMemoryProperties2 vkPhysicalDeviceMemoryProps{};
     QueueFamilies queueFamilies{};
     VkDevice vkDevice = VK_NULL_HANDLE;
+    struct VmaAllocator_T* vmaAllocator;
 
     unsigned int gfxQueueFamilyIndex;
     unsigned int compQueueFamilyIndex;
@@ -40,4 +41,5 @@ private:
     void grabFirstPhysicalDevice();
     void createDevice();
     void createQueues();
+    void createVmaAllocator();
 };

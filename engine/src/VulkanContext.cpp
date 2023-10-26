@@ -1,3 +1,6 @@
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
+
 #include "VulkanContext.hpp"
 #include <vulkan/vulkan.h>
 #include <iostream>
@@ -8,12 +11,14 @@ VulkanContext::VulkanContext() {}
 
 VulkanContext::~VulkanContext() {
     if (vkInstance != VK_NULL_HANDLE) {
+
+
         auto funcDestroyDebug = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
         if (funcDestroyDebug)
             funcDestroyDebug(vkInstance, debugCallbackHandle, nullptr);
+                
+        vmaDestroyAllocator(vmaAllocator);
 
-        //keeps crashing look into it later
-        // destory window first?
         vkDestroyInstance(vkInstance, nullptr);
     }
 }
@@ -35,6 +40,7 @@ void VulkanContext::init(Window& window, bool validationOn) {
 
     createDevice();
     createQueues();
+    createVmaAllocator();
 }
 
 void VulkanContext::createVkInstance(bool validationOn) {
@@ -218,7 +224,7 @@ void VulkanContext::createDevice() {
     createDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(desiredLayers.size());
     createDeviceInfo.ppEnabledExtensionNames = desiredLayers.data();
 
-    vkCreateDevice(vkPhysicalDevice, &createDeviceInfo, nullptr, &vkDevice);       
+    vkCreateDevice(vkPhysicalDevice, &createDeviceInfo, nullptr, &vkDevice);
 }
 
 void VulkanContext::createQueues() {
@@ -228,4 +234,20 @@ void VulkanContext::createQueues() {
 
     graphicsQueue->init();
     transferQueue->init();
+}
+
+void VulkanContext::createVmaAllocator() {
+    auto allocatorInfo = VmaAllocatorCreateInfo{};
+    allocatorInfo.instance = vkInstance;
+    allocatorInfo.physicalDevice = vkPhysicalDevice;
+    allocatorInfo.device = vkDevice;
+    allocatorInfo.flags = VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
+    allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+    //auto vkFuncs = VmaVulkanFunctions{};
+    //allocatorInfo.pVulkanFunctions;
+
+    auto result = vmaCreateAllocator(&allocatorInfo, &vmaAllocator);
+    if (result != VK_SUCCESS)
+        throw std::runtime_error("Failed to initialize VMA allocator.");
+
 }
