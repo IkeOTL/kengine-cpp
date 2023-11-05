@@ -1,8 +1,6 @@
 #define VMA_IMPLEMENTATION
-#include "vk_mem_alloc.h"
-
 #include "VulkanContext.hpp"
-#include <vulkan/vulkan.h>
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -11,12 +9,10 @@ VulkanContext::VulkanContext() {}
 
 VulkanContext::~VulkanContext() {
     if (vkInstance != VK_NULL_HANDLE) {
-
-
         auto funcDestroyDebug = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
         if (funcDestroyDebug)
             funcDestroyDebug(vkInstance, debugCallbackHandle, nullptr);
-                
+
         vmaDestroyAllocator(vmaAllocator);
 
         vkDestroyInstance(vkInstance, nullptr);
@@ -243,8 +239,38 @@ void VulkanContext::createVmaAllocator() {
     allocatorInfo.device = vkDevice;
     allocatorInfo.flags = VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
     allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
-    //auto vkFuncs = VmaVulkanFunctions{};
-    //allocatorInfo.pVulkanFunctions;
+
+    // required
+    vmaVkFunctions.vkGetPhysicalDeviceProperties = (PFN_vkGetPhysicalDeviceProperties)vkGetInstanceProcAddr(vkInstance, "vkGetPhysicalDeviceProperties");
+    vmaVkFunctions.vkGetPhysicalDeviceMemoryProperties = (PFN_vkGetPhysicalDeviceMemoryProperties)vkGetInstanceProcAddr(vkInstance, "vkGetPhysicalDeviceMemoryProperties");
+      
+    vmaVkFunctions.vkAllocateMemory = (PFN_vkAllocateMemory)vkGetDeviceProcAddr(vkDevice, "vkAllocateMemory");
+    vmaVkFunctions.vkFreeMemory = (PFN_vkFreeMemory)vkGetDeviceProcAddr(vkDevice, "vkFreeMemory");
+    vmaVkFunctions.vkMapMemory = (PFN_vkMapMemory)vkGetDeviceProcAddr(vkDevice, "vkMapMemory");
+    vmaVkFunctions.vkUnmapMemory = (PFN_vkUnmapMemory)vkGetDeviceProcAddr(vkDevice, "vkUnmapMemory");
+    vmaVkFunctions.vkFlushMappedMemoryRanges = (PFN_vkFlushMappedMemoryRanges)vkGetDeviceProcAddr(vkDevice, "vkFlushMappedMemoryRanges");
+    vmaVkFunctions.vkInvalidateMappedMemoryRanges = (PFN_vkInvalidateMappedMemoryRanges)vkGetDeviceProcAddr(vkDevice, "vkInvalidateMappedMemoryRanges");
+    vmaVkFunctions.vkBindBufferMemory = (PFN_vkBindBufferMemory)vkGetDeviceProcAddr(vkDevice, "vkBindBufferMemory");
+    vmaVkFunctions.vkBindImageMemory = (PFN_vkBindImageMemory)vkGetDeviceProcAddr(vkDevice, "vkBindImageMemory");
+    vmaVkFunctions.vkGetBufferMemoryRequirements = (PFN_vkGetBufferMemoryRequirements)vkGetDeviceProcAddr(vkDevice, "vkGetBufferMemoryRequirements");
+    vmaVkFunctions.vkGetImageMemoryRequirements = (PFN_vkGetImageMemoryRequirements)vkGetDeviceProcAddr(vkDevice, "vkGetImageMemoryRequirements");
+    vmaVkFunctions.vkCreateBuffer = (PFN_vkCreateBuffer)vkGetDeviceProcAddr(vkDevice, "vkCreateBuffer");
+    vmaVkFunctions.vkDestroyBuffer = (PFN_vkDestroyBuffer)vkGetDeviceProcAddr(vkDevice, "vkDestroyBuffer");
+    vmaVkFunctions.vkCreateImage = (PFN_vkCreateImage)vkGetDeviceProcAddr(vkDevice, "vkCreateImage");
+    vmaVkFunctions.vkDestroyImage = (PFN_vkDestroyImage)vkGetDeviceProcAddr(vkDevice, "vkDestroyImage");
+    vmaVkFunctions.vkCmdCopyBuffer = (PFN_vkCmdCopyBuffer)vkGetDeviceProcAddr(vkDevice, "vkCmdCopyBuffer");
+    
+    //optional
+    vmaVkFunctions.vkGetPhysicalDeviceMemoryProperties2KHR = (PFN_vkGetPhysicalDeviceMemoryProperties2)vkGetInstanceProcAddr(vkInstance, "vkGetPhysicalDeviceMemoryProperties2");
+    
+    vmaVkFunctions.vkGetBufferMemoryRequirements2KHR = (PFN_vkGetBufferMemoryRequirements2)vkGetDeviceProcAddr(vkDevice, "vkGetBufferMemoryRequirements2");
+    vmaVkFunctions.vkGetImageMemoryRequirements2KHR = (PFN_vkGetImageMemoryRequirements2)vkGetDeviceProcAddr(vkDevice, "vkGetImageMemoryRequirements2");
+    vmaVkFunctions.vkBindBufferMemory2KHR = (PFN_vkBindBufferMemory2)vkGetDeviceProcAddr(vkDevice, "vkBindBufferMemory2");
+    vmaVkFunctions.vkBindImageMemory2KHR = (PFN_vkBindImageMemory2)vkGetDeviceProcAddr(vkDevice, "vkBindImageMemory2");
+    vmaVkFunctions.vkGetDeviceBufferMemoryRequirements = (PFN_vkGetDeviceBufferMemoryRequirements)vkGetDeviceProcAddr(vkDevice, "vkGetDeviceBufferMemoryRequirements");
+    vmaVkFunctions.vkGetDeviceImageMemoryRequirements = (PFN_vkGetDeviceImageMemoryRequirements)vkGetDeviceProcAddr(vkDevice, "vkGetDeviceImageMemoryRequirements");
+
+    allocatorInfo.pVulkanFunctions = &vmaVkFunctions;
 
     auto result = vmaCreateAllocator(&allocatorInfo, &vmaAllocator);
     if (result != VK_SUCCESS)

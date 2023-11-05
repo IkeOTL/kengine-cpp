@@ -3,13 +3,11 @@
 #include <future>
 
 Engine::Engine() {
-    window = std::make_unique<Window>();
     threadPool = std::make_unique<ExecutorService>(4);
-    vulkanCxt = std::make_unique<VulkanContext>();
 }
 
 void Engine::run() {
-    vulkanCxt->init(*window, true);
+    vulkanCxt.init(window, true);
 
     //auto future = threadPool->submit([]() {
     //    std::cout << "Task with return value running.\n";
@@ -28,7 +26,7 @@ void Engine::run() {
 
     //std::cout << "Result from task with return value: " << future.get() << "\n";
 
-    window->pollInput();
+    window.pollInput();
 }
 
 Engine::~Engine() {

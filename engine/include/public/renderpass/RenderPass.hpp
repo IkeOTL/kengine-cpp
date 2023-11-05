@@ -4,12 +4,13 @@
 #include <memory>
 #include <vector>
 #include <ColorFormatAndSpace.hpp>
+#include <glm/vec2.hpp>
 
 struct RenderPassContext {
     const int renderPassIndex;
     const int frameBufferIndex;
     const VkCommandBuffer cmd;
-    const glm::ivec2 cmd;
+    const glm::ivec2 extents;
 };
 
 class RenderTarget;
@@ -26,6 +27,8 @@ private:
     std::vector<RT> renderTargets;
 
     virtual RT* createRenderTarget() = 0;
+    virtual void begin(RenderPassContext cxt) = 0;
+    virtual void end(RenderPassContext cxt) = 0;
 
 public:
 
