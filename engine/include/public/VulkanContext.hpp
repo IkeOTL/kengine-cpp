@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-//#define VMA_VULKAN_VERSION 1003000
+#define VMA_VULKAN_VERSION 1003000
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 0
 #include "vk_mem_alloc.h"
@@ -12,14 +12,26 @@
 #include <ColorFormatAndSpace.hpp>
 #include <QueueFamilies.hpp>
 #include <VulkanQueue.hpp>
+#include <glm/vec2.hpp>
+
 
 class VulkanContext {
+
 public:
     VulkanContext();
     ~VulkanContext();
 
     void init(Window& window, bool validationOn);
-    VkResult queueSubmit(VkQueue queue, unsigned int submitCnt, VkSubmitInfo2* submits, VkFence fence);
+
+    struct RenderFrameContext {
+        const int frameIndex;
+        const glm::ivec2 swapchainExtents;
+        const int swapchainIndex;
+        const VkSemaphore imageSemaphore;
+        VkSemaphore cullComputeSemaphore = VK_NULL_HANDLE;
+        const VkFence fence;
+        const VkCommandBuffer cmd;
+    };
 
 private:
     VkInstance vkInstance = VK_NULL_HANDLE;
