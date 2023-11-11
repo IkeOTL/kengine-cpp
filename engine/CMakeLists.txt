@@ -8,6 +8,7 @@ target_sources(engine
         src/ColorFormatAndSpace.cpp
         src/QueueFamilies.cpp
         src/VulkanQueue.cpp
+        src/VmaBuffer.cpp
 
         src/renderpass/RenderPass.cpp
         src/renderpass/RenderTarget.cpp
@@ -18,6 +19,8 @@ target_sources(engine
         include/public/ColorFormatAndSpace.hpp
         include/public/QueueFamilies.hpp
         include/public/VulkanQueue.hpp
+        include/public/VmaInclude.hpp
+        include/public/VmaBuffer.hpp
         include/public/ExecutorService.hpp
 
         include/public/renderpass/RenderPass.hpp

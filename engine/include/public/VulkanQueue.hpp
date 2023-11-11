@@ -16,8 +16,10 @@ private:
     std::mutex mtx;
 
 public:
-    VulkanQueue(VkDevice vkDevice, unsigned int famIdx);
-    ~VulkanQueue();
+    VulkanQueue(VkDevice vkDevice, unsigned int famIdx)
+        : vkDevice(vkDevice), famIdx(famIdx) {}
+
+    ~VulkanQueue() {}
 
     void init();
 

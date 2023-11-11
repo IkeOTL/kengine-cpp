@@ -8,12 +8,23 @@
 class RenderTarget {
 
 public:
-    RenderTarget(VkDevice vkDevice);
+    RenderTarget(VkDevice vkDevice)
+        : vkDevice(vkDevice) { }
 
-    VkFramebuffer createFramebuffer(VmaAllocator vmaAllocator, std::vector<VkImageView> sharedImageViews, glm::ivec2 extents);
+    virtual VkFramebuffer createFramebuffer(
+        RenderPass<RenderTarget>& renderPass,
+        VmaAllocator vmaAllocator,
+        const std::vector<VkImageView>& sharedImageViews,
+        const glm::ivec2& extents
+    ) = 0;
 
-    void init(VmaAllocator vmaAllocator, std::vector<VkImageView> sharedImageViews, glm::ivec2 extents) {
-        vkFrameBuffer = createFramebuffer(vmaAllocator, sharedImageViews, extents);
+    void init(
+        RenderPass<RenderTarget>& renderPass,
+        VmaAllocator vmaAllocator,
+        const std::vector<VkImageView>& sharedImageViews,
+        const glm::ivec2& extents
+    ) {
+        vkFrameBuffer = createFramebuffer(renderPass, vmaAllocator, sharedImageViews, extents);
     }
 
     void vkDispose() {
@@ -22,7 +33,6 @@ public:
     }
 
 private:
-    RenderPass<RenderTarget>& renderPass;
     VkDevice vkDevice;
     VkFramebuffer vkFrameBuffer = VK_NULL_HANDLE;
 

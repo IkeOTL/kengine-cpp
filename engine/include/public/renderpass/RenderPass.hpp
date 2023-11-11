@@ -38,6 +38,13 @@ private:
         renderTargets.push_back(rt)
     }
 
+    void freeRenderTargets() {
+        for (auto& rt : renderTargets)
+            rt->vkDispose();
+
+        renderTargets.clear();
+    }
+
     virtual RT* createRenderTarget() = 0;
     virtual void begin(RenderPassContext cxt) = 0;
     virtual void end(RenderPassContext cxt) = 0;

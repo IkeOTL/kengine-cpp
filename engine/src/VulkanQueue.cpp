@@ -1,12 +1,5 @@
 #include "VulkanQueue.hpp"
 
-VulkanQueue::VulkanQueue(VkDevice vkDevice, unsigned int famIdx)
-    :vkDevice(vkDevice), famIdx(famIdx) {}
-
-VulkanQueue::~VulkanQueue() {
-
-}
-
 void VulkanQueue::init() {
     vkGetDeviceQueue(vkDevice, famIdx, 0, &queue);
 
