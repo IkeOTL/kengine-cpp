@@ -1,7 +1,7 @@
 add_library(engine)
 
 target_sources(engine 
-    PRIVATE
+    PUBLIC
         src/Engine.cpp
         src/Window.cpp
         src/VulkanContext.cpp
@@ -19,8 +19,10 @@ target_sources(engine
         include/public/ColorFormatAndSpace.hpp
         include/public/QueueFamilies.hpp
         include/public/VulkanQueue.hpp
+        include/public/VulkanInclude.hpp
         include/public/VmaInclude.hpp
         include/public/VmaBuffer.hpp
+        include/public/VmaImage.hpp
         include/public/ExecutorService.hpp
 
         include/public/renderpass/RenderPass.hpp

@@ -1,5 +1,5 @@
 #pragma once
-#include <vulkan/vulkan.h>
+#include <VulkanInclude.hpp>
 #include <mutex>
 
 class VulkanQueue {

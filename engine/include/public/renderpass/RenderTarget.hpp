@@ -1,7 +1,5 @@
 #pragma once
 #include <VulkanContext.hpp>
-
-#include <vulkan/vulkan.h>
 #include "RenderPass.hpp"
 #include <glm/vec2.hpp>
 

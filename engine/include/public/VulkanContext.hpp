@@ -1,5 +1,6 @@
 #pragma once
 
+#include <VulkanInclude.hpp>
 #include "VmaInclude.hpp"
 
 #include <Window.hpp>

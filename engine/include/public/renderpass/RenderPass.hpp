@@ -1,5 +1,5 @@
 #pragma once
-#include <vulkan/vulkan_core.h>
+#include <VulkanInclude.hpp>
 #include <type_traits>
 #include <memory>
 #include <vector>
@@ -46,7 +46,7 @@ private:
     }
 
     virtual RT* createRenderTarget() = 0;
-    virtual void begin(RenderPassContext cxt) = 0;
-    virtual void end(RenderPassContext cxt) = 0;
+    virtual void begin(RenderPassContext& cxt) = 0;
+    virtual void end(RenderPassContext& cxt) = 0;
 
 };

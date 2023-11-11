@@ -1,6 +1,6 @@
 #pragma once
+#include <VulkanInclude.hpp>
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
 
 class Window {
 
