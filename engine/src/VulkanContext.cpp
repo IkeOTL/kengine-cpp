@@ -224,9 +224,9 @@ void VulkanContext::createDevice() {
 }
 
 void VulkanContext::createQueues() {
-    graphicsQueue = &VulkanQueue(vkDevice, gfxQueueFamilyIndex);
+    graphicsQueue = std::make_shared<VulkanQueue>(vkDevice, gfxQueueFamilyIndex);
     computeQueue = graphicsQueue;
-    transferQueue = &VulkanQueue(vkDevice, xferQueueFamilyIndex);
+    transferQueue = std::make_unique<VulkanQueue>(vkDevice, xferQueueFamilyIndex);
 
     graphicsQueue->init();
     transferQueue->init();

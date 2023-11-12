@@ -32,9 +32,9 @@ private:
     const ColorFormatAndSpace ColorFormatAndSpace;
 
     VkRenderPass vkRenderPass;
-    std::vector<RT*> renderTargets;
+    std::vector<std::shared_ptr<RT>> renderTargets;
 
-    void addRenderTarget(RT* rt) {
+    void addRenderTarget(std::shared_ptr<RT> rt) {
         renderTargets.push_back(rt)
     }
 
@@ -45,7 +45,7 @@ private:
         renderTargets.clear();
     }
 
-    virtual RT* createRenderTarget() = 0;
+    virtual std::shared_ptr<RT> createRenderTarget() = 0;
     virtual void begin(RenderPassContext& cxt) = 0;
     virtual void end(RenderPassContext& cxt) = 0;
 
