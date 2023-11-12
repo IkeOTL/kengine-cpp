@@ -1,5 +1,6 @@
 #define VMA_IMPLEMENTATION
 #include "VulkanContext.hpp"
+#include "renderpass/RenderPass.hpp"
 
 #include <iostream>
 #include <vector>

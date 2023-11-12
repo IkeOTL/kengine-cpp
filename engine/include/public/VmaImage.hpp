@@ -1,14 +1,15 @@
 #pragma once
 #include "VmaInclude.hpp"
 
+
 class VmaImage {
 
-private:
-    const VmaAllocator vmaAllocator;
-    const VkImage vkImage;
-    const VmaAllocation vmaAllocation;
-
 public:
+    struct ImageAndView {
+        const VmaImage& vmaImage;
+        const VkImageView imageView;
+    };
+
     VmaImage(
         VmaAllocator vmaAllocator,
         VkImage vkImage,
@@ -26,5 +27,10 @@ public:
     VkImage getVkImage() {
         return vkImage;
     }
+
+private:
+    const VmaAllocator vmaAllocator;
+    const VkImage vkImage;
+    const VmaAllocation vmaAllocation;
 
 };

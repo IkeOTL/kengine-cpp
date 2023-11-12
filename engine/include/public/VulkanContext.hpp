@@ -9,15 +9,11 @@
 #include <QueueFamilies.hpp>
 #include <VulkanQueue.hpp>
 #include <glm/vec2.hpp>
+#include <functional>
 
-//class RenderPass;
+class RenderPass;
 
 class VulkanContext {
-
-    /*class RenderPassCreator {
-    public:
-        virtual std::vector<RenderPass&> create(VulkanContext engine, ColorFormatAndSpace colorFormatAndSpace) = 0;
-    };*/
 
 public:
     VulkanContext();
@@ -34,6 +30,8 @@ public:
         const VkFence fence;
         const VkCommandBuffer cmd;
     };
+
+    //using RenderPassCreator = std::function<RenderPass(int, int)>;
 
 private:
     VkInstance vkInstance = VK_NULL_HANDLE;
@@ -58,6 +56,8 @@ private:
     std::shared_ptr<VulkanQueue> graphicsQueue;
     std::shared_ptr<VulkanQueue> computeQueue;
     std::shared_ptr<VulkanQueue> transferQueue;
+
+    std::vector<std::unique_ptr<RenderPass>> renderPasses;
 
     void createVkInstance(bool validationOn);
     void setupDebugging();

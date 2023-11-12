@@ -5,12 +5,10 @@
 #include <vector>
 #include <ColorFormatAndSpace.hpp>
 #include <glm/vec2.hpp>
+#include <VmaImage.hpp>
+#include "RenderTarget.hpp"
 
-class RenderTarget;
-
-template <typename RT>
 class RenderPass {
-    static_assert(std::is_base_of<RenderTarget, RT>::value, "Generic must derive from RenderTarget");
 
 public:
     struct RenderPassContext {
@@ -20,32 +18,34 @@ public:
         const glm::ivec2 extents;
     };
 
-    RenderPass();
+    RenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
+        : vkDevice(vkDevice), colorFormatAndSpace(colorFormatAndSpace) { }
 
-    void vkDispose() {
-        for (auto& rt : renderTargets)
-            rt->vkDispose();
-    }
+    virtual void init();
+    virtual void createRenderTargets(
+        VmaAllocator vmaAllocator,
+        const std::vector<VkImageView>& sharedImageViews,
+        const glm::ivec2& extents
+    ) = 0;
 
 private:
     const VkDevice vkDevice;
-    const ColorFormatAndSpace ColorFormatAndSpace;
+    const ColorFormatAndSpace& colorFormatAndSpace;
 
-    VkRenderPass vkRenderPass;
-    std::vector<std::shared_ptr<RT>> renderTargets;
+    std::unique_ptr<VkRenderPass> vkRenderPass; // add deleter
+    std::vector<std::unique_ptr<RenderTarget>> renderTargets;
+    std::unique_ptr<VmaImage::ImageAndView> depthStencilImageView;
 
-    void addRenderTarget(std::shared_ptr<RT> rt) {
-        renderTargets.push_back(rt)
-    }
+    virtual std::unique_ptr<VkRenderPass> createVkRenderPass() = 0;
+    virtual VmaImage::ImageAndView createDepthStencil(glm::ivec2 extents) = 0;
 
-    void freeRenderTargets() {
-        for (auto& rt : renderTargets)
-            rt->vkDispose();
+    virtual std::unique_ptr<RenderTarget> createRenderTarget(
+        VmaAllocator vmaAllocator,
+        const std::vector<VkImageView>& sharedImageViews,
+        const glm::ivec2& extents,
+        const int renderTargetIndex
+    ) = 0;
 
-        renderTargets.clear();
-    }
-
-    virtual std::shared_ptr<RT> createRenderTarget() = 0;
     virtual void begin(RenderPassContext& cxt) = 0;
     virtual void end(RenderPassContext& cxt) = 0;
 
