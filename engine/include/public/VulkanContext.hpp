@@ -1,7 +1,7 @@
 #pragma once
 
 #include <VulkanInclude.hpp>
-#include "VmaInclude.hpp"
+#include <VmaInclude.hpp>
 
 #include <Window.hpp>
 #include <memory>
@@ -11,13 +11,22 @@
 #include <glm/vec2.hpp>
 #include <functional>
 
-class RenderPass;
+#include <renderpass/RenderPass.hpp>
 
 class VulkanContext {
 
 public:
-    VulkanContext();
+    using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>(VkDevice, ColorFormatAndSpace&)>;
+
+    VulkanContext(RenderPassCreator renderPassCreator)
+        : renderPassCreator(std::move(renderPassCreator)) {}
     ~VulkanContext();
+
+    VulkanContext(const VulkanContext&) = delete;
+    VulkanContext& operator=(const VulkanContext&) = delete;
+
+    VulkanContext(VulkanContext&&) = default;
+    VulkanContext& operator=(VulkanContext&&) = default;
 
     void init(Window& window, bool validationOn);
 
@@ -30,8 +39,6 @@ public:
         const VkFence fence;
         const VkCommandBuffer cmd;
     };
-
-    //using RenderPassCreator = std::function<RenderPass(int, int)>;
 
 private:
     VkInstance vkInstance = VK_NULL_HANDLE;
@@ -58,6 +65,8 @@ private:
     std::shared_ptr<VulkanQueue> transferQueue;
 
     std::vector<std::unique_ptr<RenderPass>> renderPasses;
+
+    RenderPassCreator renderPassCreator;
 
     void createVkInstance(bool validationOn);
     void setupDebugging();

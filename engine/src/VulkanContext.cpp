@@ -1,12 +1,10 @@
 #define VMA_IMPLEMENTATION
-#include "VulkanContext.hpp"
-#include "renderpass/RenderPass.hpp"
+#include <VulkanContext.hpp>
 
 #include <iostream>
 #include <vector>
 #include <algorithm>
-
-VulkanContext::VulkanContext() {}
+#include <renderpass/RenderPass.hpp>
 
 VulkanContext::~VulkanContext() {
     if (vkInstance != VK_NULL_HANDLE) {
@@ -38,6 +36,9 @@ void VulkanContext::init(Window& window, bool validationOn) {
     createDevice();
     createQueues();
     createVmaAllocator();
+
+    renderPasses = renderPassCreator(vkDevice, colorFormatAndSpace);   
+    auto i = 1 - 1;
 }
 
 void VulkanContext::createVkInstance(bool validationOn) {
@@ -244,7 +245,7 @@ void VulkanContext::createVmaAllocator() {
     // required
     vmaVkFunctions.vkGetPhysicalDeviceProperties = (PFN_vkGetPhysicalDeviceProperties)vkGetInstanceProcAddr(vkInstance, "vkGetPhysicalDeviceProperties");
     vmaVkFunctions.vkGetPhysicalDeviceMemoryProperties = (PFN_vkGetPhysicalDeviceMemoryProperties)vkGetInstanceProcAddr(vkInstance, "vkGetPhysicalDeviceMemoryProperties");
-      
+
     vmaVkFunctions.vkAllocateMemory = (PFN_vkAllocateMemory)vkGetDeviceProcAddr(vkDevice, "vkAllocateMemory");
     vmaVkFunctions.vkFreeMemory = (PFN_vkFreeMemory)vkGetDeviceProcAddr(vkDevice, "vkFreeMemory");
     vmaVkFunctions.vkMapMemory = (PFN_vkMapMemory)vkGetDeviceProcAddr(vkDevice, "vkMapMemory");
@@ -260,10 +261,10 @@ void VulkanContext::createVmaAllocator() {
     vmaVkFunctions.vkCreateImage = (PFN_vkCreateImage)vkGetDeviceProcAddr(vkDevice, "vkCreateImage");
     vmaVkFunctions.vkDestroyImage = (PFN_vkDestroyImage)vkGetDeviceProcAddr(vkDevice, "vkDestroyImage");
     vmaVkFunctions.vkCmdCopyBuffer = (PFN_vkCmdCopyBuffer)vkGetDeviceProcAddr(vkDevice, "vkCmdCopyBuffer");
-    
+
     //optional
     vmaVkFunctions.vkGetPhysicalDeviceMemoryProperties2KHR = (PFN_vkGetPhysicalDeviceMemoryProperties2)vkGetInstanceProcAddr(vkInstance, "vkGetPhysicalDeviceMemoryProperties2");
-    
+
     vmaVkFunctions.vkGetBufferMemoryRequirements2KHR = (PFN_vkGetBufferMemoryRequirements2)vkGetDeviceProcAddr(vkDevice, "vkGetBufferMemoryRequirements2");
     vmaVkFunctions.vkGetImageMemoryRequirements2KHR = (PFN_vkGetImageMemoryRequirements2)vkGetDeviceProcAddr(vkDevice, "vkGetImageMemoryRequirements2");
     vmaVkFunctions.vkBindBufferMemory2KHR = (PFN_vkBindBufferMemory2)vkGetDeviceProcAddr(vkDevice, "vkBindBufferMemory2");

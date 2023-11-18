@@ -1,12 +1,13 @@
 #pragma once
 #include "VmaInclude.hpp"
+#include <memory>
 
 
 class VmaImage {
 
 public:
     struct ImageAndView {
-        const VmaImage& vmaImage;
+        const std::shared_ptr<VmaImage> vmaImage;
         const VkImageView imageView;
     };
 

@@ -6,7 +6,7 @@
 #include <ColorFormatAndSpace.hpp>
 #include <glm/vec2.hpp>
 #include <VmaImage.hpp>
-#include "RenderTarget.hpp"
+#include <renderpass/RenderTarget.hpp>
 
 class RenderPass {
 
@@ -21,12 +21,23 @@ public:
     RenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
         : vkDevice(vkDevice), colorFormatAndSpace(colorFormatAndSpace) { }
 
+    virtual ~RenderPass() = default;
+
+    RenderPass(const RenderPass&) = delete;
+    RenderPass& operator=(const RenderPass&) = delete;
+
+    RenderPass(RenderPass&&) = default;
+    RenderPass& operator=(RenderPass&&) = default;
+
     virtual void init();
     virtual void createRenderTargets(
         VmaAllocator vmaAllocator,
         const std::vector<VkImageView>& sharedImageViews,
         const glm::ivec2& extents
     ) = 0;
+
+    virtual void begin(RenderPassContext& cxt) = 0;
+    virtual void end(RenderPassContext& cxt) = 0;
 
 private:
     const VkDevice vkDevice;
@@ -36,8 +47,21 @@ private:
     std::vector<std::unique_ptr<RenderTarget>> renderTargets;
     std::unique_ptr<VmaImage::ImageAndView> depthStencilImageView;
 
+protected:
+    VkDevice getVkDevice() {
+        return vkDevice;
+    }
+
+    const ColorFormatAndSpace& getColorFormatAndSpace() {
+        return colorFormatAndSpace;
+    }
+
+    VkRenderPass* getVkRenderPass() {
+        return vkRenderPass.get();
+    }
+
     virtual std::unique_ptr<VkRenderPass> createVkRenderPass() = 0;
-    virtual VmaImage::ImageAndView createDepthStencil(glm::ivec2 extents) = 0;
+    virtual std::unique_ptr<VmaImage::ImageAndView> createDepthStencil(VmaAllocator vmaAllocator, glm::ivec2 extents) = 0;
 
     virtual std::unique_ptr<RenderTarget> createRenderTarget(
         VmaAllocator vmaAllocator,
@@ -45,8 +69,4 @@ private:
         const glm::ivec2& extents,
         const int renderTargetIndex
     ) = 0;
-
-    virtual void begin(RenderPassContext& cxt) = 0;
-    virtual void end(RenderPassContext& cxt) = 0;
-
 };

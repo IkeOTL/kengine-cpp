@@ -12,6 +12,7 @@ target_sources(engine
 
         src/renderpass/RenderPass.cpp
         src/renderpass/RenderTarget.cpp
+        src/renderpass/DeferredPbrRenderPass.cpp
 
         include/public/Engine.hpp
         include/public/Window.hpp
@@ -27,6 +28,7 @@ target_sources(engine
 
         include/public/renderpass/RenderPass.hpp
         include/public/renderpass/RenderTarget.hpp
+        include/public/renderpass/DeferredPbrRenderPass.hpp
 )
 
 target_include_directories(engine PUBLIC include/public)

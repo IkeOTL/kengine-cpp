@@ -1,5 +1,7 @@
 #pragma once
 #include <VulkanInclude.hpp>
+#include <VmaInclude.hpp>
+#include <vector>
 #include <glm/vec2.hpp>
 
 class RenderPass;
