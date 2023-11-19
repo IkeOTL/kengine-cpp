@@ -7,7 +7,7 @@ public:
         : RenderPass(vkDevice, colorFormatAndSpace) { }
 
     // Inherited via RenderPass
-    virtual void createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::ivec2& extents) override;
+    virtual void createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) override;
     virtual void begin(RenderPassContext& cxt) override;
     virtual void end(RenderPassContext& cxt) override;
 
@@ -19,7 +19,7 @@ public:
     DeferredPbrRenderPass& operator=(DeferredPbrRenderPass&&) = default;
 
 protected:
-    virtual std::unique_ptr<VkRenderPass> createVkRenderPass() override;
-    virtual std::unique_ptr<VmaImage::ImageAndView> createDepthStencil(VmaAllocator vmaAllocator, glm::ivec2 extents) override;
-    virtual std::unique_ptr<RenderTarget> createRenderTarget(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::ivec2& extents, const int renderTargetIndex) override;
+    virtual VkRenderPass createVkRenderPass() override;
+    virtual std::unique_ptr<VmaImage::ImageAndView> createDepthStencil(VmaAllocator vmaAllocator, glm::uvec2& extents) override;
+    virtual std::unique_ptr<RenderTarget> createRenderTarget(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents, const int renderTargetIndex) override;
 };

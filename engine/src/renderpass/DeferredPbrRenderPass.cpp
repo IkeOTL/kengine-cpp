@@ -1,27 +1,45 @@
 #include <renderpass/DeferredPbrRenderPass.hpp>
 #include <glm/vec2.hpp>
 
-void DeferredPbrRenderPass::begin(RenderPassContext& cxt)
-{
+void DeferredPbrRenderPass::begin(RenderPassContext& cxt) {
+    const auto clearCount = 7;
+    VkClearValue clearVal[clearCount]{};
+    clearVal[0].color = { {0, 0, 0, 0} };
+    clearVal[1].color = { {0, 0, 0, 0} };
+    clearVal[2].color = { {0, 0, 0, 0} };
+    clearVal[3].color = { {0, 0, 0, 0} };
+    clearVal[4].color = { {0, 0, 0, 0} };
+    clearVal[5].color = { {0, 0, 0, 0} };
+    clearVal[6].depthStencil = { 1, 0 };
+
+    VkRenderPassBeginInfo rpInfo{};
+    rpInfo.sType = VK_STRUCTURE_TYPE_DEVICE_GROUP_RENDER_PASS_BEGIN_INFO;
+    rpInfo.renderPass = getVkRenderPass();
+
+    rpInfo.clearValueCount = clearCount;
+    rpInfo.pClearValues = clearVal;
+
+    rpInfo.framebuffer = getRenderTarget(cxt.renderTargetIndex)->getVkFramebuffer();
+
+    rpInfo.renderArea.offset = { 0, 0 };
+    rpInfo.renderArea.extent = { cxt.extents.x, cxt.extents.y };
+
+    vkCmdBeginRenderPass(cxt.cmd, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void DeferredPbrRenderPass::end(RenderPassContext& cxt)
-{
+void DeferredPbrRenderPass::end(RenderPassContext& cxt) {
+    vkCmdEndRenderPass(cxt.cmd);
 }
 
-std::unique_ptr<VkRenderPass> DeferredPbrRenderPass::createVkRenderPass() {
-    return std::unique_ptr<VkRenderPass>();
+VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
+    return VK_NULL_HANDLE;
 }
 
-std::unique_ptr<VmaImage::ImageAndView> DeferredPbrRenderPass::createDepthStencil(VmaAllocator vmaAllocator, glm::ivec2 extents) {
-    VkImageView vkImageView;
-    VkImage vkImage;
-    VmaAllocation vmaImageAllocation;
-
+std::unique_ptr<VmaImage::ImageAndView> DeferredPbrRenderPass::createDepthStencil(VmaAllocator vmaAllocator, glm::uvec2& extents) {
     VkImageCreateInfo imageCreateInfo{};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-    //  imageCreateInfo.format = getColorFormatAndSpace().getColorFormat();
+    imageCreateInfo.format = getColorFormatAndSpace().getColorFormat();
     imageCreateInfo.mipLevels = 1;
     imageCreateInfo.arrayLayers = 1;
     imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -29,22 +47,49 @@ std::unique_ptr<VmaImage::ImageAndView> DeferredPbrRenderPass::createDepthStenci
     imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
         | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT
         | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+    imageCreateInfo.extent.width = extents.x;
+    imageCreateInfo.extent.height = extents.y;
+    imageCreateInfo.extent.depth = 1;
 
-    // create vkImageview
-    // create vkImage
+    VmaAllocationCreateInfo  allocationCreateInfo{};
+    allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+    allocationCreateInfo.requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    allocationCreateInfo.preferredFlags = VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
 
-    auto imageAndView = std::make_unique<VmaImage::ImageAndView>(VmaImage::ImageAndView{
-            std::make_shared<VmaImage>(vmaAllocator, vkImage, vmaImageAllocation),
+    VkImage vkImage;
+    VmaAllocation vmaImageAllocation;
+    VmaAllocationInfo allocationInfo;
+    auto res = vmaCreateImage(vmaAllocator, &imageCreateInfo, &allocationCreateInfo, &vkImage, &vmaImageAllocation, &allocationInfo);
+
+    if (res != VK_SUCCESS)
+        throw std::runtime_error("Failed to create depth stencil image.");
+
+    auto depthImage = std::make_shared<VmaImage>(vmaAllocator, vkImage, vmaImageAllocation);
+
+    VkImageViewCreateInfo imageViewCreateInfo{};
+    imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    imageViewCreateInfo.format = getColorFormatAndSpace().getColorFormat();
+    imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    imageViewCreateInfo.subresourceRange.levelCount = 1;
+    imageViewCreateInfo.subresourceRange.layerCount = 1;
+    imageViewCreateInfo.image = depthImage->getVkImage();
+
+    VkImageView vkImageView;
+    res = vkCreateImageView(getVkDevice(), &imageViewCreateInfo, VK_NULL_HANDLE, &vkImageView);
+
+    if (res != VK_SUCCESS)
+        throw std::runtime_error("Failed to create depth stencil image view.");
+
+    return std::make_unique<VmaImage::ImageAndView>(VmaImage::ImageAndView{
+            depthImage,
             vkImageView
         });
-
-    return imageAndView;
 }
 
-std::unique_ptr<RenderTarget> DeferredPbrRenderPass::createRenderTarget(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::ivec2& extents, const int renderTargetIndex)
-{
+std::unique_ptr<RenderTarget> DeferredPbrRenderPass::createRenderTarget(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents, const int renderTargetIndex) {
     return std::unique_ptr<RenderTarget>();
 }
 
-void DeferredPbrRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::ivec2& extents) {
+void DeferredPbrRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) {
 }

@@ -5,7 +5,7 @@ void RenderTarget::init(
     RenderPass& renderPass,
     VmaAllocator vmaAllocator,
     const std::vector<VkImageView>& sharedImageViews,
-    const glm::ivec2& extents
+    const glm::uvec2& extents
 ) {
     vkFrameBuffer = createFramebuffer(renderPass, vmaAllocator, sharedImageViews, extents);
 }

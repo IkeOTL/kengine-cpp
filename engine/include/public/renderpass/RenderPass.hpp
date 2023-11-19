@@ -13,9 +13,9 @@ class RenderPass {
 public:
     struct RenderPassContext {
         const int renderPassIndex;
-        const int frameBufferIndex;
+        const int renderTargetIndex;
         const VkCommandBuffer cmd;
-        const glm::ivec2 extents;
+        const glm::uvec2 extents;
     };
 
     RenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
@@ -33,7 +33,7 @@ public:
     virtual void createRenderTargets(
         VmaAllocator vmaAllocator,
         const std::vector<VkImageView>& sharedImageViews,
-        const glm::ivec2& extents
+        const glm::uvec2& extents
     ) = 0;
 
     virtual void begin(RenderPassContext& cxt) = 0;
@@ -43,30 +43,32 @@ private:
     const VkDevice vkDevice;
     const ColorFormatAndSpace& colorFormatAndSpace;
 
-    std::unique_ptr<VkRenderPass> vkRenderPass; // add deleter
+    VkRenderPass vkRenderPass = VK_NULL_HANDLE;
     std::vector<std::unique_ptr<RenderTarget>> renderTargets;
     std::unique_ptr<VmaImage::ImageAndView> depthStencilImageView;
 
 protected:
-    VkDevice getVkDevice() {
+    const VkDevice getVkDevice() const {
         return vkDevice;
     }
 
-    const ColorFormatAndSpace& getColorFormatAndSpace() {
+    const ColorFormatAndSpace& getColorFormatAndSpace() const {
         return colorFormatAndSpace;
     }
 
-    VkRenderPass* getVkRenderPass() {
-        return vkRenderPass.get();
+    const VkRenderPass getVkRenderPass() const {
+        return vkRenderPass;
     }
 
-    virtual std::unique_ptr<VkRenderPass> createVkRenderPass() = 0;
-    virtual std::unique_ptr<VmaImage::ImageAndView> createDepthStencil(VmaAllocator vmaAllocator, glm::ivec2 extents) = 0;
+    const RenderTarget* getRenderTarget(size_t renderTargetIndex) const;
+
+    virtual VkRenderPass createVkRenderPass() = 0;
+    virtual std::unique_ptr<VmaImage::ImageAndView> createDepthStencil(VmaAllocator vmaAllocator, glm::uvec2& extents) = 0;
 
     virtual std::unique_ptr<RenderTarget> createRenderTarget(
         VmaAllocator vmaAllocator,
         const std::vector<VkImageView>& sharedImageViews,
-        const glm::ivec2& extents,
+        const glm::uvec2& extents,
         const int renderTargetIndex
     ) = 0;
 };

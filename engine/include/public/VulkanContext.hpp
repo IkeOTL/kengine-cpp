@@ -32,7 +32,7 @@ public:
 
     struct RenderFrameContext {
         const int frameIndex;
-        const glm::ivec2 swapchainExtents;
+        const glm::uvec2 swapchainExtents;
         const int swapchainIndex;
         const VkSemaphore imageSemaphore;
         VkSemaphore cullComputeSemaphore = VK_NULL_HANDLE;

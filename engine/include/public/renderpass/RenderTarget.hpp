@@ -14,18 +14,22 @@ public:
 
     ~RenderTarget();
 
+    VkFramebuffer getVkFramebuffer() const {
+        return vkFrameBuffer;
+    }
+
     virtual VkFramebuffer createFramebuffer(
         RenderPass& renderPass,
         VmaAllocator vmaAllocator,
         const std::vector<VkImageView>& sharedImageViews,
-        const glm::ivec2& extents
+        const glm::uvec2& extents
     ) = 0;
 
     void init(
         RenderPass& renderPass,
         VmaAllocator vmaAllocator,
         const std::vector<VkImageView>& sharedImageViews,
-        const glm::ivec2& extents
+        const glm::uvec2& extents
     );
 
 private:

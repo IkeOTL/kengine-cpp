@@ -2,7 +2,6 @@
 #include "VmaInclude.hpp"
 #include <memory>
 
-
 class VmaImage {
 
 public:

@@ -37,8 +37,7 @@ void VulkanContext::init(Window& window, bool validationOn) {
     createQueues();
     createVmaAllocator();
 
-    renderPasses = renderPassCreator(vkDevice, colorFormatAndSpace);   
-    auto i = 1 - 1;
+    renderPasses = std::move(renderPassCreator(vkDevice, colorFormatAndSpace));
 }
 
 void VulkanContext::createVkInstance(bool validationOn) {
