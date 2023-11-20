@@ -11,3 +11,8 @@ const RenderTarget* RenderPass::getRenderTarget(size_t renderTargetIndex) const 
 
     return renderTargets[renderTargetIndex].get();
 }
+
+void RenderPass::freeRenderTargets() {
+    depthStencilImageView = nullptr;
+    renderTargets.clear();
+}

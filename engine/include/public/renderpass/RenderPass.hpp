@@ -45,7 +45,7 @@ private:
 
     VkRenderPass vkRenderPass = VK_NULL_HANDLE;
     std::vector<std::unique_ptr<RenderTarget>> renderTargets;
-    std::unique_ptr<VmaImage::ImageAndView> depthStencilImageView;
+    std::unique_ptr<VmaImage::ImageAndView> depthStencilImageView = nullptr;
 
 protected:
     const VkDevice getVkDevice() const {
@@ -59,6 +59,12 @@ protected:
     const VkRenderPass getVkRenderPass() const {
         return vkRenderPass;
     }
+
+    const VmaImage::ImageAndView* getDepthStencil() const {
+        return depthStencilImageView ? depthStencilImageView.get() : nullptr;
+    }
+
+    void freeRenderTargets();
 
     const RenderTarget* getRenderTarget(size_t renderTargetIndex) const;
 

@@ -16,6 +16,8 @@
 class VulkanContext {
 
 public:
+    static const size_t FRAME_OVERLAP = 3;
+
     using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>(VkDevice, ColorFormatAndSpace&)>;
 
     VulkanContext(RenderPassCreator renderPassCreator)

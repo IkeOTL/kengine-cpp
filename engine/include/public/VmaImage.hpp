@@ -1,21 +1,28 @@
 #pragma once
 #include "VmaInclude.hpp"
 #include <memory>
-
+ rename GpuImage
 class VmaImage {
 
 public:
+    create GpuImageView
     struct ImageAndView {
         const std::shared_ptr<VmaImage> vmaImage;
         const VkImageView imageView;
+
+        ~ImageAndView() {
+            vkDestroyImageView(vmaImage.get()->vkDevice, imageView, nullptr);
+        }
     };
 
     VmaImage(
+        VkDevice vkDevice,
         VmaAllocator vmaAllocator,
         VkImage vkImage,
         VmaAllocation vmaAllocation
     )
-        : vmaAllocator(vmaAllocator),
+        : vkDevice(vkDevice),
+        vmaAllocator(vmaAllocator),
         vkImage(vkImage),
         vmaAllocation(vmaAllocation)
     { }
@@ -29,6 +36,7 @@ public:
     }
 
 private:
+    const VkDevice vkDevice;
     const VmaAllocator vmaAllocator;
     const VkImage vkImage;
     const VmaAllocation vmaAllocation;

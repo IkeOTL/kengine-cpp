@@ -1,5 +1,6 @@
 #include <renderpass/DeferredPbrRenderPass.hpp>
 #include <glm/vec2.hpp>
+#include <VulkanContext.hpp>
 
 void DeferredPbrRenderPass::begin(RenderPassContext& cxt) {
     const auto clearCount = 7;
@@ -64,7 +65,7 @@ std::unique_ptr<VmaImage::ImageAndView> DeferredPbrRenderPass::createDepthStenci
     if (res != VK_SUCCESS)
         throw std::runtime_error("Failed to create depth stencil image.");
 
-    auto depthImage = std::make_shared<VmaImage>(vmaAllocator, vkImage, vmaImageAllocation);
+    auto depthImage = std::make_shared<VmaImage>(getVkDevice(), vmaAllocator, vkImage, vmaImageAllocation);
 
     VkImageViewCreateInfo imageViewCreateInfo{};
     imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -92,4 +93,9 @@ std::unique_ptr<RenderTarget> DeferredPbrRenderPass::createRenderTarget(VmaAlloc
 }
 
 void DeferredPbrRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) {
+    freeRenderTargets();
+
+    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+
+    }
 }

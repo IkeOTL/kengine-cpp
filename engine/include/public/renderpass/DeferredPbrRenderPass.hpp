@@ -22,4 +22,5 @@ protected:
     virtual VkRenderPass createVkRenderPass() override;
     virtual std::unique_ptr<VmaImage::ImageAndView> createDepthStencil(VmaAllocator vmaAllocator, glm::uvec2& extents) override;
     virtual std::unique_ptr<RenderTarget> createRenderTarget(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents, const int renderTargetIndex) override;
+
 };
