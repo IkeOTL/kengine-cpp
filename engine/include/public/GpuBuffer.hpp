@@ -1,7 +1,7 @@
 #pragma once
 #include "VmaInclude.hpp"
 
-class VmaBuffer {
+class GpuBuffer {
 
 private:
     const VmaAllocator vmaAllocator;
@@ -11,7 +11,7 @@ private:
     void* mappedBuffer = nullptr;
 
 public:
-    VmaBuffer(
+    GpuBuffer(
         VmaAllocator vmaAllocator,
         VkBuffer vkBuffer,
         VmaAllocation vmaAllocation,
@@ -23,7 +23,7 @@ public:
         hostCoherent(hostCoherent)
     { }
 
-    ~VmaBuffer();
+    ~GpuBuffer();
 
     VkBuffer getVkBuffer() {
         return vkBuffer;

@@ -8,7 +8,8 @@ target_sources(engine
         src/ColorFormatAndSpace.cpp
         src/QueueFamilies.cpp
         src/VulkanQueue.cpp
-        src/VmaBuffer.cpp
+        src/GpuBuffer.cpp
+        src/Swapchain.cpp
 
         src/renderpass/RenderPass.cpp
         src/renderpass/RenderTarget.cpp
@@ -22,8 +23,9 @@ target_sources(engine
         include/public/VulkanQueue.hpp
         include/public/VulkanInclude.hpp
         include/public/VmaInclude.hpp
-        include/public/VmaBuffer.hpp
-        include/public/VmaImage.hpp
+        include/public/GpuBuffer.hpp
+        include/public/GpuImage.hpp
+        include/public/Swapchain.hpp
         include/public/ExecutorService.hpp
 
         include/public/renderpass/RenderPass.hpp

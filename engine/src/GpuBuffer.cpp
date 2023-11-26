@@ -1,14 +1,14 @@
-#include "VmaBuffer.hpp"
+#include "GpuBuffer.hpp"
 #include <stdexcept>
 
-void* VmaBuffer::data() {
+void* GpuBuffer::data() {
     if (!mappedBuffer)
         throw std::runtime_error("Buffer not mapped.");
 
     return mappedBuffer;
 }
 
-void* VmaBuffer::map() {
+void* GpuBuffer::map() {
     if (mappedBuffer)
         return mappedBuffer;
 
@@ -17,7 +17,7 @@ void* VmaBuffer::map() {
     return data();
 }
 
-void VmaBuffer::unmap() {
+void GpuBuffer::unmap() {
     if (!mappedBuffer)
         return;
 
@@ -25,14 +25,14 @@ void VmaBuffer::unmap() {
     mappedBuffer = nullptr;
 }
 
-void VmaBuffer::flush(unsigned long offset, unsigned long size) {
+void GpuBuffer::flush(unsigned long offset, unsigned long size) {
     if (!hostCoherent)
         return;
 
     vmaFlushAllocation(vmaAllocator, vmaAllocation, offset, size);
 }
 
-VmaBuffer::~VmaBuffer() {
+GpuBuffer::~GpuBuffer() {
     if (!mappedBuffer) {
         vmaUnmapMemory(vmaAllocator, vmaAllocation);
         mappedBuffer = nullptr;

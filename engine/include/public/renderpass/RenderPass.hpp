@@ -5,7 +5,7 @@
 #include <vector>
 #include <ColorFormatAndSpace.hpp>
 #include <glm/vec2.hpp>
-#include <VmaImage.hpp>
+#include <GpuImage.hpp>
 #include <renderpass/RenderTarget.hpp>
 
 class RenderPass {
@@ -45,7 +45,7 @@ private:
 
     VkRenderPass vkRenderPass = VK_NULL_HANDLE;
     std::vector<std::unique_ptr<RenderTarget>> renderTargets;
-    std::unique_ptr<VmaImage::ImageAndView> depthStencilImageView = nullptr;
+    std::unique_ptr<GpuImageView> depthStencilImageView = nullptr;
 
 protected:
     const VkDevice getVkDevice() const {
@@ -60,8 +60,12 @@ protected:
         return vkRenderPass;
     }
 
-    const VmaImage::ImageAndView* getDepthStencil() const {
+    const GpuImageView* getDepthStencil() const {
         return depthStencilImageView ? depthStencilImageView.get() : nullptr;
+    }
+
+    const void setDepthStencil(std::unique_ptr<GpuImageView> ds) {
+        depthStencilImageView = std::move(ds);
     }
 
     void freeRenderTargets();
@@ -69,7 +73,7 @@ protected:
     const RenderTarget* getRenderTarget(size_t renderTargetIndex) const;
 
     virtual VkRenderPass createVkRenderPass() = 0;
-    virtual std::unique_ptr<VmaImage::ImageAndView> createDepthStencil(VmaAllocator vmaAllocator, glm::uvec2& extents) = 0;
+    virtual std::unique_ptr<GpuImageView> createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2& extents) = 0;
 
     virtual std::unique_ptr<RenderTarget> createRenderTarget(
         VmaAllocator vmaAllocator,

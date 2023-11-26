@@ -36,7 +36,7 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
     return VK_NULL_HANDLE;
 }
 
-std::unique_ptr<VmaImage::ImageAndView> DeferredPbrRenderPass::createDepthStencil(VmaAllocator vmaAllocator, glm::uvec2& extents) {
+std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2& extents) {
     VkImageCreateInfo imageCreateInfo{};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -65,7 +65,12 @@ std::unique_ptr<VmaImage::ImageAndView> DeferredPbrRenderPass::createDepthStenci
     if (res != VK_SUCCESS)
         throw std::runtime_error("Failed to create depth stencil image.");
 
-    auto depthImage = std::make_shared<VmaImage>(getVkDevice(), vmaAllocator, vkImage, vmaImageAllocation);
+    auto depthImage = std::make_shared<GpuImage>(GpuImage{
+            getVkDevice(),
+            vmaAllocator,
+            vkImage,
+            vmaImageAllocation
+        });
 
     VkImageViewCreateInfo imageViewCreateInfo{};
     imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -74,7 +79,7 @@ std::unique_ptr<VmaImage::ImageAndView> DeferredPbrRenderPass::createDepthStenci
     imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
     imageViewCreateInfo.subresourceRange.levelCount = 1;
     imageViewCreateInfo.subresourceRange.layerCount = 1;
-    imageViewCreateInfo.image = depthImage->getVkImage();
+    imageViewCreateInfo.image = depthImage->vkImage;
 
     VkImageView vkImageView;
     res = vkCreateImageView(getVkDevice(), &imageViewCreateInfo, VK_NULL_HANDLE, &vkImageView);
@@ -82,7 +87,7 @@ std::unique_ptr<VmaImage::ImageAndView> DeferredPbrRenderPass::createDepthStenci
     if (res != VK_SUCCESS)
         throw std::runtime_error("Failed to create depth stencil image view.");
 
-    return std::make_unique<VmaImage::ImageAndView>(VmaImage::ImageAndView{
+    return std::make_unique<GpuImageView>(GpuImageView{
             depthImage,
             vkImageView
         });
@@ -94,6 +99,8 @@ std::unique_ptr<RenderTarget> DeferredPbrRenderPass::createRenderTarget(VmaAlloc
 
 void DeferredPbrRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) {
     freeRenderTargets();
+
+    setDepthStencil(createDepthStencil(vmaAllocator, extents));
 
     for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
 
