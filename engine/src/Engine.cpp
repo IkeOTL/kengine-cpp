@@ -2,8 +2,8 @@
 #include <iostream>
 #include <future>
 
-Engine::Engine(VulkanContext::RenderPassCreator rpc)
-    : vulkanCxt(VulkanContext(rpc)) {
+Engine::Engine(VulkanContext::RenderPassCreator rpc, VulkanContext::OnSwapchainCreate scc)
+    : vulkanCxt(VulkanContext(rpc, scc)) {
     threadPool = std::make_unique<ExecutorService>(4);
 }
 

@@ -12,6 +12,7 @@
 #include <functional>
 
 #include <renderpass/RenderPass.hpp>
+#include <Swapchain.hpp>
 
 class VulkanContext {
 
