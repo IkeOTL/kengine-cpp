@@ -3,7 +3,7 @@
 #include <future>
 
 Engine::Engine(VulkanContext::RenderPassCreator rpc, VulkanContext::OnSwapchainCreate scc)
-    : vulkanCxt(VulkanContext(rpc, scc)) {
+    : vulkanCxt(VulkanContext(rpc, scc)), window(Window("Lolol", 1920, 1080)) {
     threadPool = std::make_unique<ExecutorService>(4);
 }
 

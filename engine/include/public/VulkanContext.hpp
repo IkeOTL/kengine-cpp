@@ -61,6 +61,7 @@ private:
     VkPhysicalDeviceMemoryProperties2 vkPhysicalDeviceMemoryProps{};
     QueueFamilies queueFamilies{};
     VkDevice vkDevice = VK_NULL_HANDLE;
+    std::unique_ptr<Swapchain> swapchain;
 
     VmaVulkanFunctions vmaVkFunctions;
     VmaAllocator vmaAllocator = VK_NULL_HANDLE;

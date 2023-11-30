@@ -103,6 +103,7 @@ std::unique_ptr<Swapchain> Swapchain::replace(VkPhysicalDevice physicalDevice, V
         for (auto i = 0; i < imageCount; i++) {
             swapchain->vkImages[i] = swapchainImages[i];
 
+            ivci.image = swapchainImages[i];
             result = vkCreateImageView(device, &ivci, VK_NULL_HANDLE, &swapchain->vkImageViews[i]);
             if (result != VK_SUCCESS)
                 throw std::runtime_error("Failed to create image view");

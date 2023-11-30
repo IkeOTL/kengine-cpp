@@ -2,7 +2,8 @@
 #include "Window.hpp"
 #include <iostream>
 
-Window::Window() {
+Window::Window(std::string title, unsigned int width, unsigned int height)
+    : width(width), height(height) {
     if (!glfwInit())
         throw std::runtime_error("Failed to initialize GLFW.");
 
@@ -13,7 +14,7 @@ Window::Window() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-    window = glfwCreateWindow(1920, 1080, "Demo", NULL, NULL);
+    window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
 
     if (!window) {
         std::cerr << "Failed to create GLFW window" << std::endl;

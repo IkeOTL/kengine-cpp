@@ -5,15 +5,21 @@
 int main() {
     glm::mat4 Proj = glm::mat4();
 
-    Engine engine([](VkDevice vkDevice, ColorFormatAndSpace& cfs) -> std::vector<std::unique_ptr<RenderPass>> {
-        std::vector<std::unique_ptr<RenderPass>> passes;
+    Engine engine(
+        [](VkDevice vkDevice, ColorFormatAndSpace& cfs) -> std::vector<std::unique_ptr<RenderPass>> {
+            std::vector<std::unique_ptr<RenderPass>> passes;
 
-        auto rp = std::make_unique<DeferredPbrRenderPass>(vkDevice, cfs);
-        rp->init();
-        passes.emplace_back(std::move(rp));
+            auto rp = std::make_unique<DeferredPbrRenderPass>(vkDevice, cfs);
+            rp->init();
+            passes.emplace_back(std::move(rp));
 
-        return passes;
-        });
+            return passes;
+        },
+        [](VulkanContext& vkCxt, Swapchain& swapchain, std::vector<std::unique_ptr<RenderPass>>& renderpasses) -> void {
+            std::vector<std::unique_ptr<RenderPass>> passes;
+
+        }
+        );
 
     engine.run();
     return 0;

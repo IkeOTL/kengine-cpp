@@ -38,6 +38,7 @@ void VulkanContext::init(Window& window, bool validationOn) {
     createVmaAllocator();
 
     renderPasses = std::move(renderPassCreator(vkDevice, colorFormatAndSpace));
+    swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
 }
 
 void VulkanContext::createVkInstance(bool validationOn) {
