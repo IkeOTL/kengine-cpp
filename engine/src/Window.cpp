@@ -27,9 +27,8 @@ Window::Window(std::string title, unsigned int width, unsigned int height)
 
 void Window::createSurface(VkInstance vkInstance, VkSurfaceKHR& surface)
 {
-    auto code = glfwCreateWindowSurface(vkInstance, getWindow(), nullptr, &surface);
-    if (code != VK_SUCCESS)
-        throw std::runtime_error("Failed to create window surface.");
+    VKCHECK(glfwCreateWindowSurface(vkInstance, getWindow(), nullptr, &surface),
+        "Failed to create window surface.");
 }
 
 void Window::pollInput() {

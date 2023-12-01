@@ -76,27 +76,20 @@ void VulkanContext::createVkInstance(bool validationOn) {
 
     // might change this logic since we might need layers that arent validation layers
     if (!validationOn) {
-        auto result = vkCreateInstance(&createInfo, nullptr, &vkInstance);
-
-        if (result != VK_SUCCESS)
-            throw std::runtime_error("Failed to create Vulkan instance.");
-
+        VKCHECK(vkCreateInstance(&createInfo, nullptr, &vkInstance),
+            "Failed to create Vulkan instance.");
         return;
     }
 
     // apply validation layers
     auto layerCount = 0u;
-    auto lPropsResult = vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-    if (lPropsResult != VK_SUCCESS)
-        throw std::runtime_error("Failed to get the number of instance layers.");
+    VKCHECK(vkEnumerateInstanceLayerProperties(&layerCount, nullptr),
+        "Failed to get the number of instance layers.");
 
     auto availableLayers = std::vector<VkLayerProperties>(layerCount);
 
-    lPropsResult = vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-    if (lPropsResult != VK_SUCCESS)
-        throw std::runtime_error("Failed to get instance layers properties.");
+    VKCHECK(vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data()),
+        "Failed to get instance layers properties.");
 
     std::vector<const char*> desiredLayers = {
           "VK_LAYER_LUNARG_standard_validation",
@@ -124,10 +117,8 @@ void VulkanContext::createVkInstance(bool validationOn) {
         createInfo.ppEnabledLayerNames = layersToEnable.data();
     }
 
-    auto result = vkCreateInstance(&createInfo, nullptr, &vkInstance);
-
-    if (result != VK_SUCCESS)
-        throw std::runtime_error("Failed to create Vulkan instance.");
+    VKCHECK(vkCreateInstance(&createInfo, nullptr, &vkInstance),
+        "Failed to create Vulkan instance.");
 }
 
 
@@ -274,8 +265,6 @@ void VulkanContext::createVmaAllocator() {
 
     allocatorInfo.pVulkanFunctions = &vmaVkFunctions;
 
-    auto result = vmaCreateAllocator(&allocatorInfo, &vmaAllocator);
-    if (result != VK_SUCCESS)
-        throw std::runtime_error("Failed to initialize VMA allocator.");
-
+    VKCHECK(vmaCreateAllocator(&allocatorInfo, &vmaAllocator),
+        "Failed to initialize VMA allocator.");
 }

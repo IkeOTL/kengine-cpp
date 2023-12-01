@@ -4,19 +4,16 @@ std::unique_ptr<Swapchain> Swapchain::replace(VkPhysicalDevice physicalDevice, V
     int newWidth, int newHeight, VkSurfaceKHR surface, ColorFormatAndSpace& colorFormatAndSpace) {
 
     auto presentModeCount = 0u;
-    auto result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, VK_NULL_HANDLE);
-    if (result != VK_SUCCESS)
-        throw std::runtime_error("Failed to get number of physical device surface presentation modes");
+    VKCHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, VK_NULL_HANDLE),
+        "Failed to get number of physical device surface presentation modes");
 
     std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-    result = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
-    if (result != VK_SUCCESS)
-        throw std::runtime_error("Failed to get physical device surface presentation modes");
+    VKCHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data()),
+        "Failed to get physical device surface presentation modes");
 
     VkSurfaceCapabilitiesKHR surfaceCapabilities{};
-    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);
-    if (result != VK_SUCCESS)
-        throw std::runtime_error("Failed to get physical device surface capabilities");
+    VKCHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities),
+        "Failed to get physical device surface capabilities");
 
     auto swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
     //            int swapchainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
@@ -61,9 +58,8 @@ std::unique_ptr<Swapchain> Swapchain::replace(VkPhysicalDevice physicalDevice, V
     sci.imageExtent = { imageExtents.x, imageExtents.y };
 
     VkSwapchainKHR newVkSwapchain;
-    result = vkCreateSwapchainKHR(device, &sci, VK_NULL_HANDLE, &newVkSwapchain);
-    if (result != VK_SUCCESS)
-        throw std::runtime_error("Failed create swapchain.");
+    VKCHECK(vkCreateSwapchainKHR(device, &sci, VK_NULL_HANDLE, &newVkSwapchain),
+        "Failed create swapchain.");
 
     if (vkSwapchain != VK_NULL_HANDLE) {
         vkDeviceWaitIdle(device);
@@ -73,17 +69,18 @@ std::unique_ptr<Swapchain> Swapchain::replace(VkPhysicalDevice physicalDevice, V
             vkDestroyImageView(device, iv, VK_NULL_HANDLE);
 
         vkDestroySwapchainKHR(device, vkSwapchain, VK_NULL_HANDLE);
+
+        // set null ptr so the destructor can early exit in case of already disposed
+        vkSwapchain = VK_NULL_HANDLE;
     }
 
     auto imageCount = 0u;
-    result = vkGetSwapchainImagesKHR(device, newVkSwapchain, &imageCount, VK_NULL_HANDLE);
-    if (result != VK_SUCCESS)
-        throw std::runtime_error("Failed to get number of swapchain images");
+    VKCHECK(vkGetSwapchainImagesKHR(device, newVkSwapchain, &imageCount, VK_NULL_HANDLE),
+        "Failed to get number of swapchain images");
 
     std::vector<VkImage> swapchainImages(imageCount);
-    result = vkGetSwapchainImagesKHR(device, newVkSwapchain, &imageCount, swapchainImages.data());
-    if (result != VK_SUCCESS)
-        throw std::runtime_error("Failed to get swapchain images");
+    VKCHECK(vkGetSwapchainImagesKHR(device, newVkSwapchain, &imageCount, swapchainImages.data()),
+        "Failed to get swapchain images");
 
     // create new swapchain
     {
@@ -104,9 +101,8 @@ std::unique_ptr<Swapchain> Swapchain::replace(VkPhysicalDevice physicalDevice, V
             swapchain->vkImages[i] = swapchainImages[i];
 
             ivci.image = swapchainImages[i];
-            result = vkCreateImageView(device, &ivci, VK_NULL_HANDLE, &swapchain->vkImageViews[i]);
-            if (result != VK_SUCCESS)
-                throw std::runtime_error("Failed to create image view");
+            VKCHECK(vkCreateImageView(device, &ivci, VK_NULL_HANDLE, &swapchain->vkImageViews[i]),
+                "Failed to create image view");
         }
 
         return swapchain;

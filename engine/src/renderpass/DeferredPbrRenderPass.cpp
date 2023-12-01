@@ -60,10 +60,8 @@ std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAlloc
     VkImage vkImage;
     VmaAllocation vmaImageAllocation;
     VmaAllocationInfo allocationInfo;
-    auto res = vmaCreateImage(vmaAllocator, &imageCreateInfo, &allocationCreateInfo, &vkImage, &vmaImageAllocation, &allocationInfo);
-
-    if (res != VK_SUCCESS)
-        throw std::runtime_error("Failed to create depth stencil image.");
+    VKCHECK(vmaCreateImage(vmaAllocator, &imageCreateInfo, &allocationCreateInfo, &vkImage, &vmaImageAllocation, &allocationInfo),
+        "Failed to create depth stencil image.");
 
     auto depthImage = std::make_shared<GpuImage>(GpuImage{
             getVkDevice(),
@@ -82,10 +80,8 @@ std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAlloc
     imageViewCreateInfo.image = depthImage->vkImage;
 
     VkImageView vkImageView;
-    res = vkCreateImageView(getVkDevice(), &imageViewCreateInfo, VK_NULL_HANDLE, &vkImageView);
-
-    if (res != VK_SUCCESS)
-        throw std::runtime_error("Failed to create depth stencil image view.");
+    VKCHECK(vkCreateImageView(getVkDevice(), &imageViewCreateInfo, VK_NULL_HANDLE, &vkImageView),
+        "Failed to create depth stencil image view.");
 
     return std::make_unique<GpuImageView>(GpuImageView{
             depthImage,
