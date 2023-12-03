@@ -6,7 +6,7 @@ int main() {
     glm::mat4 Proj = glm::mat4();
 
     Engine engine(
-        [](VkDevice vkDevice, ColorFormatAndSpace& cfs) -> std::vector<std::unique_ptr<RenderPass>> {
+        [](VkDevice vkDevice, ColorFormatAndSpace& cfs) {
             std::vector<std::unique_ptr<RenderPass>> passes;
 
             auto rp = std::make_unique<DeferredPbrRenderPass>(vkDevice, cfs);
@@ -15,7 +15,7 @@ int main() {
 
             return passes;
         },
-        [](VulkanContext& vkCxt, Swapchain& swapchain, std::vector<std::unique_ptr<RenderPass>>& renderpasses) -> void {
+        [](VulkanContext& vkCxt, Swapchain& swapchain, std::vector<std::unique_ptr<RenderPass>>& renderPasses) {
             std::vector<std::unique_ptr<RenderPass>> passes;
 
         }

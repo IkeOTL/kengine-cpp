@@ -15,17 +15,41 @@
 #include <renderpass/RenderPass.hpp>
 #include <Swapchain.hpp>
 
+class VulkanContext;
+
+class SwapchainCreator {
+public:
+    using OnSwapchainCreate = std::function<void(VulkanContext&, Swapchain&, std::vector<std::unique_ptr<RenderPass>>&)>;
+
+    SwapchainCreator(OnSwapchainCreate onSwapchainCreate)
+        : onSwapchainCreate(onSwapchainCreate) {}
+
+    void init(Window& window);
+
+    void setMustRecreate(bool mustRecreate) {
+        this->mustRecreate = mustRecreate;
+    }
+
+    bool recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain, OnSwapchainCreate& cb);
+
+private:
+    std::mutex lock{};
+    int targetWidth = 0, targetHeight = 0;
+    bool mustRecreate = false;
+    OnSwapchainCreate onSwapchainCreate;
+};
+
 class VulkanContext {
 
 public:
     static const size_t FRAME_OVERLAP = 3;
 
     using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>(VkDevice, ColorFormatAndSpace&)>;
-    using OnSwapchainCreate = std::function<void(VulkanContext&, Swapchain&, std::vector<std::unique_ptr<RenderPass>>&)>;
 
-    VulkanContext(RenderPassCreator renderPassCreator, OnSwapchainCreate onSwapchainCreate)
+
+    VulkanContext(RenderPassCreator renderPassCreator, SwapchainCreator::OnSwapchainCreate onSwapchainCreate)
         : renderPassCreator(std::move(renderPassCreator)),
-        onSwapchainCreate(onSwapchainCreate) {}
+        swapchainCreator(std::move(onSwapchainCreate)) {}
     ~VulkanContext();
 
     VulkanContext(const VulkanContext&) = delete;
@@ -35,6 +59,30 @@ public:
     VulkanContext& operator=(VulkanContext&&) = default;
 
     void init(Window& window, bool validationOn);
+
+    VkSurfaceKHR getVkSurface() {
+        return vkSurface;
+    }
+
+    VkDevice getVkDevice() {
+        return vkDevice;
+    }
+
+    VkPhysicalDevice getVkPhysicalDevice() {
+        return vkPhysicalDevice;
+    }
+
+    Swapchain* getSwapchain() {
+        return swapchain.get();
+    }
+
+    void setSwapchain(std::unique_ptr<Swapchain> sc) {
+        swapchain = std::move(sc);
+    }
+
+    ColorFormatAndSpace& getColorFormatAndSpace() {
+        return colorFormatAndSpace;
+    }
 
     std::vector<std::unique_ptr<RenderPass>>& getRenderPasses() {
         return renderPasses;
@@ -78,7 +126,7 @@ private:
     std::vector<std::unique_ptr<RenderPass>> renderPasses;
 
     RenderPassCreator renderPassCreator;
-    OnSwapchainCreate onSwapchainCreate;
+    SwapchainCreator swapchainCreator;
 
     void createVkInstance(bool validationOn);
     void setupDebugging();

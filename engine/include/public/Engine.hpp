@@ -7,7 +7,7 @@
 class Engine {
 
 public:
-    Engine(VulkanContext::RenderPassCreator rpc, VulkanContext::OnSwapchainCreate scc);
+    Engine(VulkanContext::RenderPassCreator rpc, SwapchainCreator::OnSwapchainCreate scc);
     ~Engine();
     void run();
 
@@ -15,5 +15,6 @@ private:
     std::unique_ptr<ExecutorService> threadPool;
     Window window;
     VulkanContext vulkanCxt;
+    float delta;
 
 };

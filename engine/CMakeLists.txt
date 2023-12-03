@@ -1,36 +1,54 @@
 add_library(engine)
 
+set(HEADERS
+    include/public/Engine.hpp
+    include/public/Window.hpp
+    include/public/ExecutorService.hpp
+    
+    include/public/vulkan/VulkanContext.hpp
+    include/public/vulkan/ColorFormatAndSpace.hpp
+    include/public/vulkan/QueueFamilies.hpp
+    include/public/vulkan/VulkanQueue.hpp
+    include/public/vulkan/VulkanInclude.hpp
+    include/public/vulkan/VmaInclude.hpp
+    include/public/vulkan/GpuBuffer.hpp
+    include/public/vulkan/GpuImage.hpp
+    include/public/vulkan/Swapchain.hpp
+
+    include/public/vulkan/renderpass/RenderPass.hpp
+    include/public/vulkan/renderpass/RenderTarget.hpp
+    include/public/vulkan/renderpass/DeferredPbrRenderPass.hpp
+
+    include/public/statemachine/StateMachine.hpp
+)
+
+set(SOURCES
+    src/Engine.cpp
+    src/Window.cpp
+
+    src/vulkan/VulkanContext.cpp
+    src/vulkan/ColorFormatAndSpace.cpp
+    src/vulkan/QueueFamilies.cpp
+    src/vulkan/VulkanQueue.cpp
+    src/vulkan/GpuBuffer.cpp
+    src/vulkan/Swapchain.cpp
+
+    src/vulkan/renderpass/RenderPass.cpp
+    src/vulkan/renderpass/RenderTarget.cpp
+    src/vulkan/renderpass/DeferredPbrRenderPass.cpp
+    
+    src/statemachine/StateMachine.cpp
+)
+
 target_sources(engine 
-    PUBLIC
-        src/Engine.cpp
-        src/Window.cpp
-        src/VulkanContext.cpp
-        src/ColorFormatAndSpace.cpp
-        src/QueueFamilies.cpp
-        src/VulkanQueue.cpp
-        src/GpuBuffer.cpp
-        src/Swapchain.cpp
+    PUBLIC 
+        ${HEADERS} 
+        ${SOURCES}
+)
 
-        src/renderpass/RenderPass.cpp
-        src/renderpass/RenderTarget.cpp
-        src/renderpass/DeferredPbrRenderPass.cpp
-
-        include/public/Engine.hpp
-        include/public/Window.hpp
-        include/public/VulkanContext.hpp
-        include/public/ColorFormatAndSpace.hpp
-        include/public/QueueFamilies.hpp
-        include/public/VulkanQueue.hpp
-        include/public/VulkanInclude.hpp
-        include/public/VmaInclude.hpp
-        include/public/GpuBuffer.hpp
-        include/public/GpuImage.hpp
-        include/public/Swapchain.hpp
-        include/public/ExecutorService.hpp
-
-        include/public/renderpass/RenderPass.hpp
-        include/public/renderpass/RenderTarget.hpp
-        include/public/renderpass/DeferredPbrRenderPass.hpp
+source_group(
+    TREE ${CMAKE_CURRENT_SOURCE_DIR}
+    FILES ${HEADERS} ${SOURCES}
 )
 
 target_include_directories(engine PUBLIC include/public)

@@ -39,6 +39,8 @@ void VulkanContext::init(Window& window, bool validationOn) {
 
     renderPasses = std::move(renderPassCreator(vkDevice, colorFormatAndSpace));
     swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
+
+    swapchainCreator.init(window);
 }
 
 void VulkanContext::createVkInstance(bool validationOn) {
@@ -267,4 +269,39 @@ void VulkanContext::createVmaAllocator() {
 
     VKCHECK(vmaCreateAllocator(&allocatorInfo, &vmaAllocator),
         "Failed to initialize VMA allocator.");
+}
+
+void SwapchainCreator::init(Window& window) {
+    window.registerResizeListener([this](GLFWwindow* window, int newWidth, int newHeight) {
+        std::unique_lock<std::mutex> lock(lock);
+        targetWidth = newWidth;
+        targetHeight = newHeight;
+        setMustRecreate(true);
+        });
+}
+
+bool SwapchainCreator::recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain, OnSwapchainCreate& cb) {
+    std::unique_lock<std::mutex> lock(lock);
+
+    if (!mustRecreate && !force)
+        return false;
+
+    // await device idle
+    VKCHECK(vkDeviceWaitIdle(vkCxt.getVkDevice()),
+        "Failed to wait for device idle");
+
+    auto newSwapchain = oldSwapchain.replace(
+        vkCxt.getVkPhysicalDevice(),
+        vkCxt.getVkDevice(),
+        targetWidth,
+        targetHeight,
+        vkCxt.getVkSurface(),
+        vkCxt.getColorFormatAndSpace()
+    );
+
+    vkCxt.setSwapchain(std::move(newSwapchain));
+
+    cb(vkCxt, *vkCxt.getSwapchain(), vkCxt.getRenderPasses());
+
+    return true;
 }
