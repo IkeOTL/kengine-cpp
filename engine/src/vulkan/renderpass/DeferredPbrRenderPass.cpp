@@ -1,6 +1,6 @@
-#include <renderpass/DeferredPbrRenderPass.hpp>
+#include <kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp>
+#include <kengine/vulkan/VulkanContext.hpp>
 #include <glm/vec2.hpp>
-#include <VulkanContext.hpp>
 
 void DeferredPbrRenderPass::begin(RenderPassContext& cxt) {
     const auto clearCount = 7;

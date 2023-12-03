@@ -1,4 +1,4 @@
-#include "Swapchain.hpp"
+#include <kengine/vulkan/Swapchain.hpp>
 
 std::unique_ptr<Swapchain> Swapchain::replace(VkPhysicalDevice physicalDevice, VkDevice device,
     int newWidth, int newHeight, VkSurfaceKHR surface, ColorFormatAndSpace& colorFormatAndSpace) {

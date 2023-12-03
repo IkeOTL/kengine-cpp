@@ -1,25 +1,25 @@
 add_library(engine)
 
 set(HEADERS
-    include/public/Engine.hpp
-    include/public/Window.hpp
-    include/public/ExecutorService.hpp
+    include/public/kengine/Engine.hpp
+    include/public/kengine/Window.hpp
+    include/public/kengine/ExecutorService.hpp
     
-    include/public/vulkan/VulkanContext.hpp
-    include/public/vulkan/ColorFormatAndSpace.hpp
-    include/public/vulkan/QueueFamilies.hpp
-    include/public/vulkan/VulkanQueue.hpp
-    include/public/vulkan/VulkanInclude.hpp
-    include/public/vulkan/VmaInclude.hpp
-    include/public/vulkan/GpuBuffer.hpp
-    include/public/vulkan/GpuImage.hpp
-    include/public/vulkan/Swapchain.hpp
+    include/public/kengine/vulkan/VulkanContext.hpp
+    include/public/kengine/vulkan/ColorFormatAndSpace.hpp
+    include/public/kengine/vulkan/QueueFamilies.hpp
+    include/public/kengine/vulkan/VulkanQueue.hpp
+    include/public/kengine/vulkan/VulkanInclude.hpp
+    include/public/kengine/vulkan/VmaInclude.hpp
+    include/public/kengine/vulkan/GpuBuffer.hpp
+    include/public/kengine/vulkan/GpuImage.hpp
+    include/public/kengine/vulkan/Swapchain.hpp
 
-    include/public/vulkan/renderpass/RenderPass.hpp
-    include/public/vulkan/renderpass/RenderTarget.hpp
-    include/public/vulkan/renderpass/DeferredPbrRenderPass.hpp
+    include/public/kengine/vulkan/renderpass/RenderPass.hpp
+    include/public/kengine/vulkan/renderpass/RenderTarget.hpp
+    include/public/kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp
 
-    include/public/statemachine/StateMachine.hpp
+    include/public/kengine/statemachine/StateMachine.hpp
 )
 
 set(SOURCES

@@ -1,5 +1,5 @@
 #define GLFW_INCLUDE_VULKAN
-#include "Window.hpp"
+#include <kengine/Window.hpp>
 #include <iostream>
 
 Window::Window(std::string title, unsigned int width, unsigned int height)

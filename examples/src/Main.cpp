@@ -1,6 +1,6 @@
-#include "Engine.hpp"
+#include <kengine/Engine.hpp>
 #include <glm/glm.hpp>
-#include <renderpass/DeferredPbrRenderPass.hpp>
+#include <kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp>
 
 int main() {
     glm::mat4 Proj = glm::mat4();

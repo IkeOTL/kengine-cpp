@@ -1,19 +1,19 @@
 #pragma once
 #pragma once
 
-#include <VulkanInclude.hpp>
-#include <VmaInclude.hpp>
+#include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/vulkan/VmaInclude.hpp>
+#include <kengine/vulkan/ColorFormatAndSpace.hpp>
+#include <kengine/vulkan/QueueFamilies.hpp>
+#include <kengine/vulkan/VulkanQueue.hpp>
+#include <kengine/Window.hpp>
 
-#include <Window.hpp>
-#include <memory>
-#include <ColorFormatAndSpace.hpp>
-#include <QueueFamilies.hpp>
-#include <VulkanQueue.hpp>
+#include <kengine/vulkan/renderpass/RenderPass.hpp>
+#include <kengine/vulkan/Swapchain.hpp>
+
 #include <glm/vec2.hpp>
 #include <functional>
-
-#include <renderpass/RenderPass.hpp>
-#include <Swapchain.hpp>
+#include <memory>
 
 class VulkanContext;
 

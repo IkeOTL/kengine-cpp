@@ -1,9 +1,10 @@
 #pragma once
-#include <VulkanInclude.hpp>
+#include <kengine/vulkan/GpuImage.hpp>
+#include <kengine/vulkan/ColorFormatAndSpace.hpp>
+#include <kengine/vulkan/VulkanInclude.hpp>
+
 #include <vector>
-#include <GpuImage.hpp>
 #include <glm/vec2.hpp>
-#include <ColorFormatAndSpace.hpp>
 
 class Swapchain {
 public:

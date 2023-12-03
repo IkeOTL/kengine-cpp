@@ -1,10 +1,10 @@
 #define VMA_IMPLEMENTATION
-#include <VulkanContext.hpp>
+#include <kengine/vulkan/VulkanContext.hpp>
+#include <kengine/vulkan/renderpass/RenderPass.hpp>
 
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <renderpass/RenderPass.hpp>
 
 VulkanContext::~VulkanContext() {
     if (vkInstance != VK_NULL_HANDLE) {

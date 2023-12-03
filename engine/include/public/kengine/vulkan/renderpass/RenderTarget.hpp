@@ -1,6 +1,6 @@
 #pragma once
-#include <VulkanInclude.hpp>
-#include <VmaInclude.hpp>
+#include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/vulkan/VmaInclude.hpp>
 #include <vector>
 #include <glm/vec2.hpp>
 

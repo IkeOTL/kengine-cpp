@@ -1,5 +1,5 @@
 #pragma once
-#include <renderpass/RenderPass.hpp>
+#include <kengine/vulkan/renderpass/RenderPass.hpp>
 
 class DeferredPbrRenderPass : public RenderPass {
 public:

@@ -1,8 +1,8 @@
 #pragma once
-#include <VulkanContext.hpp>
-#include <Window.hpp>
+#include <kengine/vulkan/VulkanContext.hpp>
+#include <kengine/Window.hpp>
+#include <kengine/ExecutorService.hpp>
 #include <memory>
-#include <ExecutorService.hpp>
 
 class Engine {
 

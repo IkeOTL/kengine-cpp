@@ -1,4 +1,4 @@
-#include "VulkanQueue.hpp"
+#include <kengine/vulkan/VulkanQueue.hpp>
 
 void VulkanQueue::init() {
     vkGetDeviceQueue(vkDevice, famIdx, 0, &queue);

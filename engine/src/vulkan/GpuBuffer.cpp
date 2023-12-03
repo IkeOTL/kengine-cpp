@@ -1,4 +1,4 @@
-#include "GpuBuffer.hpp"
+#include <kengine/vulkan/GpuBuffer.hpp>
 #include <stdexcept>
 
 void* GpuBuffer::data() {
