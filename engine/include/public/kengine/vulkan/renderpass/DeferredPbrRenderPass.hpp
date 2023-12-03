@@ -7,9 +7,9 @@ public:
         : RenderPass(vkDevice, colorFormatAndSpace) { }
 
     // Inherited via RenderPass
-    virtual void createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) override;
-    virtual void begin(RenderPassContext& cxt) override;
-    virtual void end(RenderPassContext& cxt) override;
+    void createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) override;
+    void begin(RenderPassContext& cxt) override;
+    void end(RenderPassContext& cxt) override;
 
 
     DeferredPbrRenderPass(const DeferredPbrRenderPass&) = delete;
@@ -19,8 +19,8 @@ public:
     DeferredPbrRenderPass& operator=(DeferredPbrRenderPass&&) = default;
 
 protected:
-    virtual VkRenderPass createVkRenderPass() override;
-    virtual std::unique_ptr<GpuImageView> createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2& extents) override;
-    virtual std::unique_ptr<RenderTarget> createRenderTarget(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents, const int renderTargetIndex) override;
+    VkRenderPass createVkRenderPass() override;
+    std::unique_ptr<GpuImageView> createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2& extents) override;
+    std::unique_ptr<RenderTarget> createRenderTarget(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents, const int renderTargetIndex) override;
 
 };
