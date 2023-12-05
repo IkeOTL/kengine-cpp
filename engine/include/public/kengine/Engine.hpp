@@ -3,6 +3,7 @@
 #include <kengine/Window.hpp>
 #include <kengine/ExecutorService.hpp>
 #include <memory>
+#include <kengine/StateMachine.hpp>
 
 class Engine {
 
@@ -12,7 +13,7 @@ public:
     void run();
 
 private:
-    std::unique_ptr<ExecutorService> threadPool;
+    ExecutorService threadPool;
     Window window;
     VulkanContext vulkanCxt;
     float delta;

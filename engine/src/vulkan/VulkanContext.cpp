@@ -290,6 +290,7 @@ bool SwapchainCreator::recreate(VulkanContext& vkCxt, bool force, Swapchain& old
     VKCHECK(vkDeviceWaitIdle(vkCxt.getVkDevice()),
         "Failed to wait for device idle");
 
+    // will destroy swapchain image views
     auto newSwapchain = oldSwapchain.replace(
         vkCxt.getVkPhysicalDevice(),
         vkCxt.getVkDevice(),

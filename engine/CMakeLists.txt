@@ -1,9 +1,10 @@
-add_library(engine)
+add_library(engine STATIC)
 
 set(HEADERS
     include/public/kengine/Engine.hpp
     include/public/kengine/Window.hpp
     include/public/kengine/ExecutorService.hpp
+    include/public/kengine/StateMachine.hpp
     
     include/public/kengine/vulkan/VulkanContext.hpp
     include/public/kengine/vulkan/ColorFormatAndSpace.hpp
@@ -15,11 +16,13 @@ set(HEADERS
     include/public/kengine/vulkan/GpuImage.hpp
     include/public/kengine/vulkan/Swapchain.hpp
 
+    include/public/kengine/vulkan/pipelines/Pipeline.hpp
+
+    include/public/kengine/vulkan/descriptor/DescriptorSetLayout.hpp
+
     include/public/kengine/vulkan/renderpass/RenderPass.hpp
     include/public/kengine/vulkan/renderpass/RenderTarget.hpp
     include/public/kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp
-
-    include/public/kengine/statemachine/StateMachine.hpp
 )
 
 set(SOURCES
@@ -33,16 +36,16 @@ set(SOURCES
     src/vulkan/GpuBuffer.cpp
     src/vulkan/Swapchain.cpp
 
+    src/vulkan/descriptor/DescriptorSetLayout.cpp
+
     src/vulkan/renderpass/RenderPass.cpp
     src/vulkan/renderpass/RenderTarget.cpp
     src/vulkan/renderpass/DeferredPbrRenderPass.cpp
-    
-    src/statemachine/StateMachine.cpp
 )
 
 target_sources(engine 
-    PUBLIC 
-        ${HEADERS} 
+    PRIVATE
+        ${HEADERS}
         ${SOURCES}
 )
 

@@ -46,7 +46,6 @@ public:
 
     using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>(VkDevice, ColorFormatAndSpace&)>;
 
-
     VulkanContext(RenderPassCreator renderPassCreator, SwapchainCreator::OnSwapchainCreate onSwapchainCreate)
         : renderPassCreator(std::move(renderPassCreator)),
         swapchainCreator(std::move(onSwapchainCreate)) {}
