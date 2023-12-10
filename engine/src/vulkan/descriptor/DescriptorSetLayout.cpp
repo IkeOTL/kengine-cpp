@@ -63,7 +63,7 @@ VkDescriptorSetLayout DescriptorSetLayoutCache::getLayout(const DescriptorSetLay
         bindings.push_back(binding);
     }
 
-    VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
     layoutInfo.pBindings = bindings.data();
