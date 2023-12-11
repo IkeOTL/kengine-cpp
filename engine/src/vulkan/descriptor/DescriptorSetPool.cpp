@@ -2,7 +2,7 @@
 
 using namespace DescriptorSet;
 
-void DescriptorSet::DescriptorSetPool::init() {
+void DescriptorSetPool::init() {
     std::vector<VkDescriptorPoolSize> typeCounts(4);
     typeCounts[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     typeCounts[0].descriptorCount = static_cast<uint32_t>(POOL_SIZE * 0.1);
@@ -35,8 +35,8 @@ void DescriptorSet::DescriptorSetPool::init() {
     vkDescriptorPool = descriptorPool;
 }
 
-VkDescriptorSet DescriptorSet::DescriptorSetPool::getGlobalDescriptorSet(std::string key, DescriptorSetLayoutConfig config) {
-    auto woah = std::pair<std::string, DescriptorSetLayoutConfig>(key, config);
+VkDescriptorSet DescriptorSetPool::getGlobalDescriptorSet(std::string key, DescriptorSetLayoutConfig& config) {
+    auto woah = std::pair<std::string, DescriptorSetLayoutConfig&>(key, config);
 
     auto it = globalDescSets.find(woah);
     if (it != globalDescSets.end())
@@ -48,7 +48,7 @@ VkDescriptorSet DescriptorSet::DescriptorSetPool::getGlobalDescriptorSet(std::st
     return set;
 }
 
-VkDescriptorSet DescriptorSet::DescriptorSetPool::leaseDescriptorSet(DescriptorSetLayoutConfig config) {
+VkDescriptorSet DescriptorSetPool::leaseDescriptorSet(DescriptorSetLayoutConfig& config) {
     auto& descSets = availableDescSets[config];
 
     // have some pooled sets that are available?
@@ -75,7 +75,7 @@ VkDescriptorSet DescriptorSet::DescriptorSetPool::leaseDescriptorSet(DescriptorS
     return set;
 }
 
-VkDescriptorSet DescriptorSet::DescriptorSetPool::createDescriptorSet(DescriptorSetLayoutConfig config) {
+VkDescriptorSet DescriptorSetPool::createDescriptorSet(DescriptorSetLayoutConfig& config) {
     if (createdCount == POOL_SIZE)
         return VK_NULL_HANDLE;
 
@@ -95,7 +95,7 @@ VkDescriptorSet DescriptorSet::DescriptorSetPool::createDescriptorSet(Descriptor
     return descriptorSet;
 }
 
-void DescriptorSet::DescriptorSetPool::flip() {
+void DescriptorSetPool::flip() {
     for (auto& unavailSets : unavailableDescSets) {
         auto& availSets = availableDescSets[unavailSets.first];
         for (auto& u : unavailSets.second)

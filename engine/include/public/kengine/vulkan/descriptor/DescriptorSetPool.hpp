@@ -1,7 +1,6 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
-#include <mutex>
 #include <vector>
 #include <unordered_map>
 #include <functional>
@@ -31,7 +30,7 @@ namespace DescriptorSet {
 
         unsigned int createdCount = 0;
 
-        VkDescriptorSet createDescriptorSet(DescriptorSetLayoutConfig config);
+        VkDescriptorSet createDescriptorSet(DescriptorSetLayoutConfig& config);
 
     public:
         DescriptorSetPool(VkDevice vkDevice, DescriptorSetLayoutCache& layoutCache)
@@ -39,8 +38,12 @@ namespace DescriptorSet {
 
         void init();
 
-        VkDescriptorSet getGlobalDescriptorSet(std::string key, DescriptorSetLayoutConfig config);
-        VkDescriptorSet leaseDescriptorSet(DescriptorSetLayoutConfig config);
+        VkDescriptorSet getGlobalDescriptorSet(std::string key, DescriptorSetLayoutConfig& config);
+        VkDescriptorSet leaseDescriptorSet(DescriptorSetLayoutConfig& config);
         void flip();
+
+        bool operator==(const DescriptorSetPool& other) const {
+            return vkDescriptorPool == other.vkDescriptorPool;
+        }
     };
 }

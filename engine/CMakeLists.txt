@@ -20,6 +20,7 @@ set(HEADERS
 
     include/public/kengine/vulkan/descriptor/DescriptorSetLayout.hpp
     include/public/kengine/vulkan/descriptor/DescriptorSetPool.hpp
+    include/public/kengine/vulkan/descriptor/DescriptorSetAllocator.hpp
 
     include/public/kengine/vulkan/renderpass/RenderPass.hpp
     include/public/kengine/vulkan/renderpass/RenderTarget.hpp
@@ -39,6 +40,7 @@ set(SOURCES
 
     src/vulkan/descriptor/DescriptorSetLayout.cpp
     src/vulkan/descriptor/DescriptorSetPool.cpp
+    src/vulkan/descriptor/DescriptorSetAllocator.cpp
 
     src/vulkan/renderpass/RenderPass.cpp
     src/vulkan/renderpass/RenderTarget.cpp
