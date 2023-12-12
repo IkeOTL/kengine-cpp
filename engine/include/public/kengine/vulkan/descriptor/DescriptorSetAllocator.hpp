@@ -3,6 +3,7 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include "DescriptorSetLayout.hpp"
 #include "DescriptorSetPool.hpp"
+#include <mutex>
 
 namespace DescriptorSet {
     class DescriptorSetAllocator {
@@ -14,6 +15,9 @@ namespace DescriptorSet {
         std::vector<std::unique_ptr<DescriptorSetPool>> availablePools;
         std::vector<std::unique_ptr<DescriptorSetPool>> unavailablePools;
 
+        std::mutex globalPoolMtx;
+        std::mutex leasePoolMtx;
+
         DescriptorSetPool& getPool();
     public:
         DescriptorSetAllocator(VkDevice vkDevice, DescriptorSetLayoutCache& layoutCache)
@@ -22,7 +26,6 @@ namespace DescriptorSet {
 
         void init();
         void reset();
-        VkDescriptorSet getGlobalDescriptorSet(DescriptorSetLayoutConfig& config);
         VkDescriptorSet getGlobalDescriptorSet(std::string key, DescriptorSetLayoutConfig& config);
         VkDescriptorSet leaseDescriptorSet(DescriptorSetLayoutConfig& config);
     };

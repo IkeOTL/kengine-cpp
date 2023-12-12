@@ -87,6 +87,9 @@ public:
         return renderPasses;
     }
 
+    VkDeviceSize alignUboFrame(VkDeviceSize baseFrameSize) const;
+    VkDeviceSize alignSsboFrame(VkDeviceSize baseFrameSize) const;
+
     struct RenderFrameContext {
         const int frameIndex;
         const glm::uvec2 swapchainExtents;
@@ -104,8 +107,8 @@ private:
     VkSurfaceKHR vkSurface = VK_NULL_HANDLE;
 
     VkPhysicalDevice vkPhysicalDevice = VK_NULL_HANDLE;
-    VkPhysicalDeviceProperties2 vkPhysicalDeviceProps{};
     ColorFormatAndSpace colorFormatAndSpace{};
+    VkPhysicalDeviceProperties2 vkPhysicalDeviceProps{};
     VkPhysicalDeviceMemoryProperties2 vkPhysicalDeviceMemoryProps{};
     QueueFamilies queueFamilies{};
     VkDevice vkDevice = VK_NULL_HANDLE;

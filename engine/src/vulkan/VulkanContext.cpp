@@ -271,6 +271,24 @@ void VulkanContext::createVmaAllocator() {
         "Failed to initialize VMA allocator.");
 }
 
+VkDeviceSize VulkanContext::alignUboFrame(VkDeviceSize baseFrameSize) const {
+    auto minSsboAlignment = vkPhysicalDeviceProps.properties.limits.minStorageBufferOffsetAlignment;
+
+    if (minSsboAlignment <= 0)
+        return baseFrameSize;
+
+    return (baseFrameSize + minSsboAlignment - 1) & ~(minSsboAlignment - 1);
+}
+
+VkDeviceSize VulkanContext::alignSsboFrame(VkDeviceSize baseFrameSize) const {
+    auto minSsboAlignment = vkPhysicalDeviceProps.properties.limits.minStorageBufferOffsetAlignment;
+
+    if (minSsboAlignment <= 0)
+        return baseFrameSize;
+
+    return (baseFrameSize + minSsboAlignment - 1) & ~(minSsboAlignment - 1);
+}
+
 void SwapchainCreator::init(Window& window) {
     window.registerResizeListener([this](GLFWwindow* window, int newWidth, int newHeight) {
         std::unique_lock<std::mutex> lock(lock);

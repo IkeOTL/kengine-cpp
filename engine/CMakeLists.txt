@@ -15,6 +15,8 @@ set(HEADERS
     include/public/kengine/vulkan/GpuBuffer.hpp
     include/public/kengine/vulkan/GpuImage.hpp
     include/public/kengine/vulkan/Swapchain.hpp
+    include/public/kengine/vulkan/CommandBuffer.hpp
+    include/public/kengine/vulkan/GpuBufferCache.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
 
@@ -37,6 +39,7 @@ set(SOURCES
     src/vulkan/VulkanQueue.cpp
     src/vulkan/GpuBuffer.cpp
     src/vulkan/Swapchain.cpp
+    src/vulkan/GpuBufferCache.cpp
 
     src/vulkan/descriptor/DescriptorSetLayout.cpp
     src/vulkan/descriptor/DescriptorSetPool.cpp
