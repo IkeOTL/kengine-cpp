@@ -25,12 +25,17 @@ CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize totalSize, int usageFlags, 
 }
 
 CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, int frameCount, int usageFlags, int memoryUsage, int allocFlags) {
-    if ((usageFlags & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) != 0) {
+    if (usageFlags & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
         frameSize = vkContext.alignUboFrame(frameSize);
-    }
-    else if ((usageFlags & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) != 0) {
+    else if (usageFlags & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
         frameSize = vkContext.alignSsboFrame(frameSize);
-    }
 
-    return CachedGpuBuffer(runningId++, nullptr, 0,0);
+    auto totalSize = frameSize * frameCount;
+
+    auto gpuBuf = std::make_unique<GpuBuffer>(nullptr, nullptr, nullptr, false);
+    auto buf = std::make_unique<CachedGpuBuffer>(runningId.fetch_add(1), std::move(gpuBuf), frameSize, totalSize);
+
+    cache[buf->getId()] = std::move(buf);
+
+    return *(cache[buf->getId()]);
 }

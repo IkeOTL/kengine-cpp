@@ -7,7 +7,7 @@
 
 class CachedGpuBuffer {
 public:
-    CachedGpuBuffer(int id, std::unique_ptr<GpuBuffer> gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize)
+    CachedGpuBuffer(int id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize)
         : id(id), gpuBuffer(std::move(gpuBuffer)), frameSize(frameSize), totalSize(totalSize) {}
 
     GpuBuffer& getGpuBuffer() {
@@ -16,6 +16,10 @@ public:
 
     VkDeviceSize getFrameOffset(size_t frame) {
         return frameSize * frame;
+    }
+
+    unsigned int getId() {
+        return id;
     }
 
 private:
@@ -37,9 +41,9 @@ public:
     GpuBufferCache(const VulkanContext& vkContext)
         : vkContext(vkContext), runningId(0) {}
 
-     CachedGpuBuffer* get(unsigned int cacheKey);
-     CachedGpuBuffer& createHostMapped(VkDeviceSize totalSize, int usageFlags, int memoryUsage, int allocFlags);
-     CachedGpuBuffer& createHostMapped(VkDeviceSize frameSize, int frameCount, int usageFlags, int memoryUsage, int allocFlags);
-     CachedGpuBuffer& create(VkDeviceSize totalSize, int usageFlags, int memoryUsage, int allocFlags);
-     CachedGpuBuffer& create(VkDeviceSize frameSize, int frameCount, int usageFlags, int memoryUsage, int allocFlags);
+    CachedGpuBuffer* get(unsigned int cacheKey);
+    CachedGpuBuffer& createHostMapped(VkDeviceSize totalSize, int usageFlags, int memoryUsage, int allocFlags);
+    CachedGpuBuffer& createHostMapped(VkDeviceSize frameSize, int frameCount, int usageFlags, int memoryUsage, int allocFlags);
+    CachedGpuBuffer& create(VkDeviceSize totalSize, int usageFlags, int memoryUsage, int allocFlags);
+    CachedGpuBuffer& create(VkDeviceSize frameSize, int frameCount, int usageFlags, int memoryUsage, int allocFlags);
 };
