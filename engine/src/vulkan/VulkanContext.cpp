@@ -1,10 +1,15 @@
 #define VMA_IMPLEMENTATION
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
+#include <kengine/vulkan/GpuBuffer.hpp>
 
 #include <iostream>
 #include <vector>
 #include <algorithm>
+
+VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
+    : renderPassCreator(std::move(renderPassCreator)),
+    swapchainCreator(std::move(onSwapchainCreate)) {}
 
 VulkanContext::~VulkanContext() {
     if (vkInstance != VK_NULL_HANDLE) {
@@ -37,7 +42,8 @@ void VulkanContext::init(Window& window, bool validationOn) {
     createQueues();
     createVmaAllocator();
 
-    renderPasses = std::move(renderPassCreator(vkDevice, colorFormatAndSpace));
+    gpuBufferCache = std::make_unique<GpuBufferCache>(*this);
+    renderPasses = renderPassCreator(vkDevice, colorFormatAndSpace);
     swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
 
     swapchainCreator.init(window);
@@ -323,4 +329,79 @@ bool SwapchainCreator::recreate(VulkanContext& vkCxt, bool force, Swapchain& old
     cb(vkCxt, *vkCxt.getSwapchain(), vkCxt.getRenderPasses());
 
     return true;
+}
+
+std::unique_ptr<GpuBuffer> VulkanContext::createBuffer(
+    VkDeviceSize size, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) const {
+
+    VkBufferCreateInfo bufCreateInfo{};
+    bufCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufCreateInfo.size = size;
+    bufCreateInfo.usage = usageFlags;
+
+    VmaAllocationCreateInfo allocationCreateInfo{};
+    allocationCreateInfo.usage = memoryUsage;
+    allocationCreateInfo.flags = allocFlags;
+
+    VkBuffer buffer{};
+    VmaAllocation allocation{};
+    VmaAllocationInfo allocationInfo{};
+    VKCHECK(vmaCreateBuffer(vmaAllocator, &bufCreateInfo, &allocationCreateInfo, &buffer, &allocation, &allocationInfo),
+        "Failed to allocate buffer.");
+
+    VkMemoryPropertyFlags memTypeProperties{};
+    vmaGetMemoryTypeProperties(vmaAllocator, allocationInfo.memoryType, &memTypeProperties);
+    auto isHostCoherent = (memTypeProperties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0;
+
+    return std::make_unique<GpuBuffer>(vmaAllocator, buffer, allocation, isHostCoherent);
+}
+
+void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence) {
+    // record command buffer
+    VkCommandBufferBeginInfo cmdBufBeginInfo{};
+    cmdBufBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    cmdBufBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    VKCHECK(vkBeginCommandBuffer(cmd->vkCmdBuf, &cmdBufBeginInfo),
+        "Failed to begin command buffer.");
+
+    auto followUp = func(*cmd);
+
+    VKCHECK(vkEndCommandBuffer(cmd->vkCmdBuf),
+        "Failed to end command buffer.");
+
+    // submit command buffer
+    VkFenceCreateInfo fenceCreateInfo{};
+    fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    VkFence fence;
+    VKCHECK(vkCreateFence(vkDevice, &fenceCreateInfo, VK_NULL_HANDLE, &fence),
+        "Failed to create fence.");
+
+    VkCommandBufferSubmitInfo cmdBufSubmitInfo{};
+    cmdBufSubmitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
+    cmdBufSubmitInfo.commandBuffer = cmd->vkCmdBuf;
+
+    VkSubmitInfo2 submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+    submitInfo.commandBufferInfoCount = 1;
+    submitInfo.pCommandBufferInfos = &cmdBufSubmitInfo;
+
+    VKCHECK(queue.submit(1, &submitInfo, fence),
+        "Failed to submit command buffer.");
+
+    if (!awaitFence) {
+        std::lock_guard<std::mutex> lock(waitingFenceMtx);
+        // function lambda executes a copy, and we cant copy a unique ptr...
+        std::shared_ptr<CommandBuffer> sCmd = std::move(cmd);
+        waitingFenceActions[fence] = [sCmd, followUp]() mutable {
+            // cmd.dispose(); // unique ptr takes care of this for us
+            if (followUp)
+                followUp();
+        };
+
+        return;
+    }
+
+    vkWaitForFences(vkDevice, 1, &fence, true, LLONG_MAX);
+    if (followUp)
+        followUp();
 }

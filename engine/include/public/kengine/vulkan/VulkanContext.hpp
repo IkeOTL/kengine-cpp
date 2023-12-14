@@ -1,19 +1,18 @@
 #pragma once
-#pragma once
-
 #include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/VmaInclude.hpp>
 #include <kengine/vulkan/ColorFormatAndSpace.hpp>
 #include <kengine/vulkan/QueueFamilies.hpp>
 #include <kengine/vulkan/VulkanQueue.hpp>
-#include <kengine/Window.hpp>
-
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 #include <kengine/vulkan/Swapchain.hpp>
+#include <kengine/vulkan/GpuBufferCache.hpp>
+#include <kengine/Window.hpp>
 
 #include <glm/vec2.hpp>
 #include <functional>
 #include <memory>
+#include "CommandBuffer.hpp"
 
 class VulkanContext;
 
@@ -45,10 +44,9 @@ public:
     static const size_t FRAME_OVERLAP = 3;
 
     using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>(VkDevice, ColorFormatAndSpace&)>;
+    using CommandBufferRecordFunc = std::function<std::function<void()>(const CommandBuffer&)>;
 
-    VulkanContext(RenderPassCreator renderPassCreator, SwapchainCreator::OnSwapchainCreate onSwapchainCreate)
-        : renderPassCreator(std::move(renderPassCreator)),
-        swapchainCreator(std::move(onSwapchainCreate)) {}
+    VulkanContext(RenderPassCreator&& renderPassCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate);
     ~VulkanContext();
 
     VulkanContext(const VulkanContext&) = delete;
@@ -75,7 +73,7 @@ public:
         return swapchain.get();
     }
 
-    void setSwapchain(std::unique_ptr<Swapchain> sc) {
+    void setSwapchain(std::unique_ptr<Swapchain>&& sc) {
         swapchain = std::move(sc);
     }
 
@@ -87,8 +85,13 @@ public:
         return renderPasses;
     }
 
+    std::unique_ptr<GpuBuffer> createBuffer(VkDeviceSize size, VkBufferUsageFlags usageFlags,
+        VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) const;
+
     VkDeviceSize alignUboFrame(VkDeviceSize baseFrameSize) const;
     VkDeviceSize alignSsboFrame(VkDeviceSize baseFrameSize) const;
+
+    void recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence);
 
     struct RenderFrameContext {
         const int frameIndex;
@@ -129,6 +132,11 @@ private:
 
     RenderPassCreator renderPassCreator;
     SwapchainCreator swapchainCreator;
+
+
+    std::mutex waitingFenceMtx;
+    std::unordered_map<VkFence, std::function<void()>> waitingFenceActions;
+    std::unique_ptr<GpuBufferCache> gpuBufferCache;
 
     void createVkInstance(bool validationOn);
     void setupDebugging();

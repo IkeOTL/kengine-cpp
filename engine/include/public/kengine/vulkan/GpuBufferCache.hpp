@@ -1,14 +1,14 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
-#include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/GpuBuffer.hpp>
 #include <mutex>
 #include <unordered_map>
 
+class VulkanContext;
+
 class CachedGpuBuffer {
 public:
-    CachedGpuBuffer(int id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize)
-        : id(id), gpuBuffer(std::move(gpuBuffer)), frameSize(frameSize), totalSize(totalSize) {}
+    CachedGpuBuffer(int id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize);
 
     GpuBuffer& getGpuBuffer() {
         return *(gpuBuffer.get());
@@ -42,8 +42,8 @@ public:
         : vkContext(vkContext), runningId(0) {}
 
     CachedGpuBuffer* get(unsigned int cacheKey);
-    CachedGpuBuffer& createHostMapped(VkDeviceSize totalSize, int usageFlags, int memoryUsage, int allocFlags);
-    CachedGpuBuffer& createHostMapped(VkDeviceSize frameSize, int frameCount, int usageFlags, int memoryUsage, int allocFlags);
-    CachedGpuBuffer& create(VkDeviceSize totalSize, int usageFlags, int memoryUsage, int allocFlags);
-    CachedGpuBuffer& create(VkDeviceSize frameSize, int frameCount, int usageFlags, int memoryUsage, int allocFlags);
+    CachedGpuBuffer& createHostMapped(VkDeviceSize totalSize, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
+    CachedGpuBuffer& createHostMapped(VkDeviceSize frameSize, int frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
+    CachedGpuBuffer& create(VkDeviceSize totalSize, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
+    CachedGpuBuffer& create(VkDeviceSize frameSize, int frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
 };

@@ -5,10 +5,14 @@
 #include <chrono>
 #include <algorithm>
 
-Engine::Engine(VulkanContext::RenderPassCreator rpc, SwapchainCreator::OnSwapchainCreate scc)
-    : vulkanCxt(rpc, scc), window("Lolol", 1920, 1080), threadPool(4) {}
+std::unique_ptr<ExecutorService> Engine::threadPool;
+//std::once_flag Engine::initThreadPoolFlag;
+
+Engine::Engine(VulkanContext::RenderPassCreator&& rpc, SwapchainCreator::OnSwapchainCreate&& scc)
+    : vulkanCxt(std::move(rpc), std::move(scc)), window("Lolol", 1920, 1080) {}
 
 void Engine::run() {
+    initThreadPool();
     vulkanCxt.init(window, true);
 
     //auto future = threadPool->submit([]() {

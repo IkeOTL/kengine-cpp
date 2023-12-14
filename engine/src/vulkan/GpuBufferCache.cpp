@@ -1,4 +1,8 @@
 #include <kengine/vulkan/GpuBufferCache.hpp>
+#include <kengine/vulkan/VulkanContext.hpp>
+
+CachedGpuBuffer::CachedGpuBuffer(int id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize)
+    : id(id), gpuBuffer(std::move(gpuBuffer)), frameSize(frameSize), totalSize(totalSize) {}
 
 CachedGpuBuffer* GpuBufferCache::get(unsigned int cacheKey) {
     std::lock_guard<std::mutex> lock(mtx);
@@ -10,21 +14,21 @@ CachedGpuBuffer* GpuBufferCache::get(unsigned int cacheKey) {
     return it->second.get();
 }
 
-CachedGpuBuffer& GpuBufferCache::createHostMapped(VkDeviceSize totalSize, int usageFlags, int memoryUsage, int allocFlags) {
+CachedGpuBuffer& GpuBufferCache::createHostMapped(VkDeviceSize totalSize, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
     return createHostMapped(totalSize, 1, usageFlags, memoryUsage, allocFlags);
 }
 
-CachedGpuBuffer& GpuBufferCache::createHostMapped(VkDeviceSize frameSize, int frameCount, int usageFlags, int memoryUsage, int allocFlags) {
+CachedGpuBuffer& GpuBufferCache::createHostMapped(VkDeviceSize frameSize, int frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
     auto& buf = create(frameSize, frameCount, usageFlags, memoryUsage, allocFlags);
     buf.getGpuBuffer().map();
     return buf;
 }
 
-CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize totalSize, int usageFlags, int memoryUsage, int allocFlags) {
+CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize totalSize, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
     return create(totalSize, 1, usageFlags, memoryUsage, allocFlags);
 }
 
-CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, int frameCount, int usageFlags, int memoryUsage, int allocFlags) {
+CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, int frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
     if (usageFlags & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
         frameSize = vkContext.alignUboFrame(frameSize);
     else if (usageFlags & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
@@ -32,10 +36,15 @@ CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, int frameCount, 
 
     auto totalSize = frameSize * frameCount;
 
-    auto gpuBuf = std::make_unique<GpuBuffer>(nullptr, nullptr, nullptr, false);
-    auto buf = std::make_unique<CachedGpuBuffer>(runningId.fetch_add(1), std::move(gpuBuf), frameSize, totalSize);
+    // get this buffer from vkcxt
+    auto gpuBuf = vkContext.createBuffer(totalSize, usageFlags, memoryUsage, allocFlags);
+    auto newId = runningId.fetch_add(1);
+    auto buf = std::make_unique<CachedGpuBuffer>(newId, std::move(gpuBuf), frameSize, totalSize);
 
-    cache[buf->getId()] = std::move(buf);
+    {
+        std::lock_guard<std::mutex> lock(mtx);
+        cache[newId] = std::move(buf);
+    }
 
-    return *(cache[buf->getId()]);
+    return *(cache[newId]);
 }

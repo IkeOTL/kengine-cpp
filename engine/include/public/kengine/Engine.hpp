@@ -8,14 +8,24 @@
 class Engine {
 
 public:
-    Engine(VulkanContext::RenderPassCreator rpc, SwapchainCreator::OnSwapchainCreate scc);
+    Engine(VulkanContext::RenderPassCreator&& rpc, SwapchainCreator::OnSwapchainCreate&& scc);
     ~Engine();
     void run();
 
+    //static ExecutorService& getThreadPool() {
+    //    std::call_once(initThreadPoolFlag, &initThreadPool);
+    //    return *threadPool;
+    //}
+
 private:
-    ExecutorService threadPool;
     Window window;
     VulkanContext vulkanCxt;
     float delta;
 
+    static std::unique_ptr<ExecutorService> threadPool;
+    //static std::once_flag initThreadPoolFlag;
+
+    static void initThreadPool() {
+        threadPool.reset(new ExecutorService(4));
+    }
 };
