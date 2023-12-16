@@ -12,10 +12,10 @@ public:
     ~Engine();
     void run();
 
-    //static ExecutorService& getThreadPool() {
-    //    std::call_once(initThreadPoolFlag, &initThreadPool);
-    //    return *threadPool;
-    //}
+    static ExecutorService& getThreadPool() {
+        //std::call_once(initThreadPoolFlag, &initThreadPool);
+        return *threadPool;
+    }
 
 private:
     Window window;

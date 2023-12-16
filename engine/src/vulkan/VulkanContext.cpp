@@ -47,6 +47,10 @@ void VulkanContext::init(Window& window, bool validationOn) {
     swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
 
     swapchainCreator.init(window);
+
+    commandPool = std::make_unique<CommandPool>(vkDevice);
+    for (auto i = 0; i < FRAME_OVERLAP; i++)
+        frameCmdBufs.push_back(commandPool->createGraphicsCmdBuf());
 }
 
 void VulkanContext::createVkInstance(bool validationOn) {
@@ -356,6 +360,73 @@ std::unique_ptr<GpuBuffer> VulkanContext::createBuffer(
     return std::make_unique<GpuBuffer>(vmaAllocator, buffer, allocation, isHostCoherent);
 }
 
+void VulkanContext::submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer) {
+    std::lock_guard<std::mutex> lock(qXferMtx);
+    vkQueueTransfers.push(qXfer);
+}
+
+void VulkanContext::uploadBuffer(GpuUploadable& obj, VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask,
+    VkBufferUsageFlags usageFlags, std::function<void(VkCommandBuffer)> beforeSubmit) {
+    uploadBuffer(obj, dstStageMask, dstAccessMask, usageFlags, 0, beforeSubmit);
+}
+
+void VulkanContext::uploadBuffer(GpuUploadable& obj, VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask,
+    VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit) {
+    // create staging buffer
+    auto stagingBuf = createBuffer(
+        obj.size(),
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VMA_MEMORY_USAGE_AUTO,
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT
+    );
+
+    // copy to staging buffer
+    {
+        GpuBuffer::ScopedMap scopedMap(*stagingBuf);
+        obj.upload(*this, stagingBuf->data());
+    }
+
+    // create device buffer
+    auto deviceBuf = createBuffer(
+        obj.size(),
+        usageFlags | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+        allocFlags
+    );
+
+    auto cmdBuf = commandPool->createTransferCmdBuf();
+
+    // record and submit to queue, and block until queue work finish
+    // share sStagingBuf with lambda so it'll be in respective scopes
+    std::shared_ptr<GpuBuffer> sStagingBuf = std::move(stagingBuf);
+    recordAndSubmitCmdBuf(
+        std::move(cmdBuf),
+        *transferQueue,
+        [&](const CommandBuffer& cmdBuf) {
+            auto qXfer = std::make_shared<BufferQueueOwnerTransfer>(
+                deviceBuf->getVkBuffer(), obj.size(),
+                xferQueueFamilyIndex, gfxQueueFamilyIndex,
+                dstStageMask, dstAccessMask
+            );
+            qXfer->applyReleaseBarrier(cmdBuf.vkCmdBuf);
+
+            VkBufferCopy copy{ 0, 0, obj.size() };
+            vkCmdCopyBuffer(cmdBuf.vkCmdBuf, sStagingBuf->vkBuffer, deviceBuf->vkBuffer, 1, &copy);
+
+            if (beforeSubmit)
+                beforeSubmit(cmdBuf.vkCmdBuf);
+
+            // executes on fence signaled
+            return [this, sStagingBuf, qXfer]() {
+                this->submitQueueTransfer(qXfer);
+            };
+        },
+        true);
+
+    // transfer device buffer ownershiop to uploadable obj
+    obj.setGpuBuffer(std::move(deviceBuf));
+}
+
 void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence) {
     // record command buffer
     VkCommandBufferBeginInfo cmdBufBeginInfo{};
@@ -392,7 +463,7 @@ void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, 
         std::lock_guard<std::mutex> lock(waitingFenceMtx);
         // function lambda executes a copy, and we cant copy a unique ptr...
         std::shared_ptr<CommandBuffer> sCmd = std::move(cmd);
-        waitingFenceActions[fence] = [sCmd, followUp]() mutable {
+        vkFenceActions[fence] = [sCmd, followUp]() mutable {
             // cmd.dispose(); // unique ptr takes care of this for us
             if (followUp)
                 followUp();
@@ -402,6 +473,7 @@ void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, 
     }
 
     vkWaitForFences(vkDevice, 1, &fence, true, LLONG_MAX);
+
     if (followUp)
         followUp();
 }

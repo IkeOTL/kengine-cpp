@@ -8,13 +8,33 @@
 #include <kengine/vulkan/Swapchain.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/Window.hpp>
+#include <kengine/vulkan/CommandBuffer.hpp>
+#include <kengine/vulkan/CommandPool.hpp>
+#include <kengine/vulkan/QueueOwnerTransfer.hpp>
 
 #include <glm/vec2.hpp>
 #include <functional>
 #include <memory>
-#include "CommandBuffer.hpp"
+#include <queue>
 
 class VulkanContext;
+
+class GpuUploadable {
+private:
+    std::unique_ptr<GpuBuffer> gpuBuffer;
+
+public:
+    virtual void upload(VulkanContext& vkCxt, void* data) = 0;
+    virtual VkDeviceSize size() = 0;
+
+    void setGpuBuffer(std::unique_ptr<GpuBuffer>&& buf) {
+        gpuBuffer = std::move(buf);
+    }
+
+    GpuBuffer* getGpuBuffer() const {
+        return gpuBuffer.get();
+    }
+};
 
 class SwapchainCreator {
 public:
@@ -91,6 +111,11 @@ public:
     VkDeviceSize alignUboFrame(VkDeviceSize baseFrameSize) const;
     VkDeviceSize alignSsboFrame(VkDeviceSize baseFrameSize) const;
 
+    void uploadBuffer(GpuUploadable& obj, VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask,
+        VkBufferUsageFlags usageFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
+    void uploadBuffer(GpuUploadable& obj, VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask,
+        VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
+
     void recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence);
 
     struct RenderFrameContext {
@@ -102,6 +127,24 @@ public:
         const VkFence fence;
         const VkCommandBuffer cmd;
     };
+
+    uint32_t getGfxQueueFamilyIndex() {
+        return gfxQueueFamilyIndex;
+    }
+
+    uint32_t getCompQueueFamilyIndex() {
+        return compQueueFamilyIndex;
+    }
+
+    uint32_t getXferQueueFamilyIndex() {
+        return xferQueueFamilyIndex;
+    }
+
+    CommandPool* getCommandPool() {
+        return commandPool.get();
+    }
+
+    void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);
 
 private:
     VkInstance vkInstance = VK_NULL_HANDLE;
@@ -120,9 +163,9 @@ private:
     VmaVulkanFunctions vmaVkFunctions;
     VmaAllocator vmaAllocator = VK_NULL_HANDLE;
 
-    unsigned int gfxQueueFamilyIndex;
-    unsigned int compQueueFamilyIndex;
-    unsigned int xferQueueFamilyIndex;
+    uint32_t gfxQueueFamilyIndex;
+    uint32_t compQueueFamilyIndex;
+    uint32_t xferQueueFamilyIndex;
 
     std::shared_ptr<VulkanQueue> graphicsQueue;
     std::shared_ptr<VulkanQueue> computeQueue;
@@ -133,9 +176,14 @@ private:
     RenderPassCreator renderPassCreator;
     SwapchainCreator swapchainCreator;
 
+    std::unique_ptr<CommandPool> commandPool;
+    std::vector<std::unique_ptr<CommandBuffer>> frameCmdBufs;
 
-    std::mutex waitingFenceMtx;
-    std::unordered_map<VkFence, std::function<void()>> waitingFenceActions;
+    mutable std::mutex qXferMtx;
+    std::queue<std::shared_ptr<QueueOwnerTransfer>> vkQueueTransfers;
+
+    mutable std::mutex waitingFenceMtx;
+    std::unordered_map<VkFence, std::function<void()>> vkFenceActions;
     std::unique_ptr<GpuBufferCache> gpuBufferCache;
 
     void createVkInstance(bool validationOn);

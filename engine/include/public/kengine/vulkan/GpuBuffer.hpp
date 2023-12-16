@@ -2,15 +2,15 @@
 #include "VmaInclude.hpp"
 
 class GpuBuffer {
-
 private:
     const VmaAllocator vmaAllocator;
-    const VkBuffer vkBuffer;
     const VmaAllocation vmaAllocation;
     const bool hostCoherent;
     void* mappedBuffer = nullptr;
 
 public:
+    const VkBuffer vkBuffer;
+
     GpuBuffer(
         VmaAllocator vmaAllocator,
         VkBuffer vkBuffer,
@@ -25,7 +25,7 @@ public:
 
     ~GpuBuffer();
 
-    VkBuffer getVkBuffer() {
+    VkBuffer getVkBuffer() const {
         return vkBuffer;
     }
 
@@ -33,4 +33,16 @@ public:
     void* map();
     void unmap();
     void flush(unsigned long offset, unsigned long size);
+
+    class ScopedMap {
+        GpuBuffer& buf;
+    public:
+        ScopedMap(GpuBuffer& buffer) : buf(buffer) {
+            buf.map();
+        }
+
+        ~ScopedMap() {
+            buf.unmap();
+        }
+    };
 };
