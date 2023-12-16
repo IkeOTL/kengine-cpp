@@ -48,7 +48,9 @@ void VulkanContext::init(Window& window, bool validationOn) {
 
     swapchainCreator.init(window);
 
+    // where should this be initiated? need to try to get this into render thread
     commandPool = std::make_unique<CommandPool>(vkDevice);
+    commandPool->initThread(*this);
     for (auto i = 0; i < FRAME_OVERLAP; i++)
         frameCmdBufs.push_back(commandPool->createGraphicsCmdBuf());
 }
@@ -464,7 +466,7 @@ void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, 
         // function lambda executes a copy, and we cant copy a unique ptr...
         std::shared_ptr<CommandBuffer> sCmd = std::move(cmd);
         vkFenceActions[fence] = [sCmd, followUp]() mutable {
-            // cmd.dispose(); // unique ptr takes care of this for us
+            // cmd.dispose(); // smart ptr takes care of this for us
             if (followUp)
                 followUp();
         };

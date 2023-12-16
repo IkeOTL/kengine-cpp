@@ -38,8 +38,8 @@ public:
 class ImageQueueOwnerTransfer : public QueueOwnerTransfer {
 private:
     const VkImage vkImage;
-    size_t mipLevels;
-    size_t texWidth, texHeight;
+    uint32_t mipLevels;
+    int32_t texWidth, texHeight;
 
     void generateMipmaps(VkCommandBuffer cmd);
 
@@ -49,7 +49,7 @@ public:
         vkImage(vkImage), mipLevels(0), texWidth(0), texHeight(0)
     {}
 
-    void setMips(int mipLevels, int texWidth, int texHeight);
+    void setMips(uint32_t mipLevels, int32_t texWidth, int32_t texHeight);
     void applyReleaseBarrier(VkCommandBuffer cmd) override;
     void applyAcquireBarrier(VkCommandBuffer cmd) override;
 };
