@@ -6,7 +6,7 @@ void DescriptorSetAllocator::init() {
     globalPool.init();
 }
 
-VkDescriptorSet DescriptorSet::DescriptorSetAllocator::getGlobalDescriptorSet(std::string key, DescriptorSetLayoutConfig& config) {
+VkDescriptorSet DescriptorSet::DescriptorSetAllocator::getGlobalDescriptorSet(std::string key, const DescriptorSetLayoutConfig& config) {
     std::lock_guard<std::mutex> lock(globalPoolMtx);
     auto set = globalPool.getGlobalDescriptorSet(key, config);
 
@@ -17,7 +17,7 @@ VkDescriptorSet DescriptorSet::DescriptorSetAllocator::getGlobalDescriptorSet(st
     return set;
 }
 
-VkDescriptorSet DescriptorSetAllocator::leaseDescriptorSet(DescriptorSetLayoutConfig& config) {
+VkDescriptorSet DescriptorSetAllocator::leaseDescriptorSet(const DescriptorSetLayoutConfig& config) {
     std::lock_guard<std::mutex> lock(leasePoolMtx);
 
     auto set = getPool().leaseDescriptorSet(config);

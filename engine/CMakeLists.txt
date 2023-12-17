@@ -7,6 +7,8 @@ set(HEADERS
     include/public/kengine/StateMachine.hpp
     
     include/public/kengine/vulkan/VulkanContext.hpp
+    include/public/kengine/vulkan/RenderContext.hpp
+    include/public/kengine/vulkan/CullContext.hpp
     include/public/kengine/vulkan/ColorFormatAndSpace.hpp
     include/public/kengine/vulkan/QueueFamilies.hpp
     include/public/kengine/vulkan/VulkanQueue.hpp
@@ -21,6 +23,7 @@ set(HEADERS
     include/public/kengine/vulkan/QueueOwnerTransfer.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
+    include/public/kengine/vulkan/pipelines/DrawCullingPipeline.hpp
 
     include/public/kengine/vulkan/descriptor/DescriptorSetLayout.hpp
     include/public/kengine/vulkan/descriptor/DescriptorSetPool.hpp
@@ -36,6 +39,8 @@ set(SOURCES
     src/Window.cpp
 
     src/vulkan/VulkanContext.cpp
+    src/vulkan/RenderContext.cpp
+    src/vulkan/CullContext.cpp
     src/vulkan/ColorFormatAndSpace.cpp
     src/vulkan/QueueFamilies.cpp
     src/vulkan/VulkanQueue.cpp
@@ -44,6 +49,9 @@ set(SOURCES
     src/vulkan/GpuBufferCache.cpp
     src/vulkan/CommandPool.cpp
     src/vulkan/QueueOwnerTransfer.cpp
+
+    src/vulkan/pipelines/Pipeline.cpp
+    src/vulkan/pipelines/DrawCullingPipeline.cpp
 
     src/vulkan/descriptor/DescriptorSetLayout.cpp
     src/vulkan/descriptor/DescriptorSetPool.cpp

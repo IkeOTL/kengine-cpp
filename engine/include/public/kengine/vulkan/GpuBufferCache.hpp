@@ -14,6 +14,14 @@ public:
         return *(gpuBuffer.get());
     }
 
+    VkDeviceSize getFrameSize() {
+        return frameSize;
+    }
+
+    VkDeviceSize getTotalSize() {
+        return totalSize;
+    }
+
     VkDeviceSize getFrameOffset(size_t frame) {
         return frameSize * frame;
     }

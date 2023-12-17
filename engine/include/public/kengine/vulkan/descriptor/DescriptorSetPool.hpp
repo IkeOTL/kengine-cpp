@@ -30,7 +30,7 @@ namespace DescriptorSet {
 
         unsigned int createdCount = 0;
 
-        VkDescriptorSet createDescriptorSet(DescriptorSetLayoutConfig& config);
+        VkDescriptorSet createDescriptorSet(const DescriptorSetLayoutConfig& config);
 
     public:
         DescriptorSetPool(VkDevice vkDevice, DescriptorSetLayoutCache& layoutCache)
@@ -38,8 +38,8 @@ namespace DescriptorSet {
 
         void init();
 
-        VkDescriptorSet getGlobalDescriptorSet(std::string key, DescriptorSetLayoutConfig& config);
-        VkDescriptorSet leaseDescriptorSet(DescriptorSetLayoutConfig& config);
+        VkDescriptorSet getGlobalDescriptorSet(std::string key, const DescriptorSetLayoutConfig& config);
+        VkDescriptorSet leaseDescriptorSet(const DescriptorSetLayoutConfig& config);
         void flip();
 
         bool operator==(const DescriptorSetPool& other) const {

@@ -209,7 +209,7 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.image = vkImage;
-    barrier.subresourceRange = VkImageSubresourceRange{
+    barrier.subresourceRange = {
         VK_IMAGE_ASPECT_COLOR_BIT,
         mipLevels - 1,
         1,

@@ -26,7 +26,7 @@ namespace DescriptorSet {
 
         void init();
         void reset();
-        VkDescriptorSet getGlobalDescriptorSet(std::string key, DescriptorSetLayoutConfig& config);
-        VkDescriptorSet leaseDescriptorSet(DescriptorSetLayoutConfig& config);
+        VkDescriptorSet getGlobalDescriptorSet(std::string key, const DescriptorSetLayoutConfig& config);
+        VkDescriptorSet leaseDescriptorSet(const DescriptorSetLayoutConfig& config);
     };
 }

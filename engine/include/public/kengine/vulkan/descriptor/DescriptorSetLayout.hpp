@@ -9,8 +9,8 @@
 namespace DescriptorSet {
     struct DescriptorSetLayoutBindingConfig {
     public:
-        const size_t bindingIndex;
-        const size_t descriptorCount;
+        const uint32_t bindingIndex;
+        const uint32_t descriptorCount;
         const VkDescriptorType descriptorType;
         const VkShaderStageFlags stageFlags;
 

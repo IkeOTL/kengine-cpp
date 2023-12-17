@@ -35,8 +35,8 @@ void DescriptorSetPool::init() {
     vkDescriptorPool = descriptorPool;
 }
 
-VkDescriptorSet DescriptorSetPool::getGlobalDescriptorSet(std::string key, DescriptorSetLayoutConfig& config) {
-    auto woah = std::pair<std::string, DescriptorSetLayoutConfig&>(key, config);
+VkDescriptorSet DescriptorSetPool::getGlobalDescriptorSet(std::string key, const DescriptorSetLayoutConfig& config) {
+    auto woah = std::pair<std::string, DescriptorSetLayoutConfig>(key, config);
 
     auto it = globalDescSets.find(woah);
     if (it != globalDescSets.end())
@@ -48,7 +48,7 @@ VkDescriptorSet DescriptorSetPool::getGlobalDescriptorSet(std::string key, Descr
     return set;
 }
 
-VkDescriptorSet DescriptorSetPool::leaseDescriptorSet(DescriptorSetLayoutConfig& config) {
+VkDescriptorSet DescriptorSetPool::leaseDescriptorSet(const DescriptorSetLayoutConfig& config) {
     auto& descSets = availableDescSets[config];
 
     // have some pooled sets that are available?
@@ -75,7 +75,7 @@ VkDescriptorSet DescriptorSetPool::leaseDescriptorSet(DescriptorSetLayoutConfig&
     return set;
 }
 
-VkDescriptorSet DescriptorSetPool::createDescriptorSet(DescriptorSetLayoutConfig& config) {
+VkDescriptorSet DescriptorSetPool::createDescriptorSet(const DescriptorSetLayoutConfig& config) {
     if (createdCount == POOL_SIZE)
         return VK_NULL_HANDLE;
 

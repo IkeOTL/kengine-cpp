@@ -1,11 +1,43 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <vector>
+#include <glm/vec2.hpp>
+
+class VulkanContext;
+class RenderPass;
+
+namespace DescriptorSet {
+    class DescriptorSetLayoutCache;
+    class DescriptorSetAllocator;
+    class DescriptorSetLayoutConfig;
+}
+
+using namespace DescriptorSet;
 
 class Pipeline {
-
 private:
-   
+    VkPipeline vkPipeline;
+    VkPipelineLayout vkPipelineLayout;
+
+protected:
+    std::vector<DescriptorSetLayoutConfig> descSetLayoutConfigs;
+
+    virtual void loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) = 0;
+
+    static void loadShader(VkDevice device, std::string filePath, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest);
 
 public:
-   
+    VkPipeline getVkPipeline() {
+        return vkPipeline;
+    }
+
+    VkPipelineLayout getVkPipelineLayout() {
+        return vkPipelineLayout;
+    }
+
+    void init(VulkanContext& vkContext, RenderPass& renderPass, DescriptorSetLayoutCache& layoutCache, glm::uvec2 extents);
+
+    virtual VkPipelineLayout createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) = 0;
+    virtual VkPipeline createPipeline(VkDevice device, RenderPass& renderPass, VkPipelineLayout pipelineLayout, glm::uvec2  extents) = 0;
+    virtual void bind(VulkanContext& engine, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) = 0;
 };
