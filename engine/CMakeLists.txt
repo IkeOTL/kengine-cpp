@@ -21,6 +21,7 @@ set(HEADERS
     include/public/kengine/vulkan/GpuBufferCache.hpp
     include/public/kengine/vulkan/CommandPool.hpp
     include/public/kengine/vulkan/QueueOwnerTransfer.hpp
+    include/public/kengine/vulkan/Camera.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
     include/public/kengine/vulkan/pipelines/DrawCullingPipeline.hpp
@@ -49,6 +50,7 @@ set(SOURCES
     src/vulkan/GpuBufferCache.cpp
     src/vulkan/CommandPool.cpp
     src/vulkan/QueueOwnerTransfer.cpp
+    src/vulkan/Camera.cpp
 
     src/vulkan/pipelines/Pipeline.cpp
     src/vulkan/pipelines/DrawCullingPipeline.cpp

@@ -29,6 +29,9 @@ private:
 public:
     VkSemaphore getSemaphore(size_t frameIdx);
 
+    CullContext(CachedGpuBuffer& indirectBuf, CachedGpuBuffer& objectInstanceBuf, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer)
+        : indirectBuf(indirectBuf), objectInstanceBuf(objectInstanceBuf), drawObjectBuf(drawObjectBuf), drawInstanceBuffer(drawInstanceBuffer) {}
+
     void init(VulkanContext& vkCxt, std::vector<DescriptorSetAllocator>& descSetAllocators);
     void dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, CameraController& cc, int frameIdx, int objectCount);
 };

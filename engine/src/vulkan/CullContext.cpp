@@ -9,9 +9,11 @@ VkSemaphore CullContext::getSemaphore(size_t frameIdx) {
 }
 
 void CullContext::init(VulkanContext& vkCxt, std::vector<DescriptorSetAllocator>& descSetAllocators) {
+    // allocate compute cmdbufs
     for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++)
         computeCmdBufs[i] = vkCxt.getCommandPool()->createComputeCmdBuf();
 
+    // create sempahores
     for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         VkSemaphoreCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
@@ -20,38 +22,41 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<DescriptorSetAllocator>
             "Failed to create semaphore");
     }
 
-    auto descSetInit = [](size_t idx, VkDescriptorSet descSet, CachedGpuBuffer& buf,
-        std::vector<VkWriteDescriptorSet>& setWrites, std::vector<VkDescriptorBufferInfo>& bufferInfos) {
-            auto& binding = DrawCullingPipeline::cullingLayout.bindings[idx];
-            auto& write = setWrites[idx];
-            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            write.dstSet = descSet;
-            write.dstBinding = binding.bindingIndex;
-            write.descriptorCount = binding.descriptorCount;
-            write.descriptorType = binding.descriptorType;
+    // init descriptorsets with buffers
+    {
+        auto descSetInit = [](size_t idx, VkDescriptorSet descSet, CachedGpuBuffer& buf,
+            std::vector<VkWriteDescriptorSet>& setWrites, std::vector<VkDescriptorBufferInfo>& bufferInfos) {
+                auto& binding = DrawCullingPipeline::cullingLayout.bindings[idx];
+                auto& write = setWrites[idx];
+                write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                write.dstSet = descSet;
+                write.dstBinding = binding.bindingIndex;
+                write.descriptorCount = binding.descriptorCount;
+                write.descriptorType = binding.descriptorType;
 
-            auto& bufferInfo = bufferInfos[idx];
-            bufferInfo.buffer = buf.getGpuBuffer().getVkBuffer();
-            bufferInfo.offset = 0;
-            bufferInfo.range = buf.getFrameSize();
-            write.pBufferInfo = &bufferInfo;
-    };
+                auto& bufferInfo = bufferInfos[idx];
+                bufferInfo.buffer = buf.getGpuBuffer().getVkBuffer();
+                bufferInfo.offset = 0;
+                bufferInfo.range = buf.getFrameSize();
+                write.pBufferInfo = &bufferInfo;
+        };
 
-    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
-        auto& descSetAllo = descSetAllocators[i];
+        for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+            auto& descSetAllo = descSetAllocators[i];
 
-        std::vector<VkWriteDescriptorSet> setWrites(4);
-        std::vector<VkDescriptorBufferInfo> bufferInfos(4);
+            auto cullingDescSet = descSetAllo.getGlobalDescriptorSet(
+                "deferred-culling", DrawCullingPipeline::cullingLayout);
 
-        auto cullingDescSet = descSetAllo.getGlobalDescriptorSet(
-            "deferred-culling", DrawCullingPipeline::cullingLayout);
+            std::vector<VkWriteDescriptorSet> setWrites(4);
+            std::vector<VkDescriptorBufferInfo> bufferInfos(4);
 
-        descSetInit(0, cullingDescSet, indirectBuf, setWrites, bufferInfos);
-        descSetInit(1, cullingDescSet, objectInstanceBuf, setWrites, bufferInfos);
-        descSetInit(2, cullingDescSet, drawObjectBuf, setWrites, bufferInfos);
-        descSetInit(3, cullingDescSet, drawInstanceBuffer, setWrites, bufferInfos);
+            descSetInit(0, cullingDescSet, indirectBuf, setWrites, bufferInfos);
+            descSetInit(1, cullingDescSet, objectInstanceBuf, setWrites, bufferInfos);
+            descSetInit(2, cullingDescSet, drawObjectBuf, setWrites, bufferInfos);
+            descSetInit(3, cullingDescSet, drawInstanceBuffer, setWrites, bufferInfos);
 
-        vkUpdateDescriptorSets(vkCxt.getVkDevice(), setWrites.size(), setWrites.data(), 0, VK_NULL_HANDLE);
+            vkUpdateDescriptorSets(vkCxt.getVkDevice(), setWrites.size(), setWrites.data(), 0, VK_NULL_HANDLE);
+        }
     }
 }
 
@@ -60,22 +65,16 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 }
 
 void CullContext::insertBarrier(VulkanContext& vkCxt, VkCommandBuffer cmdBuf, size_t frameIdx) {
+    VkMemoryBarrier2KHR barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2;
+    barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT_KHR;
+    barrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT_KHR;
+    barrier.dstStageMask = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT_KHR;
+    barrier.dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT_KHR;
 
-}
+    VkDependencyInfoKHR depInfo{};
+    depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
+    depInfo.pMemoryBarriers = &barrier;
 
-static void descSetInit(size_t idx, VkDescriptorSet descSet, CachedGpuBuffer& buf,
-    std::vector<VkWriteDescriptorSet>& setWrites, std::vector<VkDescriptorBufferInfo>& bufferInfos) {
-    auto& binding = DrawCullingPipeline::cullingLayout.bindings[idx];
-    auto& write = setWrites[idx];
-    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    write.dstSet = descSet;
-    write.dstBinding = binding.bindingIndex;
-    write.descriptorCount = binding.descriptorCount;
-    write.descriptorType = binding.descriptorType;
-
-    auto& bufferInfo = bufferInfos[idx];
-    bufferInfo.buffer = buf.getGpuBuffer().getVkBuffer();
-    bufferInfo.offset = 0;
-    bufferInfo.range = buf.getFrameSize();
-    write.pBufferInfo = &bufferInfo;
+    vkCmdPipelineBarrier2KHR(cmdBuf, &depInfo);
 }
