@@ -19,6 +19,7 @@ namespace DescriptorSet {
         std::mutex leasePoolMtx;
 
         DescriptorSetPool& getPool();
+
     public:
         DescriptorSetAllocator(VkDevice vkDevice, DescriptorSetLayoutCache& layoutCache)
             : vkDevice(vkDevice), layoutCache(layoutCache), globalPool(vkDevice, layoutCache)

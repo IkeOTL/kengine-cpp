@@ -2,6 +2,7 @@ add_library(engine STATIC)
 
 set(HEADERS
     include/public/kengine/Engine.hpp
+    include/public/kengine/Math.hpp
     include/public/kengine/Window.hpp
     include/public/kengine/ExecutorService.hpp
     include/public/kengine/StateMachine.hpp
@@ -22,6 +23,7 @@ set(HEADERS
     include/public/kengine/vulkan/CommandPool.hpp
     include/public/kengine/vulkan/QueueOwnerTransfer.hpp
     include/public/kengine/vulkan/Camera.hpp
+    include/public/kengine/vulkan/CameraController.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
     include/public/kengine/vulkan/pipelines/DrawCullingPipeline.hpp
@@ -51,6 +53,7 @@ set(SOURCES
     src/vulkan/CommandPool.cpp
     src/vulkan/QueueOwnerTransfer.cpp
     src/vulkan/Camera.cpp
+    src/vulkan/CameraController.cpp
 
     src/vulkan/pipelines/Pipeline.cpp
     src/vulkan/pipelines/DrawCullingPipeline.cpp

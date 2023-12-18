@@ -3,6 +3,7 @@
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
+#include <glm/glm.hpp>
 
 VkSemaphore CullContext::getSemaphore(size_t frameIdx) {
     return semaphores[frameIdx];
@@ -61,7 +62,7 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<DescriptorSetAllocator>
 }
 
 void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, CameraController& cc, int frameIdx, int objectCount) {
-
+    glm::normalize(glm::vec4());
 }
 
 void CullContext::insertBarrier(VulkanContext& vkCxt, VkCommandBuffer cmdBuf, size_t frameIdx) {
@@ -76,5 +77,5 @@ void CullContext::insertBarrier(VulkanContext& vkCxt, VkCommandBuffer cmdBuf, si
     depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
     depInfo.pMemoryBarriers = &barrier;
 
-    vkCmdPipelineBarrier2KHR(cmdBuf, &depInfo);
+    vkCmdPipelineBarrier2(cmdBuf, &depInfo);
 }

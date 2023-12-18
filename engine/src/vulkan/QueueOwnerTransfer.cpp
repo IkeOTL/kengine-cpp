@@ -17,7 +17,7 @@ void BufferQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
     depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
     depsInfo.pBufferMemoryBarriers = &barrier;
 
-    vkCmdPipelineBarrier2KHR(cmd, &depsInfo);
+    vkCmdPipelineBarrier2(cmd, &depsInfo);
 }
 
 void BufferQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
@@ -37,7 +37,7 @@ void BufferQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
     depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
     depsInfo.pBufferMemoryBarriers = &barrier;
 
-    vkCmdPipelineBarrier2KHR(cmd, &depsInfo);
+    vkCmdPipelineBarrier2(cmd, &depsInfo);
 }
 
 void ImageQueueOwnerTransfer::setMips(uint32_t mipLevels, int32_t texWidth, int32_t texHeight) {
@@ -70,7 +70,7 @@ void ImageQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
     depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
     depsInfo.pImageMemoryBarriers = &barrier;
 
-    vkCmdPipelineBarrier2KHR(cmd, &depsInfo);
+    vkCmdPipelineBarrier2(cmd, &depsInfo);
 }
 
 void ImageQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
@@ -97,7 +97,7 @@ void ImageQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
     depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
     depsInfo.pImageMemoryBarriers = &barrier;
 
-    vkCmdPipelineBarrier2KHR(cmd, &depsInfo);
+    vkCmdPipelineBarrier2(cmd, &depsInfo);
 
     generateMipmaps(cmd);
 }
@@ -132,7 +132,7 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
             depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
             depsInfo.pImageMemoryBarriers = &barrier;
 
-            vkCmdPipelineBarrier2KHR(cmd, &depsInfo);
+            vkCmdPipelineBarrier2(cmd, &depsInfo);
         }
 
         // blit
@@ -188,7 +188,7 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
             depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
             depsInfo.pImageMemoryBarriers = &barrier;
 
-            vkCmdPipelineBarrier2KHR(cmd, &depsInfo);
+            vkCmdPipelineBarrier2(cmd, &depsInfo);
         }
 
         if (mipWidth > 1)
@@ -221,5 +221,5 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
     depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
     depsInfo.pImageMemoryBarriers = &barrier;
 
-    vkCmdPipelineBarrier2KHR(cmd, &depsInfo);
+    vkCmdPipelineBarrier2(cmd, &depsInfo);
 }
