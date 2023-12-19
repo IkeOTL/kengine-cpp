@@ -26,6 +26,7 @@ set(HEADERS
     include/public/kengine/vulkan/CameraController.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
+    include/public/kengine/vulkan/pipelines/PipelineCache.hpp
     include/public/kengine/vulkan/pipelines/DrawCullingPipeline.hpp
 
     include/public/kengine/vulkan/descriptor/DescriptorSetLayout.hpp
@@ -56,6 +57,7 @@ set(SOURCES
     src/vulkan/CameraController.cpp
 
     src/vulkan/pipelines/Pipeline.cpp
+    src/vulkan/pipelines/PipelineCache.cpp
     src/vulkan/pipelines/DrawCullingPipeline.cpp
 
     src/vulkan/descriptor/DescriptorSetLayout.cpp

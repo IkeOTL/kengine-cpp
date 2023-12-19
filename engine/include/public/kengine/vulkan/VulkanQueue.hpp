@@ -9,9 +9,6 @@ private:
     const unsigned int famIdx;
     VkQueue queue = VK_NULL_HANDLE;
 
-    PFN_vkQueueSubmit2KHR pfnVkQueueSubmit2KHR = nullptr;
-    PFN_vkQueuePresentKHR pfnVkQueuePresentKHR = nullptr;
-
     // sync queue commands
     std::mutex mtx;
 

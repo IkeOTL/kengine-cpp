@@ -16,6 +16,7 @@
 #include <functional>
 #include <memory>
 #include <queue>
+#include "pipelines/PipelineCache.hpp"
 
 class VulkanContext;
 
@@ -144,6 +145,10 @@ public:
         return commandPool.get();
     }
 
+    PipelineCache& getPipelineCache() {
+        return pipelineCache;
+    }
+
     void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);
 
 private:
@@ -185,6 +190,8 @@ private:
     mutable std::mutex waitingFenceMtx;
     std::unordered_map<VkFence, std::function<void()>> vkFenceActions;
     std::unique_ptr<GpuBufferCache> gpuBufferCache;
+
+    PipelineCache pipelineCache;
 
     void createVkInstance(bool validationOn);
     void setupDebugging();

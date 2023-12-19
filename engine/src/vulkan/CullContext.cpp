@@ -62,7 +62,18 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<DescriptorSetAllocator>
 }
 
 void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, CameraController& cc, int frameIdx, int objectCount) {
-    glm::normalize(glm::vec4());
+    auto cmdBuf = computeCmdBufs[frameIdx]->vkCmdBuf;
+
+    VkCommandBufferBeginInfo cmdBeginInfo{};
+    cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    vkBeginCommandBuffer(cmdBuf, &cmdBeginInfo);
+
+    auto* pl = vkCxt.getPipelineCache().getPipeline<DrawCullingPipeline>();
+    pl->bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
+
+    {
+        
+    }
 }
 
 void CullContext::insertBarrier(VulkanContext& vkCxt, VkCommandBuffer cmdBuf, size_t frameIdx) {
