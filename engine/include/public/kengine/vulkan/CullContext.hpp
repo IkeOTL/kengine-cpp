@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <vector>
 
 class VulkanContext;
@@ -7,12 +8,6 @@ class GpuBufferCache;
 class CommandBuffer;
 class CachedGpuBuffer;
 class CameraController;
-
-namespace DescriptorSet {
-    class DescriptorSetAllocator;
-}
-
-using namespace DescriptorSet;
 
 class CullContext {
 private:
@@ -23,8 +18,6 @@ private:
     CachedGpuBuffer& objectInstanceBuf;
     CachedGpuBuffer& drawObjectBuf;
     CachedGpuBuffer& drawInstanceBuffer;
-
-    void insertBarrier(VulkanContext& vkCxt, VkCommandBuffer cmdBuf, size_t frameIdx);
 
 public:
     VkSemaphore getSemaphore(size_t frameIdx);

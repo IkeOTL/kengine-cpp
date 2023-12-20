@@ -1,7 +1,5 @@
 #include <kengine/vulkan/descriptor/DescriptorSetPool.hpp>
 
-using namespace DescriptorSet;
-
 void DescriptorSetPool::init() {
     std::vector<VkDescriptorPoolSize> typeCounts(4);
     typeCounts[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;

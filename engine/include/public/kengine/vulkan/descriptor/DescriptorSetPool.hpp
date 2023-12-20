@@ -1,49 +1,47 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
-#include <kengine/vulkan/VulkanContext.hpp>
+#include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
 #include <vector>
 #include <unordered_map>
 #include <functional>
-#include "DescriptorSetLayout.hpp"
 
-namespace DescriptorSet {
-    struct GlobalDescriptorSetHasher {
-        size_t operator()(const std::pair<std::string, DescriptorSetLayoutConfig>& obj) const {
-            size_t hash = 3;
-            hash = 37 * hash + std::hash<std::string>{}(obj.first);
-            hash = 37 * hash + obj.second.hashCode();
-            return hash;
-        }
-    };
 
-    class DescriptorSetPool {
-    private:
-        const static size_t POOL_SIZE = 1000;
+struct GlobalDescriptorSetHasher {
+    size_t operator()(const std::pair<std::string, DescriptorSetLayoutConfig>& obj) const {
+        size_t hash = 3;
+        hash = 37 * hash + std::hash<std::string>{}(obj.first);
+        hash = 37 * hash + obj.second.hashCode();
+        return hash;
+    }
+};
 
-        VkDevice vkDevice;
-        DescriptorSetLayoutCache& layoutCache;
-        VkDescriptorPool vkDescriptorPool = VK_NULL_HANDLE;
+class DescriptorSetPool {
+private:
+    const static size_t POOL_SIZE = 1000;
 
-        std::unordered_map<DescriptorSetLayoutConfig, std::vector<VkDescriptorSet>, DescriptorSetLayoutConfigHasher> availableDescSets;
-        std::unordered_map<DescriptorSetLayoutConfig, std::vector<VkDescriptorSet>, DescriptorSetLayoutConfigHasher> unavailableDescSets;
-        std::unordered_map<std::pair<std::string, DescriptorSetLayoutConfig>, VkDescriptorSet, GlobalDescriptorSetHasher> globalDescSets;
+    VkDevice vkDevice;
+    DescriptorSetLayoutCache& layoutCache;
+    VkDescriptorPool vkDescriptorPool = VK_NULL_HANDLE;
 
-        unsigned int createdCount = 0;
+    std::unordered_map<DescriptorSetLayoutConfig, std::vector<VkDescriptorSet>, DescriptorSetLayoutConfigHasher> availableDescSets;
+    std::unordered_map<DescriptorSetLayoutConfig, std::vector<VkDescriptorSet>, DescriptorSetLayoutConfigHasher> unavailableDescSets;
+    std::unordered_map<std::pair<std::string, DescriptorSetLayoutConfig>, VkDescriptorSet, GlobalDescriptorSetHasher> globalDescSets;
 
-        VkDescriptorSet createDescriptorSet(const DescriptorSetLayoutConfig& config);
+    unsigned int createdCount = 0;
 
-    public:
-        DescriptorSetPool(VkDevice vkDevice, DescriptorSetLayoutCache& layoutCache)
-            : vkDevice(vkDevice), layoutCache(layoutCache) {}
+    VkDescriptorSet createDescriptorSet(const DescriptorSetLayoutConfig& config);
 
-        void init();
+public:
+    DescriptorSetPool(VkDevice vkDevice, DescriptorSetLayoutCache& layoutCache)
+        : vkDevice(vkDevice), layoutCache(layoutCache) {}
 
-        VkDescriptorSet getGlobalDescriptorSet(std::string key, const DescriptorSetLayoutConfig& config);
-        VkDescriptorSet leaseDescriptorSet(const DescriptorSetLayoutConfig& config);
-        void flip();
+    void init();
 
-        bool operator==(const DescriptorSetPool& other) const {
-            return vkDescriptorPool == other.vkDescriptorPool;
-        }
-    };
-}
+    VkDescriptorSet getGlobalDescriptorSet(std::string key, const DescriptorSetLayoutConfig& config);
+    VkDescriptorSet leaseDescriptorSet(const DescriptorSetLayoutConfig& config);
+    void flip();
+
+    bool operator==(const DescriptorSetPool& other) const {
+        return vkDescriptorPool == other.vkDescriptorPool;
+    }
+};

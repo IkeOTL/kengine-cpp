@@ -1,18 +1,11 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <vector>
 #include <glm/vec2.hpp>
 
 class VulkanContext;
 class RenderPass;
-
-namespace DescriptorSet {
-    class DescriptorSetLayoutCache;
-    class DescriptorSetAllocator;
-    class DescriptorSetLayoutConfig;
-}
-
-using namespace DescriptorSet;
 
 class Pipeline {
 private:
@@ -20,13 +13,15 @@ private:
     VkPipelineLayout vkPipelineLayout;
 
 protected:
-    std::vector<DescriptorSetLayoutConfig> descSetLayoutConfigs;
+    std::vector<DescriptorSetLayoutConfig> descSetLayoutConfigs{};
 
     virtual void loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) = 0;
 
     static void loadShader(VkDevice device, std::string filePath, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest);
 
 public:
+    virtual ~Pipeline() = default;
+
     VkPipeline getVkPipeline() {
         return vkPipeline;
     }

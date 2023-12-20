@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <stdexcept>
 
 namespace math {
@@ -40,5 +41,11 @@ namespace math {
         // normalize using only XYZ
         auto invLength = 1 / std::sqrt(std::fma(dest.x, dest.x, std::fma(dest.y, dest.y, dest.z * dest.z)));
         return dest *= invLength;
+    }
+
+    static glm::vec3 transformProject(const glm::mat4& matrix, glm::vec3& vec) {
+        glm::vec4 transformedVec = matrix * glm::vec4(vec, 1.0f);
+        auto invW = 1 / transformedVec.w; // for perspective division
+        return glm::vec3(transformedVec) * invW;
     }
 }

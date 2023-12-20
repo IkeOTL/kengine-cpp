@@ -53,5 +53,5 @@ public:
         return rotation;
     }
 
-    static size_t  size();
+    static size_t size();
 };

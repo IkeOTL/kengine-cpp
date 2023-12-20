@@ -11,12 +11,12 @@
 #include <kengine/vulkan/CommandBuffer.hpp>
 #include <kengine/vulkan/CommandPool.hpp>
 #include <kengine/vulkan/QueueOwnerTransfer.hpp>
+#include <kengine/vulkan/pipelines/PipelineCache.hpp>
 
 #include <glm/vec2.hpp>
 #include <functional>
 #include <memory>
 #include <queue>
-#include "pipelines/PipelineCache.hpp"
 
 class VulkanContext;
 
@@ -147,6 +147,10 @@ public:
 
     PipelineCache& getPipelineCache() {
         return pipelineCache;
+    }
+
+    VulkanQueue& getComputeQueue() {
+        return *computeQueue;
     }
 
     void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);

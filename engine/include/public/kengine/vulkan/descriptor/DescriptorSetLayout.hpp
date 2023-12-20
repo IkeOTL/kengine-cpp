@@ -1,51 +1,50 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
-#include <kengine/vulkan/VulkanContext.hpp>
 #include <mutex>
 #include <vector>
 #include <unordered_map>
 #include <functional>
 
-namespace DescriptorSet {
-    struct DescriptorSetLayoutBindingConfig {
-    public:
-        const uint32_t bindingIndex;
-        const uint32_t descriptorCount;
-        const VkDescriptorType descriptorType;
-        const VkShaderStageFlags stageFlags;
+class VulkanContext;
 
-        size_t hashCode() const;
-        bool operator==(const DescriptorSetLayoutBindingConfig& other) const;
-    };
+struct DescriptorSetLayoutBindingConfig {
+public:
+    const uint32_t bindingIndex;
+    const uint32_t descriptorCount;
+    const VkDescriptorType descriptorType;
+    const VkShaderStageFlags stageFlags;
 
-    class DescriptorSetLayoutConfig {
-    public:
-        const std::vector<DescriptorSetLayoutBindingConfig> bindings;
+    size_t hashCode() const;
+    bool operator==(const DescriptorSetLayoutBindingConfig& other) const;
+};
 
-        DescriptorSetLayoutConfig(std::initializer_list<DescriptorSetLayoutBindingConfig> b)
-            : bindings(b) { }
+class DescriptorSetLayoutConfig {
+public:
+    const std::vector<DescriptorSetLayoutBindingConfig> bindings;
 
-        const DescriptorSetLayoutBindingConfig& getBinding(size_t idx) const;
+    DescriptorSetLayoutConfig(std::initializer_list<DescriptorSetLayoutBindingConfig> b)
+        : bindings(b) { }
 
-        size_t hashCode() const;
-        bool operator==(const DescriptorSetLayoutConfig& other) const;
-    };
+    const DescriptorSetLayoutBindingConfig& getBinding(size_t idx) const;
 
-    struct DescriptorSetLayoutConfigHasher {
-        size_t operator()(const DescriptorSet::DescriptorSetLayoutConfig& obj) const {
-            return obj.hashCode();
-        }
-    };
+    size_t hashCode() const;
+    bool operator==(const DescriptorSetLayoutConfig& other) const;
+};
 
-    class DescriptorSetLayoutCache {
-    private:
-        std::unordered_map<DescriptorSetLayoutConfig, VkDescriptorSetLayout, DescriptorSetLayoutConfigHasher> descriptorSetLayouts;
-        VulkanContext& vulkanCxt;
+struct DescriptorSetLayoutConfigHasher {
+    size_t operator()(const DescriptorSetLayoutConfig& obj) const {
+        return obj.hashCode();
+    }
+};
 
-    public:
-        DescriptorSetLayoutCache(VulkanContext& vulkanCxt)
-            : vulkanCxt(vulkanCxt) {}
+class DescriptorSetLayoutCache {
+private:
+    std::unordered_map<DescriptorSetLayoutConfig, VkDescriptorSetLayout, DescriptorSetLayoutConfigHasher> descriptorSetLayouts;
+    VulkanContext& vulkanCxt;
 
-        VkDescriptorSetLayout getLayout(const DescriptorSetLayoutConfig& config);
-    };
-}
+public:
+    DescriptorSetLayoutCache(VulkanContext& vulkanCxt)
+        : vulkanCxt(vulkanCxt) {}
+
+    VkDescriptorSetLayout getLayout(const DescriptorSetLayoutConfig& config);
+};

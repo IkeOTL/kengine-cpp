@@ -1,10 +1,11 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
-#include <mutex>
+#include <kengine/vulkan/GpuBufferCache.hpp>
+#include <kengine/vulkan/CameraController.hpp>
+#include <kengine/vulkan/CullContext.hpp>
+#include <kengine/vulkan/ShadowContext.hpp>
 
-class VulkanContext;
-class GpuBufferCache;
-class CullContext;
+#include <mutex>
 
 class RenderContext {
 
@@ -13,7 +14,23 @@ private:
     GpuBufferCache& bufCache;
 
     std::unique_ptr<CullContext> cullContext;
+    std::unique_ptr<ShadowContext> shadowContext;
+    CameraController& cameraController;
+
+    // bufs
+    CachedGpuBuffer& sceneBuf;
+    CachedGpuBuffer& materialsBuf;
+    CachedGpuBuffer& lightBuf;
+
+    CachedGpuBuffer& indirectCmdBuf;
+    CachedGpuBuffer& drawObjectBuf;
+    CachedGpuBuffer& objectInstanceBuf; // all instances submitted before GPU culling
+    CachedGpuBuffer& drawInstanceBuffer; // all instances after GPU culling
 
 public:
     const static size_t MAX_INSTANCES = 200000;
+    const static size_t MAX_BATCHES = 10000;
+
+
+    void init();
 };

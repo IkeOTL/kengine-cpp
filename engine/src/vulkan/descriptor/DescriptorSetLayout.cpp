@@ -1,6 +1,5 @@
 #include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
-
-using namespace DescriptorSet;
+#include <kengine/vulkan/VulkanContext.hpp>
 
 const DescriptorSetLayoutBindingConfig& DescriptorSetLayoutConfig::getBinding(size_t idx) const {
     return bindings[idx];

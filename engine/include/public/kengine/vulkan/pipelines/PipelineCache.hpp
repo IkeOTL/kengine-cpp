@@ -1,5 +1,4 @@
 #pragma once
-#include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/pipelines/Pipeline.hpp>
 #include <unordered_map>
 #include <typeindex>
@@ -12,7 +11,7 @@ private:
 
 public:
     void addPipeline(std::unique_ptr<Pipeline>&& pipeline) {
-        pipelines[std::type_index(typeid(*pipeline.get()))] = std::move(pipeline);
+        pipelines[std::type_index(typeid(*pipeline))] = std::move(pipeline);
     }
 
     template <typename T>
@@ -21,6 +20,6 @@ public:
         if (it == pipelines.end())
             return nullptr;
 
-        return dynamic_cast<T*>(it->second);
+        return dynamic_cast<T*>(it->second.get());
     }
 };

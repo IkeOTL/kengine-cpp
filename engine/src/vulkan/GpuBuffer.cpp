@@ -26,7 +26,7 @@ void GpuBuffer::unmap() {
 }
 
 void GpuBuffer::flush(unsigned long offset, unsigned long size) {
-    if (!hostCoherent)
+    if (hostCoherent)
         return;
 
     vmaFlushAllocation(vmaAllocator, vmaAllocation, offset, size);

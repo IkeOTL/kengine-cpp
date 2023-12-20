@@ -10,6 +10,7 @@ set(HEADERS
     include/public/kengine/vulkan/VulkanContext.hpp
     include/public/kengine/vulkan/RenderContext.hpp
     include/public/kengine/vulkan/CullContext.hpp
+    include/public/kengine/vulkan/ShadowContext.hpp
     include/public/kengine/vulkan/ColorFormatAndSpace.hpp
     include/public/kengine/vulkan/QueueFamilies.hpp
     include/public/kengine/vulkan/VulkanQueue.hpp
@@ -24,6 +25,8 @@ set(HEADERS
     include/public/kengine/vulkan/QueueOwnerTransfer.hpp
     include/public/kengine/vulkan/Camera.hpp
     include/public/kengine/vulkan/CameraController.hpp
+    include/public/kengine/vulkan/SceneData.hpp
+    include/public/kengine/vulkan/ShadowCascade.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
     include/public/kengine/vulkan/pipelines/PipelineCache.hpp
@@ -45,6 +48,7 @@ set(SOURCES
     src/vulkan/VulkanContext.cpp
     src/vulkan/RenderContext.cpp
     src/vulkan/CullContext.cpp
+    src/vulkan/ShadowContext.cpp
     src/vulkan/ColorFormatAndSpace.cpp
     src/vulkan/QueueFamilies.cpp
     src/vulkan/VulkanQueue.cpp
@@ -55,6 +59,8 @@ set(SOURCES
     src/vulkan/QueueOwnerTransfer.cpp
     src/vulkan/Camera.cpp
     src/vulkan/CameraController.cpp
+    src/vulkan/SceneData.cpp
+    src/vulkan/ShadowCascade.cpp
 
     src/vulkan/pipelines/Pipeline.cpp
     src/vulkan/pipelines/PipelineCache.cpp
