@@ -208,20 +208,29 @@ void VulkanContext::createDevice() {
     transferQueueCreateInfo.queueCount = 1;
     transferQueueCreateInfo.pQueuePriorities = &transferQueuePriority;
 
-    auto sync2Features = VkPhysicalDeviceSynchronization2FeaturesKHR{};
-    sync2Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR;
-    sync2Features.synchronization2 = true;
+    auto features13 = VkPhysicalDeviceVulkan13Features{};
+    features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+    features13.synchronization2 = true;
+    features13.pNext = nullptr;
+
+    auto features12 = VkPhysicalDeviceVulkan12Features{};
+    features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    features12.pNext = &features13;
+
+    auto features11 = VkPhysicalDeviceVulkan11Features{};
+    features11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+    features11.pNext = &features12;
 
     VkDeviceQueueCreateInfo queueCreateInfos[2] = { graphicsQueueCreateInfo, transferQueueCreateInfo };
 
     std::vector<const char*> desiredLayers = {
          VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-         VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME
+      //   VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME
     };
 
     auto createDeviceInfo = VkDeviceCreateInfo{};
     createDeviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createDeviceInfo.pNext = &sync2Features;
+    createDeviceInfo.pNext = &features11;
     createDeviceInfo.queueCreateInfoCount = 2;
     createDeviceInfo.pQueueCreateInfos = queueCreateInfos;
     createDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(desiredLayers.size());

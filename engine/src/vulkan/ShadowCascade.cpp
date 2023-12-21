@@ -39,6 +39,15 @@ void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const
         radius = std::fmaxf(radius, distanceSq);
     }
     radius = std::ceilf(std::sqrtf(radius) * 16.0f) / 16.0f;
+
+    auto maxExtents = glm::vec3(radius);
+    auto minExtents = -maxExtents;
+
+    auto lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
+    auto lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
+    this->viewProj = lightOrthoMatrix * lightViewMatrix;
+
+    this->splitDepth = -(camNear + splitDist * clipRange);
 }
 
 size_t ShadowCascadeData::alignedFrameSize(VulkanContext& vkCxt) {
@@ -46,5 +55,7 @@ size_t ShadowCascadeData::alignedFrameSize(VulkanContext& vkCxt) {
 }
 
 size_t ShadowCascadeData::size() {
-    return(4 * sizeof(float)) + (ShadowCascadeData::SHADOW_CASCADE_COUNT * 16 * sizeof(float)) + (3 * sizeof(float));
+    return(ShadowCascadeData::SHADOW_CASCADE_COUNT * sizeof(float))
+        + (ShadowCascadeData::SHADOW_CASCADE_COUNT * 16 * sizeof(float))
+        + (3 * sizeof(float));
 }

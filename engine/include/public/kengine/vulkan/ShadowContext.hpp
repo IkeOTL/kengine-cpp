@@ -2,6 +2,7 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/CameraController.hpp>
+#include <kengine/vulkan/ShadowCascade.hpp>
 #include <kengine/vulkan/SceneData.hpp>
 #include <glm/vec3.hpp>
 #include <vector>
