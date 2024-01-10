@@ -90,9 +90,8 @@ target_include_directories(engine PUBLIC include/public)
 target_include_directories(engine PRIVATE include/private)
 
 find_package(Threads REQUIRED)
-find_package(Vulkan 1.3 REQUIRED)
+find_package(Vulkan 1.3 REQUIRED) # expected to also install VMA and GLM
 find_package(glfw3 3.3 REQUIRED)
-find_package(glm REQUIRED)
 
 target_link_libraries(engine PUBLIC Threads::Threads)
 target_link_libraries(engine PUBLIC Vulkan::Vulkan)
