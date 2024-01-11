@@ -38,21 +38,40 @@ void ShadowContext::execute(VulkanContext& vkContext, VulkanContext::RenderFrame
 	auto range = maxZ - minZ;
 	auto ratio = maxZ / minZ;
 
-	glm::mat4 invCam{};
-	camera->getViewMatrix(invCam);
-	invCam = glm::inverse(camera->getProjectionMatrix() * invCam);
+	glm::mat4 invCamViewProj{};
+	camera->getViewMatrix(invCamViewProj);
+	invCamViewProj = glm::inverse(camera->getProjectionMatrix() * invCamViewProj);
 
 	auto cascadeSplitLambda = 0.75f;
 	auto lastDistSplit = 0.0f;
 	for (int i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
+		auto p = (i + 1.0f) / (float)ShadowCascadeData::SHADOW_CASCADE_COUNT;
+		auto log = minZ * std::powf(ratio, p);
+		auto uniform = minZ + range * p;
+		auto d = cascadeSplitLambda * (log - uniform) + uniform;
+		auto splitDist = (d - nearClip) / clipRange;
 
+		auto cascade = cascadesData.getCascade(i);
+		cascade->updateViewProj(invCamViewProj, camera->getNearClip(), sceneData.getLightDir(),
+			lastDistSplit, splitDist, clipRange);
+
+		lastDistSplit = splitDist;
 	}
 
 	cascadesData.uploadShadowPass(vkContext, *shadowPassCascadeBuf, cxt.frameIndex);
 	cascadesData.uploadCompositionPass(vkContext, *compositePassCascadeBuf, cxt.frameIndex);
 
 	for (int i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
+		auto rp1Cxt = RenderPass::RenderPassContext{ 1, i, cxt.cmd, glm::uvec2(SHADOWDIM) };
+		vkContext.beginRenderPass(rp1Cxt);
+		{
+			auto pipeline = vkContext.getPipelineCache().getPipeline<CascadeShadowMapPipeline>();
+			execShadowPass(vkContext, cxt, pipeline, dAllocator, i, nonSkinnedBatches, nonSkinnedBatchesSize, false);
 
+			auto skinnedPipeline = vkContext.getPipelineCache().getPipeline<SkinnedCascadeShadowMapPipeline>();
+			execShadowPass(vkContext, cxt, skinnedPipeline, dAllocator, i, skinnedBatches, skinnedBatchesSize, true);
+		}
+		vkContext.endRenderPass(rp1Cxt);
 	}
 }
 
