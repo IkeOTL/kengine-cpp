@@ -106,15 +106,15 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 
         // insert barrier
         {
-            VkMemoryBarrier2KHR barrier{};
+            VkMemoryBarrier2 barrier{};
             barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2;
-            barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT_KHR;
-            barrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT_KHR;
-            barrier.dstStageMask = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT_KHR;
-            barrier.dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT_KHR;
+            barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+            barrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
+            barrier.dstStageMask = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
+            barrier.dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT;
 
-            VkDependencyInfoKHR depInfo{};
-            depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
+            VkDependencyInfo depInfo{};
+            depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
             depInfo.pMemoryBarriers = &barrier;
 
             vkCmdPipelineBarrier2(cmdBuf, &depInfo);

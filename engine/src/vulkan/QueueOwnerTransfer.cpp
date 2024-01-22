@@ -1,11 +1,11 @@
 #include <kengine/vulkan/QueueOwnerTransfer.hpp>
 
 void BufferQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
-    VkBufferMemoryBarrier2KHR barrier{};
+    VkBufferMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT_KHR;
-    barrier.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT_KHR;
-    barrier.dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT_KHR;
+    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+    barrier.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+    barrier.dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT;
     barrier.dstAccessMask = 0;
     barrier.srcQueueFamilyIndex = srcQueueFamily;
     barrier.dstQueueFamilyIndex = dstQueueFamily;
@@ -13,17 +13,17 @@ void BufferQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
     barrier.offset = 0;
     barrier.size = bufSize;
 
-    VkDependencyInfoKHR depsInfo{};
-    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
+    VkDependencyInfo depsInfo{};
+    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
     depsInfo.pBufferMemoryBarriers = &barrier;
 
     vkCmdPipelineBarrier2(cmd, &depsInfo);
 }
 
 void BufferQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
-    VkBufferMemoryBarrier2KHR barrier{};
+    VkBufferMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT_KHR;
+    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
     barrier.srcAccessMask = 0;
     barrier.dstStageMask = dstStageMask;
     barrier.dstAccessMask = dstAccessMask;
@@ -33,8 +33,8 @@ void BufferQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
     barrier.offset = 0;
     barrier.size = bufSize;
 
-    VkDependencyInfoKHR depsInfo{};
-    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
+    VkDependencyInfo depsInfo{};
+    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
     depsInfo.pBufferMemoryBarriers = &barrier;
 
     vkCmdPipelineBarrier2(cmd, &depsInfo);
@@ -47,11 +47,11 @@ void ImageQueueOwnerTransfer::setMips(uint32_t mipLevels, int32_t texWidth, int3
 }
 
 void ImageQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
-    VkImageMemoryBarrier2KHR barrier{};
+    VkImageMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT_KHR;
-    barrier.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT_KHR;
-    barrier.dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT_KHR;
+    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+    barrier.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+    barrier.dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT;
     barrier.dstAccessMask = 0;
     barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -66,17 +66,17 @@ void ImageQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
         VK_REMAINING_ARRAY_LAYERS
     };
 
-    VkDependencyInfoKHR depsInfo{};
-    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
+    VkDependencyInfo depsInfo{};
+    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
     depsInfo.pImageMemoryBarriers = &barrier;
 
     vkCmdPipelineBarrier2(cmd, &depsInfo);
 }
 
 void ImageQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
-    VkImageMemoryBarrier2KHR barrier{};
+    VkImageMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT_KHR;
+    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
     barrier.srcAccessMask = 0;
     barrier.dstStageMask = dstStageMask;
     barrier.dstAccessMask = dstAccessMask;
@@ -93,8 +93,8 @@ void ImageQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
         VK_REMAINING_ARRAY_LAYERS
     };
 
-    VkDependencyInfoKHR depsInfo{};
-    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
+    VkDependencyInfo depsInfo{};
+    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
     depsInfo.pImageMemoryBarriers = &barrier;
 
     vkCmdPipelineBarrier2(cmd, &depsInfo);
@@ -109,7 +109,7 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
 
     for (uint32_t level = 1; level < mipLevels; level++) {
         {
-            VkImageMemoryBarrier2KHR barrier{};
+            VkImageMemoryBarrier2 barrier{};
             barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
             barrier.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
             barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -128,8 +128,8 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
                 1
             };
 
-            VkDependencyInfoKHR depsInfo{};
-            depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
+            VkDependencyInfo depsInfo{};
+            depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
             depsInfo.pImageMemoryBarriers = &barrier;
 
             vkCmdPipelineBarrier2(cmd, &depsInfo);
@@ -165,7 +165,7 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
         }
 
         {
-            VkImageMemoryBarrier2KHR barrier{};
+            VkImageMemoryBarrier2 barrier{};
             barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
             barrier.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
             barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
@@ -184,8 +184,8 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
                 1
             };
 
-            VkDependencyInfoKHR depsInfo{};
-            depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
+            VkDependencyInfo depsInfo{};
+            depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
             depsInfo.pImageMemoryBarriers = &barrier;
 
             vkCmdPipelineBarrier2(cmd, &depsInfo);
@@ -198,7 +198,7 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
             mipHeight /= 2;
     }
 
-    VkImageMemoryBarrier2KHR barrier{};
+    VkImageMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
     barrier.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -217,8 +217,8 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
         1
     };
 
-    VkDependencyInfoKHR depsInfo{};
-    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO_KHR;
+    VkDependencyInfo depsInfo{};
+    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
     depsInfo.pImageMemoryBarriers = &barrier;
 
     vkCmdPipelineBarrier2(cmd, &depsInfo);
