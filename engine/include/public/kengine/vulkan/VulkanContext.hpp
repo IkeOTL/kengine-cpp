@@ -106,6 +106,9 @@ public:
         return renderPasses;
     }
 
+    void beginRenderPass(RenderPass::RenderPassContext& rpCxt);
+    void endRenderPass(RenderPass::RenderPassContext& rpCxt);
+
     std::unique_ptr<GpuBuffer> createBuffer(VkDeviceSize size, VkBufferUsageFlags usageFlags,
         VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) const;
 

@@ -31,6 +31,7 @@ set(HEADERS
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
     include/public/kengine/vulkan/pipelines/PipelineCache.hpp
     include/public/kengine/vulkan/pipelines/DrawCullingPipeline.hpp
+    include/public/kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp
 
     include/public/kengine/vulkan/descriptor/DescriptorSetLayout.hpp
     include/public/kengine/vulkan/descriptor/DescriptorSetPool.hpp
@@ -65,6 +66,7 @@ set(SOURCES
     src/vulkan/pipelines/Pipeline.cpp
     src/vulkan/pipelines/PipelineCache.cpp
     src/vulkan/pipelines/DrawCullingPipeline.cpp
+    src/vulkan/pipelines/CascadeShadowMapPipeline.cpp
 
     src/vulkan/descriptor/DescriptorSetLayout.cpp
     src/vulkan/descriptor/DescriptorSetPool.cpp
