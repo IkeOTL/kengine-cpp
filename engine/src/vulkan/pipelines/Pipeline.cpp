@@ -8,6 +8,26 @@ void Pipeline::init(VulkanContext& vkContext, RenderPass& renderPass, Descriptor
     vkPipeline = createPipeline(vkContext.getVkDevice(), renderPass, vkPipelineLayout, extents);
 }
 
+void Pipeline::createVertexInputDescriptions(
+    const VertexFormatDescriptor& descriptor,
+    VkVertexInputBindingDescription& bindingDescription,
+    std::vector<VkVertexInputAttributeDescription>& attributeDescriptions)
+{
+    bindingDescription.binding = 0;
+    bindingDescription.stride = descriptor.stride;
+    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    attributeDescriptions.clear();
+    for (const auto& attr : descriptor.attributes) {
+        VkVertexInputAttributeDescription attributeDescription{};
+        attributeDescription.binding = 0;
+        attributeDescription.location = attr.location;
+        attributeDescription.format = attr.format;
+        attributeDescription.offset = attr.offset;
+        attributeDescriptions.push_back(attributeDescription);
+    }
+}
+
 void Pipeline::loadShader(VkDevice device, std::string filePath, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest) {
     std::ifstream file(filePath, std::ios::ate | std::ios::binary);
     if (!file.is_open())

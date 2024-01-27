@@ -27,6 +27,7 @@ set(HEADERS
     include/public/kengine/vulkan/CameraController.hpp
     include/public/kengine/vulkan/SceneData.hpp
     include/public/kengine/vulkan/ShadowCascade.hpp
+    include/public/kengine/vulkan/Vertex.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
     include/public/kengine/vulkan/pipelines/PipelineCache.hpp
@@ -62,6 +63,7 @@ set(SOURCES
     src/vulkan/CameraController.cpp
     src/vulkan/SceneData.cpp
     src/vulkan/ShadowCascade.cpp
+    src/vulkan/Vertex.cpp
 
     src/vulkan/pipelines/Pipeline.cpp
     src/vulkan/pipelines/PipelineCache.cpp

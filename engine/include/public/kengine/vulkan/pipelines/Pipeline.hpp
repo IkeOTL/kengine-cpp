@@ -7,6 +7,17 @@
 class VulkanContext;
 class RenderPass;
 
+struct VertexAttribute {
+    uint32_t location;
+    VkFormat format;
+    size_t offset;
+};
+
+struct VertexFormatDescriptor {
+    size_t stride;
+    std::vector<VertexAttribute> attributes;
+};
+
 class Pipeline {
 private:
     VkPipeline vkPipeline;
@@ -16,6 +27,11 @@ protected:
     std::vector<DescriptorSetLayoutConfig> descSetLayoutConfigs{};
 
     virtual void loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) = 0;
+
+    static void createVertexInputDescriptions(
+        const VertexFormatDescriptor& descriptor,
+        VkVertexInputBindingDescription& bindingDescription,
+        std::vector<VkVertexInputAttributeDescription>& attributeDescriptions);
 
     static void loadShader(VkDevice device, std::string filePath, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest);
 

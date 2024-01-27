@@ -29,6 +29,10 @@ public:
     RenderPass(RenderPass&&) = default;
     RenderPass& operator=(RenderPass&&) = default;
 
+    const VkRenderPass getVkRenderPass() const {
+        return vkRenderPass;
+    }
+
     virtual void init();
     virtual void createRenderTargets(
         VmaAllocator vmaAllocator,
@@ -54,10 +58,6 @@ protected:
 
     const ColorFormatAndSpace& getColorFormatAndSpace() const {
         return colorFormatAndSpace;
-    }
-
-    const VkRenderPass getVkRenderPass() const {
-        return vkRenderPass;
     }
 
     const GpuImageView* getDepthStencil() const {
