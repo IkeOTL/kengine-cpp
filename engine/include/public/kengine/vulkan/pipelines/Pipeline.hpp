@@ -46,9 +46,9 @@ public:
         return vkPipelineLayout;
     }
 
-    void init(VulkanContext& vkContext, RenderPass& renderPass, DescriptorSetLayoutCache& layoutCache, glm::uvec2 extents);
+    void init(VulkanContext& vkCxt, RenderPass& renderPass, DescriptorSetLayoutCache& layoutCache, glm::uvec2 extents);
 
-    virtual VkPipelineLayout createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) = 0;
+    virtual VkPipelineLayout createPipelineLayout(VulkanContext& vkCxt, DescriptorSetLayoutCache& layoutCache) = 0;
     virtual VkPipeline createPipeline(VkDevice device, RenderPass& renderPass, VkPipelineLayout pipelineLayout, glm::uvec2  extents) = 0;
-    virtual void bind(VulkanContext& engine, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) = 0;
+    virtual void bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) = 0;
 };

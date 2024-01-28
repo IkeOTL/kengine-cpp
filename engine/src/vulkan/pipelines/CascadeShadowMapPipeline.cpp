@@ -2,6 +2,7 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
 #include <kengine/vulkan/Vertex.hpp>
+#include <kengine/vulkan/RenderContext.hpp>
 
 DescriptorSetLayoutConfig shadowPassLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT },
@@ -17,7 +18,7 @@ DescriptorSetLayoutConfig textureLayout = {
 };
 
 
-void CascadeShadowMapPipeline::bind(VulkanContext& engine, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) {
+void CascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) {
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
 
     VkDescriptorSet descriptorSets[] = {
@@ -25,10 +26,11 @@ void CascadeShadowMapPipeline::bind(VulkanContext& engine, DescriptorSetAllocato
         descSetAllocator.getGlobalDescriptorSet("cascade", cascadeViewProjLayout)
     };
 
+    // TODO: check alignments
     uint32_t dynamicOffsets[] = {
-        frameIndex * CascadeShadowMapRenderPass::SHADOW_CASCADE_COUNT * 16 * sizeof(float),
+        frameIndex * ShadowCascadeData::SHADOW_CASCADE_COUNT * 16 * sizeof(float),
         frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
-        frameIndex * MAX_INSTANCES * sizeof(int)
+        frameIndex * RenderContext::MAX_INSTANCES * sizeof(int)
     };
 
     // Single vkCmdBindDescriptorSets call
