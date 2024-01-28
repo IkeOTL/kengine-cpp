@@ -16,6 +16,32 @@ DescriptorSetLayoutConfig textureLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT }
 };
 
+
+void CascadeShadowMapPipeline::bind(VulkanContext& engine, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) {
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
+
+    VkDescriptorSet descriptorSets[] = {
+        descSetAllocator.getGlobalDescriptorSet("shadow-pass0", shadowPassLayout),
+        descSetAllocator.getGlobalDescriptorSet("cascade", cascadeViewProjLayout)
+    };
+
+    uint32_t dynamicOffsets[] = {
+        frameIndex * CascadeShadowMapRenderPass::SHADOW_CASCADE_COUNT * 16 * sizeof(float),
+        frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
+        frameIndex * MAX_INSTANCES * sizeof(int)
+    };
+
+    // Single vkCmdBindDescriptorSets call
+    vkCmdBindDescriptorSets(
+        cmd,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        getVkPipelineLayout(),
+        0,
+        2, descriptorSets,
+        3, dynamicOffsets
+    );
+}
+
 void CascadeShadowMapPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
     dst.push_back(cascadeViewProjLayout);
     dst.push_back(shadowPassLayout);
@@ -84,14 +110,14 @@ VkPipeline CascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass&
     VkVertexInputBindingDescription bindingDescription;
     std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
     createVertexInputDescriptions(texturedVertexFormat, bindingDescription, attributeDescriptions);
-    //
 
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = 1;
-    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+    VkPipelineVertexInputStateCreateInfo vi{};
+    vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vi.vertexBindingDescriptionCount = 1;
+    vi.pVertexBindingDescriptions = &bindingDescription;
+    vi.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    vi.pVertexAttributeDescriptions = attributeDescriptions.data();
+    //
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyState{};
     inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -143,10 +169,5 @@ VkPipeline CascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass&
     VKCHECK(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &newPipeline),
         "Failed to create pipeline");
 
-    // Don't forget to clean up resources when they are no longer needed
-
-    return VkPipeline();
-}
-
-void CascadeShadowMapPipeline::bind(VulkanContext& engine, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) {
+    return newPipeline;
 }
