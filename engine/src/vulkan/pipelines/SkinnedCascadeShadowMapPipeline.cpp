@@ -1,37 +1,26 @@
+#include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
 #include <kengine/vulkan/Vertex.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
-
-DescriptorSetLayoutConfig shadowPassLayout = {
-    DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT },
-    DescriptorSetLayoutBindingConfig{ 1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT }
-};
-
-DescriptorSetLayoutConfig cascadeViewProjLayout = {
-    DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT }
-};
-
-DescriptorSetLayoutConfig textureLayout = {
-    DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT }
-};
+#include <glm/mat4x4.hpp>
 
 
-void CascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) {
+void SkinnedCascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) {
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
 
     VkDescriptorSet descriptorSets[] = {
-        descSetAllocator.getGlobalDescriptorSet("shadow-pass0", shadowPassLayout),
-        descSetAllocator.getGlobalDescriptorSet("cascade", cascadeViewProjLayout)
+        descSetAllocator.getGlobalDescriptorSet("shadow-pass0", CascadeShadowMapPipeline::shadowPassLayout),
+        descSetAllocator.getGlobalDescriptorSet("cascade", CascadeShadowMapPipeline::cascadeViewProjLayout)
     };
 
     // TODO: check alignments
     uint32_t dynamicOffsets[] = {
-        frameIndex * ShadowCascadeData::SHADOW_CASCADE_COUNT * 16 * sizeof(float),
+        frameIndex * ShadowCascadeData::SHADOW_CASCADE_COUNT * sizeof(glm::mat4),
         frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
-        frameIndex * RenderContext::MAX_INSTANCES * sizeof(int)
+        frameIndex * RenderContext::MAX_INSTANCES * sizeof(uint32_t)
     };
 
     // Single vkCmdBindDescriptorSets call
@@ -45,13 +34,13 @@ void CascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator
     );
 }
 
-void CascadeShadowMapPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
-    dst.push_back(cascadeViewProjLayout);
-    dst.push_back(shadowPassLayout);
-    dst.push_back(textureLayout);
+void SkinnedCascadeShadowMapPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
+    dst.push_back(CascadeShadowMapPipeline::cascadeViewProjLayout);
+    dst.push_back(CascadeShadowMapPipeline::shadowPassLayout);
+    dst.push_back(SkinnedOffscreenPbrPipeline::skinnedSingleTextureLayout);
 }
 
-VkPipelineLayout CascadeShadowMapPipeline::createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) {
+VkPipelineLayout SkinnedCascadeShadowMapPipeline::createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) {
     std::vector<VkDescriptorSetLayout> setLayouts;
     for (const auto& config : descSetLayoutConfigs)
         setLayouts.push_back(layoutCache.getLayout(config));
@@ -75,9 +64,9 @@ VkPipelineLayout CascadeShadowMapPipeline::createPipelineLayout(VulkanContext& v
     return pipelineLayout;
 }
 
-VkPipeline CascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass& renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
+VkPipeline SkinnedCascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass& renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
-    loadShader(device, "res/src/deferred/cascade-shadow.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
+    loadShader(device, "res/src/deferred/cascade-shadow-skinned.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
     loadShader(device, "res/src/deferred/cascade-shadow.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
 
     VkViewport viewport = {};
@@ -101,12 +90,14 @@ VkPipeline CascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass&
 
     // vertex input info
     auto texturedVertexFormat = VertexFormatDescriptor{
-        sizeof(TexturedVertex),
+        sizeof(RiggedTexturedVertex),
         {
-            {0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(TexturedVertex, position)},
-            {1, VK_FORMAT_R32G32_SFLOAT, offsetof(TexturedVertex, texCoords)},
-            {2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(TexturedVertex, normal)},
-            {3, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(TexturedVertex, tangent)}
+            {0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(RiggedTexturedVertex, position)},
+            {1, VK_FORMAT_R32G32_SFLOAT, offsetof(RiggedTexturedVertex, texCoords)},
+            {2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(RiggedTexturedVertex, normal)},
+            {3, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(RiggedTexturedVertex, tangent)},
+            {4, VK_FORMAT_R32G32B32A32_UINT, offsetof(RiggedTexturedVertex, blendIndex)},
+            {5, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(RiggedTexturedVertex, blendWeight)}
         }
     };
 

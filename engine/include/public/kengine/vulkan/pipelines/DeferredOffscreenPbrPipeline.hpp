@@ -1,18 +1,15 @@
 #pragma once
 #include <kengine/vulkan/pipelines/Pipeline.hpp>
+#include <glm/mat4x4.hpp>
+#include <array>
 
-class CascadeShadowMapPipeline : public Pipeline {
+class DeferredOffscreenPbrPipeline : public Pipeline {
 protected:
     void loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) override;
 
 public:
-    struct PushConstant {
-        uint32_t cascadeIndex;
-    };
-
-    const static DescriptorSetLayoutConfig shadowPassLayout;
-    const static DescriptorSetLayoutConfig cascadeViewProjLayout;
-    const static DescriptorSetLayoutConfig textureLayout;
+    const static DescriptorSetLayoutConfig objectLayout;
+    const static DescriptorSetLayoutConfig pbrTextureLayout;
 
     VkPipelineLayout createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) override;
     VkPipeline createPipeline(VkDevice device, RenderPass& renderPass, VkPipelineLayout pipelineLayout, glm::uvec2  extents) override;

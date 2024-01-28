@@ -1,12 +1,12 @@
 add_library(engine STATIC)
 
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag(-fsanitize=address,undefined HAS_ASAN)
+check_cxx_compiler_flag(-fsanitize=address HAS_ASAN)
 if (HAS_ASAN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address,undefined")
-    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fsanitize=address,undefined")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fsanitize=address")
 endif()
 
 set(HEADERS
@@ -37,11 +37,15 @@ set(HEADERS
     include/public/kengine/vulkan/SceneData.hpp
     include/public/kengine/vulkan/ShadowCascade.hpp
     include/public/kengine/vulkan/Vertex.hpp
+    include/public/kengine/vulkan/DrawObjectBuffer.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
     include/public/kengine/vulkan/pipelines/PipelineCache.hpp
+    include/public/kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp
+    include/public/kengine/vulkan/pipelines/SkinnedOffscreenPbrPipeline.hpp
     include/public/kengine/vulkan/pipelines/DrawCullingPipeline.hpp
     include/public/kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp
+    include/public/kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp
 
     include/public/kengine/vulkan/descriptor/DescriptorSetLayout.hpp
     include/public/kengine/vulkan/descriptor/DescriptorSetPool.hpp
@@ -72,12 +76,15 @@ set(SOURCES
     src/vulkan/CameraController.cpp
     src/vulkan/SceneData.cpp
     src/vulkan/ShadowCascade.cpp
-    src/vulkan/Vertex.cpp
+    src/vulkan/DrawObjectBuffer.cpp
 
     src/vulkan/pipelines/Pipeline.cpp
     src/vulkan/pipelines/PipelineCache.cpp
+    src/vulkan/pipelines/DeferredOffscreenPbrPipeline.cpp
+    src/vulkan/pipelines/SkinnedOffscreenPbrPipeline.cpp
     src/vulkan/pipelines/DrawCullingPipeline.cpp
     src/vulkan/pipelines/CascadeShadowMapPipeline.cpp
+    src/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.cpp
 
     src/vulkan/descriptor/DescriptorSetLayout.cpp
     src/vulkan/descriptor/DescriptorSetPool.cpp

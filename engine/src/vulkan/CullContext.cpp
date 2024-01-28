@@ -72,20 +72,13 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
     cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     vkBeginCommandBuffer(cmdBuf, &cmdBeginInfo);
     {
-        struct pConstants {
-            glm::mat4 view; // 4 * vec4, 16 bytes alignment
-            std::array<float, 4> frustum; // 4 * float, 4 bytes each
-            float p00, p11, zNear, zFar; // 4 * float, 4 bytes each
-            uint32_t totalInstances; // uint, 4 bytes
-        };
-
         auto camera = cc.getCamera();
         auto& proj = camera->getProjectionMatrix();
         auto frustumX = math::frustumPlane(proj, math::PLANE_NX);
         auto frustumY = math::frustumPlane(proj, math::PLANE_PX);
 
-        auto pc = pConstants{};
-        camera->getViewMatrix(pc.view);
+        auto pc = DrawCullingPipeline::PushConstant{};
+        camera->getViewMatrix(pc.viewMatrix);
         pc.frustum[0] = frustumX.x;
         pc.frustum[1] = frustumX.z;
         pc.frustum[2] = frustumY.x;
@@ -100,7 +93,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 
         auto* pl = vkCxt.getPipelineCache().getPipeline<DrawCullingPipeline>();
         pl->bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
-        vkCmdPushConstants(cmdBuf, pl->getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pConstants), &pc);
+        vkCmdPushConstants(cmdBuf, pl->getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(DrawCullingPipeline::PushConstant), &pc);
 
         vkCmdDispatch(cmdBuf, (objectCount / 256) + 1, 1, 1);
 

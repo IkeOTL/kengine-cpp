@@ -28,8 +28,8 @@ private:
     CachedGpuBuffer& drawInstanceBuffer; // all instances after GPU culling
 
 public:
-    const static size_t MAX_INSTANCES = 200000;
-    const static size_t MAX_BATCHES = 10000;
+    const static uint32_t MAX_INSTANCES = 200000;
+    const static uint32_t MAX_BATCHES = 10000;
 
 
     void init();

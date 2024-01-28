@@ -29,7 +29,7 @@ private:
     std::vector<std::unique_ptr<ShadowCascade>> cascades;
 
 public:
-    const static size_t SHADOW_CASCADE_COUNT = 4;
+    const static uint32_t SHADOW_CASCADE_COUNT = 4;
 
     void addCascade(ShadowCascade&& c);
     ShadowCascade* getCascade(int i);

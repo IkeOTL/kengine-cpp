@@ -2,6 +2,7 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
+#include <kengine/vulkan/DrawObjectBuffer.hpp>
 
 DescriptorSetLayoutConfig cullingLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_COMPUTE_BIT },
@@ -19,7 +20,7 @@ void DrawCullingPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& des
     uint32_t dynamicOffsets[] = {
         frameIndex * RenderContext::MAX_INSTANCES * sizeof(VkDrawIndexedIndirectCommand),
         frameIndex * RenderContext::MAX_INSTANCES * (2 * sizeof(uint32_t)),
-        frameIndex * DrawObjectBuffer.alignedFrameSize(vkCxt),
+        frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
         frameIndex * RenderContext::MAX_INSTANCES * sizeof(uint32_t)
     };
 
@@ -46,7 +47,7 @@ VkPipelineLayout DrawCullingPipeline::createPipelineLayout(VulkanContext& vkCont
     VkPushConstantRange pushConstantRange{};
     pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
     pushConstantRange.offset = 0;
-    pushConstantRange.size = (16 * sizeof(float)) + (4 * sizeof(float)) + (4 * sizeof(float)) + sizeof(int);
+    pushConstantRange.size = sizeof(DrawCullingPipeline::PushConstant);
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;

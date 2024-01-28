@@ -97,8 +97,8 @@ void DeferredPbrRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const
     freeRenderTargets();
 
     setDepthStencil(createDepthStencil(vmaAllocator, extents));
+    continue work on render passes, we changed how render targets get loaded i think
+        for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
 
-    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
-
-    }
+        }
 }

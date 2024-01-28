@@ -1,4 +1,5 @@
 #include <kengine/vulkan/ShadowContext.hpp>
+#include <kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp>
 
 void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllocator>& descSetAllocators,
 	glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer drawInstanceBuffer) {
@@ -66,7 +67,7 @@ void ShadowContext::execute(VulkanContext& vkContext, VulkanContext::RenderFrame
 		vkContext.beginRenderPass(rp1Cxt);
 		{
 			auto pipeline = vkContext.getPipelineCache().getPipeline<CascadeShadowMapPipeline>();
-			execShadowPass(vkContext, cxt, pipeline, dAllocator, i, nonSkinnedBatches, nonSkinnedBatchesSize, false);
+			execShadowPass(vkContext, cxt, *pipeline, dAllocator, i, nonSkinnedBatches, nonSkinnedBatchesSize, false);
 
 			auto skinnedPipeline = vkContext.getPipelineCache().getPipeline<SkinnedCascadeShadowMapPipeline>();
 			execShadowPass(vkContext, cxt, skinnedPipeline, dAllocator, i, skinnedBatches, skinnedBatchesSize, true);
