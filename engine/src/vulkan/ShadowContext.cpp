@@ -1,5 +1,6 @@
 #include <kengine/vulkan/ShadowContext.hpp>
 #include <kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp>
+#include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 
 void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllocator>& descSetAllocators,
 	glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer drawInstanceBuffer) {
@@ -20,6 +21,8 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllo
 		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 		VMA_MEMORY_USAGE_AUTO,
 		xferFlags);
+
+	finish init
 }
 
 void ShadowContext::execute(VulkanContext& vkContext, VulkanContext::RenderFrameContext& cxt, DescriptorSetAllocator& dAllocator,
@@ -70,7 +73,7 @@ void ShadowContext::execute(VulkanContext& vkContext, VulkanContext::RenderFrame
 			execShadowPass(vkContext, cxt, *pipeline, dAllocator, i, nonSkinnedBatches, nonSkinnedBatchesSize, false);
 
 			auto skinnedPipeline = vkContext.getPipelineCache().getPipeline<SkinnedCascadeShadowMapPipeline>();
-			execShadowPass(vkContext, cxt, skinnedPipeline, dAllocator, i, skinnedBatches, skinnedBatchesSize, true);
+			execShadowPass(vkContext, cxt, *skinnedPipeline, dAllocator, i, skinnedBatches, skinnedBatchesSize, true);
 		}
 		vkContext.endRenderPass(rp1Cxt);
 	}
@@ -79,4 +82,17 @@ void ShadowContext::execute(VulkanContext& vkContext, VulkanContext::RenderFrame
 void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::RenderFrameContext& cxt,
 	Pipeline& p1, DescriptorSetAllocator& dAllocator, size_t cascadeIdx,
 	IndirectDrawBatch* batches, size_t batchesSize, bool skinned) {
+	if (batchesSize == 0)
+		return;
+	
+	auto vkCmd = cxt.cmd;
+	p1.bind(vkContext, dAllocator, vkCmd, cxt.frameIndex);
+
+	vkCmdPushConstants(vkCmd, p1.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(cascadeIdx), &cascadeIdx);
+
+	auto indCmdFrameOffset = indirectCmdBuf.getFrameOffset(cxt.frameIndex);
+	for (auto i = 0; i < batchesSize; i++) {
+	
+	
+	}
 }

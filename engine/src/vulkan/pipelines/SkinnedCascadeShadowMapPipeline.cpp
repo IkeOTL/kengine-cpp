@@ -6,7 +6,12 @@
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
 #include <glm/mat4x4.hpp>
+#include <kengine/vulkan/pipelines/SkinnedOffscreenPbrPipeline.hpp>
 
+DescriptorSetLayoutConfig skinnedSingleTextureLayout = {
+    DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },
+    DescriptorSetLayoutBindingConfig{ 1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT }
+};
 
 void SkinnedCascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) {
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
@@ -37,7 +42,7 @@ void SkinnedCascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAl
 void SkinnedCascadeShadowMapPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
     dst.push_back(CascadeShadowMapPipeline::cascadeViewProjLayout);
     dst.push_back(CascadeShadowMapPipeline::shadowPassLayout);
-    dst.push_back(SkinnedOffscreenPbrPipeline::skinnedSingleTextureLayout);
+    dst.push_back(skinnedSingleTextureLayout);
 }
 
 VkPipelineLayout SkinnedCascadeShadowMapPipeline::createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) {

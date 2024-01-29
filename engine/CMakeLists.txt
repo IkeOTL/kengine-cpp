@@ -38,6 +38,12 @@ set(HEADERS
     include/public/kengine/vulkan/ShadowCascade.hpp
     include/public/kengine/vulkan/Vertex.hpp
     include/public/kengine/vulkan/DrawObjectBuffer.hpp
+    include/public/kengine/vulkan/IndirectDrawBatch.hpp
+    include/public/kengine/vulkan/MaterialBindManager.hpp
+
+    include/public/kengine/vulkan/mesh/Mesh.hpp
+
+    include/public/kengine/vulkan/material/Material.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
     include/public/kengine/vulkan/pipelines/PipelineCache.hpp
@@ -77,6 +83,12 @@ set(SOURCES
     src/vulkan/SceneData.cpp
     src/vulkan/ShadowCascade.cpp
     src/vulkan/DrawObjectBuffer.cpp
+    src/vulkan/IndirectDrawBatch.cpp
+    src/vulkan/MaterialBindManager.cpp
+    
+    src/vulkan/mesh/Mesh.cpp
+
+    src/vulkan/material/Material.cpp
 
     src/vulkan/pipelines/Pipeline.cpp
     src/vulkan/pipelines/PipelineCache.cpp
