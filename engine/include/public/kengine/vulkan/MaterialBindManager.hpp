@@ -1,6 +1,7 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
+#include "material/Material.hpp"
 
 class MaterialBindManager {
 private:
@@ -14,5 +15,5 @@ public:
 
     void bind(Material& mat, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex);
     void bindPipeline(Material& mat, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex);
-    void bindMaterial(Material& mat, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, int frameIndex)
+    void bindMaterial(Material& mat, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex);
 };
