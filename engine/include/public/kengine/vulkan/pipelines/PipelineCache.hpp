@@ -10,6 +10,8 @@ private:
     std::unordered_map<std::type_index, std::unique_ptr<Pipeline>> pipelines;
 
 public:
+    const static DescriptorSetLayoutConfig globalLayout;
+
     void addPipeline(std::unique_ptr<Pipeline>&& pipeline) {
         pipelines[std::type_index(typeid(*pipeline))] = std::move(pipeline);
     }
@@ -21,5 +23,13 @@ public:
             return nullptr;
 
         return dynamic_cast<T*>(it->second.get());
+    }
+    
+    Pipeline* getPipeline(std::type_index& typeIdx) {
+        auto it = pipelines.find(typeIdx);
+        if (it == pipelines.end())
+            return nullptr;
+
+        return it->second.get();
     }
 };
