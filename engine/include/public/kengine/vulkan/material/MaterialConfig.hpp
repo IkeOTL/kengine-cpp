@@ -32,6 +32,8 @@ public:
         bindingConfigs[std::pair(config->)] = std::move(config);
     }
 
+    virtual void addSkeleton(int skeletonBufferId);
+
     bool hasShadow() {
         return hasShadow;
     }
@@ -49,7 +51,6 @@ public:
         this.hasSkeleton = hasSkeleton;
         return this;
     }
-
 
     // hash + equal
 };

@@ -1,5 +1,7 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/vulkan/material/MaterialBinding.hpp>
+#include <future>
 
 class MaterialBindingConfig {
 private:
@@ -12,12 +14,16 @@ public:
     int getDescriptorSetIndex() {
         return descriptorSetIndex;
     }
-    
+
     int getBindingIndex() {
         return bindingIndex;
     }
 
-    virtual int subHash() = 0;
-    
+    virtual std::future<MaterialBinding> getBinding(AsyncTextureCache textureCache, GpuBufferCache bufferCache) = 0;
+
+    virtual int hash() = 0;
+
+    int hashCode();
+
     // hash + equal
 };

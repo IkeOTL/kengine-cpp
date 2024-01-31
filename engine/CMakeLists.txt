@@ -40,12 +40,14 @@ set(HEADERS
     include/public/kengine/vulkan/DrawObjectBuffer.hpp
     include/public/kengine/vulkan/IndirectDrawBatch.hpp
     include/public/kengine/vulkan/MaterialBindManager.hpp
+    include/public/kengine/vulkan/AsyncAssetCache.hpp
 
     include/public/kengine/vulkan/mesh/Mesh.hpp
 
     include/public/kengine/vulkan/material/Material.hpp
     include/public/kengine/vulkan/material/MaterialConfig.hpp
     include/public/kengine/vulkan/material/MaterialBindingConfig.hpp
+    include/public/kengine/vulkan/material/MaterialBinding.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
     include/public/kengine/vulkan/pipelines/PipelineCache.hpp
@@ -87,12 +89,14 @@ set(SOURCES
     src/vulkan/DrawObjectBuffer.cpp
     src/vulkan/IndirectDrawBatch.cpp
     src/vulkan/MaterialBindManager.cpp
+    src/vulkan/AsyncAssetCache.cpp
     
     src/vulkan/mesh/Mesh.cpp
 
     src/vulkan/material/Material.cpp
     src/vulkan/material/MaterialConfig.cpp
     src/vulkan/material/MaterialBindingConfig.cpp
+    src/vulkan/material/MaterialBinding.cpp
 
     src/vulkan/pipelines/Pipeline.cpp
     src/vulkan/pipelines/PipelineCache.cpp
