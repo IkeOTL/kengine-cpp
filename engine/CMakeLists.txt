@@ -10,6 +10,9 @@ if (HAS_ASAN)
 endif()
 
 set(HEADERS
+    include/public/kengine/io/AssetIO.hpp
+    include/public/kengine/io/MemoryMappedFile.hpp
+
     include/public/kengine/Engine.hpp
     include/public/kengine/Math.hpp
     include/public/kengine/Window.hpp
@@ -69,6 +72,9 @@ set(HEADERS
 set(SOURCES
     src/Engine.cpp
     src/Window.cpp
+    
+    src/io/FlieSystemAssetIO.cpp
+    src/io/MemoryMappedFile.cpp
 
     src/vulkan/VulkanContext.cpp
     src/vulkan/RenderContext.cpp
@@ -90,7 +96,7 @@ set(SOURCES
     src/vulkan/IndirectDrawBatch.cpp
     src/vulkan/MaterialBindManager.cpp
     src/vulkan/AsyncAssetCache.cpp
-    
+
     src/vulkan/mesh/Mesh.cpp
 
     src/vulkan/material/Material.cpp

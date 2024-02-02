@@ -14,19 +14,19 @@ public:
         return *(gpuBuffer.get());
     }
 
-    VkDeviceSize getFrameSize() {
+    VkDeviceSize getFrameSize() const {
         return frameSize;
     }
 
-    VkDeviceSize getTotalSize() {
+    VkDeviceSize getTotalSize() const {
         return totalSize;
     }
 
-    VkDeviceSize getFrameOffset(size_t frame) {
+    VkDeviceSize getFrameOffset(size_t frame) const {
         return frameSize * frame;
     }
 
-    unsigned int getId() {
+    unsigned int getId() const {
         return id;
     }
 

@@ -18,13 +18,13 @@ public:
     virtual std::unique_ptr<T> create(C key) = 0;
 
     T* unsafeAdd(C key, std::unique_ptr<T>&& value) {
-        std::unique_lock<std::mutex> lock(this->lock);
+        std::lock_guard<std::mutex> lock(this->lock);
         auto& asset = cache[key] = std::move(value);
         return asset.get();
     }
 
     std::unique_ptr<T> remove(C key) {
-        std::unique_lock<std::mutex> lock(this->lock);
+        std::lock_guard<std::mutex> lock(this->lock);
 
         auto it = cache.find(key);
         if (it == cache.end())
@@ -38,23 +38,20 @@ public:
     }
 
     std::future<T*> get(C key) {
-        std::unique_lock<std::mutex> lock(this->lock);
+        std::lock_guard<std::mutex> lock(this->lock);
 
         auto cacheIt = cache.find(key);
-        if (cacheIt != cache.end()) {
-            std::promise<T*> p;
-            p.set_value(cacheIt->second.get());
-            return p.get_future();
-        }
+        if (cacheIt != cache.end())
+            return std::async(std::launch::deferred, [asset = cacheIt->second.get()]() { return asset; });
 
         auto taskIt = backgroundTasks.find(key);
-        if (taskIt != map.end())
+        if (taskIt != backgroundTasks.end())
             return taskIt->second;
 
-        auto task = workerPool.submit([this]() {
+        auto task = workerPool.submit([this, key]() {
             auto asset = this->create(key);
 
-            std::unique_lock<std::mutex> lock(this->lock);
+            std::lock_guard<std::mutex> lock(this->lock);
             auto& storedAsset = this->cache[key] = std::move(asset);
             this->backgroundTasks.erase(key);
 
