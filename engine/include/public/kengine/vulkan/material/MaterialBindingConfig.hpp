@@ -1,6 +1,8 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/material/MaterialBinding.hpp>
+#include <kengine/vulkan/GpuBufferCache.hpp>
+
 #include <future>
 
 class MaterialBindingConfig {

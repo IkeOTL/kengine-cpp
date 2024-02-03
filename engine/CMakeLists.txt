@@ -47,6 +47,10 @@ set(HEADERS
 
     include/public/kengine/vulkan/mesh/Mesh.hpp
 
+    include/public/kengine/vulkan/texture/AsyncTextureCache.hpp
+    include/public/kengine/vulkan/texture/TextureConfig.hpp
+    include/public/kengine/vulkan/texture/Texture2d.hpp
+
     include/public/kengine/vulkan/material/Material.hpp
     include/public/kengine/vulkan/material/MaterialConfig.hpp
     include/public/kengine/vulkan/material/MaterialBindingConfig.hpp
@@ -96,6 +100,10 @@ set(SOURCES
     src/vulkan/IndirectDrawBatch.cpp
     src/vulkan/MaterialBindManager.cpp
     src/vulkan/AsyncAssetCache.cpp
+
+    src/vulkan/texture/AsyncTextureCache.cpp
+    src/vulkan/texture/TextureConfig.cpp
+    src/vulkan/texture/Texture2d.cpp
 
     src/vulkan/mesh/Mesh.cpp
 

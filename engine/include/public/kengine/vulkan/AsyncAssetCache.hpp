@@ -13,7 +13,7 @@ private:
     std::mutex lock;
 
 public:
-    AsyncAssetCache(ExecutorService& workerPool) :workerPool(workerPool) {}
+    AsyncAssetCache(ExecutorService& workerPool) : workerPool(workerPool) {}
 
     virtual std::unique_ptr<T> create(C key) = 0;
 
