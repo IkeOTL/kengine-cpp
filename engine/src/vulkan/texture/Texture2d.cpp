@@ -1,8 +1,8 @@
 #include <kengine/vulkan/texture/Texture2d.hpp>
 
-void Texture2d::init(VulkanContext& vkCxt, char* image, int width, int height, 
+void Texture2d::init(VulkanContext& vkCxt, char* image, int width, int height,
     VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
-    VkFlags64 dstStageMask, VkFlags64 dstAccessMask, bool generateMipMaps)
+    VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, bool generateMipMaps)
 {
     this->width = width;
     this->height = height;
@@ -41,11 +41,11 @@ void Texture2d::init(VulkanContext& vkCxt, char* image, int width, int height,
     VkImage imageHandle;
     VmaAllocation imageAllocation;
     vmaCreateImage(vkCxt.getVmaAllocator(), &imgCreateInfo, &allocImgInfo, &imageHandle, &imageAllocation, nullptr);
-    
-    create gpuimage
+
+      create gpuimage
 
     // Transition image to transfer-receiver
-    vkCxt.createTransferCmdBuf([&](VkCommandBuffer cmdBuf) {
+    vkCxt.recordAndSubmitTransferCmdBuf([&](const CommandBuffer& cmdBuf) {
         ImageQueueOwnerTransfer qXfer(imageHandle, vkCxt.getXferQueueFamilyIndex(), vkCxt.getGfxQueueFamilyIndex(), dstStageMask, dstAccessMask);
         qXfer.setMips(mipLevels, width, height);
 
@@ -58,7 +58,7 @@ void Texture2d::init(VulkanContext& vkCxt, char* image, int width, int height,
         imageBarrierToTransfer.srcAccessMask = 0;
         imageBarrierToTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-        vkCmdPipelineBarrier(cmdBuf, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrierToTransfer);
+        vkCmdPipelineBarrier(cmdBuf.vkCmdBuf, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrierToTransfer);
 
         VkBufferImageCopy copyRegion = {};
         copyRegion.bufferOffset = 0;
@@ -67,9 +67,13 @@ void Texture2d::init(VulkanContext& vkCxt, char* image, int width, int height,
         copyRegion.imageSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
         copyRegion.imageExtent = imageExtent;
 
-        vkCmdCopyBufferToImage(cmdBuf, stagingBuffer->getVkBuffer(), imageHandle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+        vkCmdCopyBufferToImage(cmdBuf.vkCmdBuf, stagingBuffer->getVkBuffer(), imageHandle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 
-        qXfer.applyReleaseBarrier(cmdBuf);
+        qXfer.applyReleaseBarrier(cmdBuf.vkCmdBuf);
+
+        return [this]() {
+                // qxfer
+            };
         }, true);
 
     // Create image view
@@ -81,9 +85,8 @@ void Texture2d::init(VulkanContext& vkCxt, char* image, int width, int height,
     viewCreateInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, mipLevels, 0, 1 };
 
     VkImageView imageView;
-    if (vkCreateImageView(vkCxt.getVkDevice(), &viewCreateInfo, nullptr, &imageView) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create image view");
-    }
+    VKCHECK(vkCreateImageView(vkCxt.getVkDevice(), &viewCreateInfo, nullptr, &imageView) != VK_SUCCESS,
+        "Failed to create image view");
 
     create gpuimageview
 }

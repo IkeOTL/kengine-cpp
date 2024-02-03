@@ -120,6 +120,8 @@ public:
     void uploadBuffer(GpuUploadable& obj, VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask,
         VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
 
+    void recordAndSubmitTransferCmdBuf(CommandBufferRecordFunc func, bool awaitFence);
+
     void recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence);
 
     struct RenderFrameContext {
@@ -154,6 +156,10 @@ public:
 
     VulkanQueue& getComputeQueue() {
         return *computeQueue;
+    }
+
+    VmaAllocator getVmaAllocator() {
+        return vmaAllocator;
     }
 
     void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);

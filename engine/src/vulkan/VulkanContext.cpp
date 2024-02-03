@@ -447,6 +447,10 @@ void VulkanContext::uploadBuffer(GpuUploadable& obj, VkAccessFlags2 dstStageMask
     obj.setGpuBuffer(std::move(deviceBuf));
 }
 
+void VulkanContext::recordAndSubmitTransferCmdBuf(CommandBufferRecordFunc func, bool awaitFence) {
+    recordAndSubmitCmdBuf(commandPool->createTransferCmdBuf(), *transferQueue, func, awaitFence);
+}
+
 void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence) {
     // record command buffer
     VkCommandBufferBeginInfo cmdBufBeginInfo{};

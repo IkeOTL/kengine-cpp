@@ -14,12 +14,12 @@ private:
 
     void init(VulkanContext& vkCxt, char* image, int width, int height,
         VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
-        VkFlags64 dstStageMask, VkFlags64 dstAccessMask, bool generateMipMaps);
+        VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, bool generateMipMaps);
 
 public:
     Texture2d(VulkanContext& vkCxt, char* image, int width, int height,
         VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
-        VkFlags64 dstStageMask, VkFlags64 dstAccesMask, bool generateMipMaps) {
+        VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccesMask, bool generateMipMaps) {
         init(vkCxt, image, width, height, format, imageType, imageViewType, channels,
             dstStageMask, dstAccesMask, generateMipMaps);
     }
