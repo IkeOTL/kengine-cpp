@@ -7,17 +7,17 @@
 
 class Texture2d {
 private:
-    std::unique_ptr<GpuImage> gpuImage;
-    std::unique_ptr<GpuImageView> imageView;
+    std::shared_ptr<GpuImage> gpuImage;
+    std::unique_ptr<GpuImageView> gpuImageView;
     uint32_t mipLevels;
-    int width, height;
+    uint32_t width, height;
 
-    void init(VulkanContext& vkCxt, char* image, int width, int height,
+    void init(VulkanContext& vkCxt, char* image, uint32_t width, uint32_t height,
         VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
         VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, bool generateMipMaps);
 
 public:
-    Texture2d(VulkanContext& vkCxt, char* image, int width, int height,
+    Texture2d(VulkanContext& vkCxt, char* image, uint32_t width, uint32_t height,
         VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
         VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccesMask, bool generateMipMaps) {
         init(vkCxt, image, width, height, format, imageType, imageViewType, channels,

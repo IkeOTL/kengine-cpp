@@ -33,7 +33,7 @@ void GpuBuffer::flush(unsigned long offset, unsigned long size) {
 }
 
 GpuBuffer::~GpuBuffer() {
-    if (!mappedBuffer) {
+    if (mappedBuffer) {
         vmaUnmapMemory(vmaAllocator, vmaAllocation);
         mappedBuffer = nullptr;
     }
