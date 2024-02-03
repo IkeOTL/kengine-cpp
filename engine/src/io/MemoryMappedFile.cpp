@@ -1,8 +1,8 @@
 #include <kengine/io/MemoryMappedFile.hpp>
 
 
-char* MemoryMappedFile::data() const {
-    return static_cast<char*>(mappedView);
+const unsigned char* MemoryMappedFile::data() const {
+    return static_cast<const unsigned char*>(mappedView);
 }
 
 void MemoryMappedFile::map() {

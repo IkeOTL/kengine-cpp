@@ -12,10 +12,11 @@ private:
     std::unordered_map<C, std::future<T*>> backgroundTasks;
     std::mutex lock;
 
+protected:
+    virtual std::unique_ptr<T> create(C key) = 0;
+
 public:
     AsyncAssetCache(ExecutorService& workerPool) : workerPool(workerPool) {}
-
-    virtual std::unique_ptr<T> create(C key) = 0;
 
     T* unsafeAdd(C key, std::unique_ptr<T>&& value) {
         std::lock_guard<std::mutex> lock(this->lock);

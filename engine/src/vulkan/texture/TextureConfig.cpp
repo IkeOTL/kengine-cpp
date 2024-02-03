@@ -25,9 +25,9 @@ namespace std {
         size_t operator()(const TextureConfig& p) const noexcept {
             size_t hash = 7;
             hash = 67 * hash + std::hash<std::string>()(p.textureKey);
-            hash = 67 * hash + p.format;
-            hash = 67 * hash + p.imageType;
-            hash = 67 * hash + p.imageViewType;
+            hash = 67 * hash + static_cast<int>(p.format);
+            hash = 67 * hash + static_cast<int>(p.imageType);
+            hash = 67 * hash + static_cast<int>(p.imageViewType);
             hash = 67 * hash + p.channels;
             hash = 67 * hash + (int)(p.dstStageMask ^ (p.dstStageMask >> 32));
             hash = 67 * hash + (int)(p.dstAccessMask ^ (p.dstAccessMask >> 32));

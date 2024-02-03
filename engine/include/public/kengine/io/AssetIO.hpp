@@ -7,9 +7,10 @@
 class AssetData {
 public:
     // need to add byte count or something. maybe implement javas ByteBuffer?
-    virtual char* data() = 0;
+    virtual const unsigned char* data() = 0;
+    virtual const unsigned int length() = 0;
 
-    virtual ~AssetData();
+    virtual ~AssetData() = default;
 };
 
 class AssetIO {
@@ -26,14 +27,19 @@ public:
     std::unique_ptr<AssetData> loadBuffer(const std::string& key) override;
 };
 
-class MemoryMappedFileAssetData : AssetData {
+class MemoryMappedFileAssetData : public AssetData {
 private:
     std::unique_ptr<MemoryMappedFile> mmapFile;
 
+public:
     MemoryMappedFileAssetData(std::unique_ptr<MemoryMappedFile>&& mmapFile)
         : mmapFile(std::move(mmapFile)) {}
 
-    char* data() {
-        mmapFile->data();
+    const unsigned int length() override {
+        return 1337;
+    }
+
+    const unsigned char* data() override {
+        return mmapFile->data();
     }
 };

@@ -11,11 +11,14 @@ private:
     LPVOID mappedView = nullptr;
 
 public:
+    MemoryMappedFile(std::string fileName)
+        : fileName(fileName) {}
+
     ~MemoryMappedFile() {
         unmap();
     }
 
     void map();
     void unmap();
-    char* data() const;
+    const unsigned char* data() const;
 };

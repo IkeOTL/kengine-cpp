@@ -11,8 +11,8 @@ class MaterialConfig {
 private:
     std::type_index pipelineTypeIndex;
 
-    bool hasShadow = false;
-    bool hasSkeleton = false;
+    bool _hasShadow = false;
+    bool _hasSkeleton = false;
     int32_t skeletonBufferId = -1;
 
     std::unordered_map<std::pair<int, int>, std::unique_ptr<MaterialBindingConfig>> bindingConfigs;
@@ -35,20 +35,20 @@ public:
     virtual void addSkeleton(int skeletonBufferId);
 
     bool hasShadow() {
-        return hasShadow;
+        return _hasShadow;
     }
 
-    MaterialConfig setHasShadow(boolean hasShadow) {
-        this.hasShadow = hasShadow;
+    MaterialConfig setHasShadow(bool hasShadow) {
+        this._hasShadow = hasShadow;
         return this;
     }
 
     bool hasSkeleton() {
-        return hasSkeleton;
+        return _hasSkeleton;
     }
 
-    MaterialConfig setHasSkeleton(boolean hasSkeleton) {
-        this.hasSkeleton = hasSkeleton;
+    MaterialConfig setHasSkeleton(bool hasSkeleton) {
+        this._hasSkeleton = hasSkeleton;
         return this;
     }
 

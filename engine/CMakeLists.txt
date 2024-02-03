@@ -48,6 +48,7 @@ set(HEADERS
     include/public/kengine/vulkan/mesh/Mesh.hpp
 
     include/public/kengine/vulkan/texture/AsyncTextureCache.hpp
+    include/public/kengine/vulkan/texture/TextureFactory.hpp
     include/public/kengine/vulkan/texture/TextureConfig.hpp
     include/public/kengine/vulkan/texture/Texture2d.hpp
 
@@ -102,6 +103,7 @@ set(SOURCES
     src/vulkan/AsyncAssetCache.cpp
 
     src/vulkan/texture/AsyncTextureCache.cpp
+    src/vulkan/texture/TextureFactory.cpp
     src/vulkan/texture/TextureConfig.cpp
     src/vulkan/texture/Texture2d.cpp
 
@@ -142,6 +144,7 @@ source_group(
 
 target_include_directories(engine PUBLIC include/public)
 target_include_directories(engine PRIVATE include/private)
+target_include_directories(engine PRIVATE include/thirdparty)
 
 find_package(Threads REQUIRED)
 find_package(Vulkan 1.3 REQUIRED) # expected to also install VMA and GLM

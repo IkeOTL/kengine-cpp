@@ -6,21 +6,41 @@
 class TextureConfig {
 private:
     std::string textureKey;
-    int format, imageType, imageViewType;
+    VkFormat format;
+    VkImageType imageType;
+    VkImageViewType imageViewType;
     int channels;
-    VkFlags64 dstStageMask, dstAccessMask;
+    VkAccessFlags2 dstStageMask, dstAccessMask;
     bool mipmaps;
 
 public:
-    TextureConfig(std::string textureKey, int format, int imageType, int imageViewType, int channels, bool mipmaps)
+    TextureConfig(std::string textureKey, VkFormat format, 
+        VkImageType imageType, VkImageViewType imageViewType, 
+        int channels, VkAccessFlags2 dstStageMask, VkAccessFlags2 
+        dstAccessMask, bool mipmaps)
         : textureKey(textureKey),
         format(format),
         imageType(imageType),
         imageViewType(imageViewType),
         channels(channels),
-        dstStageMask(VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT_KHR),
-        dstAccessMask(VK_ACCESS_2_SHADER_SAMPLED_READ_BIT),
+        dstStageMask(dstStageMask),
+        dstAccessMask(dstAccessMask),
         mipmaps(mipmaps)
+    {}
+
+    TextureConfig(std::string textureKey)
+        : TextureConfig(textureKey, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TYPE_2D, VK_IMAGE_VIEW_TYPE_2D, 4, true)
+    {}
+
+    TextureConfig(std::string textureKey, VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels, bool mipmaps)
+        : TextureConfig(textureKey,
+            format,
+            imageType,
+            imageViewType,
+            channels,
+            VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT_KHR,
+            VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
+            mipmaps)
     {}
 
     bool operator==(const TextureConfig& other) const;
@@ -32,15 +52,15 @@ public:
         return textureKey;
     }
 
-    int getFormat() {
+    VkFormat getFormat() {
         return format;
     }
 
-    int getImageType() {
+    VkImageType getImageType() {
         return imageType;
     }
 
-    int getImageViewType() {
+    VkImageViewType getImageViewType() {
         return imageViewType;
     }
 
@@ -52,11 +72,11 @@ public:
         return channels;
     }
 
-    VkFlags64 getDstStageMask() {
+    VkAccessFlags2 getDstStageMask() {
         return dstStageMask;
     }
 
-    VkFlags64 getDstAccessMask() {
+    VkAccessFlags2 getDstAccessMask() {
         return dstAccessMask;
     }
 };

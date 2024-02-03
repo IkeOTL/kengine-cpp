@@ -4,6 +4,7 @@
 #include <kengine/vulkan/GpuBufferCache.hpp>
 
 #include <future>
+#include <kengine/vulkan/texture/AsyncTextureCache.hpp>
 
 class MaterialBindingConfig {
 private:
