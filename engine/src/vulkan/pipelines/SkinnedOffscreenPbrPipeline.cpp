@@ -4,6 +4,7 @@
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/Vertex.hpp>
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
+#include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
 
 DescriptorSetLayoutConfig pbrSkinnedTextureLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },
@@ -42,8 +43,8 @@ void SkinnedOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSetAlloca
 }
 
 void SkinnedOffscreenPbrPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
-    dst.push_back(PipelineCache.globalLayout);
-    dst.push_back(DeferredOffscreenPbrPipeline.objectLayout);
+    dst.push_back(PipelineCache::globalLayout);
+    dst.push_back(DeferredOffscreenPbrPipeline::objectLayout);
     dst.push_back(pbrSkinnedTextureLayout);
 }
 

@@ -52,6 +52,7 @@ set(HEADERS
     include/public/kengine/vulkan/texture/TextureConfig.hpp
     include/public/kengine/vulkan/texture/Texture2d.hpp
 
+    include/public/kengine/vulkan/material/AsyncMaterialCache.hpp
     include/public/kengine/vulkan/material/Material.hpp
     include/public/kengine/vulkan/material/MaterialConfig.hpp
     include/public/kengine/vulkan/material/MaterialBindingConfig.hpp
@@ -64,6 +65,7 @@ set(HEADERS
     include/public/kengine/vulkan/pipelines/DrawCullingPipeline.hpp
     include/public/kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp
     include/public/kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp
+    include/public/kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp
 
     include/public/kengine/vulkan/descriptor/DescriptorSetLayout.hpp
     include/public/kengine/vulkan/descriptor/DescriptorSetPool.hpp
@@ -109,6 +111,7 @@ set(SOURCES
 
     src/vulkan/mesh/Mesh.cpp
 
+    src/vulkan/material/AsyncMaterialCache.cpp
     src/vulkan/material/Material.cpp
     src/vulkan/material/MaterialConfig.cpp
     src/vulkan/material/MaterialBindingConfig.cpp
@@ -121,6 +124,7 @@ set(SOURCES
     src/vulkan/pipelines/DrawCullingPipeline.cpp
     src/vulkan/pipelines/CascadeShadowMapPipeline.cpp
     src/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.cpp
+    src/vulkan/pipelines/DeferredCompositionPbrPipeline.cpp
 
     src/vulkan/descriptor/DescriptorSetLayout.cpp
     src/vulkan/descriptor/DescriptorSetPool.cpp

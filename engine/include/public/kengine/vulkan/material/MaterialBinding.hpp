@@ -8,3 +8,18 @@ private:
 public:
 
 };
+
+class BufferBinding :public MaterialBinding {
+private:
+
+public:
+
+};
+
+
+class ImageBinding :public MaterialBinding {
+private:
+
+public:
+
+};

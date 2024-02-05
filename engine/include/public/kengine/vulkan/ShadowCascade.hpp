@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/vulkan/GpuBufferCache.hpp>
+#include <kengine/vulkan/GpuBufferCache.hpp>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <vector>
@@ -24,15 +25,15 @@ public:
 };
 
 class ShadowCascadeData {
-private:
-    glm::vec3 lightDir;
-    std::vector<std::unique_ptr<ShadowCascade>> cascades;
-
 public:
     const static uint32_t SHADOW_CASCADE_COUNT = 4;
 
-    void addCascade(ShadowCascade&& c);
-    ShadowCascade* getCascade(int i);
+private:
+    glm::vec3 lightDir;
+    ShadowCascade cascades[ShadowCascadeData::SHADOW_CASCADE_COUNT];
+
+public:
+    ShadowCascade& getCascade(int i);
     void uploadShadowPass(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, size_t frameIndex);
     void uploadCompositionPass(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, size_t frameIndex);
 

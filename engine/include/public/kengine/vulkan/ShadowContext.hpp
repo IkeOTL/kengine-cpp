@@ -16,7 +16,7 @@ private:
     CameraController& cameraController;
     SceneData& sceneData;
 
-    ShadowCascadeData& cascadesData;
+    ShadowCascadeData cascadesData{};
 
     CachedGpuBuffer* shadowPassCascadeBuf;
     CachedGpuBuffer* compositePassCascadeBuf;
