@@ -25,7 +25,7 @@ public:
         return dynamic_cast<T*>(it->second.get());
     }
     
-    Pipeline* getPipeline(std::type_index& typeIdx) {
+    Pipeline* getPipeline(const std::type_index& typeIdx) {
         auto it = pipelines.find(typeIdx);
         if (it == pipelines.end())
             return nullptr;

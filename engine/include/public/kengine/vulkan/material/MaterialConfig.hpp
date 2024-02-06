@@ -29,7 +29,7 @@ public:
     }
 
     template <typename T>
-    T& addBinding(int descriptorSetIndex, int bindingIndex) {
+    T& createBinding(int descriptorSetIndex, int bindingIndex) {
         static_assert(std::is_base_of<MaterialBindingConfig, T>::value, "T must be a subclass of MaterialBindingConfig");
 
         auto key = std::tuple<int, int>(descriptorSetIndex, bindingIndex);

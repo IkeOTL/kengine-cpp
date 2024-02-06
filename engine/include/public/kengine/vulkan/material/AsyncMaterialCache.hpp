@@ -1,9 +1,10 @@
 #pragma once
 #include <kengine/vulkan/AsyncAssetCache.hpp>
-#include <kengine/vulkan/material/Material.hpp>
 #include <kengine/vulkan/material/MaterialConfig.hpp>
 #include <kengine/vulkan/texture/AsyncTextureCache.hpp>
 #include <kengine/vulkan/pipelines/PipelineCache.hpp>
+
+class Material;
 
 class AsyncMaterialCache : AsyncAssetCache<Material, MaterialConfig> {
 private:
@@ -25,4 +26,6 @@ public:
 
     AsyncMaterialCache(ExecutorService& workerPool)
         : AsyncAssetCache(workerPool) {}
+
+    std::unique_ptr<Material> create(MaterialConfig key) override;
 };

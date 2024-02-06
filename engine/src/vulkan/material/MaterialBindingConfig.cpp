@@ -1,4 +1,7 @@
 #include <kengine/vulkan/material/MaterialBindingConfig.hpp>
+#include <kengine/vulkan/material/MaterialBinding.hpp>
+
+#include <future>
 
 int MaterialBindingConfig::hashCode() {
     int hash = 5;
@@ -6,4 +9,15 @@ int MaterialBindingConfig::hashCode() {
     hash = 73 * hash + bindingIndex;
     hash = 73 * hash + this->hash();
     return hash;
+}
+
+std::future<std::unique_ptr<MaterialBinding>> BufferBindingConfig::getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) {
+    auto buf = bufferCache.get(bufferCacheKey);
+
+    if (!buf)
+        throw std::runtime_error("Buffer not found.");
+
+    std::promise<std::unique_ptr<MaterialBinding>> promise;
+    promise.set_value(std::make_unique<BufferBinding>(this, *buf));
+    return promise.get_future();
 }

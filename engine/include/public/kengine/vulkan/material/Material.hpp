@@ -21,12 +21,7 @@ public:
         return id - AsyncMaterialCache::START_ID;
     }
 
-    MaterialBinding& getBinding(int descSetIdx, int bindingIdx) {
-        auto it = materialBindings.find(descSetIdx);
+    MaterialBinding& getBinding(int descSetIdx, int bindingIdx);
 
-        if (it == materialBindings.end())
-            throw std::runtime_error("Material binding not found.");
-
-        return *(it->second[bindingIdx]);
-    }
+    void addBinding(std::unique_ptr<MaterialBinding>&& binding);
 };
