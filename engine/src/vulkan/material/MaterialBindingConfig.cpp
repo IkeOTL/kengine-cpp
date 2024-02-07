@@ -18,6 +18,6 @@ std::future<std::unique_ptr<MaterialBinding>> BufferBindingConfig::getBinding(As
         throw std::runtime_error("Buffer not found.");
 
     std::promise<std::unique_ptr<MaterialBinding>> promise;
-    promise.set_value(std::make_unique<BufferBinding>(this, *buf));
+    promise.set_value(std::make_unique<BufferBinding>(shared_from_this(), *buf));
     return promise.get_future();
 }

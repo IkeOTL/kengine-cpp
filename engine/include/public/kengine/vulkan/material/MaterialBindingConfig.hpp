@@ -8,7 +8,7 @@
 
 class MaterialBinding;
 
-class MaterialBindingConfig : Hashable {
+class MaterialBindingConfig : public std::enable_shared_from_this<MaterialBindingConfig>, public Hashable {
 private:
     unsigned int descriptorSetIndex;
     unsigned int bindingIndex;

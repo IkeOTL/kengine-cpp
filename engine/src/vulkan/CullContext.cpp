@@ -91,9 +91,9 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 
         pc.totalInstances = objectCount;
 
-        auto* pl = vkCxt.getPipelineCache().getPipeline<DrawCullingPipeline>();
-        pl->bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
-        vkCmdPushConstants(cmdBuf, pl->getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(DrawCullingPipeline::PushConstant), &pc);
+        auto& pl = vkCxt.getPipelineCache().getPipeline<DrawCullingPipeline>();
+        pl.bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
+        vkCmdPushConstants(cmdBuf, pl.getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(DrawCullingPipeline::PushConstant), &pc);
 
         vkCmdDispatch(cmdBuf, (objectCount / 256) + 1, 1, 1);
 

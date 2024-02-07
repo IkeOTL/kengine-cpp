@@ -6,6 +6,7 @@
 
 class MaterialBindingConfig;
 class GpuBuffer;
+class CachedGpuBuffer;
 
 class MaterialBinding {
 private:
@@ -21,13 +22,13 @@ public:
 
 class BufferBinding : public MaterialBinding {
 private:
-    GpuBuffer& gpuBuffer;
+    CachedGpuBuffer& gpuBuffer;
 
 public:
-    BufferBinding(std::shared_ptr<MaterialBindingConfig> bindingConfig, GpuBuffer& gpuBuffer)
+    BufferBinding(std::shared_ptr<MaterialBindingConfig> bindingConfig, CachedGpuBuffer& gpuBuffer)
         : MaterialBinding(bindingConfig), gpuBuffer(gpuBuffer) {}
 
-    GpuBuffer& getGpuBuffer() {
+    CachedGpuBuffer& getGpuBuffer() {
         return gpuBuffer;
     }
 };
