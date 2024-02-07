@@ -5,7 +5,7 @@ const DescriptorSetLayoutBindingConfig& DescriptorSetLayoutConfig::getBinding(si
     return bindings[idx];
 }
 
-size_t DescriptorSetLayoutBindingConfig::hashCode() const {
+size_t DescriptorSetLayoutBindingConfig::hashCode() const noexcept {
     size_t hash = 7;
     hash = 41 * hash + bindingIndex;
     hash = 41 * hash + descriptorCount;
@@ -30,7 +30,7 @@ bool DescriptorSetLayoutBindingConfig::operator==(const DescriptorSetLayoutBindi
     return this->stageFlags == other.stageFlags;
 }
 
-size_t DescriptorSetLayoutConfig::hashCode() const {
+size_t DescriptorSetLayoutConfig::hashCode() const noexcept {
     size_t hash = 7;
     for (const auto& item : bindings)
         hash = 53 * hash + item.hashCode();

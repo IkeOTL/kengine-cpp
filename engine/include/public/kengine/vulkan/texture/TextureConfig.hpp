@@ -1,9 +1,10 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/Hashable.hpp>
 #include <functional>
 #include <string>
 
-class TextureConfig {
+class TextureConfig : Hashable {
 private:
     std::string textureKey;
     VkFormat format;
@@ -14,9 +15,9 @@ private:
     bool mipmaps;
 
 public:
-    TextureConfig(std::string textureKey, VkFormat format, 
-        VkImageType imageType, VkImageViewType imageViewType, 
-        int channels, VkAccessFlags2 dstStageMask, VkAccessFlags2 
+    TextureConfig(std::string textureKey, VkFormat format,
+        VkImageType imageType, VkImageViewType imageViewType,
+        int channels, VkAccessFlags2 dstStageMask, VkAccessFlags2
         dstAccessMask, bool mipmaps)
         : textureKey(textureKey),
         format(format),
@@ -79,8 +80,15 @@ public:
     VkAccessFlags2 getDstAccessMask() {
         return dstAccessMask;
     }
+
+    size_t hashCode() const noexcept override;
 };
 
 namespace std {
-    template<> struct hash<TextureConfig>;
+    template<>
+    struct hash<TextureConfig> {
+        size_t operator()(const TextureConfig& p) const noexcept {
+            return p.hashCode();
+        }
+    };
 }

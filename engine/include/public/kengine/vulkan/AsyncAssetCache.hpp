@@ -2,31 +2,32 @@
 #include <kengine/ExecutorService.hpp>
 #include <unordered_map>
 
-template <typename T, typename C>
+
+template <typename V, typename K>
 class AsyncAssetCache {
-
 private:
-    const ExecutorService& workerPool;
+    ExecutorService& workerPool;
 
-    std::unordered_map<C, std::unique_ptr<T>> cache;
-    std::unordered_map<C, std::future<T*>> backgroundTasks;
+    std::unordered_map<size_t, std::unique_ptr<V>> cache;
+    std::unordered_map<size_t, std::future<V*>> backgroundTasks;
     std::mutex lock;
 
 protected:
-    virtual std::unique_ptr<T> create(C key) = 0;
+    virtual std::unique_ptr<V> create(std::shared_ptr<K> keyObj) = 0;
 
 public:
     AsyncAssetCache(ExecutorService& workerPool) : workerPool(workerPool) {}
 
-    T* unsafeAdd(C key, std::unique_ptr<T>&& value) {
+    V* unsafeAdd(K& keyObj, std::unique_ptr<V>&& value) {
+        size_t key = keyObj.hashCode();
         std::lock_guard<std::mutex> lock(this->lock);
         auto& asset = cache[key] = std::move(value);
         return asset.get();
     }
 
-    std::unique_ptr<T> remove(C key) {
+    std::unique_ptr<V> remove(K& keyObj) {
         std::lock_guard<std::mutex> lock(this->lock);
-
+        size_t key = keyObj.hashCode();
         auto it = cache.find(key);
         if (it == cache.end())
             return nullptr;
@@ -38,9 +39,9 @@ public:
         return res;
     }
 
-    std::future<T*> get(C key) {
+    std::future<V*> get(std::shared_ptr<K> keyObj) {
         std::lock_guard<std::mutex> lock(this->lock);
-
+        size_t key = keyObj->hashCode();
         auto cacheIt = cache.find(key);
         if (cacheIt != cache.end())
             return std::async(std::launch::deferred, [asset = cacheIt->second.get()]() { return asset; });
@@ -49,8 +50,8 @@ public:
         if (taskIt != backgroundTasks.end())
             return taskIt->second;
 
-        auto task = workerPool.submit([this, key]() {
-            auto asset = this->create(key);
+        auto task = workerPool.submit([this, key, keyObj]() {
+            auto asset = this->create(keyObj);
 
             std::lock_guard<std::mutex> lock(this->lock);
             auto& storedAsset = this->cache[key] = std::move(asset);

@@ -1,4 +1,5 @@
 #include <kengine/vulkan/material/Material.hpp>
+#include <kengine/vulkan/material/MaterialBinding.hpp>
 
 MaterialBinding& Material::getBinding(int descSetIdx, int bindingIdx) {
     auto it = materialBindings.find(descSetIdx);
@@ -10,5 +11,5 @@ MaterialBinding& Material::getBinding(int descSetIdx, int bindingIdx) {
 }
 
 void Material::addBinding(std::unique_ptr<MaterialBinding>&& binding) {
-    materialBindings[binding->getDescriptorSetIndex()].push_back(binding);
+    materialBindings[binding->getDescriptorSetIndex()].push_back(std::move(binding));
 }

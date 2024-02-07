@@ -3,7 +3,7 @@
 
 #include <future>
 
-int MaterialBindingConfig::hashCode() {
+size_t MaterialBindingConfig::hashCode() const noexcept {
     int hash = 5;
     hash = 73 * hash + descriptorSetIndex;
     hash = 73 * hash + bindingIndex;

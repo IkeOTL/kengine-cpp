@@ -27,5 +27,5 @@ public:
     AsyncMaterialCache(ExecutorService& workerPool)
         : AsyncAssetCache(workerPool) {}
 
-    std::unique_ptr<Material> create(MaterialConfig key) override;
+    std::unique_ptr<Material> create(std::shared_ptr<MaterialConfig> keyObj) override;
 };

@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/Hashable.hpp>
 #include <kengine/vulkan/material/MaterialBindingConfig.hpp>
 #include <unordered_map>
 #include <mutex>
@@ -7,7 +8,7 @@
 #include <typeindex>
 #include <utility>
 
-class MaterialConfig {
+class MaterialConfig : Hashable {
 private:
     std::type_index pipelineTypeIndex;
 
@@ -59,5 +60,19 @@ public:
         return *this;
     }
 
-    // hash + equal
+    virtual size_t hash() const noexcept = 0;
+
+    size_t hashCode() const noexcept override;
+
+    bool operator==(const MaterialConfig& other) const;
+    bool operator!=(const MaterialConfig& other) const;
 };
+
+namespace std {
+    template<>
+    struct hash<MaterialConfig> {
+        size_t operator()(const MaterialConfig& p) const noexcept {
+            return p.hashCode();
+        }
+    };
+}

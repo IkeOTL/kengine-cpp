@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/Hashable.hpp>
 #include <mutex>
 #include <vector>
 #include <unordered_map>
@@ -7,18 +8,18 @@
 
 class VulkanContext;
 
-struct DescriptorSetLayoutBindingConfig {
+struct DescriptorSetLayoutBindingConfig : Hashable {
 public:
     const uint32_t bindingIndex;
     const uint32_t descriptorCount;
     const VkDescriptorType descriptorType;
     const VkShaderStageFlags stageFlags;
 
-    size_t hashCode() const;
+    size_t hashCode() const noexcept override;
     bool operator==(const DescriptorSetLayoutBindingConfig& other) const;
 };
 
-class DescriptorSetLayoutConfig {
+class DescriptorSetLayoutConfig : Hashable{
 public:
     const std::vector<DescriptorSetLayoutBindingConfig> bindings;
 
@@ -27,7 +28,7 @@ public:
 
     const DescriptorSetLayoutBindingConfig& getBinding(size_t idx) const;
 
-    size_t hashCode() const;
+    size_t hashCode() const noexcept override;
     bool operator==(const DescriptorSetLayoutConfig& other) const;
 };
 

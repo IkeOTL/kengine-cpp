@@ -5,6 +5,7 @@
 #include <future>
 
 class MaterialBindingConfig;
+class GpuBuffer;
 
 class MaterialBinding {
 private:

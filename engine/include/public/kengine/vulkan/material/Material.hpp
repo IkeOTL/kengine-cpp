@@ -1,20 +1,21 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/material/AsyncMaterialCache.hpp>
-#include <kengine/vulkan/material/MaterialConfig.hpp>
 #include <mutex>
+
+class MaterialConfig;
 
 class Material {
 
 private:
     const int id;
-    MaterialConfig config;
+    std::shared_ptr<MaterialConfig> config;
 
     Pipeline& pipeline;
     std::unordered_map<int, std::vector<std::unique_ptr<MaterialBinding>>> materialBindings;
 
 public:
-    Material(int id, MaterialConfig config, Pipeline& pipeline)
+    Material(int id, std::shared_ptr<MaterialConfig> config, Pipeline& pipeline)
         : id(id), config(config), pipeline(pipeline) {}
 
     int getId() {

@@ -1,5 +1,6 @@
 #include <kengine/vulkan/material/MaterialBinding.hpp>
 #include <kengine/vulkan/material/MaterialBindingConfig.hpp>
+#include <kengine/vulkan/GpuBuffer.hpp>
 
 int MaterialBinding::getDescriptorSetIndex() {
     return bindingConfig->getDescriptorSetIndex();

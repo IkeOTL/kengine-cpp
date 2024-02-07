@@ -18,21 +18,17 @@ bool TextureConfig::operator!=(const TextureConfig& other) const {
     return !(*this == other);
 }
 
-// todo: review this hashing
-namespace std {
-    template<>
-    struct hash<TextureConfig> {
-        size_t operator()(const TextureConfig& p) const noexcept {
-            size_t hash = 7;
-            hash = 67 * hash + std::hash<std::string>()(p.textureKey);
-            hash = 67 * hash + static_cast<int>(p.format);
-            hash = 67 * hash + static_cast<int>(p.imageType);
-            hash = 67 * hash + static_cast<int>(p.imageViewType);
-            hash = 67 * hash + p.channels;
-            hash = 67 * hash + (int)(p.dstStageMask ^ (p.dstStageMask >> 32));
-            hash = 67 * hash + (int)(p.dstAccessMask ^ (p.dstAccessMask >> 32));
-            hash = 67 * hash + (p.mipmaps ? 1 : 0);
-            return hash;
-        }
-    };
+size_t TextureConfig::hashCode() const noexcept {
+    size_t hash = 7;
+    hash = 67 * hash + std::hash<std::string>()(textureKey);
+    hash = 67 * hash + static_cast<int>(format);
+    hash = 67 * hash + static_cast<int>(imageType);
+    hash = 67 * hash + static_cast<int>(imageViewType);
+    hash = 67 * hash + channels;
+    hash = 67 * hash + (int)(dstStageMask ^ (dstStageMask >> 32));
+    hash = 67 * hash + (int)(dstAccessMask ^ (dstAccessMask >> 32));
+    hash = 67 * hash + (mipmaps ? 1 : 0);
+    return hash;
 }
+
+// todo: review this hashing

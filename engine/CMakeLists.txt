@@ -18,6 +18,7 @@ set(HEADERS
     include/public/kengine/Window.hpp
     include/public/kengine/ExecutorService.hpp
     include/public/kengine/StateMachine.hpp
+    include/public/kengine/Hashable.hpp
     
     include/public/kengine/vulkan/VulkanContext.hpp
     include/public/kengine/vulkan/RenderContext.hpp

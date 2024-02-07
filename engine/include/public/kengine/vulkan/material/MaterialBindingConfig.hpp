@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/Hashable.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/texture/AsyncTextureCache.hpp>
 
@@ -7,7 +8,7 @@
 
 class MaterialBinding;
 
-class MaterialBindingConfig {
+class MaterialBindingConfig : Hashable {
 private:
     unsigned int descriptorSetIndex;
     unsigned int bindingIndex;
@@ -28,9 +29,9 @@ public:
 
     virtual std::future<std::unique_ptr<MaterialBinding>> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) = 0;
 
-    virtual int hash() = 0;
+    virtual int hash() const = 0;
 
-    int hashCode();
+    size_t hashCode() const noexcept override;
 };
 
 class BufferBindingConfig : MaterialBindingConfig {
@@ -43,7 +44,7 @@ public:
 
     std::future<std::unique_ptr<MaterialBinding>> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) override;
 
-    int hash() override;
+    int hash() const override;
 };
 
 class ImageBindingConfig : MaterialBindingConfig {
@@ -57,6 +58,6 @@ public:
 
     std::future<std::unique_ptr<MaterialBinding>> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) override;
 
-    int hash() override;
+    int hash() const override;
 };
 
