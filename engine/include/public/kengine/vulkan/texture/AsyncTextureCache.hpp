@@ -12,7 +12,7 @@ public:
     AsyncTextureCache(TextureFactory& factory, ExecutorService& workerPool)
         : AsyncAssetCache(workerPool), factory(factory) {}
 
-    std::future<Texture2d*> get(std::string key);
+    std::shared_future<Texture2d*> get(std::string key);
 
     std::unique_ptr<Texture2d> create(std::shared_ptr<TextureConfig> keyObj) override;
 };

@@ -1,10 +1,10 @@
 #pragma once
 #include <kengine/vulkan/AsyncAssetCache.hpp>
-#include <kengine/vulkan/material/MaterialConfig.hpp>
 #include <kengine/vulkan/texture/AsyncTextureCache.hpp>
 #include <kengine/vulkan/pipelines/PipelineCache.hpp>
 
 class Material;
+class MaterialConfig;
 
 class AsyncMaterialCache : AsyncAssetCache<Material, MaterialConfig> {
 private:

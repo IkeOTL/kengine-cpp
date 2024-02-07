@@ -1,9 +1,9 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/material/AsyncMaterialCache.hpp>
+#include <kengine/vulkan/material/MaterialConfig.hpp>
+#include <kengine/vulkan/material/MaterialBinding.hpp>
 #include <mutex>
-
-class MaterialConfig;
 
 class Material {
 

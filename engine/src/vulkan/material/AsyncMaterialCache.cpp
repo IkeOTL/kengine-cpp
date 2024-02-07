@@ -1,6 +1,7 @@
 #include <kengine/vulkan/material/AsyncMaterialCache.hpp>
 #include <kengine/vulkan/material/Material.hpp>
 #include <kengine/vulkan/material/MaterialConfig.hpp>
+#include <kengine/vulkan/material/MaterialBindingConfig.hpp>
 #include <memory>
 
 std::unique_ptr<Material> AsyncMaterialCache::create(std::shared_ptr<MaterialConfig> keyObj)

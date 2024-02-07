@@ -1,7 +1,7 @@
 #pragma once
 #include <kengine/ExecutorService.hpp>
 #include <unordered_map>
-
+#include <functional>
 
 template <typename V, typename K>
 class AsyncAssetCache {
@@ -9,7 +9,7 @@ private:
     ExecutorService& workerPool;
 
     std::unordered_map<size_t, std::unique_ptr<V>> cache;
-    std::unordered_map<size_t, std::future<V*>> backgroundTasks;
+    std::unordered_map<size_t, std::shared_future<V*>> backgroundTasks;
     std::mutex lock;
 
 protected:
@@ -39,7 +39,7 @@ public:
         return res;
     }
 
-    std::future<V*> get(std::shared_ptr<K> keyObj) {
+    std::shared_future<V*> get(std::shared_ptr<K> keyObj) {
         std::lock_guard<std::mutex> lock(this->lock);
         size_t key = keyObj->hashCode();
         auto cacheIt = cache.find(key);
@@ -53,15 +53,17 @@ public:
         auto task = workerPool.submit([this, key, keyObj]() {
             auto asset = this->create(keyObj);
 
-            std::lock_guard<std::mutex> lock(this->lock);
-            auto& storedAsset = this->cache[key] = std::move(asset);
-            this->backgroundTasks.erase(key);
+            {
+                std::lock_guard<std::mutex> lock(this->lock);
+                auto& storedAsset = this->cache[key] = std::move(asset);
+                this->backgroundTasks.erase(key);
 
-            return storedAsset.get();
-            });
+                return storedAsset.get();
+            }
+            }).share();
 
-        backgroundTasks[key] = task;
+            backgroundTasks[key] = task;
 
-        return task;
+            return task;
     }
 };

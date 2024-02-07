@@ -1,6 +1,6 @@
 #include <kengine/vulkan/texture/AsyncTextureCache.hpp>
 
-std::future<Texture2d*> AsyncTextureCache::get(std::string key) {
+std::shared_future<Texture2d*> AsyncTextureCache::get(std::string key) {
     auto ptr = std::make_shared<TextureConfig>(key);
     return AsyncAssetCache::get(ptr);
 }

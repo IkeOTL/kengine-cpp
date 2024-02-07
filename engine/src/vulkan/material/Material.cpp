@@ -1,5 +1,4 @@
 #include <kengine/vulkan/material/Material.hpp>
-#include <kengine/vulkan/material/MaterialBinding.hpp>
 
 MaterialBinding& Material::getBinding(int descSetIdx, int bindingIdx) {
     auto it = materialBindings.find(descSetIdx);
