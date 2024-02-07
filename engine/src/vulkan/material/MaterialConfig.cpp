@@ -1,5 +1,6 @@
 #include <kengine/vulkan/material/MaterialConfig.hpp>
 #include <kengine/vulkan/material/MaterialBindingConfig.hpp>
+#include <kengine/util/MapUtils.hpp>
 
 void MaterialConfig::addSkeleton(int skeletonBufferId)
 {
@@ -9,9 +10,9 @@ size_t MaterialConfig::hashCode() const noexcept {
     size_t hash = 5;
     size_t prime = 53;
     hash = prime * hash + pipelineTypeIndex.hash_code();
-    hash = prime * hash + Objects.hashCode(this->bindingConfigs);
-    hash = prime * hash + (hasShadow ? 1 : 0);
-    hash = prime * hash + (hasSkeleton ? 1 : 0);
+    hash = prime * hash + MapHasher::hash(this->bindingConfigs);
+    hash = prime * hash + (_hasShadow ? 1 : 0);
+    hash = prime * hash + (_hasSkeleton ? 1 : 0);
     hash = prime * hash + skeletonBufferId;
     hash = prime * hash + this->hash();
     return hash;

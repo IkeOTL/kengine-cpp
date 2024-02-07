@@ -65,9 +65,13 @@ public:
         condition.notify_one();
     }
 
+    /// <summary>
+    /// Submits to pool and returns a single use future.
+    /// </summary>
     template<typename F>
-    auto submit(F&& f) {
+    auto submit(F&& f) -> std::future<decltype(f())> {
         using ReturnType = decltype(f());
+        using FutureType = std::future<ReturnType>;
 
         auto task = std::make_shared<std::packaged_task<ReturnType()>>(std::forward<F>(f));
 
@@ -83,5 +87,14 @@ public:
         condition.notify_one();
 
         return task->get_future();
+    }
+
+    /// <summary>
+    /// Submits to pool and returns a shared future.
+    /// </summary>
+    template<typename F>
+    auto submitShared(F&& f) -> std::shared_future<decltype(f())> {
+        auto future = submit(std::forward<F>(f));
+        return future.share();
     }
 };

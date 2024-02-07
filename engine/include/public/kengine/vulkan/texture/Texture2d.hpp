@@ -12,12 +12,12 @@ private:
     uint32_t mipLevels;
     uint32_t width, height;
 
-    void init(VulkanContext& vkCxt, char* image, uint32_t width, uint32_t height,
+    void init(VulkanContext& vkCxt, const unsigned char* image, uint32_t width, uint32_t height,
         VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
         VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, bool generateMipMaps);
 
 public:
-    Texture2d(VulkanContext& vkCxt, char* image, uint32_t width, uint32_t height,
+    Texture2d(VulkanContext& vkCxt, const unsigned char* image, uint32_t width, uint32_t height,
         VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
         VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccesMask, bool generateMipMaps) {
         init(vkCxt, image, width, height, format, imageType, imageViewType, channels,

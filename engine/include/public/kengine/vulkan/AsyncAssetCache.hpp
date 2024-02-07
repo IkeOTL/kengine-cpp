@@ -50,7 +50,7 @@ public:
         if (taskIt != backgroundTasks.end())
             return taskIt->second;
 
-        auto task = workerPool.submit([this, key, keyObj]() {
+        auto task = workerPool.submitShared([this, key, keyObj]() {
             auto asset = this->create(keyObj);
 
             {
@@ -60,7 +60,7 @@ public:
 
                 return storedAsset.get();
             }
-            }).share();
+            });
 
             backgroundTasks[key] = task;
 

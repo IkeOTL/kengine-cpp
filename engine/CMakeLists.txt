@@ -10,6 +10,8 @@ if (HAS_ASAN)
 endif()
 
 set(HEADERS
+    include/public/kengine/util/MapUtils.hpp
+
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
 

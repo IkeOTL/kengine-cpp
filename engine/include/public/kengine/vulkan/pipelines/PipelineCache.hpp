@@ -16,20 +16,24 @@ public:
         pipelines[std::type_index(typeid(*pipeline))] = std::move(pipeline);
     }
 
-    template <typename T>
-    T* getPipeline() {
-        auto it = pipelines.find(std::type_index(typeid(T)));
-        if (it == pipelines.end())
-            return nullptr;
+template <typename T>
+T& getPipeline() {
+    auto it = pipelines.find(std::type_index(typeid(T)));
+    if (it == pipelines.end())
+        throw std::runtime_error("Pipeline not found.");
 
-        return dynamic_cast<T*>(it->second.get());
-    }
-    
-    Pipeline* getPipeline(const std::type_index& typeIdx) {
+    auto pipeline = static_cast<T*>(it->second.get());
+    if (!pipeline)
+        throw std::runtime_error("Pipeline failed to be cast.");
+
+    return *pipeline;
+}
+
+    Pipeline& getPipeline(const std::type_index& typeIdx) {
         auto it = pipelines.find(typeIdx);
         if (it == pipelines.end())
-            return nullptr;
+            throw std::runtime_error("Pipeline not found.");
 
-        return it->second.get();
+        return *(it->second);
     }
 };

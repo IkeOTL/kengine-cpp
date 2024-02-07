@@ -1,6 +1,6 @@
 #include <kengine/vulkan/texture/Texture2d.hpp>
 
-void Texture2d::init(VulkanContext& vkCxt, char* image, uint32_t width, uint32_t height,
+void Texture2d::init(VulkanContext& vkCxt, const unsigned char* image, uint32_t width, uint32_t height,
     VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
     VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, bool generateMipMaps)
 {
