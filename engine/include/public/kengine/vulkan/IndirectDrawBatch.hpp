@@ -23,6 +23,10 @@ public:
 
     void draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, long indirectCmdBuf, DescriptorSetAllocator& descSetAllocator,
         int frameIdx, MaterialBindManager& bindManager);
+    
+    uint32_t getCmdId() {
+        return cmdId;
+    }
 
     Mesh* getMesh() {
         return mesh;

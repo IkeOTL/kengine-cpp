@@ -172,28 +172,25 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::Rend
     auto indCmdFrameOffset = indirectCmdBuf.getFrameOffset(cxt.frameIndex);
     for (auto i = 0; i < batchesSize; i++) {
         auto& indirectBatch = batches[i];
-        auto mesh = indirectBatch.getMesh();
-        // Assuming bindManager.apply() and indirectBatch.getMaterial().bindMaterial() are equivalent in functionality and are handled elsewhere in C++
 
         // Extracting texture and sampler setup
         auto& bindingTexture = static_cast<ImageBinding&>(indirectBatch.getMaterial()->getBinding(2, 0)).getTexture();
 
-        // Sampler creation (assuming vkContext.getSamplerCache().getSampler() functionality is replicated in C++)
-        VkSamplerCreateInfo samplerInfo = {};
-        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_NEAREST;
-        samplerInfo.minFilter = VK_FILTER_NEAREST;
-        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
-        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-        samplerInfo.minLod = 0;
-        samplerInfo.maxLod = bindingTexture.getMipLevels();
-        samplerInfo.maxAnisotropy = 1.0f;
-        VkSampler sampler;
-        vkCreateSampler(vkContext.getVkDevice(), &samplerInfo, nullptr, &sampler);
+        // move to material code
+        var sampler = vkContext.getSamplerCache().getSampler(new SamplerConfig(
+            VK_SAMPLER_MIPMAP_MODE_LINEAR,
+            VK_FILTER_NEAREST,
+            VK_FILTER_NEAREST,
+            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            VK_COMPARE_OP_NEVER,
+            VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+            0,
+            bindingTexture.getMipLevels(),
+            0,
+            1.0f)
+        );
 
         auto layout = skinned ? SkinnedCascadeShadowMapPipeline::skinnedSingleTextureLayout : CascadeShadowMapPipeline::textureLayout;
         auto pTexSet = dAllocator.leaseDescriptorSet(layout);
@@ -202,60 +199,61 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::Rend
         descImgBufInfo.sampler = sampler;
         descImgBufInfo.imageView = bindingTexture.getImageView();
         descImgBufInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-               
+
         std::vector<VkWriteDescriptorSet> setWrites(skinned ? 2 : 1);
 
         auto& textureBinding = layout.getBinding(0);
         VkWriteDescriptorSet& textureWrite = setWrites[0];
         textureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        textureWrite.dstBinding = textureBinding.getBindingIndex();
+        textureWrite.dstBinding = textureBinding.bindingIndex;
         textureWrite.dstSet = pTexSet;
-        textureWrite.descriptorCount = textureBinding.getDescriptorCount();
-        textureWrite.descriptorType = textureBinding.getDescriptorType();
+        textureWrite.descriptorCount = textureBinding.descriptorCount;
+        textureWrite.descriptorType = textureBinding.descriptorType;
         textureWrite.pImageInfo = &descImgBufInfo;
 
-        std::vector<uint32_t> offsets(1, 0); // Assuming offsets are used similarly in C++
+        std::vector<uint32_t> offsets = { 0 };
 
         if (skinned) {
             auto& bindingSkele = static_cast<BufferBinding&>(indirectBatch.getMaterial()->getBinding(2, 5)).getGpuBuffer();
             auto& skeletonBinding = layout.getBinding(1);
             VkDescriptorBufferInfo bufferInfo = {};
-            bufferInfo.buffer = bindingSkele.getVmaBuffer().getBufHandle();
+            bufferInfo.buffer = bindingSkele.getGpuBuffer().getVkBuffer();
             bufferInfo.offset = 0;
             bufferInfo.range = bindingSkele.getFrameSize();
 
             VkWriteDescriptorSet& skeletonWrite = setWrites[1];
             skeletonWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            skeletonWrite.dstBinding = skeletonBinding.getBindingIndex();
+            skeletonWrite.dstBinding = skeletonBinding.bindingIndex;
             skeletonWrite.dstSet = pTexSet;
-            skeletonWrite.descriptorCount = skeletonBinding.getDescriptorCount();
-            skeletonWrite.descriptorType = skeletonBinding.getDescriptorType();
+            skeletonWrite.descriptorCount = skeletonBinding.descriptorCount;
+            skeletonWrite.descriptorType = skeletonBinding.descriptorType;
             skeletonWrite.pBufferInfo = &bufferInfo;
 
-            offsets[0] = bindingSkele.getFrameOffset(cxt.getFrameIndex());
+            offsets[0] = bindingSkele.getFrameOffset(cxt.frameIndex);
         }
 
         vkUpdateDescriptorSets(vkContext.getVkDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
 
         vkCmdBindDescriptorSets(
-            cxt.getCmd(),
+            cxt.cmd,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            p1.getLayoutHandle(),
+            p1.getVkPipelineLayout(),
             2,
+            1,
             &pTexSet,
+            offsets.size(),
             offsets.data()
         );
 
-        VkBuffer vertexBuffers[] = { mesh.getVertexBuf().getBufHandle() };
+        auto mesh = indirectBatch.getMesh();
+        VkBuffer vertexBuffers[] = { mesh->getVertexBuf().getBufHandle() };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(vkCmd, 0, 1, vertexBuffers, offsets);
         vkCmdBindIndexBuffer(vkCmd, mesh.getIndexBuf().getBufHandle(), 0, VK_INDEX_TYPE_UINT32);
 
-        VkDrawIndexedIndirectCommand drawIndirectCmd = {};
-        // Assuming indirectCmdBuf and indCmdFrameOffset are previously set up correctly
         vkCmdDrawIndexedIndirect(
             vkCmd,
-            indirectCmdBuf.getVmaBuffer().getBufHandle(),
+            indirectCmdBuf.getGpuBuffer().getVkBuffer(),
             indCmdFrameOffset + indirectBatch.getCmdId() * sizeof(VkDrawIndexedIndirectCommand),
             1,
             sizeof(VkDrawIndexedIndirectCommand)
