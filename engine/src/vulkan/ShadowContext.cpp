@@ -177,7 +177,7 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::Rend
         auto& bindingTexture = static_cast<ImageBinding&>(indirectBatch.getMaterial()->getBinding(2, 0)).getTexture();
 
         // move to material code
-        var sampler = vkContext.getSamplerCache().getSampler(new SamplerConfig(
+        auto samplerConfig = SamplerConfig(
             VK_SAMPLER_MIPMAP_MODE_LINEAR,
             VK_FILTER_NEAREST,
             VK_FILTER_NEAREST,
@@ -189,8 +189,8 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::Rend
             0,
             bindingTexture.getMipLevels(),
             0,
-            1.0f)
-        );
+            1.0f);
+        auto sampler = vkContext.getSamplerCache().getSampler(samplerConfig);
 
         auto layout = skinned ? SkinnedCascadeShadowMapPipeline::skinnedSingleTextureLayout : CascadeShadowMapPipeline::textureLayout;
         auto pTexSet = dAllocator.leaseDescriptorSet(layout);

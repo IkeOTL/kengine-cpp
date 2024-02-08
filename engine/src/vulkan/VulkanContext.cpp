@@ -2,6 +2,7 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 #include <kengine/vulkan/GpuBuffer.hpp>
+#include <kengine/vulkan/SamplerCache.hpp>
 
 #include <iostream>
 #include <vector>
@@ -42,7 +43,9 @@ void VulkanContext::init(Window& window, bool validationOn) {
     createQueues();
     createVmaAllocator();
 
+    samplerCache = std::make_unique<SamplerCache>(*this);
     gpuBufferCache = std::make_unique<GpuBufferCache>(*this);
+
     renderPasses = renderPassCreator(vkDevice, colorFormatAndSpace);
     swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
 
@@ -321,7 +324,7 @@ VkDeviceSize VulkanContext::alignSsboFrame(VkDeviceSize baseFrameSize) const {
 
 void SwapchainCreator::init(Window& window) {
     window.registerResizeListener([this](GLFWwindow* window, int newWidth, int newHeight) {
-        std::unique_lock<std::mutex> lock(lock);
+        std::lock_guard<std::mutex> lock(lock);
         targetWidth = newWidth;
         targetHeight = newHeight;
         setMustRecreate(true);
@@ -329,7 +332,7 @@ void SwapchainCreator::init(Window& window) {
 }
 
 bool SwapchainCreator::recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain, OnSwapchainCreate& cb) {
-    std::unique_lock<std::mutex> lock(lock);
+    std::lock_guard<std::mutex> lock(lock);
 
     if (!mustRecreate && !force)
         return false;

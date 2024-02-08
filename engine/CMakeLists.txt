@@ -47,6 +47,7 @@ set(HEADERS
     include/public/kengine/vulkan/IndirectDrawBatch.hpp
     include/public/kengine/vulkan/MaterialBindManager.hpp
     include/public/kengine/vulkan/AsyncAssetCache.hpp
+    include/public/kengine/vulkan/SamplerCache.hpp
 
     include/public/kengine/vulkan/mesh/Mesh.hpp
 
@@ -106,6 +107,7 @@ set(SOURCES
     src/vulkan/IndirectDrawBatch.cpp
     src/vulkan/MaterialBindManager.cpp
     src/vulkan/AsyncAssetCache.cpp
+    src/vulkan/SamplerCache.cpp
 
     src/vulkan/texture/AsyncTextureCache.cpp
     src/vulkan/texture/TextureFactory.cpp

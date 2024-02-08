@@ -18,6 +18,7 @@
 #include <memory>
 #include <queue>
 
+class SamplerCache;
 class VulkanContext;
 
 class GpuUploadable {
@@ -162,6 +163,10 @@ public:
         return vmaAllocator;
     }
 
+    SamplerCache& getSamplerCache() {
+        return *samplerCache;
+    }
+
     void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);
 
 private:
@@ -204,7 +209,8 @@ private:
     std::unordered_map<VkFence, std::function<void()>> vkFenceActions;
     std::unique_ptr<GpuBufferCache> gpuBufferCache;
 
-    PipelineCache pipelineCache;
+    std::unique_ptr<SamplerCache> samplerCache;
+    PipelineCache pipelineCache{};
 
     void createVkInstance(bool validationOn);
     void setupDebugging();
