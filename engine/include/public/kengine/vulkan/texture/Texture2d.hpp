@@ -23,4 +23,20 @@ public:
         init(vkCxt, image, width, height, format, imageType, imageViewType, channels,
             dstStageMask, dstAccesMask, generateMipMaps);
     }
+
+    VkImageView getImageView() const {
+        return gpuImageView->imageView;
+    }
+
+    uint32_t getWidth() const {
+        return width;
+    }
+
+    uint32_t getHeight() const {
+        return height;
+    }
+
+    uint32_t getMipLevels()const {
+        return mipLevels;
+    }
 };

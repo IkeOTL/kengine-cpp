@@ -35,9 +35,13 @@ public:
 
 class ImageBinding : public MaterialBinding {
 private:
+    Texture2d& texture;
 
 public:
-    ImageBinding(std::shared_ptr<MaterialBindingConfig> bindingConfig)
-        : MaterialBinding(bindingConfig) {}
+    ImageBinding(std::shared_ptr<MaterialBindingConfig> bindingConfig, Texture2d& texture)
+        : MaterialBinding(bindingConfig), texture(texture) {}
 
+    Texture2d& getTexture() {
+        return texture;
+    }
 };

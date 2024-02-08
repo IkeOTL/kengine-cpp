@@ -1,6 +1,7 @@
 #include <kengine/vulkan/ShadowContext.hpp>
 #include <kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
+#include <kengine/vulkan/pipelines/SkinnedOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp>
 #include <kengine/vulkan/IndirectDrawBatch.hpp>
 #include <kengine/vulkan/material/MaterialBinding.hpp>
@@ -147,11 +148,11 @@ void ShadowContext::execute(VulkanContext& vkContext, VulkanContext::RenderFrame
         auto rp1Cxt = RenderPass::RenderPassContext{ 1, i, cxt.cmd, glm::uvec2(SHADOWDIM) };
         vkContext.beginRenderPass(rp1Cxt);
         {
-            auto pipeline = vkContext.getPipelineCache().getPipeline<CascadeShadowMapPipeline>();
-            execShadowPass(vkContext, cxt, *pipeline, dAllocator, i, nonSkinnedBatches, nonSkinnedBatchesSize, false);
+            auto& pipeline = vkContext.getPipelineCache().getPipeline<CascadeShadowMapPipeline>();
+            execShadowPass(vkContext, cxt, pipeline, dAllocator, i, nonSkinnedBatches, nonSkinnedBatchesSize, false);
 
-            auto skinnedPipeline = vkContext.getPipelineCache().getPipeline<SkinnedCascadeShadowMapPipeline>();
-            execShadowPass(vkContext, cxt, *skinnedPipeline, dAllocator, i, skinnedBatches, skinnedBatchesSize, true);
+            auto& skinnedPipeline = vkContext.getPipelineCache().getPipeline<SkinnedCascadeShadowMapPipeline>();
+            execShadowPass(vkContext, cxt, skinnedPipeline, dAllocator, i, skinnedBatches, skinnedBatchesSize, true);
         }
         vkContext.endRenderPass(rp1Cxt);
     }
@@ -175,7 +176,7 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::Rend
         // Assuming bindManager.apply() and indirectBatch.getMaterial().bindMaterial() are equivalent in functionality and are handled elsewhere in C++
 
         // Extracting texture and sampler setup
-        auto& bindingTexture = static_cast<ImageBinding*>(indirectBatch.getMaterial()->getBinding(2, 0)).getTexture();
+        auto& bindingTexture = static_cast<ImageBinding&>(indirectBatch.getMaterial()->getBinding(2, 0)).getTexture();
 
         // Sampler creation (assuming vkContext.getSamplerCache().getSampler() functionality is replicated in C++)
         VkSamplerCreateInfo samplerInfo = {};
@@ -192,20 +193,19 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::Rend
         samplerInfo.maxLod = bindingTexture.getMipLevels();
         samplerInfo.maxAnisotropy = 1.0f;
         VkSampler sampler;
-        vkCreateSampler(vkContext.getDevice(), &samplerInfo, nullptr, &sampler);
+        vkCreateSampler(vkContext.getVkDevice(), &samplerInfo, nullptr, &sampler);
 
-        auto layout = skinned ? SkinnedOffscreenPbrPipeline::skinnedSingleTextureLayout : CascadeShadowMapPipeline::textureLayout;
+        auto layout = skinned ? SkinnedCascadeShadowMapPipeline::skinnedSingleTextureLayout : CascadeShadowMapPipeline::textureLayout;
         auto pTexSet = dAllocator.leaseDescriptorSet(layout);
 
         VkDescriptorImageInfo descImgBufInfo = {};
         descImgBufInfo.sampler = sampler;
         descImgBufInfo.imageView = bindingTexture.getImageView();
         descImgBufInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-        auto bindings = layout.getBindings();
+               
         std::vector<VkWriteDescriptorSet> setWrites(skinned ? 2 : 1);
 
-        auto& textureBinding = bindings[0];
+        auto& textureBinding = layout.getBinding(0);
         VkWriteDescriptorSet& textureWrite = setWrites[0];
         textureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         textureWrite.dstBinding = textureBinding.getBindingIndex();
@@ -217,8 +217,8 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::Rend
         std::vector<uint32_t> offsets(1, 0); // Assuming offsets are used similarly in C++
 
         if (skinned) {
-            auto bindingSkele = static_cast<BufferBinding*>(indirectBatch.getMaterial().getBinding(2, 5))->getGpuBuffer();
-            auto& skeletonBinding = bindings[1];
+            auto& bindingSkele = static_cast<BufferBinding&>(indirectBatch.getMaterial()->getBinding(2, 5)).getGpuBuffer();
+            auto& skeletonBinding = layout.getBinding(1);
             VkDescriptorBufferInfo bufferInfo = {};
             bufferInfo.buffer = bindingSkele.getVmaBuffer().getBufHandle();
             bufferInfo.offset = 0;
@@ -235,7 +235,7 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::Rend
             offsets[0] = bindingSkele.getFrameOffset(cxt.getFrameIndex());
         }
 
-        vkUpdateDescriptorSets(vkContext.getDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
+        vkUpdateDescriptorSets(vkContext.getVkDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
 
         vkCmdBindDescriptorSets(
             cxt.getCmd(),
