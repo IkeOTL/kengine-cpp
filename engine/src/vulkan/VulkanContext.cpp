@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <mutex>
 
 VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
     : renderPassCreator(std::move(renderPassCreator)),
@@ -324,7 +325,7 @@ VkDeviceSize VulkanContext::alignSsboFrame(VkDeviceSize baseFrameSize) const {
 
 void SwapchainCreator::init(Window& window) {
     window.registerResizeListener([this](GLFWwindow* window, int newWidth, int newHeight) {
-        std::lock_guard<std::mutex> lock(lock);
+        std::lock_guard<std::mutex> lock(this->lock);
         targetWidth = newWidth;
         targetHeight = newHeight;
         setMustRecreate(true);
@@ -332,7 +333,7 @@ void SwapchainCreator::init(Window& window) {
 }
 
 bool SwapchainCreator::recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain, OnSwapchainCreate& cb) {
-    std::lock_guard<std::mutex> lock(lock);
+    std::lock_guard<std::mutex> lock(this->lock);
 
     if (!mustRecreate && !force)
         return false;
@@ -503,4 +504,8 @@ void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, 
 
     if (followUp)
         followUp();
+}
+
+SamplerCache& VulkanContext::getSamplerCache() {
+    return *samplerCache;
 }

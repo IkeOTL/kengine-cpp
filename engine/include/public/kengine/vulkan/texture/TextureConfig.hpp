@@ -49,35 +49,35 @@ public:
 
     friend struct std::hash<TextureConfig>;
 
-    std::string getTextureKey() {
+    const std::string& getTextureKey() const {
         return textureKey;
     }
 
-    VkFormat getFormat() {
+    VkFormat getFormat() const {
         return format;
     }
 
-    VkImageType getImageType() {
+    VkImageType getImageType() const {
         return imageType;
     }
 
-    VkImageViewType getImageViewType() {
+    VkImageViewType getImageViewType() const {
         return imageViewType;
     }
 
-    bool hasMipmaps() {
+    bool hasMipmaps() const {
         return mipmaps;
     }
 
-    int getChannels() {
+    int getChannels() const {
         return channels;
     }
 
-    VkAccessFlags2 getDstStageMask() {
+    VkAccessFlags2 getDstStageMask() const {
         return dstStageMask;
     }
 
-    VkAccessFlags2 getDstAccessMask() {
+    VkAccessFlags2 getDstAccessMask() const {
         return dstAccessMask;
     }
 

@@ -7,15 +7,27 @@
 
 void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const glm::vec3& lightDir,
     float lastSplitDist, float splitDist, float clipRange) {
+
+    glm::vec3 baseCorners[8] = {
+        glm::vec3(-1.0f, 1.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 0.0f),
+        glm::vec3(1.0f, -1.0f, 0.0f),
+        glm::vec3(-1.0f, -1.0f, 0.0f),
+        glm::vec3(-1.0f, 1.0f, 1.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        glm::vec3(1.0f, -1.0f, 1.0f),
+        glm::vec3(-1.0f, -1.0f, 1.0f)
+    };
+
     glm::vec3 frustumCorners[8] = {
-           math::transformProject(invCam, glm::vec3(-1.0f, 1.0f, 0.0f)),
-           math::transformProject(invCam, glm::vec3(1.0f, 1.0f, 0.0f)),
-           math::transformProject(invCam, glm::vec3(1.0f, -1.0f, 0.0f)),
-           math::transformProject(invCam, glm::vec3(-1.0f, -1.0f, 0.0f)),
-           math::transformProject(invCam, glm::vec3(-1.0f, 1.0f, 1.0f)),
-           math::transformProject(invCam, glm::vec3(1.0f, 1.0f, 1.0f)),
-           math::transformProject(invCam, glm::vec3(1.0f, -1.0f, 1.0f)),
-           math::transformProject(invCam, glm::vec3(-1.0f, -1.0f, 1.0f))
+           math::transformProject(invCam, baseCorners[0]),
+           math::transformProject(invCam, baseCorners[1]),
+           math::transformProject(invCam, baseCorners[2]),
+           math::transformProject(invCam, baseCorners[3]),
+           math::transformProject(invCam, baseCorners[4]),
+           math::transformProject(invCam, baseCorners[5]),
+           math::transformProject(invCam, baseCorners[6]),
+           math::transformProject(invCam, baseCorners[7])
     };
 
     for (auto i = 0; i < 4; i++) {

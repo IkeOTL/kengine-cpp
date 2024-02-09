@@ -5,6 +5,7 @@
 #include <kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp>
 #include <kengine/vulkan/IndirectDrawBatch.hpp>
 #include <kengine/vulkan/material/MaterialBinding.hpp>
+#include <kengine/vulkan/SamplerCache.hpp>
 
 void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllocator>& descSetAllocators,
     glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer drawInstanceBuffer) {
@@ -173,77 +174,79 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::Rend
     for (auto i = 0; i < batchesSize; i++) {
         auto& indirectBatch = batches[i];
 
-        // Extracting texture and sampler setup
-        auto& bindingTexture = static_cast<ImageBinding&>(indirectBatch.getMaterial()->getBinding(2, 0)).getTexture();
+        {
+            // Extracting texture and sampler setup
+            auto& bindingTexture = static_cast<ImageBinding&>(indirectBatch.getMaterial()->getBinding(2, 0)).getTexture();
 
-        // move to material code
-        auto samplerConfig = SamplerConfig(
-            VK_SAMPLER_MIPMAP_MODE_LINEAR,
-            VK_FILTER_NEAREST,
-            VK_FILTER_NEAREST,
-            VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            VK_COMPARE_OP_NEVER,
-            VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-            0,
-            bindingTexture.getMipLevels(),
-            0,
-            1.0f);
-        auto sampler = vkContext.getSamplerCache().getSampler(samplerConfig);
+            // move to material code
+            auto samplerConfig = SamplerConfig(
+                VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                VK_FILTER_NEAREST,
+                VK_FILTER_NEAREST,
+                VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                VK_COMPARE_OP_NEVER,
+                VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+                0,
+                bindingTexture.getMipLevels(),
+                0,
+                1.0f);
+            auto sampler = vkContext.getSamplerCache().getSampler(samplerConfig);
 
-        auto layout = skinned ? SkinnedCascadeShadowMapPipeline::skinnedSingleTextureLayout : CascadeShadowMapPipeline::textureLayout;
-        auto pTexSet = dAllocator.leaseDescriptorSet(layout);
+            auto layout = skinned ? SkinnedCascadeShadowMapPipeline::skinnedSingleTextureLayout : CascadeShadowMapPipeline::textureLayout;
+            auto pTexSet = dAllocator.leaseDescriptorSet(layout);
 
-        VkDescriptorImageInfo descImgBufInfo = {};
-        descImgBufInfo.sampler = sampler;
-        descImgBufInfo.imageView = bindingTexture.getImageView();
-        descImgBufInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            VkDescriptorImageInfo descImgBufInfo = {};
+            descImgBufInfo.sampler = sampler;
+            descImgBufInfo.imageView = bindingTexture.getImageView();
+            descImgBufInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-        std::vector<VkWriteDescriptorSet> setWrites(skinned ? 2 : 1);
+            std::vector<VkWriteDescriptorSet> setWrites(skinned ? 2 : 1);
 
-        auto& textureBinding = layout.getBinding(0);
-        VkWriteDescriptorSet& textureWrite = setWrites[0];
-        textureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        textureWrite.dstBinding = textureBinding.bindingIndex;
-        textureWrite.dstSet = pTexSet;
-        textureWrite.descriptorCount = textureBinding.descriptorCount;
-        textureWrite.descriptorType = textureBinding.descriptorType;
-        textureWrite.pImageInfo = &descImgBufInfo;
+            auto& textureBinding = layout.getBinding(0);
+            VkWriteDescriptorSet& textureWrite = setWrites[0];
+            textureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            textureWrite.dstBinding = textureBinding.bindingIndex;
+            textureWrite.dstSet = pTexSet;
+            textureWrite.descriptorCount = textureBinding.descriptorCount;
+            textureWrite.descriptorType = textureBinding.descriptorType;
+            textureWrite.pImageInfo = &descImgBufInfo;
 
-        std::vector<uint32_t> offsets = { 0 };
+            std::vector<uint32_t> offsets = { 0 };
 
-        if (skinned) {
-            auto& bindingSkele = static_cast<BufferBinding&>(indirectBatch.getMaterial()->getBinding(2, 5)).getGpuBuffer();
-            auto& skeletonBinding = layout.getBinding(1);
-            VkDescriptorBufferInfo bufferInfo = {};
-            bufferInfo.buffer = bindingSkele.getGpuBuffer().getVkBuffer();
-            bufferInfo.offset = 0;
-            bufferInfo.range = bindingSkele.getFrameSize();
+            if (skinned) {
+                auto& bindingSkele = static_cast<BufferBinding&>(indirectBatch.getMaterial()->getBinding(2, 5)).getGpuBuffer();
+                auto& skeletonBinding = layout.getBinding(1);
+                VkDescriptorBufferInfo bufferInfo = {};
+                bufferInfo.buffer = bindingSkele.getGpuBuffer().getVkBuffer();
+                bufferInfo.offset = 0;
+                bufferInfo.range = bindingSkele.getFrameSize();
 
-            VkWriteDescriptorSet& skeletonWrite = setWrites[1];
-            skeletonWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            skeletonWrite.dstBinding = skeletonBinding.bindingIndex;
-            skeletonWrite.dstSet = pTexSet;
-            skeletonWrite.descriptorCount = skeletonBinding.descriptorCount;
-            skeletonWrite.descriptorType = skeletonBinding.descriptorType;
-            skeletonWrite.pBufferInfo = &bufferInfo;
+                VkWriteDescriptorSet& skeletonWrite = setWrites[1];
+                skeletonWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                skeletonWrite.dstBinding = skeletonBinding.bindingIndex;
+                skeletonWrite.dstSet = pTexSet;
+                skeletonWrite.descriptorCount = skeletonBinding.descriptorCount;
+                skeletonWrite.descriptorType = skeletonBinding.descriptorType;
+                skeletonWrite.pBufferInfo = &bufferInfo;
 
-            offsets[0] = bindingSkele.getFrameOffset(cxt.frameIndex);
+                offsets[0] = bindingSkele.getFrameOffset(cxt.frameIndex);
+            }
+
+            vkUpdateDescriptorSets(vkContext.getVkDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
+
+            vkCmdBindDescriptorSets(
+                cxt.cmd,
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                p1.getVkPipelineLayout(),
+                2,
+                1,
+                &pTexSet,
+                offsets.size(),
+                offsets.data()
+            );
         }
-
-        vkUpdateDescriptorSets(vkContext.getVkDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
-
-        vkCmdBindDescriptorSets(
-            cxt.cmd,
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            p1.getVkPipelineLayout(),
-            2,
-            1,
-            &pTexSet,
-            offsets.size(),
-            offsets.data()
-        );
 
         auto mesh = indirectBatch.getMesh();
         VkBuffer vertexBuffers[] = { mesh->getVertexBuf().getBufHandle() };

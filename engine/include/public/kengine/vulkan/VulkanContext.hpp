@@ -163,9 +163,7 @@ public:
         return vmaAllocator;
     }
 
-    SamplerCache& getSamplerCache() {
-        return *samplerCache;
-    }
+    SamplerCache& getSamplerCache();
 
     void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);
 

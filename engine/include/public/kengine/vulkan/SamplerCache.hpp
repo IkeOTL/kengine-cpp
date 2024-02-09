@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/Hashable.hpp>
+#include <kengine/vulkan/VulkanContext.hpp>
 #include <functional>
 
 class VulkanContext;
@@ -32,6 +33,15 @@ public:
     bool operator!=(const SamplerConfig& other) const;
 };
 
+namespace std {
+    template<>
+    struct hash<SamplerConfig> {
+        size_t operator()(const SamplerConfig& p) const noexcept {
+            return p.hashCode();
+        }
+    };
+}
+
 class SamplerCache {
 public:
     VulkanContext& vkCtx;
@@ -43,12 +53,3 @@ public:
 
     VkSampler getSampler(SamplerConfig& config);
 };
-
-namespace std {
-    template<>
-    struct hash<SamplerConfig> {
-        size_t operator()(const SamplerConfig& p) const noexcept {
-            return p.hashCode();
-        }
-    };
-}

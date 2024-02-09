@@ -7,6 +7,7 @@
 class MaterialBindingConfig;
 class GpuBuffer;
 class CachedGpuBuffer;
+class Texture2d;
 
 class MaterialBinding {
 private:

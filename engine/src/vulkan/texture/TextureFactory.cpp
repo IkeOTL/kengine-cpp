@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <thirdparty/stb_image.h>
 
-std::unique_ptr<Texture2d> TextureFactory::loadTexture(TextureConfig config) {
+std::unique_ptr<Texture2d> TextureFactory::loadTexture(const TextureConfig& config) {
     auto& key = config.getTextureKey();
 
     auto assetData = assetIo.loadBuffer(key);

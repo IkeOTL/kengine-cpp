@@ -13,5 +13,5 @@ public:
     TextureFactory(VulkanContext& vkContext, AssetIO& assetIo)
         : vkContext(vkContext), assetIo(assetIo) {};
 
-    std::unique_ptr<Texture2d> loadTexture(TextureConfig config);
+    std::unique_ptr<Texture2d> loadTexture(const TextureConfig& config);
 };
