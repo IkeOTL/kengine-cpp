@@ -20,7 +20,7 @@ public:
         return vertexAttributes;
     }
 
-    const std::vector<Vertex>& getVertices() const {
+    const std::vector<std::unique_ptr<Vertex>>& getVertices() const {
         return vertices;
     }
 
