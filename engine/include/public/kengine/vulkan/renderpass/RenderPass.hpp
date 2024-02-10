@@ -2,11 +2,43 @@
 #include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/ColorFormatAndSpace.hpp>
 #include <kengine/vulkan/GpuImage.hpp>
-#include <kengine/vulkan/renderpass/RenderTarget.hpp>
 #include <glm/vec2.hpp>
 #include <type_traits>
 #include <memory>
 #include <vector>
+
+class RenderPass;
+
+class RenderTarget {
+public:
+    RenderTarget(VkDevice vkDevice)
+        : vkDevice(vkDevice) { }
+
+    ~RenderTarget();
+
+    VkFramebuffer getVkFramebuffer() const {
+        return vkFrameBuffer;
+    }
+
+    virtual VkFramebuffer createFramebuffer(
+        RenderPass& renderPass,
+        VmaAllocator vmaAllocator,
+        const std::vector<VkImageView>& sharedImageViews,
+        const glm::uvec2& extents
+    ) = 0;
+
+    virtual void init(
+        RenderPass& renderPass,
+        VmaAllocator vmaAllocator,
+        const std::vector<VkImageView>& sharedImageViews,
+        const glm::uvec2& extents
+    );
+
+private:
+    VkDevice vkDevice;
+    VkFramebuffer vkFrameBuffer = VK_NULL_HANDLE;
+
+};
 
 class RenderPass {
 
@@ -49,7 +81,7 @@ private:
 
     VkRenderPass vkRenderPass = VK_NULL_HANDLE;
     std::vector<std::unique_ptr<RenderTarget>> renderTargets;
-    std::unique_ptr<GpuImageView> depthStencilImageView = nullptr;
+    std::unique_ptr<GpuImageView> depthStencilImageView;
 
 protected:
     const VkDevice getVkDevice() const {
@@ -61,7 +93,7 @@ protected:
     }
 
     const GpuImageView* getDepthStencil() const {
-        return depthStencilImageView ? depthStencilImageView.get() : nullptr;
+        return depthStencilImageView.get();
     }
 
     const void setDepthStencil(std::unique_ptr<GpuImageView> ds) {
@@ -73,12 +105,13 @@ protected:
     const RenderTarget* getRenderTarget(size_t renderTargetIndex) const;
 
     virtual VkRenderPass createVkRenderPass() = 0;
-    virtual std::unique_ptr<GpuImageView> createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2& extents) = 0;
+    virtual std::unique_ptr<GpuImageView> createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2 extents) {
+        throw std::runtime_error("createDepthStencil is not implemented.");
+    }
 
-    virtual std::unique_ptr<RenderTarget> createRenderTarget(
+    virtual void createRenderTargets(
         VmaAllocator vmaAllocator,
-        const std::vector<VkImageView>& sharedImageViews,
-        const glm::uvec2& extents,
-        const int renderTargetIndex
+        const std::vector<VkImageView> sharedImageViews,
+        const glm::uvec2 extents
     ) = 0;
 };

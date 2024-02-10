@@ -2,6 +2,93 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <glm/vec2.hpp>
 
+// render target
+review
+VkFramebuffer DeferredPbrRenderTarget::createFramebuffer(RenderPass& renderPass, VmaAllocator vmaAllocator,
+    const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) {
+    VkImageUsageFlags rpUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+
+    // Create attachment images
+     albedoImage = createAttachmentImage(VK_FORMAT_R8G8B8A8_SRGB, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
+     positionImage = createAttachmentImage(VK_FORMAT_R32G32B32A32_SFLOAT, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
+     normalImage = createAttachmentImage(VK_FORMAT_R16G16_SNORM, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
+     ormImage = createAttachmentImage(VK_FORMAT_R16G16B16A16_SFLOAT, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
+     emissiveImage = createAttachmentImage(VK_FORMAT_R8G8B8A8_SRGB, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
+
+    std::vector<VkImageView> attachments = {
+        sharedImageViews[0],
+        albedoImage,
+        positionImage,
+        normalImage,
+        ormImage,
+        emissiveImage,
+        renderPass.getDepthStencilImageView().getImageView()
+    };
+
+    // Add your depth stencil image view to the attachments list as needed
+
+    VkFramebufferCreateInfo framebufferInfo{};
+    framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    framebufferInfo.renderPass = renderPass;
+    framebufferInfo.attachmentCount = attachments.size();
+    framebufferInfo.pAttachments = attachments.data();
+    framebufferInfo.width = extents.x;
+    framebufferInfo.height = extents.y;
+    framebufferInfo.layers = 1;
+
+    VkFramebuffer framebuffer;
+    VKCHECK(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffer),
+        "Failed to create framebuffer");
+
+    return framebuffer;
+}
+
+review
+std::unique_ptr<GpuImageView>&& DeferredPbrRenderTarget::createAttachmentImage(VkFormat format, VkImageUsageFlags imageUsage,
+    VmaMemoryUsage memUsage, VkImageAspectFlags viewAspectMask, const glm::uvec2 extents) {
+    VkImageCreateInfo imageCreateInfo = {};
+    imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageCreateInfo.format = format;
+    imageCreateInfo.mipLevels = 1;
+    imageCreateInfo.arrayLayers = 1;
+    imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageCreateInfo.usage = imageUsage;
+    imageCreateInfo.extent.width = extents.x;
+    imageCreateInfo.extent.height = extents.y;
+    imageCreateInfo.extent.depth = 1;
+
+    VmaAllocationCreateInfo allocCreateInfo = {};
+    allocCreateInfo.usage = memUsage;
+    allocCreateInfo.requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    if (imageUsage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT) {
+        allocCreateInfo.preferredFlags = VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+    }
+
+    VkImage image;
+    VmaAllocation allocation;
+    VmaAllocationInfo allocationInfo;
+    VKCHECK(vmaCreateImage(allocator, &imageCreateInfo, &allocCreateInfo, &image, &allocation, &allocationInfo), "Failed to create image");
+
+    VkImageViewCreateInfo viewCreateInfo = {};
+    viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewCreateInfo.image = image;
+    viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewCreateInfo.format = format;
+    viewCreateInfo.subresourceRange.aspectMask = viewAspectMask;
+    viewCreateInfo.subresourceRange.baseMipLevel = 0;
+    viewCreateInfo.subresourceRange.levelCount = 1;
+    viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+    viewCreateInfo.subresourceRange.layerCount = 1;
+
+    VkImageView imageView;
+    VKCHECK(vkCreateImageView(device, &viewCreateInfo, nullptr, &imageView), "Failed to create image view");
+
+    return unique_ptr<GpuImageView>(imageView)
+}
+
+// render pass
 void DeferredPbrRenderPass::begin(RenderPassContext& cxt) {
     const auto clearCount = 7;
     VkClearValue clearVal[clearCount]{};
@@ -36,7 +123,7 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
     return VK_NULL_HANDLE;
 }
 
-std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2& extents) {
+std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2 extents) {
     VkImageCreateInfo imageCreateInfo{};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -89,16 +176,12 @@ std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAlloc
         });
 }
 
-std::unique_ptr<RenderTarget> DeferredPbrRenderPass::createRenderTarget(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents, const int renderTargetIndex) {
-    return std::unique_ptr<RenderTarget>();
-}
-
-void DeferredPbrRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) {
+void DeferredPbrRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView> sharedImageViews, const glm::uvec2 extents) {
     freeRenderTargets();
 
     setDepthStencil(createDepthStencil(vmaAllocator, extents));
-    continue work on render passes, we changed how render targets get loaded i think
-        for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
 
-        }
+    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+
+    }
 }

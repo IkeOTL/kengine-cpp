@@ -8,7 +8,7 @@
 #include <kengine/vulkan/SamplerCache.hpp>
 
 void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllocator>& descSetAllocators,
-    glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer drawInstanceBuffer) {
+    glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer) {
     auto xferFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
         | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT
         | VMA_ALLOCATION_CREATE_MAPPED_BIT;
@@ -194,7 +194,7 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::Rend
                 1.0f);
             auto sampler = vkContext.getSamplerCache().getSampler(samplerConfig);
 
-            auto layout = skinned ? SkinnedCascadeShadowMapPipeline::skinnedSingleTextureLayout : CascadeShadowMapPipeline::textureLayout;
+            auto& layout = skinned ? SkinnedCascadeShadowMapPipeline::skinnedSingleTextureLayout : CascadeShadowMapPipeline::textureLayout;
             auto pTexSet = dAllocator.leaseDescriptorSet(layout);
 
             VkDescriptorImageInfo descImgBufInfo = {};

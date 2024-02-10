@@ -76,7 +76,6 @@ set(HEADERS
     include/public/kengine/vulkan/descriptor/DescriptorSetAllocator.hpp
 
     include/public/kengine/vulkan/renderpass/RenderPass.hpp
-    include/public/kengine/vulkan/renderpass/RenderTarget.hpp
     include/public/kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp
 )
 
@@ -136,7 +135,6 @@ set(SOURCES
     src/vulkan/descriptor/DescriptorSetAllocator.cpp
 
     src/vulkan/renderpass/RenderPass.cpp
-    src/vulkan/renderpass/RenderTarget.cpp
     src/vulkan/renderpass/DeferredPbrRenderPass.cpp
 )
 

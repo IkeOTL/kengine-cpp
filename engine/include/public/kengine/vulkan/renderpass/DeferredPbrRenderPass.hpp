@@ -1,16 +1,32 @@
 #pragma once
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 
+class DeferredPbrRenderTarget : RenderTarget {
+private:
+    std::unique_ptr<GpuImageView> albedoImage;
+    std::unique_ptr<GpuImageView> positionImage;
+    std::unique_ptr<GpuImageView> normalImage;
+    std::unique_ptr<GpuImageView> ormImage;
+    std::unique_ptr<GpuImageView> emissiveImage;
+
+    VkFramebuffer createFramebuffer(
+        RenderPass& renderPass,
+        VmaAllocator vmaAllocator,
+        const std::vector<VkImageView>& sharedImageViews,
+        const glm::uvec2& extents
+    ) override;
+
+    std::unique_ptr<GpuImageView>&& createAttachmentImage(VkFormat format, VkImageUsageFlags imageUsage,
+        VmaMemoryUsage memUsage, VkImageAspectFlags viewAspectMask, const glm::uvec2 extents);
+};
+
 class DeferredPbrRenderPass : public RenderPass {
 public:
     DeferredPbrRenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
         : RenderPass(vkDevice, colorFormatAndSpace) { }
 
-    // Inherited via RenderPass
-    void createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) override;
     void begin(RenderPassContext& cxt) override;
     void end(RenderPassContext& cxt) override;
-
 
     DeferredPbrRenderPass(const DeferredPbrRenderPass&) = delete;
     DeferredPbrRenderPass& operator=(const DeferredPbrRenderPass&) = delete;
@@ -20,7 +36,6 @@ public:
 
 protected:
     VkRenderPass createVkRenderPass() override;
-    std::unique_ptr<GpuImageView> createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2& extents) override;
-    std::unique_ptr<RenderTarget> createRenderTarget(VmaAllocator vmaAllocator, const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents, const int renderTargetIndex) override;
-
+    std::unique_ptr<GpuImageView> createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2 extents) override;
+    void createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView> sharedImageViews, const glm::uvec2 extents) override;
 };

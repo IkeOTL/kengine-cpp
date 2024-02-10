@@ -2,7 +2,7 @@
 #include <kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
-#include <kengine/vulkan/Vertex.hpp>
+#include <kengine/vulkan/mesh/Vertex.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
 #include <glm/mat4x4.hpp>
