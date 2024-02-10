@@ -1,13 +1,16 @@
 #pragma once
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 
-class DeferredPbrRenderTarget : RenderTarget {
+class DeferredPbrRenderTarget : public RenderTarget {
 private:
     std::unique_ptr<GpuImageView> albedoImage;
     std::unique_ptr<GpuImageView> positionImage;
     std::unique_ptr<GpuImageView> normalImage;
     std::unique_ptr<GpuImageView> ormImage;
     std::unique_ptr<GpuImageView> emissiveImage;
+
+    DeferredPbrRenderTarget(VkDevice vkDevice)
+        : RenderTarget(vkDevice) {}
 
     VkFramebuffer createFramebuffer(
         RenderPass& renderPass,
@@ -16,8 +19,15 @@ private:
         const glm::uvec2& extents
     ) override;
 
-    std::unique_ptr<GpuImageView>&& createAttachmentImage(VkFormat format, VkImageUsageFlags imageUsage,
+    std::unique_ptr<GpuImageView>&& createAttachmentImage(VmaAllocator vmaAllocator, VkFormat format, VkImageUsageFlags imageUsage,
         VmaMemoryUsage memUsage, VkImageAspectFlags viewAspectMask, const glm::uvec2 extents);
+
+public:
+    const GpuImageView& getAlbedoImage() const;
+    const GpuImageView& getPositionImage() const;
+    const GpuImageView& getNormalImage() const;
+    const GpuImageView& getOrmImage() const;
+    const GpuImageView& getEmissiveImage() const;
 };
 
 class DeferredPbrRenderPass : public RenderPass {

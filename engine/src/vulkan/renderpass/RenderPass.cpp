@@ -32,3 +32,10 @@ void RenderPass::freeRenderTargets() {
     depthStencilImageView = nullptr;
     renderTargets.clear();
 }
+
+const GpuImageView& RenderPass::getDepthStencilImageView() const {
+    if (!depthStencilImageView)
+        throw std::runtime_error("Missing depthStencil imageview.");
+
+    return *depthStencilImageView;
+}

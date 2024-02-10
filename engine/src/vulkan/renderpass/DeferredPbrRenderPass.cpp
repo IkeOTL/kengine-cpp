@@ -3,33 +3,32 @@
 #include <glm/vec2.hpp>
 
 // render target
-review
 VkFramebuffer DeferredPbrRenderTarget::createFramebuffer(RenderPass& renderPass, VmaAllocator vmaAllocator,
     const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) {
     VkImageUsageFlags rpUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
 
     // Create attachment images
-     albedoImage = createAttachmentImage(VK_FORMAT_R8G8B8A8_SRGB, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
-     positionImage = createAttachmentImage(VK_FORMAT_R32G32B32A32_SFLOAT, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
-     normalImage = createAttachmentImage(VK_FORMAT_R16G16_SNORM, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
-     ormImage = createAttachmentImage(VK_FORMAT_R16G16B16A16_SFLOAT, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
-     emissiveImage = createAttachmentImage(VK_FORMAT_R8G8B8A8_SRGB, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
+    albedoImage = createAttachmentImage(vmaAllocator, VK_FORMAT_R8G8B8A8_SRGB, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
+    positionImage = createAttachmentImage(vmaAllocator, VK_FORMAT_R32G32B32A32_SFLOAT, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
+    normalImage = createAttachmentImage(vmaAllocator, VK_FORMAT_R16G16_SNORM, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
+    ormImage = createAttachmentImage(vmaAllocator, VK_FORMAT_R16G16B16A16_SFLOAT, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
+    emissiveImage = createAttachmentImage(vmaAllocator, VK_FORMAT_R8G8B8A8_SRGB, rpUsage, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE, VK_IMAGE_ASPECT_COLOR_BIT, extents);
 
     std::vector<VkImageView> attachments = {
         sharedImageViews[0],
-        albedoImage,
-        positionImage,
-        normalImage,
-        ormImage,
-        emissiveImage,
-        renderPass.getDepthStencilImageView().getImageView()
+        albedoImage->imageView,
+        positionImage->imageView,
+        normalImage->imageView,
+        ormImage->imageView,
+        emissiveImage->imageView,
+        renderPass.getDepthStencilImageView().imageView
     };
 
     // Add your depth stencil image view to the attachments list as needed
 
     VkFramebufferCreateInfo framebufferInfo{};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferInfo.renderPass = renderPass;
+    framebufferInfo.renderPass = renderPass.getVkRenderPass();
     framebufferInfo.attachmentCount = attachments.size();
     framebufferInfo.pAttachments = attachments.data();
     framebufferInfo.width = extents.x;
@@ -37,16 +36,15 @@ VkFramebuffer DeferredPbrRenderTarget::createFramebuffer(RenderPass& renderPass,
     framebufferInfo.layers = 1;
 
     VkFramebuffer framebuffer;
-    VKCHECK(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffer),
+    VKCHECK(vkCreateFramebuffer(vkDevice, &framebufferInfo, nullptr, &framebuffer),
         "Failed to create framebuffer");
 
     return framebuffer;
 }
 
-review
-std::unique_ptr<GpuImageView>&& DeferredPbrRenderTarget::createAttachmentImage(VkFormat format, VkImageUsageFlags imageUsage,
+std::unique_ptr<GpuImageView>&& DeferredPbrRenderTarget::createAttachmentImage(VmaAllocator vmaAllocator, VkFormat format, VkImageUsageFlags imageUsage,
     VmaMemoryUsage memUsage, VkImageAspectFlags viewAspectMask, const glm::uvec2 extents) {
-    VkImageCreateInfo imageCreateInfo = {};
+    VkImageCreateInfo imageCreateInfo{};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
     imageCreateInfo.format = format;
@@ -59,21 +57,29 @@ std::unique_ptr<GpuImageView>&& DeferredPbrRenderTarget::createAttachmentImage(V
     imageCreateInfo.extent.height = extents.y;
     imageCreateInfo.extent.depth = 1;
 
-    VmaAllocationCreateInfo allocCreateInfo = {};
+    VmaAllocationCreateInfo allocCreateInfo{};
     allocCreateInfo.usage = memUsage;
     allocCreateInfo.requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    if (imageUsage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT) {
-        allocCreateInfo.preferredFlags = VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
-    }
 
-    VkImage image;
+    if (imageUsage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT)
+        allocCreateInfo.preferredFlags = VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+
+    VkImage vkImage;
     VmaAllocation allocation;
     VmaAllocationInfo allocationInfo;
-    VKCHECK(vmaCreateImage(allocator, &imageCreateInfo, &allocCreateInfo, &image, &allocation, &allocationInfo), "Failed to create image");
+    VKCHECK(vmaCreateImage(vmaAllocator, &imageCreateInfo, &allocCreateInfo, &vkImage, &allocation, &allocationInfo),
+        "Failed to create image");
 
-    VkImageViewCreateInfo viewCreateInfo = {};
+    auto gpuImage = std::make_shared<GpuImage>(GpuImage{
+            vkDevice,
+            vmaAllocator,
+            vkImage,
+            allocation
+        });
+
+    VkImageViewCreateInfo viewCreateInfo{};
     viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewCreateInfo.image = image;
+    viewCreateInfo.image = vkImage;
     viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
     viewCreateInfo.format = format;
     viewCreateInfo.subresourceRange.aspectMask = viewAspectMask;
@@ -82,10 +88,49 @@ std::unique_ptr<GpuImageView>&& DeferredPbrRenderTarget::createAttachmentImage(V
     viewCreateInfo.subresourceRange.baseArrayLayer = 0;
     viewCreateInfo.subresourceRange.layerCount = 1;
 
-    VkImageView imageView;
-    VKCHECK(vkCreateImageView(device, &viewCreateInfo, nullptr, &imageView), "Failed to create image view");
+    VkImageView vkImageView;
+    VKCHECK(vkCreateImageView(vkDevice, &viewCreateInfo, nullptr, &vkImageView),
+        "Failed to create image view");
 
-    return unique_ptr<GpuImageView>(imageView)
+    return std::make_unique<GpuImageView>(GpuImageView{
+            gpuImage,
+            vkImageView
+        });
+}
+
+const GpuImageView& DeferredPbrRenderTarget::getAlbedoImage() const {
+    if (!albedoImage)
+        throw std::runtime_error("Albedo image missing.");
+
+    return *albedoImage;
+}
+
+const GpuImageView& DeferredPbrRenderTarget::getPositionImage() const {
+    if (!positionImage)
+        throw std::runtime_error("Position image missing.");
+
+    return *positionImage;
+}
+
+const GpuImageView& DeferredPbrRenderTarget::getNormalImage() const {
+    if (!normalImage)
+        throw std::runtime_error("Normal image missing.");
+
+    return *normalImage;
+}
+
+const GpuImageView& DeferredPbrRenderTarget::getOrmImage() const {
+    if (!ormImage)
+        throw std::runtime_error("ORM image missing.");
+
+    return *ormImage;
+}
+
+const GpuImageView& DeferredPbrRenderTarget::getEmissiveImage() const {
+    if (!emissiveImage)
+        throw std::runtime_error("Emissive image missing.");
+
+    return *emissiveImage;
 }
 
 // render pass
@@ -178,10 +223,10 @@ std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAlloc
 
 void DeferredPbrRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView> sharedImageViews, const glm::uvec2 extents) {
     freeRenderTargets();
-
     setDepthStencil(createDepthStencil(vmaAllocator, extents));
-
     for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
-
+        auto fb = std::make_unique<DeferredPbrRenderTarget>(vkDevice);
+        fb->init(*this, vmaAllocator, { sharedImageViews[i] }, extents);
+        addRenderTarget(std::move(fb));
     }
 }

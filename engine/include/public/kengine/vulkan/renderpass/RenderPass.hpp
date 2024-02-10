@@ -34,14 +34,15 @@ public:
         const glm::uvec2& extents
     );
 
-private:
+protected:
     VkDevice vkDevice;
+
+private:
     VkFramebuffer vkFrameBuffer = VK_NULL_HANDLE;
 
 };
 
 class RenderPass {
-
 public:
     struct RenderPassContext {
         const int renderPassIndex;
@@ -75,8 +76,9 @@ public:
     virtual void begin(RenderPassContext& cxt) = 0;
     virtual void end(RenderPassContext& cxt) = 0;
 
+    const GpuImageView& getDepthStencilImageView() const;
+
 private:
-    const VkDevice vkDevice;
     const ColorFormatAndSpace& colorFormatAndSpace;
 
     VkRenderPass vkRenderPass = VK_NULL_HANDLE;
@@ -84,8 +86,14 @@ private:
     std::unique_ptr<GpuImageView> depthStencilImageView;
 
 protected:
+    const VkDevice vkDevice;
+
     const VkDevice getVkDevice() const {
         return vkDevice;
+    }
+
+    void addRenderTarget(std::unique_ptr<RenderTarget>&& rt) {
+        renderTargets.push_back(std::move(rt));
     }
 
     const ColorFormatAndSpace& getColorFormatAndSpace() const {
