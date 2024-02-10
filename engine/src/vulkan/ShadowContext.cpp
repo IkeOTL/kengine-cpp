@@ -37,7 +37,7 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllo
             VkDescriptorSet modelMatDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
                 "shadow-pass0", CascadeShadowMapPipeline::shadowPassLayout);
             // Model matrix descriptor write
-            auto modelBufBinding = CascadeShadowMapPipeline::shadowPassLayout.getBinding(0);
+            auto& modelBufBinding = CascadeShadowMapPipeline::shadowPassLayout.getBinding(0);
             VkDescriptorBufferInfo modelBufferInfo{};
             modelBufferInfo.buffer = drawObjectBuf.getGpuBuffer().getVkBuffer();
             modelBufferInfo.offset = 0;
@@ -51,8 +51,8 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllo
             setWrites[0].pBufferInfo = &modelBufferInfo;
 
             // Draw instance descriptor write
-            auto drawInstanceBinding = CascadeShadowMapPipeline::shadowPassLayout.getBinding(1);
-            VkDescriptorBufferInfo drawInstanceBufferInfo = {};
+            auto& drawInstanceBinding = CascadeShadowMapPipeline::shadowPassLayout.getBinding(1);
+            VkDescriptorBufferInfo drawInstanceBufferInfo{};
             drawInstanceBufferInfo.buffer = drawInstanceBuffer.getGpuBuffer().getVkBuffer();
             drawInstanceBufferInfo.offset = 0;
             drawInstanceBufferInfo.range = drawInstanceBuffer.getFrameSize();
@@ -69,8 +69,8 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllo
             VkDescriptorSet cascadeDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
                 "cascade", CascadeShadowMapPipeline::cascadeViewProjLayout);
             // Cascade UBO descriptor write
-            auto cascadeUboBinding = CascadeShadowMapPipeline::cascadeViewProjLayout.getBinding(0);
-            VkDescriptorBufferInfo cascadeBufferInfo = {};
+            auto& cascadeUboBinding = CascadeShadowMapPipeline::cascadeViewProjLayout.getBinding(0);
+            VkDescriptorBufferInfo cascadeBufferInfo{};
             cascadeBufferInfo.buffer = shadowPassCascadeBuf->getGpuBuffer().getVkBuffer(); // Assuming similar method exists in C++
             cascadeBufferInfo.offset = 0;
             cascadeBufferInfo.range = shadowPassCascadeBuf->getFrameSize();
@@ -87,8 +87,8 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllo
             VkDescriptorSet compositionDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
                 "deferred-composition", DeferredCompositionPbrPipeline::compositionLayout);
             // Composition descriptor write
-            auto cascadesUboBinding = DeferredCompositionPbrPipeline::compositionLayout.getBinding(7);
-            VkDescriptorBufferInfo compositionBufferInfo = {};
+            auto& cascadesUboBinding = DeferredCompositionPbrPipeline::compositionLayout.getBinding(7);
+            VkDescriptorBufferInfo compositionBufferInfo{};
             compositionBufferInfo.buffer = compositePassCascadeBuf->getGpuBuffer().getVkBuffer(); // Assuming similar method exists in C++
             compositionBufferInfo.offset = 0;
             compositionBufferInfo.range = compositePassCascadeBuf->getFrameSize();
@@ -249,10 +249,10 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::Rend
         }
 
         auto mesh = indirectBatch.getMesh();
-        VkBuffer vertexBuffers[] = { mesh->getVertexBuf().getBufHandle() };
+        VkBuffer vertexBuffers[] = { mesh->getVertexBuf().getVkBuffer() };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(vkCmd, 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(vkCmd, mesh.getIndexBuf().getBufHandle(), 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(vkCmd, mesh->getIndexBuf().getVkBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
         vkCmdDrawIndexedIndirect(
             vkCmd,
