@@ -30,8 +30,6 @@ private:
 
     std::unordered_map<std::pair<int, int>, std::shared_ptr<MaterialBindingConfig>, IntPairHash> bindingConfigs;
 
-
-
 public:
     MaterialConfig(std::type_index type) : pipelineTypeIndex(type) {}
 
@@ -43,15 +41,9 @@ public:
         return bindingConfigs;
     }
 
-    template <typename T>
-    T& createBindingConfig(int descriptorSetIndex, int bindingIndex) {
-        static_assert(std::is_base_of<MaterialBindingConfig, T>::value, "T must be a subclass of MaterialBindingConfig");
+    void addImageBinding(unsigned int descriptorSetIndex, unsigned int bindingIndex, TextureConfig config);
 
-        auto& ptr = bindingConfigs[std::make_pair(descriptorSetIndex, bindingIndex)]
-            = std::make_shared<T>(descriptorSetIndex, bindingIndex);
-
-        return *static_cast<T*>(ptr->get());;
-    }
+    void addBufferBinding(unsigned int descriptorSetIndex, unsigned int bindingIndex, int bufferId);
 
     virtual void addSkeleton(int skeletonBufferId);
 

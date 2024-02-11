@@ -34,7 +34,7 @@ public:
     size_t hashCode() const noexcept override;
 };
 
-class BufferBindingConfig : MaterialBindingConfig {
+class BufferBindingConfig : public MaterialBindingConfig {
 private:
     int bufferCacheKey;
 
@@ -47,7 +47,7 @@ public:
     int hash() const override;
 };
 
-class ImageBindingConfig : MaterialBindingConfig {
+class ImageBindingConfig : public MaterialBindingConfig {
 private:
     // use shared pointers? ask opinions
     TextureConfig textureConfig;

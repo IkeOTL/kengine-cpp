@@ -21,3 +21,13 @@ std::future<std::unique_ptr<MaterialBinding>> BufferBindingConfig::getBinding(As
     promise.set_value(std::make_unique<BufferBinding>(shared_from_this(), *buf));
     return promise.get_future();
 }
+
+int BufferBindingConfig::hash() const {
+    int hash = 5;
+    hash = 71 * hash + bufferCacheKey;
+    return hash;
+}
+
+int ImageBindingConfig::hash() const {
+    return textureConfig.hashCode();
+}

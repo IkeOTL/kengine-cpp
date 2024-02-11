@@ -2,6 +2,16 @@
 #include <kengine/vulkan/material/MaterialBindingConfig.hpp>
 #include <kengine/util/MapUtils.hpp>
 
+void MaterialConfig::addImageBinding(unsigned int descriptorSetIndex, unsigned int bindingIndex, TextureConfig config) {
+    auto ptr = std::make_shared<ImageBindingConfig>(descriptorSetIndex, bindingIndex, config);
+    bindingConfigs[std::make_pair(descriptorSetIndex, bindingIndex)] = ptr;
+}
+
+void MaterialConfig::addBufferBinding(unsigned int descriptorSetIndex, unsigned int bindingIndex, int bufferId) {
+    auto ptr = std::make_shared<BufferBindingConfig>(descriptorSetIndex, bindingIndex, bufferId);
+    bindingConfigs[std::make_pair(descriptorSetIndex, bindingIndex)] = ptr;
+}
+
 void MaterialConfig::addSkeleton(int skeletonBufferId)
 {
 }

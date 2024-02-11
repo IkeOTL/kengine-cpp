@@ -1,5 +1,6 @@
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
+#include <kengine/Math.hpp>
 
 #include <future>
 
@@ -8,26 +9,80 @@ void PbrMaterialConfig::upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer,
 }
 
 size_t PbrMaterialConfig::hash() const noexcept {
-    doo hash
-        return size_t();
+    const size_t prime = 67;
+    size_t hash = 3;
+    hash = prime * hash + math::hashCode(albedoFactor);
+    hash = prime * hash + math::hashCode(emissiveFactor);
+    hash = prime * hash + albedoTextureSet;
+    hash = prime * hash + metallicRoughnessTextureSet;
+    hash = prime * hash + normalTextureSet;
+    hash = prime * hash + occlusionTextureSet;
+    hash = prime * hash + emissiveTextureSet;
+    hash = prime * hash + static_cast<std::size_t>(std::bit_cast<int>(metallicFactor));
+    hash = prime * hash + static_cast<std::size_t>(std::bit_cast<int>(roughnessFactor));
+    return hash;
 }
 
 PbrMaterialConfig& PbrMaterialConfig::addAlbedoTexture(TextureConfig* config) {
-    // TODO: insert return statement here
+    if (!config) {
+        addImageBinding(2, 0, EMPTY_CONFIG);
+        albedoTextureSet = -1;
+        return *this;
+    }
+
+    addImageBinding(2, 0, *config);
+    albedoTextureSet = 0;
+    albedoFactor = glm::vec4(1.0f);
+    return *this;
 }
 
 PbrMaterialConfig& PbrMaterialConfig::addNormalsTexture(TextureConfig* config) {
-    // TODO: insert return statement here
+    if (!config) {
+        addImageBinding(2, 1, EMPTY_CONFIG);
+        normalTextureSet = -1;
+        return *this;
+    }
+
+    addImageBinding(2, 1, *config);
+    normalTextureSet = 0;
+    return *this;
 }
 
 PbrMaterialConfig& PbrMaterialConfig::addMetallicRoughnessTexture(TextureConfig* config) {
-    // TODO: insert return statement here
+    if (!config) {
+        addImageBinding(2, 2, EMPTY_CONFIG);
+        metallicRoughnessTextureSet = -1;
+        return *this;
+    }
+
+    addImageBinding(2, 2, *config);
+    metallicRoughnessTextureSet = 0;
+    metallicFactor = 1;
+    roughnessFactor = 1;
+    return *this;
 }
 
 PbrMaterialConfig& PbrMaterialConfig::addAmbientOcclusionTexture(TextureConfig* config) {
-    // TODO: insert return statement here
+    if (!config) {
+        addImageBinding(2, 3, EMPTY_CONFIG);
+        occlusionTextureSet = -1;
+        return *this;
+    }
+
+    addImageBinding(2, 3, *config);
+    occlusionTextureSet = 0;
+    return *this;
 }
 
 PbrMaterialConfig& PbrMaterialConfig::addEmissiveTexture(TextureConfig* config) {
-    // TODO: insert return statement here
+    if (!config) {
+        addImageBinding(2, 4, EMPTY_CONFIG);
+        emissiveTextureSet = -1;
+        return *this;
+    }
+
+    addImageBinding(2, 4, *config);
+    emissiveTextureSet = 0;
+    emissiveFactor = glm::vec4(1.0f);
+    return *this;
 }
