@@ -6,6 +6,19 @@
 
 class VulkanContext;
 
+struct PbrMaterialData {
+    const glm::vec4 albedoFactor;
+    const glm::vec4 emissiveFactor;
+    const int32_t albedoTextureSet;
+    const int32_t metallicRoughnessTextureSet;
+    const int32_t normalTextureSet;
+    const int32_t occlusionTextureSet;
+    const int32_t emissiveTextureSet;
+    const float metallicFactor;
+    const float roughnessFactor;
+    const float padding = 0;
+};
+
 class MaterialsBuffer {
 public:
     static const int MAX_MATERIALS = 1024;
@@ -15,21 +28,7 @@ public:
     }
 
     static int size() {
-        return MAX_MATERIALS * singleMaterialSize();
-    }
-
-    static int singleMaterialSize() {
-        return 4 * sizeof(float) // albedoFactor
-            + 4 * sizeof(float) // emissiveFactor
-            + 1 * sizeof(int32_t) // albedoTexture bool
-            + 1 * sizeof(int32_t) // metaiilicRoughnessTexture bool
-            + 1 * sizeof(int32_t) // normalTexture bool
-            + 1 * sizeof(int32_t) // occusionTexture bool
-            + 1 * sizeof(int32_t) // emissiceTexture bool     
-            + 1 * sizeof(float) // metallicFactor
-            + 1 * sizeof(float) // roughnessFactor
-            + 1 * sizeof(float) // padding
-            ;
+        return MAX_MATERIALS * sizeof(PbrMaterialData);
     }
 };
 

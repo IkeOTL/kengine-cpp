@@ -1,18 +1,32 @@
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
-#include <kengine/Math.hpp>
+#include <kengine/util/VecUtils.hpp>
 
 #include <future>
 
 void PbrMaterialConfig::upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) {
-    do upload
+    auto mat = PbrMaterialData{
+        albedoFactor,
+        emissiveFactor,
+        albedoTextureSet,
+        metallicRoughnessTextureSet,
+        normalTextureSet,
+        occlusionTextureSet,
+        emissiveTextureSet,
+        metallicFactor,
+        roughnessFactor
+    };
+
+    auto pos = gpuBuffer.getFrameOffset(frameIndex) + materialId * sizeof(PbrMaterialData);
+    auto buf = static_cast<unsigned char*>(gpuBuffer.getGpuBuffer().data());
+    memcpy(buf + pos, &mat, sizeof(PbrMaterialData));
 }
 
 size_t PbrMaterialConfig::hash() const noexcept {
     const size_t prime = 67;
     size_t hash = 3;
-    hash = prime * hash + math::hashCode(albedoFactor);
-    hash = prime * hash + math::hashCode(emissiveFactor);
+    hash = prime * hash + vecutils::hashCode(albedoFactor);
+    hash = prime * hash + vecutils::hashCode(emissiveFactor);
     hash = prime * hash + albedoTextureSet;
     hash = prime * hash + metallicRoughnessTextureSet;
     hash = prime * hash + normalTextureSet;
