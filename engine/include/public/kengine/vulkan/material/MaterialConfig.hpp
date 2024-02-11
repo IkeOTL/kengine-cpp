@@ -15,7 +15,7 @@ private:
     struct IntPairHash {
         template <class T1, class T2>
         std::size_t operator () (const std::pair<T1, T2>& pair) const {
-            const std::size_t prime = 31; 
+            const std::size_t prime = 31;
             std::size_t hash1 = std::hash<T1>{}(pair.first);
             std::size_t hash2 = std::hash<T2>{}(pair.second);
             return hash1 * prime + hash2;
@@ -44,13 +44,13 @@ public:
     }
 
     template <typename T>
-    T& createBinding(int descriptorSetIndex, int bindingIndex) {
+    T& createBindingConfig(int descriptorSetIndex, int bindingIndex) {
         static_assert(std::is_base_of<MaterialBindingConfig, T>::value, "T must be a subclass of MaterialBindingConfig");
 
-        auto& ptr = bindingConfigs[std::make_pair(descriptorSetIndex, bindingIndex)] 
+        auto& ptr = bindingConfigs[std::make_pair(descriptorSetIndex, bindingIndex)]
             = std::make_shared<T>(descriptorSetIndex, bindingIndex);
 
-        return *(ptr->get());
+        return *static_cast<T*>(ptr->get());;
     }
 
     virtual void addSkeleton(int skeletonBufferId);
@@ -72,6 +72,8 @@ public:
         this->_hasSkeleton = hasSkeleton;
         return *this;
     }
+
+    virtual void upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) = 0;
 
     virtual size_t hash() const noexcept = 0;
 

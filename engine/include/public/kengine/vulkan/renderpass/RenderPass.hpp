@@ -79,14 +79,13 @@ public:
     const GpuImageView& getDepthStencilImageView() const;
 
 private:
-    const ColorFormatAndSpace& colorFormatAndSpace;
-
     VkRenderPass vkRenderPass = VK_NULL_HANDLE;
     std::vector<std::unique_ptr<RenderTarget>> renderTargets;
     std::unique_ptr<GpuImageView> depthStencilImageView;
 
 protected:
     const VkDevice vkDevice;
+    const ColorFormatAndSpace& colorFormatAndSpace;
 
     const VkDevice getVkDevice() const {
         return vkDevice;

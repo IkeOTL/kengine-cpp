@@ -4,6 +4,8 @@
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/mesh/Vertex.hpp>
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
+#include <kengine/vulkan/material/PbrMaterialConfig.hpp>
+#include <kengine/vulkan/Camera.hpp>
 
 DescriptorSetLayoutConfig objectLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT },
@@ -31,7 +33,7 @@ void DeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSetAlloc
         frameIndex * SceneData::alignedFrameSize(vkCxt),
         frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
         frameIndex * RenderContext::MAX_INSTANCES * sizeof(uint32_t),
-        frameIndex * MaterialsBuffer.alignedFrameSize(vkCxt)
+        frameIndex * MaterialsBuffer::alignedFrameSize(vkCxt)
     };
 
     // Single vkCmdBindDescriptorSets call
@@ -83,7 +85,7 @@ VkPipeline DeferredOffscreenPbrPipeline::createPipeline(VkDevice device, RenderP
     specializationEntries[1].size = sizeof(float);
 
     // Specialization data
-    float specializationData[] = { Camera::NEAR, Camera::FAR };
+    float specializationData[] = { Camera::NEAR_CLIP, Camera::FAR_CLIP };
 
     VkSpecializationInfo specializationInfo{};
     specializationInfo.mapEntryCount = static_cast<uint32_t>(specializationEntries.size());

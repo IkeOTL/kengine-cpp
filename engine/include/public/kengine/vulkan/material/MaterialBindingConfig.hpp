@@ -49,7 +49,7 @@ public:
 
 class ImageBindingConfig : MaterialBindingConfig {
 private:
-    // use shared pointers? as opinions
+    // use shared pointers? ask opinions
     TextureConfig textureConfig;
 
 public:

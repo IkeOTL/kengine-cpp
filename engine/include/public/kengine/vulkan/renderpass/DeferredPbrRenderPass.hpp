@@ -9,9 +9,6 @@ private:
     std::unique_ptr<GpuImageView> ormImage;
     std::unique_ptr<GpuImageView> emissiveImage;
 
-    DeferredPbrRenderTarget(VkDevice vkDevice)
-        : RenderTarget(vkDevice) {}
-
     VkFramebuffer createFramebuffer(
         RenderPass& renderPass,
         VmaAllocator vmaAllocator,
@@ -23,6 +20,9 @@ private:
         VmaMemoryUsage memUsage, VkImageAspectFlags viewAspectMask, const glm::uvec2 extents);
 
 public:
+    DeferredPbrRenderTarget(VkDevice vkDevice)
+        : RenderTarget(vkDevice) {}
+
     const GpuImageView& getAlbedoImage() const;
     const GpuImageView& getPositionImage() const;
     const GpuImageView& getNormalImage() const;

@@ -2,10 +2,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-
-const float Camera::NEAR = 0.01f;
-const float Camera::FAR = 150;
-
 Camera::Camera(float fov, float aspectRatio, float zNear, float zFar)
     : fov(fov), aspectRatio(aspectRatio), zNear(zNear), zFar(zFar) {
     projection = glm::perspective(fov, aspectRatio, zNear, zFar);

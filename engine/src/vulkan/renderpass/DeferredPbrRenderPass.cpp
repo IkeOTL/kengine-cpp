@@ -165,7 +165,279 @@ void DeferredPbrRenderPass::end(RenderPassContext& cxt) {
 }
 
 VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
-    return VK_NULL_HANDLE;
+    std::vector<VkAttachmentDescription> attachments(7);
+
+    // Swapchain color attachment
+    attachments[0] = {
+        0, // flags
+        colorFormatAndSpace.getColorFormat(),// format
+        VK_SAMPLE_COUNT_1_BIT, // samples
+        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+        VK_ATTACHMENT_STORE_OP_STORE, // storeOp
+        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR // finalLayout
+    };
+
+    // albedo
+    attachments[1] = {
+        0, // flags
+        VK_FORMAT_R8G8B8A8_SRGB,// format
+        VK_SAMPLE_COUNT_1_BIT, // samples
+        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
+    };
+
+    // position
+    attachments[2] = {
+        0, // flags
+        VK_FORMAT_R32G32B32A32_SFLOAT,// format
+        VK_SAMPLE_COUNT_1_BIT, // samples
+        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
+    };
+
+    // normal
+    attachments[3] = {
+        0, // flags
+        VK_FORMAT_R16G16_SNORM,// format
+        VK_SAMPLE_COUNT_1_BIT, // samples
+        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
+    };
+
+    // orm
+    attachments[4] = {
+        0, // flags
+        VK_FORMAT_R16G16B16A16_SFLOAT,// format
+        VK_SAMPLE_COUNT_1_BIT, // samples
+        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
+    };
+
+    // emissive
+    attachments[5] = {
+        0, // flags
+        VK_FORMAT_R8G8B8A8_SRGB,// format
+        VK_SAMPLE_COUNT_1_BIT, // samples
+        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
+    };
+
+    // Depth attachment
+    attachments[6] = {
+        0, // flags
+        colorFormatAndSpace.getDepthFormat(), // format
+        VK_SAMPLE_COUNT_1_BIT, // samples
+        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL // finalLayout
+    };
+
+    VkAttachmentReference depthReference = {
+        6, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    };
+
+    // Define subpasses
+    std::vector<VkSubpassDescription> subpasses(4);
+
+    // subpass 1
+    {
+        std::vector<VkAttachmentReference> colorReferences = {
+            {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+            {1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+            {2, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+            {3, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+            {4, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+            {5, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
+        };
+
+        subpasses[0] = {
+            0, // flags
+            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+            0, // inputAttachmentCount
+            nullptr, // pInputAttachments
+            static_cast<uint32_t>(colorReferences.size()), // colorAttachmentCount
+            colorReferences.data(), // pColorAttachments
+            nullptr, // pResolveAttachments
+            &depthReference, // pDepthStencilAttachment
+            0, // preserveAttachmentCount
+            nullptr // pPreserveAttachments
+        };
+    }
+
+    // subpass 2
+    {
+        std::vector<VkAttachmentReference> colorReferences = {
+            {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+        };
+
+        std::vector<VkAttachmentReference> inputRefs = {
+            {1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+            {2, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+            {3, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+            {4, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+            {5, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}
+        };
+
+        subpasses[1] = {
+            0, // flags
+            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+            static_cast<uint32_t>(inputRefs.size()), // inputAttachmentCount
+            inputRefs.data(), // pInputAttachments
+            static_cast<uint32_t>(colorReferences.size()), // colorAttachmentCount
+            colorReferences.data(), // pColorAttachments
+            nullptr, // pResolveAttachments
+            &depthReference, // pDepthStencilAttachment
+            0, // preserveAttachmentCount
+            nullptr // pPreserveAttachments
+        };
+    }
+
+    // subpass 3
+    {
+        std::vector<VkAttachmentReference> colorReferences = {
+            {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
+        };
+
+        std::vector<VkAttachmentReference> inputRefs = {
+            {1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}
+        };
+
+        subpasses[2] = {
+            0, // flags
+            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+            static_cast<uint32_t>(inputRefs.size()), // inputAttachmentCount
+            inputRefs.data(), // pInputAttachments
+            static_cast<uint32_t>(colorReferences.size()), // colorAttachmentCount
+            colorReferences.data(), // pColorAttachments
+            nullptr, // pResolveAttachments
+            &depthReference, // pDepthStencilAttachment
+            0, // preserveAttachmentCount
+            nullptr // pPreserveAttachments
+        };
+    }
+
+    // subpass 4 GUI
+    {
+        std::vector<VkAttachmentReference> colorReferences = {
+            {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
+        };
+
+        subpasses[3] = {
+            0, // flags
+            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+            0, // inputAttachmentCount
+            nullptr, // pInputAttachments
+            static_cast<uint32_t>(colorReferences.size()), // colorAttachmentCount
+            colorReferences.data(), // pColorAttachments
+            nullptr, // pResolveAttachments
+            nullptr, // pDepthStencilAttachment
+            0, // preserveAttachmentCount
+            nullptr // pPreserveAttachments
+        };
+    }
+
+    // Subpass dependencies 
+    std::vector<VkSubpassDependency> dependencies = {
+        {
+            VK_SUBPASS_EXTERNAL, // srcSubpass
+            0, // dstSubpass
+            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT, // srcStageMask
+            VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT, // dstStageMask
+            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT, // srcAccessMask
+            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT, // dstAccessMask
+            VK_DEPENDENCY_BY_REGION_BIT // dependencyFlags
+        },
+        {
+            VK_SUBPASS_EXTERNAL, // srcSubpass
+            0, // dstSubpass
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // srcStageMask
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // dstStageMask
+            VK_ACCESS_MEMORY_READ_BIT, // srcAccessMask
+            VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // dstAccessMask
+            VK_DEPENDENCY_BY_REGION_BIT // dependencyFlags
+        },
+        {
+            0, // srcSubpass
+            1, // dstSubpass
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // srcStageMask
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, // dstStageMask
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // srcAccessMask
+            VK_ACCESS_SHADER_READ_BIT, // dstAccessMask
+            VK_DEPENDENCY_BY_REGION_BIT // dependencyFlags
+        },
+        {
+            1, // srcSubpass
+            2, // dstSubpass
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // srcStageMask
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, // dstStageMask
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // srcAccessMask
+            VK_ACCESS_SHADER_READ_BIT, // dstAccessMask
+            VK_DEPENDENCY_BY_REGION_BIT // dependencyFlags
+        },
+        {
+            2, // srcSubpass
+            3, // dstSubpass
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // srcStageMask
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, // dstStageMask
+            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // srcAccessMask
+            VK_ACCESS_SHADER_READ_BIT, // dstAccessMask
+            VK_DEPENDENCY_BY_REGION_BIT // dependencyFlags
+        },
+        {
+            3, // srcSubpass
+            VK_SUBPASS_EXTERNAL, // dstSubpass
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // srcStageMask
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
+            VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // srcAccessMask
+            VK_ACCESS_MEMORY_READ_BIT, // dstAccessMask
+            VK_DEPENDENCY_BY_REGION_BIT // dependencyFlags
+        }
+    };
+
+    // Create the render pass
+    VkRenderPassCreateInfo renderPassInfo = {
+        VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,      // sType
+        nullptr,                                        // pNext
+        0,                                              // flags
+        static_cast<uint32_t>(attachments.size()),      // attachmentCount
+        attachments.data(),                             // pAttachments
+        static_cast<uint32_t>(subpasses.size()),        // subpassCount
+        subpasses.data(),                               // pSubpasses
+        static_cast<uint32_t>(dependencies.size()),     // dependencyCount
+        dependencies.data()                             // pDependencies
+    };
+
+    VkRenderPass renderPass;
+    VKCHECK(vkCreateRenderPass(vkDevice, &renderPassInfo, nullptr, &renderPass),
+        "Failed to create render pass");
+
+    return renderPass;
 }
 
 std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2 extents) {
