@@ -45,7 +45,7 @@ public:
 
     void addBufferBinding(unsigned int descriptorSetIndex, unsigned int bindingIndex, int bufferId);
 
-    virtual void addSkeleton(int skeletonBufferId);
+    virtual void addSkeleton(int skeletonBufferId) = 0;
 
     bool hasShadow() const {
         return _hasShadow;
@@ -64,7 +64,6 @@ public:
         this->_hasSkeleton = hasSkeleton;
         return *this;
     }
-
     virtual void upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) = 0;
 
     virtual size_t hash() const noexcept = 0;
@@ -73,6 +72,12 @@ public:
 
     bool operator==(const MaterialConfig& other) const;
     bool operator!=(const MaterialConfig& other) const;
+
+protected:
+    MaterialConfig& setSkeletonBufferId(int skeletonBufferId) {
+        this->skeletonBufferId = skeletonBufferId;
+        return *this;
+    }
 };
 
 namespace std {

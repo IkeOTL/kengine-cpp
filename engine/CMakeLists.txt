@@ -48,6 +48,7 @@ set(HEADERS
     include/public/kengine/vulkan/MaterialBindManager.hpp
     include/public/kengine/vulkan/AsyncAssetCache.hpp
     include/public/kengine/vulkan/SamplerCache.hpp
+    include/public/kengine/vulkan/LightsManager.hpp
 
     include/public/kengine/vulkan/mesh/Mesh.hpp
     include/public/kengine/vulkan/mesh/Vertex.hpp
@@ -109,6 +110,7 @@ set(SOURCES
     src/vulkan/MaterialBindManager.cpp
     src/vulkan/AsyncAssetCache.cpp
     src/vulkan/SamplerCache.cpp
+    src/vulkan/LightsManager.cpp
 
     src/vulkan/texture/AsyncTextureCache.cpp
     src/vulkan/texture/TextureFactory.cpp

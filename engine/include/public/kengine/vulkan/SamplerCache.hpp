@@ -1,7 +1,8 @@
 #pragma once
 #include <kengine/Hashable.hpp>
-#include <kengine/vulkan/VulkanContext.hpp>
+#include <kengine/vulkan/VulkanInclude.hpp>
 #include <functional>
+#include <mutex>
 
 class VulkanContext;
 

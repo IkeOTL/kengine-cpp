@@ -53,7 +53,8 @@ public:
 
     void upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) override;
     size_t hash() const noexcept override;
-
+    
+    void addSkeleton(int skeletonBufferId) override;
     PbrMaterialConfig& addAlbedoTexture(TextureConfig* config);
     PbrMaterialConfig& addNormalsTexture(TextureConfig* config);
     PbrMaterialConfig& addMetallicRoughnessTexture(TextureConfig* config);

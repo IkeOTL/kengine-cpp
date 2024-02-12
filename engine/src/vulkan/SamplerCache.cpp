@@ -1,4 +1,5 @@
 #include <kengine/vulkan/SamplerCache.hpp>
+#include <kengine/vulkan/VulkanContext.hpp>
 #include <bit>
 
 VkSampler SamplerCache::getSampler(SamplerConfig& config) {

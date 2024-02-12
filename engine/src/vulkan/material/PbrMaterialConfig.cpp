@@ -37,6 +37,16 @@ size_t PbrMaterialConfig::hash() const noexcept {
     return hash;
 }
 
+void PbrMaterialConfig::addSkeleton(int skeletonBufferId) {
+    if (skeletonBufferId == -1)
+        return;
+
+    setHasSkeleton(true);
+    setSkeletonBufferId(skeletonBufferId);
+
+    addBufferBinding(2, 5, skeletonBufferId);
+}
+
 PbrMaterialConfig& PbrMaterialConfig::addAlbedoTexture(TextureConfig* config) {
     if (!config) {
         addImageBinding(2, 0, EMPTY_CONFIG);
