@@ -6,6 +6,8 @@
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
 #include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
+#include <kengine/vulkan/renderpass/RenderPass.hpp>
+#include <kengine/vulkan/SceneData.hpp>
 
 DescriptorSetLayoutConfig pbrSkinnedTextureLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },

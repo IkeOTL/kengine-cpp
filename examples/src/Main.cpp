@@ -5,7 +5,7 @@
 
 int main() {
     glm::mat4 Proj = glm::mat4();
-    auto v0 = glm::normalize(glm::vec4(1,1,1,0));
+    auto v0 = glm::normalize(glm::vec4(1, 1, 1, 0));
     auto v = glm::vec4(1, 1, 1, 0) * .5f;
     auto v1 = glm::normalize(glm::vec4(1, 1, 1, 22));
     glm::normalize(glm::vec4());
@@ -28,7 +28,7 @@ int main() {
             std::vector<std::unique_ptr<RenderPass>> passes;
 
         }
-        );
+    );
 
     engine.run();
     return 0;

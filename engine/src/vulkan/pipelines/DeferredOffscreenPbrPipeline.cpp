@@ -6,6 +6,8 @@
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 #include <kengine/vulkan/Camera.hpp>
+#include <kengine/vulkan/renderpass/RenderPass.hpp>
+#include <kengine/vulkan/SceneData.hpp>
 
 DescriptorSetLayoutConfig objectLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT },

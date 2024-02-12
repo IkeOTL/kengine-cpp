@@ -165,97 +165,84 @@ void DeferredPbrRenderPass::end(RenderPassContext& cxt) {
 }
 
 VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
-    std::vector<VkAttachmentDescription> attachments(7);
-
-    // Swapchain color attachment
-    attachments[0] = {
-        0, // flags
-        colorFormatAndSpace.getColorFormat(),// format
-        VK_SAMPLE_COUNT_1_BIT, // samples
-        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
-        VK_ATTACHMENT_STORE_OP_STORE, // storeOp
-        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
-        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
-        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR // finalLayout
-    };
-
-    // albedo
-    attachments[1] = {
-        0, // flags
-        VK_FORMAT_R8G8B8A8_SRGB,// format
-        VK_SAMPLE_COUNT_1_BIT, // samples
-        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
-        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
-        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
-    };
-
-    // position
-    attachments[2] = {
-        0, // flags
-        VK_FORMAT_R32G32B32A32_SFLOAT,// format
-        VK_SAMPLE_COUNT_1_BIT, // samples
-        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
-        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
-        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
-    };
-
-    // normal
-    attachments[3] = {
-        0, // flags
-        VK_FORMAT_R16G16_SNORM,// format
-        VK_SAMPLE_COUNT_1_BIT, // samples
-        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
-        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
-        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
-    };
-
-    // orm
-    attachments[4] = {
-        0, // flags
-        VK_FORMAT_R16G16B16A16_SFLOAT,// format
-        VK_SAMPLE_COUNT_1_BIT, // samples
-        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
-        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
-        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
-    };
-
-    // emissive
-    attachments[5] = {
-        0, // flags
-        VK_FORMAT_R8G8B8A8_SRGB,// format
-        VK_SAMPLE_COUNT_1_BIT, // samples
-        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
-        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
-        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
-    };
-
-    // Depth attachment
-    attachments[6] = {
-        0, // flags
-        colorFormatAndSpace.getDepthFormat(), // format
-        VK_SAMPLE_COUNT_1_BIT, // samples
-        VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
-        VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
-        VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
-        VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
-        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL // finalLayout
+    std::vector<VkAttachmentDescription> attachments = {
+        { // Swapchain color attachment
+            0, // flags
+            colorFormatAndSpace.getColorFormat(),// format
+            VK_SAMPLE_COUNT_1_BIT, // samples
+            VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+            VK_ATTACHMENT_STORE_OP_STORE, // storeOp
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+            VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR // finalLayout
+        },
+        { // albedo
+            0, // flags
+            VK_FORMAT_R8G8B8A8_SRGB,// format
+            VK_SAMPLE_COUNT_1_BIT, // samples
+            VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+            VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
+        },
+        { // position
+            0, // flags
+            VK_FORMAT_R32G32B32A32_SFLOAT,// format
+            VK_SAMPLE_COUNT_1_BIT, // samples
+            VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+            VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
+        },
+        { // normal
+            0, // flags
+            VK_FORMAT_R16G16_SNORM,// format
+            VK_SAMPLE_COUNT_1_BIT, // samples
+            VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+            VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
+        },
+        { // orm
+            0, // flags
+            VK_FORMAT_R16G16B16A16_SFLOAT,// format
+            VK_SAMPLE_COUNT_1_BIT, // samples
+            VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+            VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
+        },
+        { // emissive
+            0, // flags
+            VK_FORMAT_R8G8B8A8_SRGB,// format
+            VK_SAMPLE_COUNT_1_BIT, // samples
+            VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+            VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL // finalLayout
+        },
+        { // Depth attachment
+            0, // flags
+            colorFormatAndSpace.getDepthFormat(), // format
+            VK_SAMPLE_COUNT_1_BIT, // samples
+            VK_ATTACHMENT_LOAD_OP_CLEAR, // loadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // storeOp
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
+            VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL // finalLayout
+        }
     };
 
     VkAttachmentReference depthReference = {
@@ -266,101 +253,94 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
     std::vector<VkSubpassDescription> subpasses(4);
 
     // subpass 1
-    {
-        std::vector<VkAttachmentReference> colorReferences = {
-            {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-            {1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-            {2, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-            {3, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-            {4, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-            {5, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
-        };
+    std::vector<VkAttachmentReference> subpass1_colorReferences = {
+        {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+        {1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+        {2, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+        {3, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+        {4, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+        {5, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
+    };
 
-        subpasses[0] = {
-            0, // flags
-            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-            0, // inputAttachmentCount
-            nullptr, // pInputAttachments
-            static_cast<uint32_t>(colorReferences.size()), // colorAttachmentCount
-            colorReferences.data(), // pColorAttachments
-            nullptr, // pResolveAttachments
-            &depthReference, // pDepthStencilAttachment
-            0, // preserveAttachmentCount
-            nullptr // pPreserveAttachments
-        };
-    }
+    subpasses[0] = {
+        0, // flags
+        VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+        0, // inputAttachmentCount
+        nullptr, // pInputAttachments
+        static_cast<uint32_t>(subpass1_colorReferences.size()), // colorAttachmentCount
+        subpass1_colorReferences.data(), // pColorAttachments
+        nullptr, // pResolveAttachments
+        &depthReference, // pDepthStencilAttachment
+        0, // preserveAttachmentCount
+        nullptr // pPreserveAttachments
+    };
 
-    // subpass 2
-    {
-        std::vector<VkAttachmentReference> colorReferences = {
-            {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-        };
+    // subpass 2    
+    std::vector<VkAttachmentReference> subpass2_colorReferences = {
+        {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+    };
 
-        std::vector<VkAttachmentReference> inputRefs = {
-            {1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
-            {2, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
-            {3, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
-            {4, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
-            {5, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}
-        };
+    std::vector<VkAttachmentReference> subpass2_inputRefs = {
+        {1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+        {2, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+        {3, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+        {4, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+        {5, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}
+    };
 
-        subpasses[1] = {
-            0, // flags
-            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-            static_cast<uint32_t>(inputRefs.size()), // inputAttachmentCount
-            inputRefs.data(), // pInputAttachments
-            static_cast<uint32_t>(colorReferences.size()), // colorAttachmentCount
-            colorReferences.data(), // pColorAttachments
-            nullptr, // pResolveAttachments
-            &depthReference, // pDepthStencilAttachment
-            0, // preserveAttachmentCount
-            nullptr // pPreserveAttachments
-        };
-    }
+    subpasses[1] = {
+        0, // flags
+        VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+        static_cast<uint32_t>(subpass2_inputRefs.size()), // inputAttachmentCount
+        subpass2_inputRefs.data(), // pInputAttachments
+        static_cast<uint32_t>(subpass2_colorReferences.size()), // colorAttachmentCount
+        subpass2_colorReferences.data(), // pColorAttachments
+        nullptr, // pResolveAttachments
+        &depthReference, // pDepthStencilAttachment
+        0, // preserveAttachmentCount
+        nullptr // pPreserveAttachments
+    };
 
-    // subpass 3
-    {
-        std::vector<VkAttachmentReference> colorReferences = {
-            {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
-        };
 
-        std::vector<VkAttachmentReference> inputRefs = {
-            {1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}
-        };
+    // subpass 3    
+    std::vector<VkAttachmentReference> subpass3_colorReferences = {
+        {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
+    };
 
-        subpasses[2] = {
-            0, // flags
-            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-            static_cast<uint32_t>(inputRefs.size()), // inputAttachmentCount
-            inputRefs.data(), // pInputAttachments
-            static_cast<uint32_t>(colorReferences.size()), // colorAttachmentCount
-            colorReferences.data(), // pColorAttachments
-            nullptr, // pResolveAttachments
-            &depthReference, // pDepthStencilAttachment
-            0, // preserveAttachmentCount
-            nullptr // pPreserveAttachments
-        };
-    }
+    std::vector<VkAttachmentReference> subpass3_inputRefs = {
+        {1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}
+    };
 
-    // subpass 4 GUI
-    {
-        std::vector<VkAttachmentReference> colorReferences = {
-            {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
-        };
+    subpasses[2] = {
+        0, // flags
+        VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+        static_cast<uint32_t>(subpass3_colorReferences.size()), // inputAttachmentCount
+        subpass3_colorReferences.data(), // pInputAttachments
+        static_cast<uint32_t>(subpass3_colorReferences.size()), // colorAttachmentCount
+        subpass3_colorReferences.data(), // pColorAttachments
+        nullptr, // pResolveAttachments
+        &depthReference, // pDepthStencilAttachment
+        0, // preserveAttachmentCount
+        nullptr // pPreserveAttachments
+    };
 
-        subpasses[3] = {
-            0, // flags
-            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-            0, // inputAttachmentCount
-            nullptr, // pInputAttachments
-            static_cast<uint32_t>(colorReferences.size()), // colorAttachmentCount
-            colorReferences.data(), // pColorAttachments
-            nullptr, // pResolveAttachments
-            nullptr, // pDepthStencilAttachment
-            0, // preserveAttachmentCount
-            nullptr // pPreserveAttachments
-        };
-    }
+    // subpass 4 GUI    
+    std::vector<VkAttachmentReference> subpass4_colorReferences = {
+        {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
+    };
+
+    subpasses[3] = {
+        0, // flags
+        VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+        0, // inputAttachmentCount
+        nullptr, // pInputAttachments
+        static_cast<uint32_t>(subpass4_colorReferences.size()), // colorAttachmentCount
+        subpass4_colorReferences.data(), // pColorAttachments
+        nullptr, // pResolveAttachments
+        nullptr, // pDepthStencilAttachment
+        0, // preserveAttachmentCount
+        nullptr // pPreserveAttachments
+    };
 
     // Subpass dependencies 
     std::vector<VkSubpassDependency> dependencies = {

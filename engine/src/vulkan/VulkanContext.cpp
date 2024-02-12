@@ -60,11 +60,11 @@ void VulkanContext::init(Window& window, bool validationOn) {
 }
 
 
-void VulkanContext::beginRenderPass(RenderPass::RenderPassContext& rpCxt) {
+void VulkanContext::beginRenderPass(RenderPassContext& rpCxt) {
     renderPasses[rpCxt.renderPassIndex]->begin(rpCxt);
 }
 
-void VulkanContext::endRenderPass(RenderPass::RenderPassContext& rpCxt) {
+void VulkanContext::endRenderPass(RenderPassContext& rpCxt) {
     renderPasses[rpCxt.renderPassIndex]->end(rpCxt);
 }
 

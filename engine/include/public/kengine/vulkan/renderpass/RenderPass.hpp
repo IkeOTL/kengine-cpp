@@ -42,14 +42,15 @@ private:
 
 };
 
+struct RenderPassContext {
+    const int renderPassIndex;
+    const int renderTargetIndex;
+    const VkCommandBuffer cmd;
+    const glm::uvec2 extents;
+};
+
 class RenderPass {
 public:
-    struct RenderPassContext {
-        const int renderPassIndex;
-        const int renderTargetIndex;
-        const VkCommandBuffer cmd;
-        const glm::uvec2 extents;
-    };
 
     RenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
         : vkDevice(vkDevice), colorFormatAndSpace(colorFormatAndSpace) { }
@@ -67,11 +68,6 @@ public:
     }
 
     virtual void init();
-    virtual void createRenderTargets(
-        VmaAllocator vmaAllocator,
-        const std::vector<VkImageView>& sharedImageViews,
-        const glm::uvec2& extents
-    ) = 0;
 
     virtual void begin(RenderPassContext& cxt) = 0;
     virtual void end(RenderPassContext& cxt) = 0;

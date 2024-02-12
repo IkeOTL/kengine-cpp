@@ -1,4 +1,6 @@
 #include <kengine/vulkan/ShadowContext.hpp>
+#include <kengine/vulkan/VulkanContext.hpp>
+#include <kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/SkinnedOffscreenPbrPipeline.hpp>
@@ -6,6 +8,9 @@
 #include <kengine/vulkan/IndirectDrawBatch.hpp>
 #include <kengine/vulkan/material/MaterialBinding.hpp>
 #include <kengine/vulkan/SamplerCache.hpp>
+#include <kengine/vulkan/renderpass/RenderPass.hpp>
+#include <kengine/vulkan/CameraController.hpp>
+#include <kengine/vulkan/SceneData.hpp>
 
 void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllocator>& descSetAllocators,
     glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer) {
@@ -105,7 +110,7 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllo
     }
 }
 
-void ShadowContext::execute(VulkanContext& vkContext, VulkanContext::RenderFrameContext& cxt, DescriptorSetAllocator& dAllocator,
+void ShadowContext::execute(VulkanContext& vkContext, RenderFrameContext& cxt, DescriptorSetAllocator& dAllocator,
     IndirectDrawBatch* nonSkinnedBatches, size_t nonSkinnedBatchesSize,
     IndirectDrawBatch* skinnedBatches, size_t skinnedBatchesSize) {
     const auto SHADOWDIM = 4096;
@@ -146,7 +151,7 @@ void ShadowContext::execute(VulkanContext& vkContext, VulkanContext::RenderFrame
     cascadesData.uploadCompositionPass(vkContext, *compositePassCascadeBuf, cxt.frameIndex);
 
     for (int i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
-        auto rp1Cxt = RenderPass::RenderPassContext{ 1, i, cxt.cmd, glm::uvec2(SHADOWDIM) };
+        auto rp1Cxt = RenderPassContext{ 1, i, cxt.cmd, glm::uvec2(SHADOWDIM) };
         vkContext.beginRenderPass(rp1Cxt);
         {
             auto& pipeline = vkContext.getPipelineCache().getPipeline<CascadeShadowMapPipeline>();
@@ -159,7 +164,7 @@ void ShadowContext::execute(VulkanContext& vkContext, VulkanContext::RenderFrame
     }
 }
 
-void ShadowContext::execShadowPass(VulkanContext& vkContext, VulkanContext::RenderFrameContext& cxt,
+void ShadowContext::execShadowPass(VulkanContext& vkContext, RenderFrameContext& cxt,
     Pipeline& p1, DescriptorSetAllocator& dAllocator, size_t cascadeIdx,
     IndirectDrawBatch* batches, size_t batchesSize, bool skinned) {
     if (batchesSize == 0)

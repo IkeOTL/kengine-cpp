@@ -4,7 +4,6 @@
 #include <kengine/vulkan/ColorFormatAndSpace.hpp>
 #include <kengine/vulkan/QueueFamilies.hpp>
 #include <kengine/vulkan/VulkanQueue.hpp>
-#include <kengine/vulkan/renderpass/RenderPass.hpp>
 #include <kengine/vulkan/Swapchain.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/Window.hpp>
@@ -20,6 +19,9 @@
 
 class SamplerCache;
 class VulkanContext;
+class RenderPass;
+class RenderPassContext;
+
 
 class GpuUploadable {
 private:
@@ -58,6 +60,16 @@ private:
     int targetWidth = 0, targetHeight = 0;
     bool mustRecreate = false;
     OnSwapchainCreate onSwapchainCreate;
+};
+
+struct RenderFrameContext {
+    const int frameIndex;
+    const glm::uvec2 swapchainExtents;
+    const int swapchainIndex;
+    const VkSemaphore imageSemaphore;
+    VkSemaphore cullComputeSemaphore = VK_NULL_HANDLE;
+    const VkFence fence;
+    const VkCommandBuffer cmd;
 };
 
 class VulkanContext {
@@ -107,8 +119,8 @@ public:
         return renderPasses;
     }
 
-    void beginRenderPass(RenderPass::RenderPassContext& rpCxt);
-    void endRenderPass(RenderPass::RenderPassContext& rpCxt);
+    void beginRenderPass(RenderPassContext& rpCxt);
+    void endRenderPass(RenderPassContext& rpCxt);
 
     std::unique_ptr<GpuBuffer> createBuffer(VkDeviceSize size, VkBufferUsageFlags usageFlags,
         VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) const;
@@ -124,16 +136,6 @@ public:
     void recordAndSubmitTransferCmdBuf(CommandBufferRecordFunc func, bool awaitFence);
 
     void recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence);
-
-    struct RenderFrameContext {
-        const int frameIndex;
-        const glm::uvec2 swapchainExtents;
-        const int swapchainIndex;
-        const VkSemaphore imageSemaphore;
-        VkSemaphore cullComputeSemaphore = VK_NULL_HANDLE;
-        const VkFence fence;
-        const VkCommandBuffer cmd;
-    };
 
     uint32_t getGfxQueueFamilyIndex() {
         return gfxQueueFamilyIndex;
