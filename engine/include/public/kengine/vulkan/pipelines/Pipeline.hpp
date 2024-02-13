@@ -1,11 +1,13 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
-#include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
+#include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
 #include <vector>
 #include <glm/vec2.hpp>
 
 class VulkanContext;
 class RenderPass;
+class DescriptorSetAllocator;
+class DescriptorSetLayoutCache;
 
 struct VertexAttribute {
     uint32_t location;

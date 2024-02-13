@@ -7,6 +7,7 @@
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 #include <kengine/vulkan/LightsManager.hpp>
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
+#include <kengine/vulkan/ShadowCascade.hpp>
 
 DescriptorSetLayoutConfig compositionLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT },

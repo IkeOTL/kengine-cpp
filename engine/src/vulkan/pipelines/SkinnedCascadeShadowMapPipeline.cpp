@@ -8,6 +8,7 @@
 #include <glm/mat4x4.hpp>
 #include <kengine/vulkan/pipelines/SkinnedOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
+#include <kengine/vulkan/ShadowCascade.hpp>
 
 DescriptorSetLayoutConfig skinnedSingleTextureLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },

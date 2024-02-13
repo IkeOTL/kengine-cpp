@@ -1,5 +1,6 @@
 #include <kengine/vulkan/pipelines/Pipeline.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
+#include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <fstream>
 
 void Pipeline::init(VulkanContext& vkContext, RenderPass& renderPass, DescriptorSetLayoutCache& layoutCache, glm::uvec2 extents) {

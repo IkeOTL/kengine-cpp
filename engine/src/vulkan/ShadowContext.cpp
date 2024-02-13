@@ -5,6 +5,7 @@
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/SkinnedOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp>
+#include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <kengine/vulkan/IndirectDrawBatch.hpp>
 #include <kengine/vulkan/material/MaterialBinding.hpp>
 #include <kengine/vulkan/SamplerCache.hpp>

@@ -5,6 +5,7 @@
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
+#include <kengine/vulkan/ShadowCascade.hpp>
 
 DescriptorSetLayoutConfig shadowPassLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT },
