@@ -11,3 +11,11 @@ int MaterialBinding::getDescriptorSetIndex() {
 int MaterialBinding::getBindingIndex() {
     return bindingConfig->getBindingIndex();
 }
+
+void BufferBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite, VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) {
+    lolol
+}
+
+void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite, VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) {
+    lolol
+}

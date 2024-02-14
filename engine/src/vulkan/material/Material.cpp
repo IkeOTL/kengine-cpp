@@ -44,15 +44,15 @@ void Material::bindMaterial(VulkanContext& cxt, DescriptorSetAllocator& descSetA
 
         std::vector<uint32_t> offsets(bindings.size());
 
-        std::vector<VkWriteDescriptorSet> pDesc(bindings.size());
+        std::vector<VkWriteDescriptorSet> pDescWrites(bindings.size());
         for (int i = 0; i < bindings.size(); i++) {
             auto& binding = bindings[i];
-            auto& setWrite = pDesc[i];
+            auto& setWrite = pDescWrites[i];
             binding->apply(cxt, frameIndex, setWrite, pDescSet, descLayoutConfig, offsets);
         }
 
-        // move outside loop so we apply all updates once
-        vkUpdateDescriptorSets(cxt.getVkDevice(), pDesc.size(), pDesc.data(), 0, nullptr);
+        // move outside loop so we apply all updates once?
+        vkUpdateDescriptorSets(cxt.getVkDevice(), pDescWrites.size(), pDescWrites.data(), 0, nullptr);
         vkCmdBindDescriptorSets(
             cmd,
             VK_PIPELINE_BIND_POINT_GRAPHICS,

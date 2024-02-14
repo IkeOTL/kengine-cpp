@@ -35,6 +35,9 @@ public:
     CachedGpuBuffer& getGpuBuffer() {
         return gpuBuffer;
     }
+
+    void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite,
+        VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) override;
 };
 
 class ImageBinding : public MaterialBinding {
@@ -48,4 +51,7 @@ public:
     Texture2d& getTexture() {
         return texture;
     }
+
+    void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite,
+        VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) override;
 };
