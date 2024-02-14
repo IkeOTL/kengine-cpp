@@ -1,5 +1,6 @@
 #include <kengine/vulkan/ShadowContext.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
+#include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
@@ -13,7 +14,7 @@
 #include <kengine/vulkan/CameraController.hpp>
 #include <kengine/vulkan/SceneData.hpp>
 
-void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllocator>& descSetAllocators,
+void ShadowContext::init(VulkanContext& vkContext, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators,
     glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer) {
     auto xferFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
         | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT
@@ -36,7 +37,7 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<DescriptorSetAllo
     cascadesData.setLightDir(lightDir);
 
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
-        auto& descSetAllocator = descSetAllocators[i];
+        auto& descSetAllocator = *descSetAllocators[i];
         std::vector<VkWriteDescriptorSet> setWrites(4);
 
         {

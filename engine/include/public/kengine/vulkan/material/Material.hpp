@@ -9,21 +9,23 @@
 class Material {
 
 private:
-    const int id;
+    const uint32_t id;
     std::shared_ptr<MaterialConfig> config;
 
     Pipeline& pipeline;
     std::unordered_map<int, std::vector<std::unique_ptr<MaterialBinding>>> materialBindings;
 
 public:
-    Material(const int id, std::shared_ptr<MaterialConfig> config, Pipeline& pipeline)
+    Material(const uint32_t id, std::shared_ptr<MaterialConfig> config, Pipeline& pipeline)
         : id(id), config(config), pipeline(pipeline) {}
 
-    int getId() {
+    uint32_t getId() const {
         return id - AsyncMaterialCache::START_ID;
     }
 
     MaterialBinding& getBinding(int descSetIdx, int bindingIdx);
 
     void addBinding(std::unique_ptr<MaterialBinding>&& binding);
+
+    virtual void upload(VulkanContext& vkCxt, CachedGpuBuffer& buf, int frameIdx) = 0;
 };

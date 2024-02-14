@@ -26,6 +26,6 @@ public:
     CullContext(CachedGpuBuffer& indirectBuf, CachedGpuBuffer& objectInstanceBuf, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer)
         : indirectBuf(indirectBuf), objectInstanceBuf(objectInstanceBuf), drawObjectBuf(drawObjectBuf), drawInstanceBuffer(drawInstanceBuffer) {}
 
-    void init(VulkanContext& vkCxt, std::vector<DescriptorSetAllocator>& descSetAllocators);
+    void init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators);
     void dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, CameraController& cc, int frameIdx, int objectCount);
 };

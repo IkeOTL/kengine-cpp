@@ -23,16 +23,56 @@ public:
 
     void draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, long indirectCmdBuf, DescriptorSetAllocator& descSetAllocator,
         int frameIdx, MaterialBindManager& bindManager);
-    
+
+    void reset() {
+        mesh == nullptr;
+        material = nullptr;
+        cmdId = 0;
+        firstInstanceIdx = 0;
+        instanceCount = 0;
+    }
+
     uint32_t getCmdId() {
         return cmdId;
+    }
+
+    void setCmdId(uint32_t id) {
+        cmdId = id;
     }
 
     Mesh* getMesh() {
         return mesh;
     }
 
+    void setMesh(Mesh* m) {
+        mesh = m;
+    }
+
     Material* getMaterial() {
         return material;
+    }
+
+    void setMaterial(Material* m) {
+        material = m;
+    }
+
+    int getFirstInstanceIdx() {
+        return firstInstanceIdx;
+    }
+
+    void setFirstInstanceIdx(int i) {
+        firstInstanceIdx = i;
+    }
+
+    int getInstanceCount() {
+        return instanceCount;
+    }
+
+    void setInstanceCount(int i) {
+        instanceCount = i;
+    }
+
+    void incrementInstanceCount() {
+        instanceCount++;
     }
 };

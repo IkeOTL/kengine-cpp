@@ -3,6 +3,7 @@
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 #include <kengine/vulkan/GpuBuffer.hpp>
 #include <kengine/vulkan/SamplerCache.hpp>
+#include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
 
 #include <iostream>
 #include <vector>
@@ -46,6 +47,7 @@ void VulkanContext::init(Window& window, bool validationOn) {
 
     samplerCache = std::make_unique<SamplerCache>(*this);
     gpuBufferCache = std::make_unique<GpuBufferCache>(*this);
+    descSetLayoutCache = std::make_unique<DescriptorSetLayoutCache>(*this);
 
     renderPasses = renderPassCreator(vkDevice, colorFormatAndSpace);
     swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
@@ -508,4 +510,9 @@ void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, 
 
 SamplerCache& VulkanContext::getSamplerCache() {
     return *samplerCache;
+}
+
+
+DescriptorSetLayoutCache& VulkanContext::getDescSetLayoutCache() {
+    return *descSetLayoutCache;
 }

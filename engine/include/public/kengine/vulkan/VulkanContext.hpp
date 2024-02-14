@@ -21,7 +21,7 @@ class SamplerCache;
 class VulkanContext;
 class RenderPass;
 class RenderPassContext;
-
+class DescriptorSetLayoutCache;
 
 class GpuUploadable {
 private:
@@ -157,6 +157,8 @@ public:
         return pipelineCache;
     }
 
+    DescriptorSetLayoutCache& getDescSetLayoutCache();
+
     VulkanQueue& getComputeQueue() {
         return *computeQueue;
     }
@@ -183,12 +185,12 @@ private:
     VkDevice vkDevice = VK_NULL_HANDLE;
     std::unique_ptr<Swapchain> swapchain;
 
-    VmaVulkanFunctions vmaVkFunctions;
+    VmaVulkanFunctions vmaVkFunctions{};
     VmaAllocator vmaAllocator = VK_NULL_HANDLE;
 
-    uint32_t gfxQueueFamilyIndex;
-    uint32_t compQueueFamilyIndex;
-    uint32_t xferQueueFamilyIndex;
+    uint32_t gfxQueueFamilyIndex = 0;
+    uint32_t compQueueFamilyIndex = 0;
+    uint32_t xferQueueFamilyIndex = 0;
 
     std::shared_ptr<VulkanQueue> graphicsQueue;
     std::shared_ptr<VulkanQueue> computeQueue;
@@ -211,6 +213,7 @@ private:
 
     std::unique_ptr<SamplerCache> samplerCache;
     PipelineCache pipelineCache{};
+    std::unique_ptr<DescriptorSetLayoutCache> descSetLayoutCache;
 
     void createVkInstance(bool validationOn);
     void setupDebugging();

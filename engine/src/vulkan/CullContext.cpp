@@ -13,7 +13,7 @@ VkSemaphore CullContext::getSemaphore(size_t frameIdx) {
     return semaphores[frameIdx];
 }
 
-void CullContext::init(VulkanContext& vkCxt, std::vector<DescriptorSetAllocator>& descSetAllocators) {
+void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators) {
     // allocate compute cmdbufs
     for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++)
         computeCmdBufs[i] = vkCxt.getCommandPool()->createComputeCmdBuf();
@@ -44,10 +44,10 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<DescriptorSetAllocator>
                 bufferInfo.offset = 0;
                 bufferInfo.range = buf.getFrameSize();
                 write.pBufferInfo = &bufferInfo;
-        };
+            };
 
         for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
-            auto& descSetAllo = descSetAllocators[i];
+            auto& descSetAllo = *descSetAllocators[i];
 
             auto cullingDescSet = descSetAllo.getGlobalDescriptorSet(
                 "deferred-culling", DrawCullingPipeline::cullingLayout);
