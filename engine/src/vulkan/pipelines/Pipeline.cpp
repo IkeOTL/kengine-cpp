@@ -3,6 +3,10 @@
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <fstream>
 
+const DescriptorSetLayoutConfig& Pipeline::getDescSetLayoutConfig(int i) const {
+    return descSetLayoutConfigs[i];
+}
+
 void Pipeline::init(VulkanContext& vkContext, RenderPass& renderPass, DescriptorSetLayoutCache& layoutCache, glm::uvec2 extents) {
     loadDescriptorSetLayoutConfigs(descSetLayoutConfigs);
     vkPipelineLayout = createPipelineLayout(vkContext, layoutCache);

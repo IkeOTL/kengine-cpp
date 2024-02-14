@@ -21,7 +21,7 @@ DescriptorSetLayoutConfig compositionLayout = {
     DescriptorSetLayoutBindingConfig{ 8, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_FRAGMENT_BIT }
 };
 
-void DeferredCompositionPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) {
+void DeferredCompositionPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) {
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
 
     auto descSet = descSetAllocator.getGlobalDescriptorSet("deferred-composition", DeferredCompositionPbrPipeline::compositionLayout);

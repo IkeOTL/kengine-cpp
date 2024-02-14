@@ -1,10 +1,12 @@
 #pragma once
-#include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/material/AsyncMaterialCache.hpp>
-#include <kengine/vulkan/material/MaterialConfig.hpp>
 #include <kengine/vulkan/material/MaterialBinding.hpp>
-#include <kengine/vulkan/pipelines/Pipeline.hpp>
-#include <mutex>
+
+class VulkanContext;
+class CachedGpuBuffer;
+class MaterialConfig;
+class Pipeline;
+class DescriptorSetAllocator;
 
 class Material {
 
@@ -23,9 +25,11 @@ public:
         return id - AsyncMaterialCache::START_ID;
     }
 
+    Pipeline& getPipeline();
+
     MaterialBinding& getBinding(int descSetIdx, int bindingIdx);
-
     void addBinding(std::unique_ptr<MaterialBinding>&& binding);
-
-    virtual void upload(VulkanContext& vkCxt, CachedGpuBuffer& buf, int frameIdx) = 0;
+    void upload(VulkanContext& vkCxt, CachedGpuBuffer& buf, int frameIdx);
+    void bindPipeline(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex);
+    void bindMaterial(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex);
 };

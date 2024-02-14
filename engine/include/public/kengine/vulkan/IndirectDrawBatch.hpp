@@ -25,7 +25,7 @@ public:
         int frameIdx, MaterialBindManager& bindManager);
 
     void reset() {
-        mesh == nullptr;
+        mesh = nullptr;
         material = nullptr;
         cmdId = 0;
         firstInstanceIdx = 0;
@@ -56,19 +56,19 @@ public:
         material = m;
     }
 
-    int getFirstInstanceIdx() {
+    uint32_t getFirstInstanceIdx() {
         return firstInstanceIdx;
     }
 
-    void setFirstInstanceIdx(int i) {
+    void setFirstInstanceIdx(uint32_t i) {
         firstInstanceIdx = i;
     }
 
-    int getInstanceCount() {
+    uint32_t getInstanceCount() {
         return instanceCount;
     }
 
-    void setInstanceCount(int i) {
+    void setInstanceCount(uint32_t i) {
         instanceCount = i;
     }
 

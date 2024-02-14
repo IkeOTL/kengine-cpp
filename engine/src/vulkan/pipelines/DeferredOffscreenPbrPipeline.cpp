@@ -22,7 +22,7 @@ DescriptorSetLayoutConfig pbrTextureLayout = {
     DescriptorSetLayoutBindingConfig{ 3, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },
 };
 
-void DeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) {
+void DeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) {
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, getVkPipeline());
 
     VkDescriptorSet descriptorSets[] = {

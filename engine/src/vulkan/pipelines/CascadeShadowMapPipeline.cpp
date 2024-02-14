@@ -21,7 +21,7 @@ DescriptorSetLayoutConfig textureLayout = {
 };
 
 
-void CascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) {
+void CascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) {
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
 
     VkDescriptorSet descriptorSets[] = {

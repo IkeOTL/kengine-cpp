@@ -52,39 +52,160 @@ void RenderContext::addStaticInstance(Mesh& mesh, Material& material, glm::mat4 
             memcpy(buf + pos, &obj, sizeof(DrawObject));
         }
 
-        var objInstanceStartPos = (int)objectInstanceBuf.getFrameOffset(frameIdx);
-        var curObjInstancePos = objInstanceStartPos + (instanceIdx * (2 * Integer.BYTES));
+        // buf upload   
+        {
+            auto objInstance = ObjectInstance{
+                draw.getCmdId(),
+                instanceIdx
+            };
 
-        // buf upload            
-        objectInstanceBuf.getVmaBuffer().buf()
-            .position(curObjInstancePos)
-            .putInt(draw.getCmdId())
-            .putInt(instanceIdx);
+            auto objInstanceStartPos = (int)objectInstanceBuf->getFrameOffset(frameIdx);
+            auto pos = objInstanceStartPos + (instanceIdx * sizeof(ObjectInstance));
+            auto buf = static_cast<unsigned char*>(objectInstanceBuf->getGpuBuffer().data());
+            memcpy(buf + pos, &objInstance, sizeof(ObjectInstance));
+        }
     }
 }
 
 int RenderContext::draw(Mesh& mesh, Material& material, glm::mat4 transform, glm::vec4 boundingSphere, boolean hasShadow, boolean hasSkeleton) {
+    auto frameIdx = frameCxt->frameIndex;
+    auto instanceIdx = staticInstances + dynamicInstances++;
 
+    // upload model specific details
+    {
+        // material: todo: only upload once per material id
+        material.upload(vkContext, *materialsBuf, frameIdx);
+
+        auto obj = DrawObject{
+            transform,
+            boundingSphere,
+            material.getId()
+        };
+
+        auto modelBufStartPos = (int)drawObjectBuf->getFrameOffset(frameIdx);
+        auto pos = modelBufStartPos + (instanceIdx * sizeof(DrawObject));
+        auto buf = static_cast<unsigned char*>(drawObjectBuf->getGpuBuffer().data());
+        memcpy(buf + pos, &obj, sizeof(DrawObject));
+    }
+
+    auto objInstanceStartPos = (int)objectInstanceBuf->getFrameOffset(frameIdx);
+    auto curObjInstancePos = objInstanceStartPos + (instanceIdx * sizeof(ObjectInstance));
+
+    // first batch
+    if (dynamicBatches == 0) {
+        auto batchIdx = dynamicBatches++;
+
+        auto& newDraw = dynamicBatchCache[batchIdx];
+        newDraw.reset();
+
+        newDraw.setMesh(&mesh);
+        newDraw.setMaterial(&material);
+        newDraw.setCmdId(batchIdx + staticBatches);
+        newDraw.setFirstInstanceIdx(instanceIdx);
+
+        if (hasShadow) {
+            if (hasSkeleton)
+                shadowSkinnedBatchCache[totalShadowSkinnedBatches++] = newDraw;
+            else
+                shadowNonSkinnedBatchCache[staticShadowNonSkinnedBatches + totalShadowNonSkinnedBatches++] = newDraw;
+        }
+
+        // buf upload
+        {
+            auto objInstance = ObjectInstance{
+                newDraw.getCmdId(),
+                instanceIdx
+            };
+
+            auto buf = static_cast<unsigned char*>(objectInstanceBuf->getGpuBuffer().data());
+            memcpy(buf + curObjInstancePos, &objInstance, sizeof(ObjectInstance));
+        }
+
+        return instanceIdx;
+    }
+
+    // check last instance can batch with this one
+    {
+        auto& last = dynamicBatchCache[dynamicBatches - 1];
+        auto sameMesh = &mesh == last.getMesh();
+        auto sameMaterial = &material == last.getMaterial();
+
+        if (sameMesh && sameMaterial) {
+            // buf upload
+            auto objInstance = ObjectInstance{
+                last.getCmdId(),
+                instanceIdx
+            };
+
+            auto buf = static_cast<unsigned char*>(objectInstanceBuf->getGpuBuffer().data());
+            memcpy(buf + curObjInstancePos, &objInstance, sizeof(ObjectInstance));
+
+            return instanceIdx;
+        }
+    }
+
+    // starting new batch
+    {
+        auto batchIdx = dynamicBatches++;
+        auto& newDraw = dynamicBatchCache[batchIdx];
+        newDraw.reset();
+
+        newDraw.setMesh(&mesh);
+        newDraw.setMaterial(&material);
+        newDraw.setCmdId(batchIdx + staticBatches);
+        newDraw.setFirstInstanceIdx(instanceIdx);
+
+        if (hasShadow) {
+            if (hasSkeleton)
+                shadowSkinnedBatchCache[totalShadowSkinnedBatches++] = newDraw;
+            else
+                shadowNonSkinnedBatchCache[staticShadowNonSkinnedBatches + totalShadowNonSkinnedBatches++] = newDraw;
+        }
+
+        // buf upload
+        {
+            auto objInstance = ObjectInstance{
+                newDraw.getCmdId(),
+                instanceIdx
+            };
+
+            auto buf = static_cast<unsigned char*>(objectInstanceBuf->getGpuBuffer().data());
+            memcpy(buf + curObjInstancePos, &objInstance, sizeof(ObjectInstance));
+        }
+
+        return instanceIdx;
+    }
 }
 
 void RenderContext::begin(RenderFrameContext& frameCxt, float sceneTime, float alpha) {
+    this->frameCxt = &frameCxt;
+    this->sceneTime = sceneTime;
+    this->alpha = alpha;
 
+    dynamicInstances = 0;
+    dynamicBatches = 0;
+    totalShadowSkinnedBatches = 0;
+    totalShadowNonSkinnedBatches = 0;
+
+    bindManager.reset();
+
+    started = true;
 }
 
 void RenderContext::end() {
-
+    lol
 }
 
 void RenderContext::setViewportScissor(glm::uvec2 dim) {
-
+lol
 }
 
 void RenderContext::initBuffers() {
-
+    lol
 }
 
 void RenderContext::initDescriptors() {
-
+lol
 }
 
 IndirectDrawBatch& RenderContext::getStaticBatch(int instanceIdx, Mesh& mesh, Material& material, boolean hasShadow) {
@@ -134,9 +255,9 @@ IndirectDrawBatch& RenderContext::getStaticBatch(int instanceIdx, Mesh& mesh, Ma
 }
 
 void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
-
+    lol
 }
 
 void RenderContext::compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d) {
-
+    lol
 }

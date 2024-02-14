@@ -13,6 +13,7 @@ public:
     MaterialBindManager(VulkanContext& vkCtx)
         : vkCtx(vkCtx) {};
 
+    void reset();
     void bind(Material& mat, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex);
     void bindPipeline(Material& mat, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex);
     void bindMaterial(Material& mat, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex);

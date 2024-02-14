@@ -19,6 +19,9 @@ public:
 
     int getDescriptorSetIndex();
     int getBindingIndex();
+
+    virtual void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite, 
+        VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) = 0;
 };
 
 class BufferBinding : public MaterialBinding {
