@@ -23,18 +23,18 @@ void BufferBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet
     bufferInfo.offset = 0;
     bufferInfo.range = gpuBuffer.getFrameSize();
 
-    VkWriteDescriptorSet descriptorWrite{};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstBinding = bindingConfig.bindingIndex;
-    descriptorWrite.dstSet = dstSet;
-    descriptorWrite.descriptorCount = bindingConfig.descriptorCount;
-    descriptorWrite.descriptorType = bindingConfig.descriptorType;
-    descriptorWrite.pBufferInfo = &bufferInfo;
+    setWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    setWrite.dstBinding = bindingConfig.bindingIndex;
+    setWrite.dstSet = dstSet;
+    setWrite.descriptorCount = bindingConfig.descriptorCount;
+    setWrite.descriptorType = bindingConfig.descriptorType;
+    setWrite.pBufferInfo = &bufferInfo;
 
     offsets.push_back(static_cast<uint32_t>(gpuBuffer.getFrameOffset(frameIdx)));
 }
 
-void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite, VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) {
+void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite, VkDescriptorSet dstSet, 
+    const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) {
     auto samplerConfig = SamplerConfig(
         VK_SAMPLER_MIPMAP_MODE_LINEAR,
         VK_FILTER_NEAREST,
@@ -57,11 +57,10 @@ void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet 
     imageInfo.imageView = texture.getImageView();
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-    VkWriteDescriptorSet descriptorWrite = {};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = dstSet;
-    descriptorWrite.dstBinding = bindingConfig.bindingIndex;
-    descriptorWrite.descriptorCount = bindingConfig.descriptorCount;
-    descriptorWrite.descriptorType = bindingConfig.descriptorType;
-    descriptorWrite.pImageInfo = &imageInfo;
+    setWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    setWrite.dstSet = dstSet;
+    setWrite.dstBinding = bindingConfig.bindingIndex;
+    setWrite.descriptorCount = bindingConfig.descriptorCount;
+    setWrite.descriptorType = bindingConfig.descriptorType;
+    setWrite.pImageInfo = &imageInfo;
 }
