@@ -8,6 +8,7 @@ class MaterialBindingConfig;
 class GpuBuffer;
 class CachedGpuBuffer;
 class Texture2d;
+class VulkanContext;
 
 class MaterialBinding {
 private:
