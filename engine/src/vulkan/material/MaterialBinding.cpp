@@ -5,6 +5,7 @@
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/texture/Texture2d.hpp>
 #include <kengine/vulkan/SamplerCache.hpp>
+#include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
 
 int MaterialBinding::getDescriptorSetIndex() {
     return bindingConfig->getDescriptorSetIndex();

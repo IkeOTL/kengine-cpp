@@ -29,6 +29,18 @@ void RenderContext::init() {
     shadowContext->init(vkContext, descSetAllocators, lightDir, *drawObjectBuf, *drawInstanceBuffer);
 }
 
+void RenderContext::setViewportScissor(glm::uvec2 dim) {
+    lol
+}
+
+void RenderContext::initBuffers() {
+    lol
+}
+
+void RenderContext::initDescriptors() {
+    lol
+}
+
 void RenderContext::addStaticInstance(Mesh& mesh, Material& material, glm::mat4 transform, glm::vec4 boundingSphere, boolean hasShadow) {
     auto instanceIdx = staticInstances++;
 
@@ -193,19 +205,78 @@ void RenderContext::begin(RenderFrameContext& frameCxt, float sceneTime, float a
 }
 
 void RenderContext::end() {
-    lol
-}
+    if (!started)
+        throw std::runtime_error("RenderContext was never started.");
 
-void RenderContext::setViewportScissor(glm::uvec2 dim) {
-lol
-}
+    auto frameIdx = frameCxt->frameIndex;
 
-void RenderContext::initBuffers() {
-    lol
-}
+    sceneData->upload(vkContext, *sceneBuf, sceneTime, alpha, frameIdx);
+    lightsManager.upload(vkContext, *lightBuf, frameIdx);
 
-void RenderContext::initDescriptors() {
-lol
+    static constexpr float invIndCmdSize = 1.0f / sizeof(VkDrawIndexedIndirectCommand);
+
+    // reset static obj draw cmd
+    {
+        auto indCmdFrameOffset = static_cast<uint32_t>(indirectCmdBuf->getFrameOffset(frameIdx));
+        auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
+        auto buf = indirectCmdBuf->getGpuBuffer().data();
+        auto commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
+        for (int i = 0; i < staticBatches; i++) {
+            auto& indirectBatch = staticBatchCache[i];
+            // must review this!!!
+            // could be the cause of rendering issues
+            // havent tested yet
+            auto cmdIdx = indCmdFrameIdx + indirectBatch.getCmdId();
+            auto& indirectCmd = commands[cmdIdx];
+
+            indirectCmd.firstInstance = indirectBatch.getFirstInstanceIdx();
+            indirectCmd.instanceCount = 0;
+            indirectCmd.firstIndex = 0;
+            indirectCmd.indexCount = indirectBatch.getMesh()->getIndexCount();
+        }
+    }
+
+    // upload batched dynamic draw cmds
+    {
+        auto indCmdFrameOffset = static_cast<uint32_t>(indirectCmdBuf->getFrameOffset(frameIdx));
+        auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
+        auto buf = indirectCmdBuf->getGpuBuffer().data();
+        auto commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
+        for (int i = 0; i < dynamicBatches; i++) {
+            auto& indirectBatch = dynamicBatchCache[i];
+            // must review this!!!
+            // could be the cause of rendering issues
+            // havent tested yet
+            auto cmdIdx = indCmdFrameIdx + indirectBatch.getCmdId();
+            auto& indirectCmd = commands[cmdIdx];
+
+            indirectCmd.firstInstance = indirectBatch.getFirstInstanceIdx();
+            indirectCmd.instanceCount = 0;
+            indirectCmd.firstIndex = 0;
+            indirectCmd.indexCount = indirectBatch.getMesh()->getIndexCount();
+        }
+    }
+
+    // submit to GPU
+    {
+        frameCxt->cullComputeSemaphore = cullContext->getSemaphore(frameIdx);
+        cullContext->dispatch(vkContext, *descSetAllocators[frameIdx], cameraController, frameIdx, staticInstances + dynamicInstances);
+
+        vkContext.renderBegin(frameCxt);
+        {
+            auto& dAllocator = descSetAllocators[frameIdx];
+            dAllocator.reset();
+
+            shadowContext->execute(vkContext, *frameCxt, *dAllocator,
+                shadowNonSkinnedBatchCache, staticShadowNonSkinnedBatches + totalShadowNonSkinnedBatches,
+                shadowSkinnedBatchCache, totalShadowSkinnedBatches);
+
+            deferredPass(*dAllocator);
+        }
+        vkContext.renderEnd(frameCxt);
+    }
+
+    started = false;
 }
 
 IndirectDrawBatch& RenderContext::getStaticBatch(int instanceIdx, Mesh& mesh, Material& material, boolean hasShadow) {

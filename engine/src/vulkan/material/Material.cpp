@@ -17,10 +17,6 @@ MaterialBinding& Material::getBinding(int descSetIdx, int bindingIdx) {
     return *(it->second[bindingIdx]);
 }
 
-void Material::bindMaterial(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) {
-    throw std::runtime_error("not implemented");
-}
-
 void Material::addBinding(std::unique_ptr<MaterialBinding>&& binding) {
     materialBindings[binding->getDescriptorSetIndex()].push_back(std::move(binding));
 }
