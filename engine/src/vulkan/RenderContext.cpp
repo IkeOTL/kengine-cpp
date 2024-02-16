@@ -14,6 +14,7 @@
 #include <kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp>
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 #include <kengine/vulkan/mesh/Mesh.hpp>
+#include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
 
 void RenderContext::init() {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
@@ -103,7 +104,83 @@ void RenderContext::initBuffers() {
 }
 
 void RenderContext::initDescriptors() {
-    lol
+    for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+        auto& descSetAllocator = descSetAllocators[i];
+
+        std::vector<VkWriteDescriptorSet> setWrites(7);
+        std::vector<VkDescriptorBufferInfo> bufferInfos(5);
+
+        // Scene data
+        {
+            auto globalDescriptorSet = descSetAllocator->getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout);
+            auto& sceneDataBinding = PipelineCache::globalLayout.getBinding(0);
+
+            bufferInfos[0].buffer = sceneBuf->getGpuBuffer().vkBuffer;
+            bufferInfos[0].offset = 0;
+            bufferInfos[0].range = sceneBuf->getFrameSize();
+
+            setWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            setWrites[0].dstSet = globalDescriptorSet;
+            setWrites[0].dstBinding = sceneDataBinding.bindingIndex;
+            setWrites[0].descriptorCount = sceneDataBinding.descriptorCount;
+            setWrites[0].descriptorType = sceneDataBinding.descriptorType;
+            setWrites[0].pBufferInfo = &bufferInfos[0];
+        }
+
+        // model data
+        {
+            auto modelMatDescriptorSet = descSetAllocator->getGlobalDescriptorSet("deferred-gbuffer", DeferredOffscreenPbrPipeline::objectLayout);
+
+            {
+                auto& modelBufBinding = DeferredOffscreenPbrPipeline::objectLayout.getBinding(0);
+
+                bufferInfos[1].buffer = drawObjectBuf->getGpuBuffer().vkBuffer;
+                bufferInfos[1].offset = 0;
+                bufferInfos[1].range = drawObjectBuf->getFrameSize();
+
+                setWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                setWrites[1].dstSet = modelMatDescriptorSet;
+                setWrites[1].dstBinding = modelBufBinding.bindingIndex;
+                setWrites[1].descriptorCount = modelBufBinding.descriptorCount;
+                setWrites[1].descriptorType = modelBufBinding.descriptorType;
+                setWrites[1].pBufferInfo = &bufferInfos[1];
+            }
+
+            {
+                auto& drawInstanceBinding = DeferredOffscreenPbrPipeline::objectLayout.getBinding(1);
+
+                bufferInfos[2].buffer = drawInstanceBuffer->getGpuBuffer().vkBuffer;
+                bufferInfos[2].offset = 0;
+                bufferInfos[2].range = drawInstanceBuffer->getFrameSize();
+
+                setWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                setWrites[2].dstSet = modelMatDescriptorSet;
+                setWrites[2].dstBinding = drawInstanceBinding.bindingIndex;
+                setWrites[2].descriptorCount = drawInstanceBinding.descriptorCount;
+                setWrites[2].descriptorType = drawInstanceBinding.descriptorType;
+                setWrites[2].pBufferInfo = &bufferInfos[2];
+            }
+
+            {
+                auto& materialsBinding = DeferredOffscreenPbrPipeline::objectLayout.getBinding(2);
+                bufferInfos[3].buffer = materialsBuf->getGpuBuffer().vkBuffer;
+                bufferInfos[3].offset = 0;
+                bufferInfos[3].range = materialsBuf->getFrameSize();
+
+                setWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                setWrites[3].dstSet = modelMatDescriptorSet;
+                setWrites[3].dstBinding = materialsBinding.bindingIndex;
+                setWrites[3].descriptorCount = materialsBinding.descriptorCount;
+                setWrites[3].descriptorType = materialsBinding.descriptorType;
+                setWrites[3].pBufferInfo = &bufferInfos[3];
+            }
+        }
+
+        {
+        
+        lolol
+        }
+    }
 }
 
 void RenderContext::addStaticInstance(Mesh& mesh, Material& material, glm::mat4 transform, glm::vec4 boundingSphere, boolean hasShadow) {
