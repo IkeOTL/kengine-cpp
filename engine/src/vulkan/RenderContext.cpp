@@ -12,6 +12,7 @@
 #include <kengine/vulkan/SamplerCache.hpp>
 #include <kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp>
 #include <kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp>
+#include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 
 void RenderContext::init() {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
@@ -34,11 +35,70 @@ void RenderContext::init() {
 }
 
 void RenderContext::setViewportScissor(glm::uvec2 dim) {
-    lol
+    auto vkCmd = frameCxt->cmd;
+    auto vp = VkViewport{
+        0, 0,
+        static_cast<float>(dim.x), static_cast<float>(dim.y),
+        0, 1
+    };
+    vkCmdSetViewport(vkCmd, 0, 1, &vp);
+
+    auto rect = VkRect2D{
+        {0, 0},
+        {dim.x, dim.y}
+    };
+    vkCmdSetScissor(vkCmd, 0, 1, &rect);
 }
 
 void RenderContext::initBuffers() {
-    lol
+    auto xferFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+        //| VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT
+        | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+
+    sceneBuf = &bufCache.createHostMapped(
+        SceneData::size(),
+        VulkanContext::FRAME_OVERLAP,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VMA_MEMORY_USAGE_AUTO,
+        xferFlags);
+    lightBuf = &bufCache.createHostMapped(
+        LightsManager::size(),
+        VulkanContext::FRAME_OVERLAP,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VMA_MEMORY_USAGE_AUTO,
+        xferFlags);
+    indirectCmdBuf = &bufCache.createHostMapped(
+        MAX_INSTANCES * sizeof(VkDrawIndexedIndirectCommand),
+        VulkanContext::FRAME_OVERLAP,
+        VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VMA_MEMORY_USAGE_AUTO,
+        xferFlags);
+    objectInstanceBuf = &bufCache.createHostMapped(
+        MAX_INSTANCES * sizeof(ObjectInstance),
+        VulkanContext::FRAME_OVERLAP,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VMA_MEMORY_USAGE_AUTO,
+        xferFlags);
+
+    materialsBuf = &bufCache.createHostMapped(
+        MaterialsBuffer::size(),
+        VulkanContext::FRAME_OVERLAP,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VMA_MEMORY_USAGE_AUTO,
+        xferFlags);
+    drawObjectBuf = &bufCache.createHostMapped(
+        DrawObjectBuffer::frameSize(),
+        VulkanContext::FRAME_OVERLAP,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VMA_MEMORY_USAGE_AUTO,
+        xferFlags);
+
+    drawInstanceBuffer = &bufCache.create(
+        MAX_INSTANCES * sizeof(uint32_t),
+        VulkanContext::FRAME_OVERLAP,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VMA_MEMORY_USAGE_AUTO,
+        VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT);
 }
 
 void RenderContext::initDescriptors() {
