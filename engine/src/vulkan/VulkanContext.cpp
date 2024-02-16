@@ -516,3 +516,7 @@ SamplerCache& VulkanContext::getSamplerCache() {
 DescriptorSetLayoutCache& VulkanContext::getDescSetLayoutCache() {
     return *descSetLayoutCache;
 }
+
+RenderPass& VulkanContext::getRenderPass(int i) {
+    return *renderPasses[i];
+}

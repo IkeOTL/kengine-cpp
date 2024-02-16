@@ -63,9 +63,9 @@ private:
 };
 
 struct RenderFrameContext {
-    const int frameIndex;
+    const uint32_t frameIndex;
     const glm::uvec2 swapchainExtents;
-    const int swapchainIndex;
+    const uint32_t swapchainIndex;
     const VkSemaphore imageSemaphore;
     VkSemaphore cullComputeSemaphore = VK_NULL_HANDLE;
     const VkFence fence;
@@ -118,6 +118,13 @@ public:
     std::vector<std::unique_ptr<RenderPass>>& getRenderPasses() {
         return renderPasses;
     }
+
+    template <typename R>
+    R& getRenderPass(int i) {
+        return static_cast<R&>(*renderPasses[i]);
+    }
+
+    RenderPass& getRenderPass(int i);
 
     void beginRenderPass(RenderPassContext& rpCxt);
     void endRenderPass(RenderPassContext& rpCxt);

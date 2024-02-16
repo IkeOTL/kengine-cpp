@@ -43,15 +43,14 @@ private:
 };
 
 struct RenderPassContext {
-    const int renderPassIndex;
-    const int renderTargetIndex;
+    const uint32_t renderPassIndex;
+    const uint32_t renderTargetIndex;
     const VkCommandBuffer cmd;
     const glm::uvec2 extents;
 };
 
 class RenderPass {
 public:
-
     RenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
         : vkDevice(vkDevice), colorFormatAndSpace(colorFormatAndSpace) { }
 
@@ -73,6 +72,15 @@ public:
     virtual void end(RenderPassContext& cxt) = 0;
 
     const GpuImageView& getDepthStencilImageView() const;
+
+    template <typename R>
+    const R& getRenderTarget(size_t renderTargetIndex) const {
+        return static_cast<R&>(*renderTargets[renderTargetIndex]);
+    }
+
+    RenderTarget& getRenderTarget(uint32_t idx) {
+        return *renderTargets[idx];
+    }
 
 private:
     VkRenderPass vkRenderPass = VK_NULL_HANDLE;
@@ -104,8 +112,6 @@ protected:
     }
 
     void freeRenderTargets();
-
-    const RenderTarget* getRenderTarget(size_t renderTargetIndex) const;
 
     virtual VkRenderPass createVkRenderPass() = 0;
     virtual std::unique_ptr<GpuImageView> createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2 extents) {

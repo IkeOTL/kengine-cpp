@@ -152,7 +152,7 @@ void DeferredPbrRenderPass::begin(RenderPassContext& cxt) {
     rpInfo.clearValueCount = clearCount;
     rpInfo.pClearValues = clearVal;
 
-    rpInfo.framebuffer = getRenderTarget(cxt.renderTargetIndex)->getVkFramebuffer();
+    rpInfo.framebuffer = getRenderTarget(cxt.renderTargetIndex).getVkFramebuffer();
 
     rpInfo.renderArea.offset = { 0, 0 };
     rpInfo.renderArea.extent = { cxt.extents.x, cxt.extents.y };

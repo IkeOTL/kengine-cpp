@@ -4,6 +4,6 @@ void IndirectDrawBatch::predraw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, Mat
     lololol
 }
 
-void IndirectDrawBatch::draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, long indirectCmdBuf, DescriptorSetAllocator& descSetAllocator, int frameIdx, MaterialBindManager& bindManager) {
+void IndirectDrawBatch::draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, VkBuffer indirectCmdBuf, DescriptorSetAllocator& descSetAllocator, int frameIdx, MaterialBindManager& bindManager) {
     lolol
 }

@@ -8,6 +8,10 @@
 #include <kengine/vulkan/ShadowContext.hpp>
 #include <kengine/vulkan/material/Material.hpp>
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
+#include <kengine/vulkan/renderpass/RenderPass.hpp>
+#include <kengine/vulkan/SamplerCache.hpp>
+#include <kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp>
+#include <kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp>
 
 void RenderContext::init() {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
@@ -221,7 +225,7 @@ void RenderContext::end() {
         auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
         auto buf = indirectCmdBuf->getGpuBuffer().data();
         auto commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
-        for (int i = 0; i < staticBatches; i++) {
+        for (auto i = 0; i < staticBatches; i++) {
             auto& indirectBatch = staticBatchCache[i];
             // must review this!!!
             // could be the cause of rendering issues
@@ -242,7 +246,7 @@ void RenderContext::end() {
         auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
         auto buf = indirectCmdBuf->getGpuBuffer().data();
         auto commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
-        for (int i = 0; i < dynamicBatches; i++) {
+        for (auto i = 0; i < dynamicBatches; i++) {
             auto& indirectBatch = dynamicBatchCache[i];
             // must review this!!!
             // could be the cause of rendering issues
@@ -326,9 +330,117 @@ IndirectDrawBatch& RenderContext::getStaticBatch(int instanceIdx, Mesh& mesh, Ma
 }
 
 void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
-    lol
+    auto frameIdx = frameCxt->frameIndex;
+    auto vkCmd = frameCxt->cmd;
+
+    auto rpCxt = RenderPassContext{ 0, frameIdx, vkCmd, frameCxt->swapchainExtents };
+    vkContext.beginRenderPass(rpCxt);
+    {
+        setViewportScissor(rpCxt.extents);
+
+        // subpass 1
+        {
+            for (int i = 0; i < staticBatches; i++) {
+                auto& batch = staticBatchCache[i];
+                batch.draw(vkContext, vkCmd, indirectCmdBuf->getGpuBuffer().getVkBuffer(),
+                    descSetAllocator, frameIdx, bindManager);
+            }
+
+            for (int i = 0; i < dynamicBatches; i++) {
+                auto& batch = dynamicBatchCache[i];
+                batch.draw(vkContext, vkCmd, indirectCmdBuf->getGpuBuffer().getVkBuffer(),
+                    descSetAllocator, frameIdx, bindManager);
+            }
+        }
+
+        // subpass 2
+        compositionSubpass(rpCxt, descSetAllocator);
+
+        // subpass 3 forward transparency pass, TODO
+        vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
+
+        //guiManager.subpass(vkContext, rpCxt, frameCxt, descSetAllocator);
+        // since guimanager isnt implemented yet we need to push to next subpass manually
+        // we'll remove this line once the guimanager is working
+        vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
+    }
+    vkContext.endRenderPass(rpCxt);
 }
 
 void RenderContext::compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d) {
-    lol
+    {
+        auto samplerConfig = SamplerConfig(
+            VK_SAMPLER_MIPMAP_MODE_LINEAR,
+            VK_FILTER_NEAREST,
+            VK_FILTER_NEAREST,
+            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            VK_COMPARE_OP_NEVER,
+            VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+            0,
+            1,
+            0,
+            1.0f);
+        auto sampler = vkContext.getSamplerCache().getSampler(samplerConfig);
+
+        auto& rp = vkContext.getRenderPass<DeferredPbrRenderPass>(rpCxt.renderPassIndex);
+        auto& rt = rp.getRenderTarget<DeferredPbrRenderTarget>(rpCxt.renderTargetIndex);
+
+        std::vector<VkDescriptorImageInfo> deskImgInfos = {
+            VkDescriptorImageInfo {
+                sampler,
+                rt.getAlbedoImage().imageView,
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            },
+            VkDescriptorImageInfo {
+                sampler,
+                rt.getPositionImage().imageView,
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            },
+            VkDescriptorImageInfo {
+                sampler,
+                rt.getNormalImage().imageView,
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            },
+            VkDescriptorImageInfo {
+                sampler,
+                rt.getOrmImage().imageView,
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            },
+            VkDescriptorImageInfo {
+                sampler,
+                rt.getEmissiveImage().imageView,
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            }
+        };
+
+        auto& layout = DeferredCompositionPbrPipeline::compositionLayout;
+        auto pDescSet = d.getGlobalDescriptorSet("deferred-composition", layout);
+
+        std::vector<uint32_t> bindingIdxs = { 0, 1, 2, 3, 4 };
+        std::vector<VkWriteDescriptorSet> pWriteDesc(bindingIdxs.size());
+        for (auto i = 0; i < bindingIdxs.size(); i++) {
+            auto& binding = layout.getBinding(bindingIdxs[i]);
+            auto& setWrite = pWriteDesc[i];
+            setWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            setWrite.dstSet = pDescSet;
+            setWrite.dstBinding = binding.bindingIndex;
+            setWrite.descriptorCount = binding.descriptorCount;
+            setWrite.descriptorType = binding.descriptorType;
+            setWrite.pImageInfo = &deskImgInfos[i];
+        }
+
+        vkUpdateDescriptorSets(vkContext.getVkDevice(), pWriteDesc.size(), pWriteDesc.data(), 0, nullptr);
+    }
+
+    auto frameIdx = frameCxt->frameIndex;
+    auto vkCmd = frameCxt->cmd;
+
+    vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
+
+    auto& pipeline = vkContext.getPipelineCache().getPipeline<DeferredCompositionPbrPipeline>();
+    pipeline.bind(vkContext, d, vkCmd, frameIdx);
+
+    vkCmdDraw(vkCmd, 3, 1, 0, 0);
 }

@@ -21,7 +21,7 @@ public:
     void predraw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, MaterialBindManager& bindManager,
         DescriptorSetAllocator& descSetAllocator, int frameIdx);
 
-    void draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, long indirectCmdBuf, DescriptorSetAllocator& descSetAllocator,
+    void draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, VkBuffer indirectCmdBuf, DescriptorSetAllocator& descSetAllocator,
         int frameIdx, MaterialBindManager& bindManager);
 
     void reset() {

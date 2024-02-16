@@ -152,7 +152,7 @@ void ShadowContext::execute(VulkanContext& vkContext, RenderFrameContext& cxt, D
     cascadesData.uploadShadowPass(vkContext, *shadowPassCascadeBuf, cxt.frameIndex);
     cascadesData.uploadCompositionPass(vkContext, *compositePassCascadeBuf, cxt.frameIndex);
 
-    for (int i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
+    for (uint32_t i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
         auto rp1Cxt = RenderPassContext{ 1, i, cxt.cmd, glm::uvec2(SHADOWDIM) };
         vkContext.beginRenderPass(rp1Cxt);
         {
