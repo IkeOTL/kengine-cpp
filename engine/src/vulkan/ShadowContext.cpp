@@ -8,11 +8,13 @@
 #include <kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <kengine/vulkan/IndirectDrawBatch.hpp>
-#include <kengine/vulkan/material/MaterialBinding.hpp>
+#include <kengine/vulkan/material/Material.hpp>
 #include <kengine/vulkan/SamplerCache.hpp>
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 #include <kengine/vulkan/CameraController.hpp>
 #include <kengine/vulkan/SceneData.hpp>
+#include <kengine/vulkan/IndirectDrawBatch.hpp>
+#include <kengine/vulkan/mesh/Mesh.hpp>
 
 void ShadowContext::init(VulkanContext& vkContext, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators,
     glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer) {

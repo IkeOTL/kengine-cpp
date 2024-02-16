@@ -1,11 +1,11 @@
 #pragma once
-#include <kengine/vulkan/VulkanContext.hpp>
-#include <kengine/vulkan/MaterialBindManager.hpp>
-#include <kengine/vulkan/mesh/Mesh.hpp>
-#include <kengine/vulkan/material/Material.hpp>
-#include <glm/vec3.hpp>
-#include <glm/mat4x4.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include <kengine/vulkan/VulkanInclude.hpp>
+
+class VulkanContext;
+class DescriptorSetAllocator;
+class MaterialBindManager;
+class Mesh;
+class Material;
 
 class IndirectDrawBatch {
 

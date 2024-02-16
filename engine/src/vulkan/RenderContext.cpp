@@ -13,6 +13,7 @@
 #include <kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp>
 #include <kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp>
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
+#include <kengine/vulkan/mesh/Mesh.hpp>
 
 void RenderContext::init() {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {

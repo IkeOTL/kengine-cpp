@@ -1,10 +1,11 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
-#include <kengine/vulkan/CullContext.hpp>
-#include <kengine/vulkan/LightsManager.hpp>
+#include <kengine/vulkan/MaterialBindManager.hpp>
 #include <kengine/vulkan/SceneData.hpp>
 #include <kengine/vulkan/ShadowContext.hpp>
 #include <kengine/vulkan/IndirectDrawBatch.hpp>
+#include <kengine/vulkan/LightsManager.hpp>
+#include <kengine/vulkan/CullContext.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
@@ -13,7 +14,6 @@
 
 class CachedGpuBuffer;
 class CameraController;
-class LightsManager;
 
 struct ObjectInstance {
     uint32_t cmdId;
