@@ -6,9 +6,36 @@
 // render target
 VkFramebuffer CascadeShadowMapRenderTarget::createFramebuffer(RenderPass& renderPass, VmaAllocator vmaAllocator,
     const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) {
-    lol
+    VkImageViewCreateInfo viewCreateInfo{};
+    viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewCreateInfo.image = shadowMapDepthImage.gpuImage->vkImage;
+    viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+    viewCreateInfo.format = shadowMapDepthImage.gpuImage->imageInfo.format;
+    viewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    viewCreateInfo.subresourceRange.baseMipLevel = 0;
+    viewCreateInfo.subresourceRange.levelCount = 1;
+    viewCreateInfo.subresourceRange.baseArrayLayer = cascadeIndex;
+    viewCreateInfo.subresourceRange.layerCount = 1;
 
-        return nullptr;
+    VkImageView cascadeImageView;
+    VKCHECK(vkCreateImageView(vkDevice, &viewCreateInfo, nullptr, &cascadeImageView),
+        "Failed to create depth-stencil image view");
+
+    VkFramebufferCreateInfo fci{};
+    fci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    fci.renderPass = renderPass.getVkRenderPass(); 
+    fci.attachmentCount = 1;
+    VkImageView attachments[] = { cascadeImageView };
+    fci.pAttachments = attachments;
+    fci.width = extents.x;
+    fci.height = extents.y;
+    fci.layers = 1;
+
+    VkFramebuffer framebuffer;
+    VKCHECK(vkCreateFramebuffer(vkDevice, &fci, nullptr, &framebuffer),
+        "Failed to create framebuffer");
+
+    return framebuffer;
 }
 
 void CascadeShadowMapRenderPass::init(VulkanContext& vkCtx) {
