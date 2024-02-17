@@ -23,7 +23,7 @@ VkFramebuffer CascadeShadowMapRenderTarget::createFramebuffer(RenderPass& render
 
     VkFramebufferCreateInfo fci{};
     fci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    fci.renderPass = renderPass.getVkRenderPass(); 
+    fci.renderPass = renderPass.getVkRenderPass();
     fci.attachmentCount = 1;
     VkImageView attachments[] = { cascadeImageView };
     fci.pAttachments = attachments;
@@ -55,17 +55,76 @@ void CascadeShadowMapRenderPass::createRenderTargets(VmaAllocator vmaAllocator, 
 
 // render pass
 void CascadeShadowMapRenderPass::begin(RenderPassContext& cxt) {
-    lol
+    VkClearValue clearValues{};
+    clearValues.depthStencil.depth = 1.0f;
+
+    VkRenderPassBeginInfo renderPassInfo = {};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = getVkRenderPass();
+    renderPassInfo.framebuffer = getRenderTarget(cxt.renderTargetIndex).getVkFramebuffer();
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &clearValues;
+
+    renderPassInfo.renderArea.offset = { 0, 0 };
+    renderPassInfo.renderArea.extent = { cxt.extents.x, cxt.extents.y };
+
+    vkCmdBeginRenderPass(cxt.cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void CascadeShadowMapRenderPass::end(RenderPassContext& cxt) {
-    lol
+    vkCmdEndRenderPass(cxt.cmd);
 }
 
 VkRenderPass CascadeShadowMapRenderPass::createVkRenderPass() {
-    lol
+    VkAttachmentDescription attachments{};
+    attachments.format = colorFormatAndSpace.getDepthFormat(); // Adapt this to your actual format retrieval
+    attachments.samples = VK_SAMPLE_COUNT_1_BIT;
+    attachments.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachments.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachments.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachments.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachments.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachments.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
-        return nullptr;
+    VkAttachmentReference depthReference{};
+    depthReference.attachment = 0;
+    depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass{};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.pDepthStencilAttachment = &depthReference;
+
+    VkSubpassDependency dependencies[2]{};
+    dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[0].dstSubpass = 0;
+    dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+    dependencies[1].srcSubpass = 0;
+    dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+    dependencies[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+    VkRenderPassCreateInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount = 1;
+    renderPassInfo.pAttachments = &attachments;
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 2;
+    renderPassInfo.pDependencies = dependencies;
+
+    VkRenderPass renderPass;
+    VKCHECK(vkCreateRenderPass(vkDevice, &renderPassInfo, nullptr, &renderPass),
+        "Failed to create clear render pass");
+
+    return renderPass;
 }
 
 std::unique_ptr<GpuImageView> CascadeShadowMapRenderPass::createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2 extents) {
