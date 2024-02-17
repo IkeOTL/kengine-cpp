@@ -1,4 +1,5 @@
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
+#include <kengine/vulkan/VulkanContext.hpp>
 #include <glm/vec2.hpp>
 
 // render target
@@ -17,7 +18,7 @@ RenderTarget::~RenderTarget() {
 }
 
 // render pass
-void RenderPass::init() {
+void RenderPass::init(VulkanContext& vkCtx) {
     vkRenderPass = createVkRenderPass();
 }
 

@@ -1,13 +1,21 @@
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <glm/vec2.hpp>
+#include <kengine/vulkan/ShadowCascade.hpp>
 
 // render target
 VkFramebuffer CascadeShadowMapRenderTarget::createFramebuffer(RenderPass& renderPass, VmaAllocator vmaAllocator,
     const std::vector<VkImageView>& sharedImageViews, const glm::uvec2& extents) {
     lol
 
-    return nullptr;
+        return nullptr;
+}
+
+
+void CascadeShadowMapRenderPass::init(VulkanContext& vkCtx) {
+    RenderPass::init(vkCtx);
+
+    createRenderTargets(vkCtx.getVmaAllocator(), {}, glm::uvec2(4096));
 }
 
 // render pass
@@ -31,5 +39,10 @@ std::unique_ptr<GpuImageView> CascadeShadowMapRenderPass::createDepthStencil(Vma
 }
 
 void CascadeShadowMapRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView> sharedImageViews, const glm::uvec2 extents) {
-    lol
+    setDepthStencil(createDepthStencil(vmaAllocator, extents));
+    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+        auto fb = std::make_unique<CascadeShadowMapRenderTarget>(vkDevice, *getDepthStencil(), i);
+        fb->init(*this, vmaAllocator, {}, extents);
+        addRenderTarget(std::move(fb));
+    }
 }

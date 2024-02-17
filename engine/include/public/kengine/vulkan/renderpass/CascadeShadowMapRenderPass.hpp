@@ -41,6 +41,8 @@ public:
     CascadeShadowMapRenderPass(CascadeShadowMapRenderPass&&) = default;
     CascadeShadowMapRenderPass& operator=(CascadeShadowMapRenderPass&&) = default;
 
+    void init(VulkanContext& vkCtx) override;
+
 protected:
     VkRenderPass createVkRenderPass() override;
     std::unique_ptr<GpuImageView> createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2 extents) override;

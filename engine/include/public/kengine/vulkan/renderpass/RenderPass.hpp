@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+class VulkanContext;
 class RenderPass;
 
 class RenderTarget {
@@ -66,7 +67,7 @@ public:
         return vkRenderPass;
     }
 
-    virtual void init();
+    virtual void init(VulkanContext& vkCtx);
 
     virtual void begin(RenderPassContext& cxt) = 0;
     virtual void end(RenderPassContext& cxt) = 0;
