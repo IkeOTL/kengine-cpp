@@ -468,7 +468,7 @@ void RenderContext::end() {
         frameCxt->cullComputeSemaphore = cullContext->getSemaphore(frameIdx);
         cullContext->dispatch(vkContext, *descSetAllocators[frameIdx], cameraController, frameIdx, staticInstances + dynamicInstances);
 
-        vkContext.renderBegin(frameCxt);
+        vkContext.renderBegin(*frameCxt);
         {
             auto& dAllocator = descSetAllocators[frameIdx];
             dAllocator.reset();
@@ -479,7 +479,7 @@ void RenderContext::end() {
 
             deferredPass(*dAllocator);
         }
-        vkContext.renderEnd(frameCxt);
+        vkContext.renderEnd(*frameCxt);
     }
 
     started = false;

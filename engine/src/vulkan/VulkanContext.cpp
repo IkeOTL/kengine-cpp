@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <mutex>
 
-VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
+VulkanContext::VulkanContext(std::unique_ptr<RenderPassCreator>&& renderPassCreator, std::unique_ptr<SwapchainCreator::OnSwapchainCreate>&& onSwapchainCreate)
     : renderPassCreator(std::move(renderPassCreator)),
     swapchainCreator(std::move(onSwapchainCreate)) {}
 
@@ -45,11 +45,14 @@ void VulkanContext::init(Window& window, bool validationOn) {
     createQueues();
     createVmaAllocator();
 
+    frameSync = std::make_unique<FrameSyncObjects>();
+    frameSync->init(vkDevice);
+
     samplerCache = std::make_unique<SamplerCache>(*this);
     gpuBufferCache = std::make_unique<GpuBufferCache>(*this);
     descSetLayoutCache = std::make_unique<DescriptorSetLayoutCache>(*this);
 
-    renderPasses = renderPassCreator(vkDevice, colorFormatAndSpace);
+    renderPasses = (*renderPassCreator)(vkDevice, colorFormatAndSpace);
     for (auto& rp : renderPasses)
         rp->init(*this);
 
@@ -64,6 +67,80 @@ void VulkanContext::init(Window& window, bool validationOn) {
         frameCmdBufs.push_back(commandPool->createGraphicsCmdBuf());
 }
 
+/// <summary>
+/// Returns the current frameIndex and updates the swapchain image index reference
+/// </summary>
+uint32_t VulkanContext::acquireImage(uint32_t& pImageIndex) {
+    if (swapchainCreator.recreate(*this, false, *swapchain))
+        frameNumber = 0;
+
+    auto idx = static_cast<uint32_t>(frameNumber % FRAME_OVERLAP);
+
+    auto fence = frameSync->getFrameFence(idx);
+    vkWaitForFences(vkDevice, 1, &fence, true, 99999999L);
+    vkResetFences(vkDevice, 1, &fence);
+
+    auto imgSemaphore = frameSync->getImageAcquireSemaphore(idx);
+    auto imgRes = vkAcquireNextImageKHR(vkDevice, swapchain->getSwapchain(), -1L, imgSemaphore, VK_NULL_HANDLE, &pImageIndex);
+
+    while (imgRes == VK_ERROR_OUT_OF_DATE_KHR) {
+        swapchainCreator.recreate(*this, true, *swapchain);
+
+        idx = 0;
+        frameNumber = 0;
+
+        fence = frameSync->getFrameFence(idx);
+        vkWaitForFences(vkDevice, 1, &fence, true, 999999L);
+        vkResetFences(vkDevice, 1, &fence);
+
+        imgSemaphore = frameSync->getImageAcquireSemaphore(idx);
+        imgRes = vkAcquireNextImageKHR(vkDevice, swapchain->getSwapchain(), -1L, imgSemaphore, VK_NULL_HANDLE, &pImageIndex);
+    }
+
+    return idx;
+}
+
+std::unique_ptr<RenderFrameContext> VulkanContext::createNextFrameContext() {
+    uint32_t pImageIndex;
+    auto idx = acquireImage(pImageIndex);
+    auto cmd = frameCmdBufs[pImageIndex]->vkCmdBuf;
+    auto imgSemaphore = frameSync->getImageAcquireSemaphore(idx);
+    auto fence = frameSync->getFrameFence(idx);
+
+    return std::make_unique<RenderFrameContext>(RenderFrameContext{
+            idx,
+            swapchain->getExtents(),
+            pImageIndex,
+            imgSemaphore,
+            VK_NULL_HANDLE,
+            fence,
+            cmd
+        });
+}
+
+void VulkanContext::renderBegin(RenderFrameContext& cxt) {
+    VkCommandBufferBeginInfo cmdBeginInfo{};
+    cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    cmdBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    VKCHECK(vkBeginCommandBuffer(cxt.cmd, &cmdBeginInfo),
+        "Command buffer failed to do the thing.");
+
+    while (!vkQueueTransfers.empty()) {
+        auto& xfer = vkQueueTransfers.front();
+        vkQueueTransfers.pop();
+        xfer->applyAcquireBarrier(cxt.cmd);
+    }
+}
+
+void VulkanContext::renderEnd(RenderFrameContext& cxt) {
+    
+    {
+    
+    }
+
+    processFinishedFences();
+    frameNumber++;
+}
 
 void VulkanContext::beginRenderPass(RenderPassContext& rpCxt) {
     renderPasses[rpCxt.renderPassIndex]->begin(rpCxt);
@@ -71,6 +148,24 @@ void VulkanContext::beginRenderPass(RenderPassContext& rpCxt) {
 
 void VulkanContext::endRenderPass(RenderPassContext& rpCxt) {
     renderPasses[rpCxt.renderPassIndex]->end(rpCxt);
+}
+
+void VulkanContext::processFinishedFences() {
+    for (auto it = vkFenceActions.begin(); it != vkFenceActions.end(); ) {
+        auto fence = it->first;
+
+        // Check the status of the fence
+        if (vkGetFenceStatus(vkDevice, fence) != VK_SUCCESS) {
+            ++it;
+            continue;
+        }
+
+        // Fence is finished; destroy it and run the associated action
+        vkDestroyFence(vkDevice, fence, nullptr);
+        it->second(); // Execute the action associated with the fence
+
+        it = vkFenceActions.erase(it);
+    }
 }
 
 void VulkanContext::createVkInstance(bool validationOn) {
@@ -515,11 +610,35 @@ SamplerCache& VulkanContext::getSamplerCache() {
     return *samplerCache;
 }
 
-
 DescriptorSetLayoutCache& VulkanContext::getDescSetLayoutCache() {
     return *descSetLayoutCache;
 }
 
 RenderPass& VulkanContext::getRenderPass(int i) {
     return *renderPasses[i];
+}
+
+void FrameSyncObjects::createFences(VkDevice device, VkFence* fences) {
+    for (auto i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+        VkFenceCreateInfo fenceCreateInfo{};
+        fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        VKCHECK(vkCreateFence(device, &fenceCreateInfo, nullptr, &fences[i]),
+            "Failed to create fence");
+    }
+}
+
+void FrameSyncObjects::createSemaphores(VkDevice device, VkSemaphore* semaphores) {
+    for (auto i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+        VkSemaphoreCreateInfo semaphoreCreateInfo{};
+        semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        VKCHECK(vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &semaphores[i]),
+            "Failed to create semaphore");
+    }
+}
+
+void FrameSyncObjects::init(VkDevice vkDevice) {
+    createFences(vkDevice, frameFences);
+    createSemaphores(vkDevice, frameSemaphores);
+    createSemaphores(vkDevice, imageAcquireSemaphores);
 }

@@ -3,7 +3,7 @@
 
 class CascadeShadowMapRenderTarget : public RenderTarget {
 private:
-    GpuImageView& shadowMapDepthImage;
+    const GpuImageView& shadowMapDepthImage;
     const uint32_t cascadeIndex;
     std::unique_ptr<GpuImageView> cascadeImageView = nullptr;
 
@@ -15,7 +15,7 @@ private:
     ) override;
 
 public:
-    CascadeShadowMapRenderTarget(VkDevice vkDevice, GpuImageView& shadowMapDepthImage, uint32_t cascadeIndex)
+    CascadeShadowMapRenderTarget(VkDevice vkDevice, const GpuImageView& shadowMapDepthImage, uint32_t cascadeIndex)
         : RenderTarget(vkDevice), shadowMapDepthImage(shadowMapDepthImage), cascadeIndex(cascadeIndex) {}
 
     const GpuImageView& getCascadeImageView() const {

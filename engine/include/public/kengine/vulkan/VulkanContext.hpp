@@ -23,6 +23,8 @@ class RenderPass;
 class RenderPassContext;
 class DescriptorSetLayoutCache;
 
+class FrameSyncObjects;
+
 class GpuUploadable {
 private:
     std::unique_ptr<GpuBuffer> gpuBuffer;
@@ -44,8 +46,8 @@ class SwapchainCreator {
 public:
     using OnSwapchainCreate = std::function<void(VulkanContext&, Swapchain&, std::vector<std::unique_ptr<RenderPass>>&)>;
 
-    SwapchainCreator(OnSwapchainCreate onSwapchainCreate)
-        : onSwapchainCreate(onSwapchainCreate) {}
+    SwapchainCreator(std::unique_ptr<OnSwapchainCreate>&& onSwapchainCreate)
+        : onSwapchainCreate(std::move(onSwapchainCreate)) {}
 
     void init(Window& window);
 
@@ -53,13 +55,13 @@ public:
         this->mustRecreate = mustRecreate;
     }
 
-    bool recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain, OnSwapchainCreate& cb);
+    bool recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain);
 
 private:
     std::mutex lock{};
     int targetWidth = 0, targetHeight = 0;
     bool mustRecreate = false;
-    OnSwapchainCreate onSwapchainCreate;
+    std::unique_ptr<OnSwapchainCreate> onSwapchainCreate;
 };
 
 struct RenderFrameContext {
@@ -75,12 +77,12 @@ struct RenderFrameContext {
 class VulkanContext {
 
 public:
-    static const size_t FRAME_OVERLAP = 3;
+    static const uint32_t FRAME_OVERLAP = 3;
 
     using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>(VkDevice, ColorFormatAndSpace&)>;
     using CommandBufferRecordFunc = std::function<std::function<void()>(const CommandBuffer&)>;
 
-    VulkanContext(RenderPassCreator&& renderPassCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate);
+    VulkanContext(std::unique_ptr<RenderPassCreator>&& renderPassCreator, std::unique_ptr<SwapchainCreator::OnSwapchainCreate>&& onSwapchainCreate);
     ~VulkanContext();
 
     VulkanContext(const VulkanContext&) = delete;
@@ -125,6 +127,10 @@ public:
     }
 
     RenderPass& getRenderPass(int i);
+
+    std::unique_ptr<RenderFrameContext> createNextFrameContext();
+    void renderBegin(RenderFrameContext& cxt);
+    void renderEnd(RenderFrameContext& cxt);
 
     void beginRenderPass(RenderPassContext& rpCxt);
     void endRenderPass(RenderPassContext& rpCxt);
@@ -205,11 +211,13 @@ private:
 
     std::vector<std::unique_ptr<RenderPass>> renderPasses;
 
-    RenderPassCreator renderPassCreator;
+    std::unique_ptr<RenderPassCreator> renderPassCreator;
     SwapchainCreator swapchainCreator;
 
     std::unique_ptr<CommandPool> commandPool;
     std::vector<std::unique_ptr<CommandBuffer>> frameCmdBufs;
+
+    std::unique_ptr<FrameSyncObjects> frameSync;
 
     mutable std::mutex qXferMtx;
     std::queue<std::shared_ptr<QueueOwnerTransfer>> vkQueueTransfers;
@@ -222,10 +230,40 @@ private:
     PipelineCache pipelineCache{};
     std::unique_ptr<DescriptorSetLayoutCache> descSetLayoutCache;
 
+    uint64_t frameNumber = 0;
+
     void createVkInstance(bool validationOn);
     void setupDebugging();
     void grabFirstPhysicalDevice();
     void createDevice();
     void createQueues();
     void createVmaAllocator();
+
+    uint32_t acquireImage(uint32_t& pImageIndex);
+    void processFinishedFences();
+};
+
+class FrameSyncObjects {
+private:
+    VkFence frameFences[VulkanContext::FRAME_OVERLAP];
+    VkSemaphore frameSemaphores[VulkanContext::FRAME_OVERLAP];
+    VkSemaphore imageAcquireSemaphores[VulkanContext::FRAME_OVERLAP];
+
+    void createFences(VkDevice device, VkFence* fences);
+    void createSemaphores(VkDevice device, VkSemaphore* semaphores);
+
+public:
+    void init(VkDevice vkDevice);
+
+    VkFence getFrameFence(uint32_t i) {
+        return frameFences[i];
+    }
+
+    VkSemaphore getFrameSemaphore(uint32_t i) {
+        return frameSemaphores[i];
+    }
+
+    VkSemaphore getImageAcquireSemaphore(uint32_t i) {
+        return imageAcquireSemaphores[i];
+    }
 };

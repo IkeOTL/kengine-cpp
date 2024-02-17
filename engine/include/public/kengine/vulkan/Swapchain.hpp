@@ -14,6 +14,14 @@ public:
     std::unique_ptr<Swapchain> replace(VkPhysicalDevice physicalDevice, VkDevice device,
         int newWidth, int newHeight, VkSurfaceKHR surface, ColorFormatAndSpace& colorFormatAndSpace);
 
+    const VkSwapchainKHR getSwapchain() const {
+        return vkSwapchain;
+    }
+
+    const glm::uvec2 getExtents() const {
+        return imageExtents;
+    }
+
 private:
     const VkDevice vkDevice;
     VkSwapchainKHR vkSwapchain = VK_NULL_HANDLE;
