@@ -10,9 +10,9 @@
 #include <algorithm>
 #include <mutex>
 
-VulkanContext::VulkanContext(std::unique_ptr<RenderPassCreator>&& renderPassCreator, std::unique_ptr<SwapchainCreator::OnSwapchainCreate>&& onSwapchainCreate)
+VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
     : renderPassCreator(std::move(renderPassCreator)),
-    swapchainCreator(std::move(onSwapchainCreate)) {}
+    swapchainCreator(SwapchainCreator(std::move(onSwapchainCreate))) {}
 
 VulkanContext::~VulkanContext() {
     if (vkInstance != VK_NULL_HANDLE) {
@@ -52,7 +52,7 @@ void VulkanContext::init(Window& window, bool validationOn) {
     gpuBufferCache = std::make_unique<GpuBufferCache>(*this);
     descSetLayoutCache = std::make_unique<DescriptorSetLayoutCache>(*this);
 
-    renderPasses = (*renderPassCreator)(vkDevice, colorFormatAndSpace);
+    renderPasses = renderPassCreator(vkDevice, colorFormatAndSpace);
     for (auto& rp : renderPasses)
         rp->init(*this);
 
@@ -432,7 +432,7 @@ void SwapchainCreator::init(Window& window) {
         });
 }
 
-bool SwapchainCreator::recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain, OnSwapchainCreate& cb) {
+bool SwapchainCreator::recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain) {
     std::lock_guard<std::mutex> lock(this->lock);
 
     if (!mustRecreate && !force)
@@ -454,7 +454,7 @@ bool SwapchainCreator::recreate(VulkanContext& vkCxt, bool force, Swapchain& old
 
     vkCxt.setSwapchain(std::move(newSwapchain));
 
-    cb(vkCxt, *vkCxt.getSwapchain(), vkCxt.getRenderPasses());
+    onSwapchainCreate(vkCxt, *vkCxt.getSwapchain(), vkCxt.getRenderPasses());
 
     return true;
 }

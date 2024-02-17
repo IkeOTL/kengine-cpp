@@ -46,7 +46,7 @@ void CascadeShadowMapRenderPass::init(VulkanContext& vkCtx) {
 
 void CascadeShadowMapRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView> sharedImageViews, const glm::uvec2 extents) {
     setDepthStencil(createDepthStencil(vmaAllocator, extents));
-    for (size_t i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
+    for (uint32_t i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
         auto fb = std::make_unique<CascadeShadowMapRenderTarget>(vkDevice, *getDepthStencil(), i);
         fb->init(*this, vmaAllocator, {}, extents);
         addRenderTarget(std::move(fb));

@@ -46,7 +46,7 @@ class SwapchainCreator {
 public:
     using OnSwapchainCreate = std::function<void(VulkanContext&, Swapchain&, std::vector<std::unique_ptr<RenderPass>>&)>;
 
-    SwapchainCreator(std::unique_ptr<OnSwapchainCreate>&& onSwapchainCreate)
+    SwapchainCreator(OnSwapchainCreate&& onSwapchainCreate)
         : onSwapchainCreate(std::move(onSwapchainCreate)) {}
 
     void init(Window& window);
@@ -61,7 +61,7 @@ private:
     std::mutex lock{};
     int targetWidth = 0, targetHeight = 0;
     bool mustRecreate = false;
-    std::unique_ptr<OnSwapchainCreate> onSwapchainCreate;
+    OnSwapchainCreate onSwapchainCreate;
 };
 
 struct RenderFrameContext {
@@ -82,7 +82,7 @@ public:
     using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>(VkDevice, ColorFormatAndSpace&)>;
     using CommandBufferRecordFunc = std::function<std::function<void()>(const CommandBuffer&)>;
 
-    VulkanContext(std::unique_ptr<RenderPassCreator>&& renderPassCreator, std::unique_ptr<SwapchainCreator::OnSwapchainCreate>&& onSwapchainCreate);
+    VulkanContext(RenderPassCreator&& renderPassCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate);
     ~VulkanContext();
 
     VulkanContext(const VulkanContext&) = delete;
@@ -211,7 +211,7 @@ private:
 
     std::vector<std::unique_ptr<RenderPass>> renderPasses;
 
-    std::unique_ptr<RenderPassCreator> renderPassCreator;
+    RenderPassCreator renderPassCreator;
     SwapchainCreator swapchainCreator;
 
     std::unique_ptr<CommandPool> commandPool;
