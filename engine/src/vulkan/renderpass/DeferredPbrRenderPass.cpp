@@ -74,7 +74,8 @@ std::unique_ptr<GpuImageView>&& DeferredPbrRenderTarget::createAttachmentImage(V
             vkDevice,
             vmaAllocator,
             vkImage,
-            allocation
+            allocation,
+            imageCreateInfo
         });
 
     VkImageViewCreateInfo viewCreateInfo{};
@@ -94,7 +95,8 @@ std::unique_ptr<GpuImageView>&& DeferredPbrRenderTarget::createAttachmentImage(V
 
     return std::make_unique<GpuImageView>(GpuImageView{
             gpuImage,
-            vkImageView
+            vkImageView,
+            viewCreateInfo
         });
 }
 
@@ -451,7 +453,8 @@ std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAlloc
             getVkDevice(),
             vmaAllocator,
             vkImage,
-            vmaImageAllocation
+            vmaImageAllocation,
+            imageCreateInfo
         });
 
     VkImageViewCreateInfo imageViewCreateInfo{};
@@ -469,7 +472,8 @@ std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAlloc
 
     return std::make_unique<GpuImageView>(GpuImageView{
             depthImage,
-            vkImageView
+            vkImageView,
+            imageViewCreateInfo
         });
 }
 

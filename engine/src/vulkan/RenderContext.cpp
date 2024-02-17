@@ -15,6 +15,7 @@
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 #include <kengine/vulkan/mesh/Mesh.hpp>
 #include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
+#include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
 
 void RenderContext::init() {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
@@ -108,7 +109,8 @@ void RenderContext::initDescriptors() {
         auto& descSetAllocator = descSetAllocators[i];
 
         std::vector<VkWriteDescriptorSet> setWrites(7);
-        std::vector<VkDescriptorBufferInfo> bufferInfos(5);
+        std::vector<VkDescriptorBufferInfo> bufferInfos(6);
+        VkDescriptorImageInfo imageInfo{};
 
         // Scene data
         {
@@ -176,10 +178,72 @@ void RenderContext::initDescriptors() {
             }
         }
 
+        auto compositionDescriptorSet = descSetAllocator->getGlobalDescriptorSet("deferred-composition", DeferredCompositionPbrPipeline::compositionLayout);
+        // dynamic lights buf
         {
-        
-        lolol
+            auto& lightsUboBinding = DeferredCompositionPbrPipeline::compositionLayout.getBinding(5);
+            bufferInfos[4].buffer = lightBuf->getGpuBuffer().vkBuffer;
+            bufferInfos[4].offset = 0;
+            bufferInfos[4].range = lightBuf->getFrameSize();
+
+            setWrites[4].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            setWrites[4].dstSet = compositionDescriptorSet;
+            setWrites[4].dstBinding = lightsUboBinding.bindingIndex;
+            setWrites[4].descriptorCount = lightsUboBinding.descriptorCount;
+            setWrites[4].descriptorType = lightsUboBinding.descriptorType;
+            setWrites[4].pBufferInfo = &bufferInfos[4];
         }
+
+        // shadows
+        {
+            auto samplerConfig = SamplerConfig(
+                VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                VK_FILTER_LINEAR,
+                VK_FILTER_LINEAR,
+                VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                VK_COMPARE_OP_NEVER,
+                VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+                0,
+                1,
+                0,
+                1.0f
+            );
+            auto shadowSampler = vkContext.getSamplerCache().getSampler(samplerConfig);
+
+            auto& rp = vkContext.getRenderPass<CascadeShadowMapRenderPass>(1);
+            auto& rt = rp.getRenderTarget<CascadeShadowMapRenderTarget>(i);
+
+            auto& binding = DeferredCompositionPbrPipeline::compositionLayout.getBinding(6);
+            imageInfo.sampler = shadowSampler;
+            imageInfo.imageView = rt.getShadowMapDepthImage().imageView;
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+            setWrites[5].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            setWrites[5].dstSet = compositionDescriptorSet;
+            setWrites[5].dstBinding = binding.bindingIndex;
+            setWrites[5].descriptorCount = binding.descriptorCount;
+            setWrites[5].descriptorType = binding.descriptorType;
+            setWrites[5].pImageInfo = &imageInfo;
+        }
+
+        // dynamic materials buf
+        {
+            auto& binding = DeferredCompositionPbrPipeline::compositionLayout.getBinding(8);
+            bufferInfos[5].buffer = materialsBuf->getGpuBuffer().vkBuffer;
+            bufferInfos[5].offset = 0;
+            bufferInfos[5].range = materialsBuf->getFrameSize();
+
+            setWrites[6].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            setWrites[6].dstSet = compositionDescriptorSet;
+            setWrites[6].dstBinding = binding.bindingIndex;
+            setWrites[6].descriptorCount = binding.descriptorCount;
+            setWrites[6].descriptorType = binding.descriptorType;
+            setWrites[6].pBufferInfo = &bufferInfos[4];
+        }
+
+        vkUpdateDescriptorSets(vkContext.getVkDevice(), setWrites.size(), setWrites.data(), 0, nullptr);
     }
 }
 

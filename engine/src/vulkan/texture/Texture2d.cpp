@@ -48,7 +48,8 @@ void Texture2d::init(VulkanContext& vkCxt, const unsigned char* image, uint32_t 
           vkCxt.getVkDevice(),
           vkCxt.getVmaAllocator(),
           imageHandle,
-          imageAllocation
+          imageAllocation,
+          imgCreateInfo
         });
 
     // Transition image to transfer-receiver
@@ -101,6 +102,7 @@ void Texture2d::init(VulkanContext& vkCxt, const unsigned char* image, uint32_t 
 
     gpuImageView = std::make_unique<GpuImageView>(GpuImageView{
            gpuImage,
-           imageView
+           imageView,
+           viewCreateInfo
         });
 }

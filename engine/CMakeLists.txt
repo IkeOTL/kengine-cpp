@@ -80,6 +80,7 @@ set(HEADERS
 
     include/public/kengine/vulkan/renderpass/RenderPass.hpp
     include/public/kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp
+    include/public/kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp
 )
 
 set(SOURCES
@@ -141,6 +142,7 @@ set(SOURCES
 
     src/vulkan/renderpass/RenderPass.cpp
     src/vulkan/renderpass/DeferredPbrRenderPass.cpp
+    src/vulkan/renderpass/CascadeShadowMapRenderPass.cpp
 )
 
 target_sources(engine 
