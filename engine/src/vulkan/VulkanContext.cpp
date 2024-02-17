@@ -50,6 +50,9 @@ void VulkanContext::init(Window& window, bool validationOn) {
     descSetLayoutCache = std::make_unique<DescriptorSetLayoutCache>(*this);
 
     renderPasses = renderPassCreator(vkDevice, colorFormatAndSpace);
+    for (auto& rp : renderPasses)
+        rp->init(*this);
+
     swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
 
     swapchainCreator.init(window);

@@ -11,11 +11,19 @@ VkFramebuffer CascadeShadowMapRenderTarget::createFramebuffer(RenderPass& render
         return nullptr;
 }
 
-
 void CascadeShadowMapRenderPass::init(VulkanContext& vkCtx) {
     RenderPass::init(vkCtx);
 
     createRenderTargets(vkCtx.getVmaAllocator(), {}, glm::uvec2(4096));
+}
+
+void CascadeShadowMapRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView> sharedImageViews, const glm::uvec2 extents) {
+    setDepthStencil(createDepthStencil(vmaAllocator, extents));
+    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+        auto fb = std::make_unique<CascadeShadowMapRenderTarget>(vkDevice, *getDepthStencil(), i);
+        fb->init(*this, vmaAllocator, {}, extents);
+        addRenderTarget(std::move(fb));
+    }
 }
 
 // render pass
@@ -36,13 +44,4 @@ VkRenderPass CascadeShadowMapRenderPass::createVkRenderPass() {
 std::unique_ptr<GpuImageView> CascadeShadowMapRenderPass::createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2 extents) {
     lol
         return nullptr;
-}
-
-void CascadeShadowMapRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView> sharedImageViews, const glm::uvec2 extents) {
-    setDepthStencil(createDepthStencil(vmaAllocator, extents));
-    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
-        auto fb = std::make_unique<CascadeShadowMapRenderTarget>(vkDevice, *getDepthStencil(), i);
-        fb->init(*this, vmaAllocator, {}, extents);
-        addRenderTarget(std::move(fb));
-    }
 }
