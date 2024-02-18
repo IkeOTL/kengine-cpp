@@ -65,7 +65,7 @@ VkPipelineLayout DeferredCompositionPbrPipeline::createPipelineLayout(VulkanCont
     return pipelineLayout;
 }
 
-VkPipeline DeferredCompositionPbrPipeline::createPipeline(VkDevice device, RenderPass& renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
+VkPipeline DeferredCompositionPbrPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
     loadShader(device, "res/src/deferred/pbr/composition.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
     loadShader(device, "res/src/deferred/pbr/composition.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
@@ -151,7 +151,7 @@ VkPipeline DeferredCompositionPbrPipeline::createPipeline(VkDevice device, Rende
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDepthStencilState = &depthStencilState;
     pipelineInfo.pDynamicState = &dynamicState;
-    pipelineInfo.renderPass = renderPass.getVkRenderPass();
+    pipelineInfo.renderPass = renderPass->getVkRenderPass();
     pipelineInfo.subpass = 1;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 

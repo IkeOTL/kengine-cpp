@@ -7,7 +7,7 @@ const DescriptorSetLayoutConfig& Pipeline::getDescSetLayoutConfig(int i) const {
     return descSetLayoutConfigs[i];
 }
 
-void Pipeline::init(VulkanContext& vkContext, RenderPass& renderPass, DescriptorSetLayoutCache& layoutCache, glm::uvec2 extents) {
+void Pipeline::init(VulkanContext& vkContext, RenderPass* renderPass, DescriptorSetLayoutCache& layoutCache, glm::uvec2 extents) {
     loadDescriptorSetLayoutConfigs(descSetLayoutConfigs);
     vkPipelineLayout = createPipelineLayout(vkContext, layoutCache);
     vkPipeline = createPipeline(vkContext.getVkDevice(), renderPass, vkPipelineLayout, extents);

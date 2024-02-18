@@ -1,4 +1,6 @@
 #pragma once
+#include <kengine/vulkan/VulkanContext.hpp>
+#include <kengine/vulkan/mesh/Mesh.hpp>
 #include <vector>
 #include <memory>
 
@@ -7,17 +9,21 @@ class Mesh;
 class Vertex;
 
 class IndexBuffer : public GpuUploadable {
+private:
     std::vector<uint32_t>& indices;
 
-    IndexBuffer(std::vector<uint32_t>& indices) :indices(indices) {}
+public:
+    IndexBuffer(std::vector<uint32_t>& indices) : indices(indices) {}
 
     void upload(VulkanContext& vkCxt, void* data) override;
     VkDeviceSize size() override;
 };
 
 class VertexBuffer : public GpuUploadable {
+private:
     std::vector<std::unique_ptr<Vertex>>& vertices;
 
+public:
     VertexBuffer(std::vector<std::unique_ptr<Vertex>>& vertices) : vertices(vertices) {}
 
     void upload(VulkanContext& vkCxt, void* data) override;

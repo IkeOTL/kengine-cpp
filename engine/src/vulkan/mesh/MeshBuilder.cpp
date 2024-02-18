@@ -1,7 +1,8 @@
 #include <kengine/vulkan/mesh/MeshBuilder.hpp>
-#include <kengine/vulkan/VulkanContext.hpp>
-#include <kengine/vulkan/mesh/Mesh.hpp>
 #include <kengine/vulkan/mesh/Vertex.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/geometric.hpp>
 
 void IndexBuffer::upload(VulkanContext& vkCxt, void* data) {
     memcpy(data, indices.data(), size());
@@ -17,6 +18,8 @@ void VertexBuffer::upload(VulkanContext& vkCxt, void* data) {
 
 VkDeviceSize VertexBuffer::size() {
     // assume entire vector is of same vertex type
+    // maybe create a funiction that accounts for vertex attributes 
+    // incase this is ever completely empty
     return vertices[0]->sizeOf() * vertices.size();
 }
 
@@ -54,7 +57,6 @@ void MeshBuilder::pushTriangle(int i1, int i2, int i3) {
     indices.push_back(i3);
 }
 
-
 std::unique_ptr<Mesh> MeshBuilder::build(VulkanContext* vkContext, bool generateNormals, bool generateTangents) {
     if (generateNormals)
         calculateNormals();
@@ -64,7 +66,7 @@ std::unique_ptr<Mesh> MeshBuilder::build(VulkanContext* vkContext, bool generate
 
     // used in systems that dont render, like servers
     if (!vkContext) {
-        auto meshData = std::make_unique<MeshData>(std::move(vertices), getIndexCount(), getVertexCount());
+        auto meshData = std::make_unique<MeshData>(std::move(vertices), getVertexAttributes(), getIndexCount(), getVertexCount());
         return std::make_unique<Mesh>(std::move(meshData), nullptr, nullptr);
     }
 
@@ -75,7 +77,7 @@ std::unique_ptr<Mesh> MeshBuilder::build(VulkanContext* vkContext, bool generate
         VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR, VK_ACCESS_2_INDEX_READ_BIT,
         VK_BUFFER_USAGE_INDEX_BUFFER_BIT, xferFlag, nullptr);
 
-    auto vertBuffer = std::make_unique<VertexBuffer>(getVertexAttributes(), vertices);
+    auto vertBuffer = std::make_unique<VertexBuffer>(vertices);
     vkContext->uploadBuffer(*vertBuffer,
         VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR, VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT,
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, xferFlag, nullptr);
@@ -87,68 +89,65 @@ std::unique_ptr<Mesh> MeshBuilder::build(VulkanContext* vkContext, bool generate
 
 
 void MeshBuilder::calculateNormals() {
-    Vector3f p1 = new Vector3f();
-    Vector3f p2 = new Vector3f();
-    Vector3f p3 = new Vector3f();
-    Vector3f u = new Vector3f();
-    Vector3f v = new Vector3f();
+    glm::vec3 p1{};
+    glm::vec3 p2{};
+    glm::vec3 p3{};
+    glm::vec3 u{};
+    glm::vec3 v{};
 
-    for (int i = 0; i < indices.size(); i += 3) {
-        int index1 = indices.get(i);
-        int index2 = indices.get(i + 1);
-        int index3 = indices.get(i + 2);
+    for (auto i = 0; i < indices.size(); i += 3) {
+        auto index1 = indices[i];
+        auto index2 = indices[i + 1];
+        auto index3 = indices[i + 2];
 
-        p1.set(vertices.get(index1).getPosition());
-        p2.set(vertices.get(index2).getPosition());
-        p3.set(vertices.get(index3).getPosition());
+        p1 = vertices[index1]->getPosition();
+        p2 = vertices[index2]->getPosition();
+        p3 = vertices[index3]->getPosition();
 
-        u.set(p2).sub(p1);
-        v.set(p3).sub(p1);
-        u.cross(v);
+        u = p2 - p1;
+        v = p3 - p1;
+        u = glm::cross(u, v);
 
-        vertices.get(index1).getNormal().add(u);
-        vertices.get(index2).getNormal().add(u);
-        vertices.get(index3).getNormal().add(u);
+        *vertices[index1]->getNormal() += u;
+        *vertices[index2]->getNormal() += u;
+        *vertices[index3]->getNormal() += u;
     }
 
-    for (var verts : vertices) {
-        verts.getNormal().normalize();
-    }
+    for (auto& vert : vertices)
+        vert->setNormal(glm::normalize(*vert->getNormal()));
 }
 
 void MeshBuilder::calculateTangents() {
-    var tangent = new Vector4f(0, 0, 0, 0);
-    var edge1 = new Vector3f();
-    var edge2 = new Vector3f();
-    for (var i = 0; i < indices.size(); i += 3) {
-        var i0 = indices.get(i);
-        var i1 = indices.get(i + 1);
-        var i2 = indices.get(i + 2);
+    glm::vec4 tangent{};
+    glm::vec3 edge1{};
+    glm::vec3 edge2{};
+    for (auto i = 0; i < indices.size(); i += 3) {
+        auto i0 = indices[i];
+        auto i1 = indices[i + 1];
+        auto i2 = indices[i + 2];
 
-        edge1.set(vertices.get(i1).getPosition()).sub(vertices.get(i0).getPosition());
-        edge2.set(vertices.get(i2).getPosition()).sub(vertices.get(i0).getPosition());
 
-        var deltaU1 = vertices.get(i1).getTexCoords().x - vertices.get(i0).getTexCoords().x;
-        var deltaV1 = vertices.get(i1).getTexCoords().y - vertices.get(i0).getTexCoords().y;
-        var deltaU2 = vertices.get(i2).getTexCoords().x - vertices.get(i0).getTexCoords().x;
-        var deltaV2 = vertices.get(i2).getTexCoords().y - vertices.get(i0).getTexCoords().y;
+        edge1 = vertices[i1]->getPosition() - vertices[i0]->getPosition();
+        edge2 = vertices[i2]->getPosition() - vertices[i0]->getPosition();
 
-        var dividend = (deltaU1 * deltaV2 - deltaU2 * deltaV1);
+        auto deltaU1 = vertices[i1]->getTexCoords()->x - vertices[i0]->getTexCoords()->x;
+        auto deltaV1 = vertices[i1]->getTexCoords()->y - vertices[i0]->getTexCoords()->y;
+        auto deltaU2 = vertices[i2]->getTexCoords()->x - vertices[i0]->getTexCoords()->x;
+        auto deltaV2 = vertices[i2]->getTexCoords()->y - vertices[i0]->getTexCoords()->y;
 
-        var f = dividend == 0 ? 0.0f : 1.0f / dividend;
+        auto dividend = deltaU1 * deltaV2 - deltaU2 * deltaV1;
 
-        tangent.set(
-            f * (deltaV2 * edge1.x - deltaV1 * edge2.x),
-            f * (deltaV2 * edge1.y - deltaV1 * edge2.y),
-            f * (deltaV2 * edge1.z - deltaV1 * edge2.z)
-        );
+        auto f = dividend == 0 ? 0.0f : 1.0f / dividend;
 
-        vertices.get(i0).getTangent().add(tangent);
-        vertices.get(i1).getTangent().add(tangent);
-        vertices.get(i2).getTangent().add(tangent);
+        tangent.x = f * (deltaV2 * edge1.x - deltaV1 * edge2.x);
+        tangent.y = f * (deltaV2 * edge1.y - deltaV1 * edge2.y);
+        tangent.z = f * (deltaV2 * edge1.z - deltaV1 * edge2.z);
+
+        *vertices[i0]->getTangent() += tangent;
+        *vertices[i1]->getTangent() += tangent;
+        *vertices[i2]->getTangent() += tangent;
     }
 
-    for (var vertices1 : vertices) {
-        vertices1.getTangent().normalize();
-    }
+    for (auto& vert : vertices)
+        vert->setTangent(glm::normalize(*vert->getTangent()));
 }

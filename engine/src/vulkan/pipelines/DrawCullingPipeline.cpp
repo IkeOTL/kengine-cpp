@@ -63,7 +63,7 @@ VkPipelineLayout DrawCullingPipeline::createPipelineLayout(VulkanContext& vkCont
     return pipelineLayout;
 }
 
-VkPipeline DrawCullingPipeline::createPipeline(VkDevice device, RenderPass& renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
+VkPipeline DrawCullingPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
     loadShader(device, "res/src/deferred/object-cull.comp.spv", VK_SHADER_STAGE_COMPUTE_BIT, shaderStagesCreateInfo);
 

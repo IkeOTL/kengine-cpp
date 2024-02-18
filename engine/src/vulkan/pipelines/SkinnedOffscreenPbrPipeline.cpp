@@ -68,7 +68,7 @@ VkPipelineLayout SkinnedOffscreenPbrPipeline::createPipelineLayout(VulkanContext
     return pipelineLayout;
 }
 
-VkPipeline SkinnedOffscreenPbrPipeline::createPipeline(VkDevice device, RenderPass& renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
+VkPipeline SkinnedOffscreenPbrPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
     loadShader(device, "res/src/deferred/skinned.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
     loadShader(device, "res/src/deferred/gbuffer.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
@@ -163,7 +163,7 @@ VkPipeline SkinnedOffscreenPbrPipeline::createPipeline(VkDevice device, RenderPa
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDepthStencilState = &depthStencilState;
     pipelineInfo.pDynamicState = &dynamicState;
-    pipelineInfo.renderPass = renderPass.getVkRenderPass();
+    pipelineInfo.renderPass = renderPass->getVkRenderPass();
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 

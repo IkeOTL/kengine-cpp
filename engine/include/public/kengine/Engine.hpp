@@ -8,7 +8,7 @@
 class Engine {
 
 public:
-    Engine(VulkanContext::RenderPassCreator&& rpc, SwapchainCreator::OnSwapchainCreate&& scc);
+    Engine(VulkanContext::RenderPassCreator&& rpc, VulkanContext::PipelineCacheCreator&& pcc, SwapchainCreator::OnSwapchainCreate&& scc);
     ~Engine();
     void run();
 

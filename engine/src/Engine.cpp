@@ -8,8 +8,8 @@
 std::unique_ptr<ExecutorService> Engine::threadPool;
 //std::once_flag Engine::initThreadPoolFlag;
 
-Engine::Engine(VulkanContext::RenderPassCreator&& rpc, SwapchainCreator::OnSwapchainCreate&& scc)
-    : vulkanCxt(std::move(rpc), std::move(scc)), window("Lolol", 1920, 1080) {}
+Engine::Engine(VulkanContext::RenderPassCreator&& rpc, VulkanContext::PipelineCacheCreator&& pcc, SwapchainCreator::OnSwapchainCreate&& scc)
+    : vulkanCxt(std::move(rpc), std::move(pcc), std::move(scc)), window("Lolol", 1920, 1080) {}
 
 void Engine::run() {
     initThreadPool();

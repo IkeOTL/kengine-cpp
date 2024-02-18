@@ -31,8 +31,8 @@ struct Vertex {
     virtual void setBlendIndex(glm::uvec4 v) {}
     virtual void setBlendWeight(glm::vec4 v) {}
 
-    virtual glm::vec3* getPosition() {
-        return &position;
+    virtual glm::vec3& getPosition() {
+        return position;
     }
 
     virtual glm::vec3* getNormal() {

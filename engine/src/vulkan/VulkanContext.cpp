@@ -10,8 +10,8 @@
 #include <algorithm>
 #include <mutex>
 
-VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
-    : renderPassCreator(std::move(renderPassCreator)),
+VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
+    : renderPassCreator(std::move(renderPassCreator)), pipelineCacheCreator(std::move(pipelineCacheCreator)),
     swapchainCreator(SwapchainCreator(std::move(onSwapchainCreate))) {}
 
 VulkanContext::~VulkanContext() {
@@ -48,13 +48,14 @@ void VulkanContext::init(Window& window, bool validationOn) {
     frameSync = std::make_unique<FrameSyncObjects>();
     frameSync->init(vkDevice);
 
+    renderPasses = std::move(renderPassCreator(vkDevice, colorFormatAndSpace));
+    for (auto& rp : renderPasses)
+        rp->init(*this);
+
     samplerCache = std::make_unique<SamplerCache>(*this);
     gpuBufferCache = std::make_unique<GpuBufferCache>(*this);
     descSetLayoutCache = std::make_unique<DescriptorSetLayoutCache>(*this);
-
-    renderPasses = renderPassCreator(vkDevice, colorFormatAndSpace);
-    for (auto& rp : renderPasses)
-        rp->init(*this);
+    pipelineCache = std::move(pipelineCacheCreator(*this, renderPasses));
 
     swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
 
@@ -133,9 +134,9 @@ void VulkanContext::renderBegin(RenderFrameContext& cxt) {
 }
 
 void VulkanContext::renderEnd(RenderFrameContext& cxt) {
-    
+
     {
-    
+
     }
 
     processFinishedFences();

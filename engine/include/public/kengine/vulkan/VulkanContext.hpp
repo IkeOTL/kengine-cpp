@@ -83,10 +83,11 @@ class VulkanContext {
 public:
     static const uint32_t FRAME_OVERLAP = 3;
 
-    using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>(VkDevice, ColorFormatAndSpace&)>;
+    using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>&&(VkDevice, ColorFormatAndSpace&)>;
+    using PipelineCacheCreator = std::function<std::unique_ptr<PipelineCache>(VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp)>;
     using CommandBufferRecordFunc = std::function<std::function<void()>(const CommandBuffer&)>;
 
-    VulkanContext(RenderPassCreator&& renderPassCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate);
+    VulkanContext(RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate);
     ~VulkanContext();
 
     VulkanContext(const VulkanContext&) = delete;
@@ -171,7 +172,7 @@ public:
     }
 
     PipelineCache& getPipelineCache() {
-        return pipelineCache;
+        return *pipelineCache;
     }
 
     DescriptorSetLayoutCache& getDescSetLayoutCache();
@@ -216,6 +217,7 @@ private:
     std::vector<std::unique_ptr<RenderPass>> renderPasses;
 
     RenderPassCreator renderPassCreator;
+    PipelineCacheCreator pipelineCacheCreator;
     SwapchainCreator swapchainCreator;
 
     std::unique_ptr<CommandPool> commandPool;
@@ -231,7 +233,7 @@ private:
     std::unique_ptr<GpuBufferCache> gpuBufferCache;
 
     std::unique_ptr<SamplerCache> samplerCache;
-    PipelineCache pipelineCache{};
+    std::unique_ptr<PipelineCache> pipelineCache;
     std::unique_ptr<DescriptorSetLayoutCache> descSetLayoutCache;
 
     uint64_t frameNumber = 0;

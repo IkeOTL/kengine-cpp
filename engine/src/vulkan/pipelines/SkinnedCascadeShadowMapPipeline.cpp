@@ -71,7 +71,7 @@ VkPipelineLayout SkinnedCascadeShadowMapPipeline::createPipelineLayout(VulkanCon
     return pipelineLayout;
 }
 
-VkPipeline SkinnedCascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass& renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
+VkPipeline SkinnedCascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
     loadShader(device, "res/src/deferred/cascade-shadow-skinned.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
     loadShader(device, "res/src/deferred/cascade-shadow.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
@@ -162,7 +162,7 @@ VkPipeline SkinnedCascadeShadowMapPipeline::createPipeline(VkDevice device, Rend
     pipelineInfo.pMultisampleState = &multisampleState;
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDepthStencilState = &depthStencilState;
-    pipelineInfo.renderPass = renderPass.getVkRenderPass();
+    pipelineInfo.renderPass = renderPass->getVkRenderPass();
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
