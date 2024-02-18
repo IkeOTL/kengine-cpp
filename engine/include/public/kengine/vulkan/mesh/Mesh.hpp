@@ -16,7 +16,7 @@ private:
     const std::vector<std::unique_ptr<Vertex>> vertices;
 
 public:
-    MeshData(std::vector<std::unique_ptr<Vertex>>&& vertices, int vertexAttributes, int indexCount, int vertexCount)
+    MeshData(std::vector<std::unique_ptr<Vertex>>&& vertices, int vertexAttributes, uint32_t indexCount, uint32_t vertexCount)
         : vertices(std::move(vertices)), vertexAttributes(vertexAttributes),
         indexCount(indexCount), vertexCount(vertexCount) {}
 

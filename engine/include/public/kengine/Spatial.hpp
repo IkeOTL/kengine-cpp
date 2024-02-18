@@ -38,7 +38,7 @@ public:
     void setChangeCb(std::function<void()>&& cb);
     Transform& getLocalTransform();
     void setLocalTransform(const Transform& t);
-    const Transform& getWorldTransform();
+    Transform& getWorldTransform();
     void forceUpdateTransform();
     void setLocalPosition(const glm::vec3& p);
     void setLocalScale(const glm::vec3& s);

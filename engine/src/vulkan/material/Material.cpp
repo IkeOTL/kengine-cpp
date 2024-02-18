@@ -8,6 +8,14 @@ Pipeline& Material::getPipeline() {
     return pipeline;
 }
 
+boolean Material::hasShadow() {
+    return config->hasShadow();
+}
+
+boolean Material::hasSkeleton() {
+    return config->hasSkeleton();
+}
+
 MaterialBinding& Material::getBinding(int descSetIdx, int bindingIdx) {
     auto it = materialBindings.find(descSetIdx);
 

@@ -53,6 +53,7 @@ set(HEADERS
     include/public/kengine/vulkan/LightsManager.hpp
 
     include/public/kengine/vulkan/mesh/Mesh.hpp
+    include/public/kengine/vulkan/mesh/MeshBuilder.hpp
     include/public/kengine/vulkan/mesh/Vertex.hpp
 
     include/public/kengine/vulkan/texture/AsyncTextureCache.hpp
@@ -123,6 +124,7 @@ set(SOURCES
     src/vulkan/texture/Texture2d.cpp
 
     src/vulkan/mesh/Mesh.cpp
+    src/vulkan/mesh/MeshBuilder.cpp
 
     src/vulkan/material/AsyncMaterialCache.cpp
     src/vulkan/material/Material.cpp

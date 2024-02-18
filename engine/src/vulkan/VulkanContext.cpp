@@ -489,12 +489,12 @@ void VulkanContext::submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfe
     vkQueueTransfers.push(qXfer);
 }
 
-void VulkanContext::uploadBuffer(GpuUploadable& obj, VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask,
+void VulkanContext::uploadBuffer(GpuUploadable& obj, const VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
     VkBufferUsageFlags usageFlags, std::function<void(VkCommandBuffer)> beforeSubmit) {
     uploadBuffer(obj, dstStageMask, dstAccessMask, usageFlags, 0, beforeSubmit);
 }
 
-void VulkanContext::uploadBuffer(GpuUploadable& obj, VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask,
+void VulkanContext::uploadBuffer(GpuUploadable& obj, const VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
     VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit) {
     // create staging buffer
     auto stagingBuf = createBuffer(

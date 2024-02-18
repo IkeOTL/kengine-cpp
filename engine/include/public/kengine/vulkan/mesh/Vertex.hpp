@@ -4,8 +4,21 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
+class VertexAttribute {
+public:
+    const static int POSITION = 1;
+    const static int NORMAL = 1 << 1;
+    const static int TEX_COORDS = 1 << 2;
+    const static int COLOR = 1 << 3;
+    const static int TANGENTS = 1 << 4;
+    const static int SKELETON = 1 << 5;
+    const static int POSITION_2D = 1 << 6;
+};
+
 struct Vertex {
     glm::vec3 position;
+
+    virtual ~Vertex() {}
 
     void setPosition(glm::vec3 v) {
         position = v;
@@ -45,6 +58,10 @@ struct Vertex {
     virtual glm::vec4* getBlendWeight() {
         return nullptr;
     }
+
+    virtual size_t sizeOf() {
+        return sizeof(*this);
+    }
 };
 
 struct SimpleTexturedVertex : Vertex {
@@ -57,6 +74,10 @@ struct SimpleTexturedVertex : Vertex {
     void setTexCoords(glm::vec2 v) override {
         texCoords = v;
     }
+
+    virtual size_t sizeOf() {
+        return sizeof(*this);
+    }
 };
 
 struct SimpleColoredVertex : Vertex {
@@ -68,6 +89,10 @@ struct SimpleColoredVertex : Vertex {
 
     void setColor(glm::vec3 v) override {
         color = v;
+    }
+
+    virtual size_t sizeOf() {
+        return sizeof(*this);
     }
 };
 
@@ -90,6 +115,10 @@ struct TexturedVertex : SimpleTexturedVertex {
     void setTangent(glm::vec4 v) override {
         tangent = v;
     }
+
+    virtual size_t sizeOf() {
+        return sizeof(*this);
+    }
 };
 
 struct ColoredVertex : SimpleColoredVertex {
@@ -110,6 +139,10 @@ struct ColoredVertex : SimpleColoredVertex {
 
     void setTangent(glm::vec4 v) override {
         tangent = v;
+    }
+
+    virtual size_t sizeOf() {
+        return sizeof(*this);
     }
 };
 
@@ -132,6 +165,10 @@ struct RiggedTexturedVertex : TexturedVertex {
     void setBlendWeight(glm::vec4 v) override {
         blendWeight = v;
     }
+
+    virtual size_t sizeOf() {
+        return sizeof(*this);
+    }
 };
 
 struct RiggedColoredVertex : ColoredVertex {
@@ -152,5 +189,9 @@ struct RiggedColoredVertex : ColoredVertex {
 
     void setBlendWeight(glm::vec4 v) override {
         blendWeight = v;
+    }
+
+    virtual size_t sizeOf() {
+        return sizeof(*this);
     }
 };

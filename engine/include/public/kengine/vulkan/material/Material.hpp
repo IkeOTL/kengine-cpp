@@ -27,6 +27,9 @@ public:
 
     Pipeline& getPipeline();
 
+    boolean hasShadow();
+    boolean hasSkeleton();
+
     MaterialBinding& getBinding(int descSetIdx, int bindingIdx);
     void addBinding(std::unique_ptr<MaterialBinding>&& binding);
     void upload(VulkanContext& vkCxt, CachedGpuBuffer& buf, int frameIdx);

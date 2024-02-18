@@ -88,7 +88,7 @@ public:
     void init();
 
     void addStaticInstance(Mesh& mesh, Material& material, glm::mat4 transform, glm::vec4 boundingSphere, boolean hasShadow);
-    int draw(Mesh& mesh, Material& material, glm::mat4 transform, glm::vec4 boundingSphere, boolean hasShadow, boolean hasSkeleton);
+    int draw(Mesh& mesh, Material& material, glm::mat4 transform, glm::vec4 boundingSphere);
     void begin(RenderFrameContext& frameCxt, float sceneTime, float alpha);
     void end();
 

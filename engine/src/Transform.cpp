@@ -1,7 +1,5 @@
 #include <kengine/Transform.hpp>
 
-
-
 void Transform::setDirty(bool isDirty) {
     dirty = isDirty;
 }

@@ -75,7 +75,7 @@ void Spatial::setLocalTransform(const Transform& t) {
     forceUpdateTransform();
 }
 
-const Transform& Spatial::getWorldTransform() {
+Transform& Spatial::getWorldTransform() {
     checkDoTransformUpdate();
     return worldTransform;
 }

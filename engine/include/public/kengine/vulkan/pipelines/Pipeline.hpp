@@ -9,7 +9,7 @@ class RenderPass;
 class DescriptorSetAllocator;
 class DescriptorSetLayoutCache;
 
-struct VertexAttribute {
+struct VertexFormatAttribute {
     uint32_t location;
     VkFormat format;
     size_t offset;
@@ -17,7 +17,7 @@ struct VertexAttribute {
 
 struct VertexFormatDescriptor {
     size_t stride;
-    std::vector<VertexAttribute> attributes;
+    std::vector<VertexFormatAttribute> attributes;
 };
 
 class Pipeline {

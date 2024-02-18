@@ -285,9 +285,12 @@ void RenderContext::addStaticInstance(Mesh& mesh, Material& material, glm::mat4 
     }
 }
 
-int RenderContext::draw(Mesh& mesh, Material& material, glm::mat4 transform, glm::vec4 boundingSphere, boolean hasShadow, boolean hasSkeleton) {
+int RenderContext::draw(Mesh& mesh, Material& material, glm::mat4 transform, glm::vec4 boundingSphere) {
     auto frameIdx = frameCxt->frameIndex;
     auto instanceIdx = staticInstances + dynamicInstances++;
+
+    auto hasShadow = material.hasShadow();
+    auto hasSkeleton = material.hasSkeleton();
 
     // upload model specific details
     {
@@ -304,6 +307,8 @@ int RenderContext::draw(Mesh& mesh, Material& material, glm::mat4 transform, glm
         auto pos = modelBufStartPos + (instanceIdx * sizeof(DrawObject));
         auto buf = static_cast<unsigned char*>(drawObjectBuf->getGpuBuffer().data());
         memcpy(buf + pos, &obj, sizeof(DrawObject));
+
+        // upload skeleton here instead?
     }
 
     auto objInstanceStartPos = (int)objectInstanceBuf->getFrameOffset(frameIdx);
