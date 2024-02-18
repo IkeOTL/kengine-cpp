@@ -36,7 +36,6 @@ public:
 };
 
 class Mesh {
-
 private:
     const std::unique_ptr<MeshData> meshData;
 

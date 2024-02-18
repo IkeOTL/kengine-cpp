@@ -22,6 +22,8 @@ set(HEADERS
     include/public/kengine/ExecutorService.hpp
     include/public/kengine/StateMachine.hpp
     include/public/kengine/Hashable.hpp
+    include/public/kengine/Transform.hpp
+    include/public/kengine/Spatial.hpp
     
     include/public/kengine/vulkan/VulkanContext.hpp
     include/public/kengine/vulkan/RenderContext.hpp
@@ -86,6 +88,8 @@ set(HEADERS
 set(SOURCES
     src/Engine.cpp
     src/Window.cpp
+    src/Transform.cpp
+    src/Spatial.cpp
     
     src/io/FlieSystemAssetIO.cpp
     src/io/MemoryMappedFile.cpp
