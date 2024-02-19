@@ -83,7 +83,7 @@ class VulkanContext {
 public:
     static const uint32_t FRAME_OVERLAP = 3;
 
-    using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>&&(VkDevice, ColorFormatAndSpace&)>;
+    using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>(VkDevice, ColorFormatAndSpace&)>;
     using PipelineCacheCreator = std::function<std::unique_ptr<PipelineCache>(VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp)>;
     using CommandBufferRecordFunc = std::function<std::function<void()>(const CommandBuffer&)>;
 

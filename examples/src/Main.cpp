@@ -8,6 +8,7 @@
 #include <kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/DrawCullingPipeline.hpp>
+#include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
 
 int main() {
     glm::mat4 Proj = glm::mat4();
@@ -23,10 +24,8 @@ int main() {
     Engine engine(
         [](VkDevice vkDevice, ColorFormatAndSpace& cfs) {
             std::vector<std::unique_ptr<RenderPass>> passes;
-
-            auto rp = std::make_unique<DeferredPbrRenderPass>(vkDevice, cfs);
-            passes.emplace_back(std::move(rp));
-
+            passes.push_back(std::move(std::make_unique<DeferredPbrRenderPass>(vkDevice, cfs)));
+            passes.push_back(std::move(std::make_unique<CascadeShadowMapRenderPass>(vkDevice, cfs)));
             return passes;
         },
         [](VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp) {

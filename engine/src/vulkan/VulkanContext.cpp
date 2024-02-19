@@ -48,14 +48,7 @@ void VulkanContext::init(Window& window, bool validationOn) {
     frameSync = std::make_unique<FrameSyncObjects>();
     frameSync->init(vkDevice);
 
-    renderPasses = std::move(renderPassCreator(vkDevice, colorFormatAndSpace));
-    for (auto& rp : renderPasses)
-        rp->init(*this);
 
-    samplerCache = std::make_unique<SamplerCache>(*this);
-    gpuBufferCache = std::make_unique<GpuBufferCache>(*this);
-    descSetLayoutCache = std::make_unique<DescriptorSetLayoutCache>(*this);
-    pipelineCache = std::move(pipelineCacheCreator(*this, renderPasses));
 
     swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
 
@@ -66,6 +59,15 @@ void VulkanContext::init(Window& window, bool validationOn) {
     commandPool->initThread(*this);
     for (auto i = 0; i < FRAME_OVERLAP; i++)
         frameCmdBufs.push_back(commandPool->createGraphicsCmdBuf());
+
+    renderPasses = std::move(renderPassCreator(vkDevice, colorFormatAndSpace));
+    for (auto& rp : renderPasses)
+        rp->init(*this);
+
+    samplerCache = std::make_unique<SamplerCache>(*this);
+    gpuBufferCache = std::make_unique<GpuBufferCache>(*this);
+    descSetLayoutCache = std::make_unique<DescriptorSetLayoutCache>(*this);
+    pipelineCache = pipelineCacheCreator(*this, renderPasses);
 }
 
 /// <summary>

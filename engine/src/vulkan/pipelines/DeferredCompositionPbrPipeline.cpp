@@ -10,7 +10,7 @@
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 #include <kengine/vulkan/ShadowCascade.hpp>
 
-DescriptorSetLayoutConfig compositionLayout = {
+const DescriptorSetLayoutConfig DeferredCompositionPbrPipeline::compositionLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT },
     DescriptorSetLayoutBindingConfig{ 1, 1, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT },
     DescriptorSetLayoutBindingConfig{ 2, 1, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT },

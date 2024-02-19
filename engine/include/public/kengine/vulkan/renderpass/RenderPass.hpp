@@ -108,7 +108,7 @@ protected:
         return depthStencilImageView.get();
     }
 
-    const void setDepthStencil(std::unique_ptr<GpuImageView> ds) {
+    const void setDepthStencil(std::unique_ptr<GpuImageView>&& ds) {
         depthStencilImageView = std::move(ds);
     }
 

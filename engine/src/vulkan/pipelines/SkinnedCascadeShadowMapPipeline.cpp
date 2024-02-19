@@ -10,7 +10,7 @@
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 #include <kengine/vulkan/ShadowCascade.hpp>
 
-DescriptorSetLayoutConfig skinnedSingleTextureLayout = {
+const DescriptorSetLayoutConfig SkinnedCascadeShadowMapPipeline::skinnedSingleTextureLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },
     DescriptorSetLayoutBindingConfig{ 1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT }
 };

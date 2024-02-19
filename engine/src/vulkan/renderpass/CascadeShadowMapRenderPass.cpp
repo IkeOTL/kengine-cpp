@@ -152,13 +152,13 @@ std::unique_ptr<GpuImageView> CascadeShadowMapRenderPass::createDepthStencil(Vma
     VKCHECK(vmaCreateImage(vmaAllocator, &imageCreateInfo, &allocCreateInfo, &vkImage, &vmaImageAllocation, &allocationInfo),
         "Failed to create depth-stencil image");
 
-    auto depthImage = std::make_shared<GpuImage>(GpuImage{
-            getVkDevice(),
-            vmaAllocator,
-            vkImage,
-            vmaImageAllocation,
-            imageCreateInfo
-        });
+    auto depthImage = std::make_shared<GpuImage>(
+        getVkDevice(),
+        vmaAllocator,
+        vkImage,
+        vmaImageAllocation,
+        imageCreateInfo
+    );
 
     VkImageViewCreateInfo depthViewCreateInfo{};
     depthViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -175,9 +175,9 @@ std::unique_ptr<GpuImageView> CascadeShadowMapRenderPass::createDepthStencil(Vma
     VKCHECK(vkCreateImageView(vkDevice, &depthViewCreateInfo, nullptr, &depthImageView),
         "Failed to create depth-stencil image view");
 
-    return std::make_unique<GpuImageView>(GpuImageView{
-            depthImage,
-            depthImageView,
-            depthViewCreateInfo
-        });
+    return std::make_unique<GpuImageView>(
+        depthImage,
+        depthImageView,
+        depthViewCreateInfo
+    );
 }

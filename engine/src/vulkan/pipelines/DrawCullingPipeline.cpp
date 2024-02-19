@@ -4,7 +4,7 @@
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
 
-DescriptorSetLayoutConfig cullingLayout = {
+const DescriptorSetLayoutConfig DrawCullingPipeline::cullingLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_COMPUTE_BIT },
     DescriptorSetLayoutBindingConfig{ 1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_COMPUTE_BIT },
     DescriptorSetLayoutBindingConfig{ 2, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_COMPUTE_BIT },

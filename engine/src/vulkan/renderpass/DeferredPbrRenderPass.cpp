@@ -70,13 +70,13 @@ std::unique_ptr<GpuImageView>&& DeferredPbrRenderTarget::createAttachmentImage(V
     VKCHECK(vmaCreateImage(vmaAllocator, &imageCreateInfo, &allocCreateInfo, &vkImage, &allocation, &allocationInfo),
         "Failed to create image");
 
-    auto gpuImage = std::make_shared<GpuImage>(GpuImage{
-            vkDevice,
-            vmaAllocator,
-            vkImage,
-            allocation,
-            imageCreateInfo
-        });
+    auto gpuImage = std::make_shared<GpuImage>(
+        vkDevice,
+        vmaAllocator,
+        vkImage,
+        allocation,
+        imageCreateInfo
+    );
 
     VkImageViewCreateInfo viewCreateInfo{};
     viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -93,11 +93,11 @@ std::unique_ptr<GpuImageView>&& DeferredPbrRenderTarget::createAttachmentImage(V
     VKCHECK(vkCreateImageView(vkDevice, &viewCreateInfo, nullptr, &vkImageView),
         "Failed to create image view");
 
-    return std::make_unique<GpuImageView>(GpuImageView{
-            gpuImage,
-            vkImageView,
-            viewCreateInfo
-        });
+    return std::make_unique<GpuImageView>(
+        gpuImage,
+        vkImageView,
+        viewCreateInfo
+    );
 }
 
 const GpuImageView& DeferredPbrRenderTarget::getAlbedoImage() const {

@@ -9,7 +9,7 @@
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 #include <kengine/vulkan/SceneData.hpp>
 
-DescriptorSetLayoutConfig pbrSkinnedTextureLayout = {
+const DescriptorSetLayoutConfig SkinnedOffscreenPbrPipeline::pbrSkinnedTextureLayout = {
     DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },
     DescriptorSetLayoutBindingConfig{ 1, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },
     DescriptorSetLayoutBindingConfig{ 2, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },

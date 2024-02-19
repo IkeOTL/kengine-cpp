@@ -44,13 +44,13 @@ void Texture2d::init(VulkanContext& vkCxt, const unsigned char* image, uint32_t 
     VmaAllocation imageAllocation;
     vmaCreateImage(vkCxt.getVmaAllocator(), &imgCreateInfo, &allocImgInfo, &imageHandle, &imageAllocation, nullptr);
 
-    gpuImage = std::make_shared<GpuImage>(GpuImage{
-          vkCxt.getVkDevice(),
-          vkCxt.getVmaAllocator(),
-          imageHandle,
-          imageAllocation,
-          imgCreateInfo
-        });
+    gpuImage = std::make_shared<GpuImage>(
+        vkCxt.getVkDevice(),
+        vkCxt.getVmaAllocator(),
+        imageHandle,
+        imageAllocation,
+        imgCreateInfo
+    );
 
     // Transition image to transfer-receiver
     std::shared_ptr<GpuBuffer> sStagingBuf = std::move(stagingBuffer);
@@ -100,9 +100,9 @@ void Texture2d::init(VulkanContext& vkCxt, const unsigned char* image, uint32_t 
     VKCHECK(vkCreateImageView(vkCxt.getVkDevice(), &viewCreateInfo, nullptr, &imageView),
         "Failed to create image view");
 
-    gpuImageView = std::make_unique<GpuImageView>(GpuImageView{
-           gpuImage,
-           imageView,
-           viewCreateInfo
-        });
+    gpuImageView = std::make_unique<GpuImageView>(
+        gpuImage,
+        imageView,
+        viewCreateInfo
+    );
 }
