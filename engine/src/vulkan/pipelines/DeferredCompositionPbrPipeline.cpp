@@ -67,32 +67,29 @@ VkPipelineLayout DeferredCompositionPbrPipeline::createPipelineLayout(VulkanCont
 
 VkPipeline DeferredCompositionPbrPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
-    loadShader(device, "res/src/deferred/pbr/composition.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
-    loadShader(device, "res/src/deferred/pbr/composition.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
+    loadShader(device, "res/src/composition.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
+    loadShader(device, "res/src/composition.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
 
     // specialization
-    {
-        VkSpecializationMapEntry specializationEntry{};
-        specializationEntry.constantID = 0;
-        specializationEntry.offset = 0;
-        specializationEntry.size = sizeof(int32_t);
+    VkSpecializationMapEntry specializationEntry{};
+    specializationEntry.constantID = 0;
+    specializationEntry.offset = 0;
+    specializationEntry.size = sizeof(int32_t);
 
-        VkSpecializationInfo specializationInfo{};
-        specializationInfo.mapEntryCount = 1;
-        specializationInfo.pMapEntries = &specializationEntry;
-        specializationInfo.dataSize = sizeof(LightsManager::MAX_LIGHTS);
-        specializationInfo.pData = &LightsManager::MAX_LIGHTS;
+    VkSpecializationInfo specializationInfo{};
+    specializationInfo.mapEntryCount = 1;
+    specializationInfo.pMapEntries = &specializationEntry;
+    specializationInfo.dataSize = sizeof(LightsManager::MAX_LIGHTS);
+    specializationInfo.pData = &LightsManager::MAX_LIGHTS;
 
-        shaderStagesCreateInfo[1].pSpecializationInfo = &specializationInfo;
-    }
+    shaderStagesCreateInfo[1].pSpecializationInfo = &specializationInfo;
+
 
     VkPipelineDynamicStateCreateInfo dynamicState{};
-    {
-        std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
-        dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-        dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-        dynamicState.pDynamicStates = dynamicStates.data();
-    }
+    std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
 
     VkPipelineViewportStateCreateInfo viewportState{};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
