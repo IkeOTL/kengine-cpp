@@ -83,6 +83,14 @@ public:
         return *renderTargets[idx];
     }
 
+    void freeRenderTargets();
+
+    virtual void createRenderTargets(
+        VmaAllocator vmaAllocator,
+        const std::vector<VkImageView> sharedImageViews,
+        const glm::uvec2 extents
+    ) = 0;
+
 private:
     VkRenderPass vkRenderPass = VK_NULL_HANDLE;
     std::vector<std::unique_ptr<RenderTarget>> renderTargets;
@@ -112,16 +120,8 @@ protected:
         depthStencilImageView = std::move(ds);
     }
 
-    void freeRenderTargets();
-
     virtual VkRenderPass createVkRenderPass() = 0;
     virtual std::unique_ptr<GpuImageView> createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2 extents) {
         throw std::runtime_error("createDepthStencil is not implemented.");
     }
-
-    virtual void createRenderTargets(
-        VmaAllocator vmaAllocator,
-        const std::vector<VkImageView> sharedImageViews,
-        const glm::uvec2 extents
-    ) = 0;
 };

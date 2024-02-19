@@ -22,6 +22,10 @@ public:
         return imageExtents;
     }
 
+    const std::vector<VkImageView>& getImageViews() const {
+        return vkImageViews;
+    }
+
 private:
     const VkDevice vkDevice;
     VkSwapchainKHR vkSwapchain = VK_NULL_HANDLE;

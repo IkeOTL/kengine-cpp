@@ -48,8 +48,6 @@ void VulkanContext::init(Window& window, bool validationOn) {
     frameSync = std::make_unique<FrameSyncObjects>();
     frameSync->init(vkDevice);
 
-
-
     swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
 
     swapchainCreator.init(window);
