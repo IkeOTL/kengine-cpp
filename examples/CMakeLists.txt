@@ -1,4 +1,4 @@
-add_executable(example src/Main.cpp)
+add_executable(example)
 
 #include(CheckCXXCompilerFlag)
 #check_cxx_compiler_flag(-fsanitize=address HAS_ASAN)
@@ -9,8 +9,28 @@ add_executable(example src/Main.cpp)
 #    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fsanitize=address")
 #endif()
 
-#target_sources(example PRIVATE
-#    src/Main.cpp
-#)
+set(HEADERS
+    include/public/kengine/game/MainGameState.hpp
+)
+
+set(SOURCES
+    src/Main.cpp
+    src/MainGameState.cpp
+)
+
+target_sources(example 
+    PRIVATE
+        ${HEADERS}
+        ${SOURCES}
+)
+
+source_group(
+    TREE ${CMAKE_CURRENT_SOURCE_DIR}
+    FILES ${HEADERS} ${SOURCES}
+)
+
+target_include_directories(engine PUBLIC include/public)
+target_include_directories(engine PRIVATE include/private)
+target_include_directories(engine PRIVATE include/thirdparty)
 
 target_link_libraries(example PRIVATE engine)
