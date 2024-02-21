@@ -3,32 +3,31 @@
 
 template <typename E>
 class State {
-
 public:
-    virtual State<E> init() = 0;
-    virtual void enter(const E& parent) = 0;
-    virtual void update(const E& parent) = 0;
-    virtual void exit(const E& parent) = 0;
+    virtual void init() = 0;
+    virtual void enter(E& parent) = 0;
+    virtual void update(E& parent) = 0;
+    virtual void exit(E& parent) = 0;
 
 };
 
 template <typename E>
 class StateMachine {
 
-protected:
-    const E& parent;
+private:
+    E& parent;
     State<E>* globalState;
     State<E>* currentState;
     State<E>* previousState;
 
 public:
-    StateMachine(const E& parent, State<E>* globalState, State<E>* currentState, State<E>* previousState)
+    StateMachine(E& parent, State<E>* globalState, State<E>* currentState, State<E>* previousState)
         : parent(parent),
         globalState(globalState),
         currentState(currentState),
         previousState(previousState) {}
 
-    StateMachine(const E& parent)
+    StateMachine(E& parent)
         : parent(parent) {}
 
     State<E>* getCurrentState() {

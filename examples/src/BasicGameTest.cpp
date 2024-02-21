@@ -10,8 +10,14 @@
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/DrawCullingPipeline.hpp>
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
+#include<kengine/game/MainGameState.hpp>
 #include <kengine/Window.hpp>
 #include <kengine/math.hpp>
+#include <kengine/io/AssetIO.hpp>
+#include <kengine/vulkan/GpuBufferCache.hpp>
+#include <kengine/vulkan/LightsManager.hpp>
+#include <kengine/vulkan/Camera.hpp>
+#include <kengine/vulkan/CameraController.hpp>
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
@@ -57,6 +63,12 @@ std::unique_ptr<State<BasicGameTest>> BasicGameTest::init() {
     threadPool.reset(new ExecutorService(4, [&]() {
         vulkanCxt->getCommandPool()->initThread(*vulkanCxt);
         }));
+
+    assetIo = std::make_unique<FileSystemAssetIO>();
+    bufCache = std::make_unique<GpuBufferCache>(*vulkanCxt);
+    lightsManager = std::make_unique<LightManager>(*vulkanCxt);
+
+    auto gameState = std::make_unique<MainGameState>(*threadPool, *window, *vulkanCxt);
 
     return std::unique_ptr<State<BasicGameTest>>();
 }
@@ -105,6 +117,18 @@ void BasicGameTest::initVulkan() {
         }
     );
 
-
     vulkanCxt->init(*window, true);
+}
+
+void BasicGameTest::initCamera() {
+    auto fov = (float)Math.toRadians(60f);
+    auto aspectRatio = (float)window.getWidth() / window.getHeight();
+    auto camera = new Camera(fov, aspectRatio, Camera.NEAR, Camera.FAR);
+    camera.getPosition().set(6, 10, 6);
+    camera.getRotation()
+        .rotateAxis((float)Math.toRadians(55), new Vector3f(1, 0, 0))
+        .rotateAxis((float)Math.toRadians(-45), new Vector3f(0, 1, 0));
+
+    cameraController = std::make_unique<CameraController>();
+    cameraController->setCamer
 }
