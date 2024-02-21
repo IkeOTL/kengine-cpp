@@ -407,12 +407,12 @@ void VulkanContext::createVmaAllocator() {
 }
 
 VkDeviceSize VulkanContext::alignUboFrame(VkDeviceSize baseFrameSize) const {
-    auto minSsboAlignment = vkPhysicalDeviceProps.properties.limits.minStorageBufferOffsetAlignment;
+    auto minUboAlignment = vkPhysicalDeviceProps.properties.limits.minUniformBufferOffsetAlignment;
 
-    if (minSsboAlignment <= 0)
+    if (minUboAlignment <= 0)
         return baseFrameSize;
 
-    return (baseFrameSize + minSsboAlignment - 1) & ~(minSsboAlignment - 1);
+    return (baseFrameSize + minUboAlignment - 1) & ~(minUboAlignment - 1);
 }
 
 VkDeviceSize VulkanContext::alignSsboFrame(VkDeviceSize baseFrameSize) const {

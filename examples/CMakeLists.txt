@@ -10,11 +10,14 @@ add_executable(example)
 #endif()
 
 set(HEADERS
+    include/public/kengine/game/Game.hpp
+    include/public/kengine/game/BasicGameTest.hpp
     include/public/kengine/game/MainGameState.hpp
 )
 
 set(SOURCES
     src/Main.cpp
+    src/BasicGameTest.cpp
     src/MainGameState.cpp
 )
 

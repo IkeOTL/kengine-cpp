@@ -1,5 +1,7 @@
 #pragma once
+#include <kengine/StateMachine.hpp>
+#include <kengine/game/Game.hpp>
 
-class MainGameState {
+class MainGameState : State<Game> {
 
 };

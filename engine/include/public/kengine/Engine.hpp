@@ -26,6 +26,6 @@ private:
     //static std::once_flag initThreadPoolFlag;
 
     static void initThreadPool() {
-        threadPool.reset(new ExecutorService(4));
+        threadPool.reset(new ExecutorService(4, []() {}));
     }
 };

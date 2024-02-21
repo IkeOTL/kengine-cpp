@@ -13,12 +13,13 @@ private:
     bool stop = false;
 
 public:
-    ExecutorService(size_t numThreads) {
+    ExecutorService(size_t numThreads, std::function<void()> onThreadStartup) {
         for (size_t i = 0; i < numThreads; ++i) {
-            workers.emplace_back([this] {
+            workers.emplace_back([this, onThreadStartup] {
+                onThreadStartup();
+
                 while (true) {
                     std::function<void()> task;
-
                     {
                         std::unique_lock<std::mutex> lock(this->queueMutex);
                         this->condition.wait(lock,
