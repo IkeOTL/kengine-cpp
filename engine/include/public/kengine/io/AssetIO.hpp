@@ -36,6 +36,7 @@ public:
         : mmapFile(std::move(mmapFile)) {}
 
     const unsigned int length() override {
+        // need to figure this oout for memory mapped files on linux and windows
         return 1337;
     }
 
