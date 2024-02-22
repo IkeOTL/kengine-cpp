@@ -20,7 +20,7 @@ public:
     virtual std::unique_ptr<AssetData> loadBuffer(const std::string& key) = 0;
 };
 
-class FileSystemAssetIO : AssetIO {
+class FileSystemAssetIO : public AssetIO {
 public:
     std::unique_ptr<std::istream> load(const std::string& key) override;
     std::unique_ptr<std::ostream> save(const std::string& key) override;

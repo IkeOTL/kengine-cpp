@@ -13,12 +13,14 @@ set(HEADERS
     include/public/kengine/game/Game.hpp
     include/public/kengine/game/BasicGameTest.hpp
     include/public/kengine/game/MainGameState.hpp
+    include/public/kengine/game/BasicCameraController.hpp
 )
 
 set(SOURCES
     src/Main.cpp
     src/BasicGameTest.cpp
     src/MainGameState.cpp
+    src/BasicCameraController.cpp
 )
 
 target_sources(example 

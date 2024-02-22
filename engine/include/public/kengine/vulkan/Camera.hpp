@@ -26,32 +26,40 @@ public:
     void savePreviousTransform();
     void getIntegratedViewMatrix(float alpha, glm::mat4& dest);
 
-    float getFov() {
+    float getFov() const {
         return fov;
     }
 
-    float getNearClip() {
+    float getNearClip() const {
         return zNear;
     }
 
-    float getFarClip() {
+    float getFarClip() const {
         return zFar;
     }
 
-    float getAspectRatio() {
+    float getAspectRatio() const {
         return aspectRatio;
     }
 
-    glm::mat4& getProjectionMatrix() {
+    const glm::mat4& getProjectionMatrix() const {
         return projection;
     }
 
-    glm::vec3& getPosition() {
+    const glm::vec3& getPosition() const {
         return position;
     }
 
-    glm::quat& getRotation() {
+    const void setPosition(const glm::vec3& p) {
+        position = p;
+    }
+
+    const glm::quat& getRotation() const {
         return rotation;
+    }
+
+    const void setRotation(const glm::quat& q) {
+        rotation = q;
     }
 
     static size_t size();

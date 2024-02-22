@@ -4,11 +4,12 @@
 template <typename E>
 class State {
 public:
+    virtual ~State() = default;
+
     virtual void init() = 0;
     virtual void enter(E& parent) = 0;
     virtual void update(E& parent) = 0;
     virtual void exit(E& parent) = 0;
-
 };
 
 template <typename E>

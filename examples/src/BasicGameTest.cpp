@@ -1,6 +1,4 @@
 #include <kengine/game/BasicGameTest.hpp>
-#include <kengine/vulkan/VulkanContext.hpp>
-#include <kengine/ExecutorService.hpp>
 #include <kengine/vulkan/ColorFormatAndSpace.hpp>
 #include <kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp>
 #include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
@@ -10,20 +8,18 @@
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/DrawCullingPipeline.hpp>
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
-#include<kengine/game/MainGameState.hpp>
-#include <kengine/Window.hpp>
 #include <kengine/math.hpp>
-#include <kengine/io/AssetIO.hpp>
-#include <kengine/vulkan/GpuBufferCache.hpp>
-#include <kengine/vulkan/LightsManager.hpp>
-#include <kengine/vulkan/Camera.hpp>
-#include <kengine/vulkan/CameraController.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
+#include <kengine/game/MainGameState.hpp>
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <thread>
 #include <utility>
 #include <glm/glm.hpp>
+#include <kengine/game/BasicCameraController.hpp>
 
 float BasicGameTest::getDelta() {
     return 0.0f;
@@ -56,21 +52,22 @@ void BasicGameTest::run() {
     renderThread.join();
 }
 
-std::unique_ptr<State<BasicGameTest>> BasicGameTest::init() {
-
+std::unique_ptr<State<Game>> BasicGameTest::init() {
     window = std::make_unique<Window>("rawr", 1920, 1080);
     initVulkan();
     threadPool.reset(new ExecutorService(4, [&]() {
         vulkanCxt->getCommandPool()->initThread(*vulkanCxt);
         }));
 
+    initCamera();
+
     assetIo = std::make_unique<FileSystemAssetIO>();
     bufCache = std::make_unique<GpuBufferCache>(*vulkanCxt);
-    lightsManager = std::make_unique<LightManager>(*vulkanCxt);
+    lightsManager = std::make_unique<LightsManager>(*cameraController);
 
-    auto gameState = std::make_unique<MainGameState>(*threadPool, *window, *vulkanCxt);
+    renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
 
-    return std::unique_ptr<State<BasicGameTest>>();
+    return std::make_unique<MainGameState>(*threadPool, *vulkanCxt, *renderContext);
 }
 
 void BasicGameTest::initVulkan() {
@@ -121,14 +118,17 @@ void BasicGameTest::initVulkan() {
 }
 
 void BasicGameTest::initCamera() {
-    auto fov = (float)Math.toRadians(60f);
-    auto aspectRatio = (float)window.getWidth() / window.getHeight();
-    auto camera = new Camera(fov, aspectRatio, Camera.NEAR, Camera.FAR);
-    camera.getPosition().set(6, 10, 6);
-    camera.getRotation()
-        .rotateAxis((float)Math.toRadians(55), new Vector3f(1, 0, 0))
-        .rotateAxis((float)Math.toRadians(-45), new Vector3f(0, 1, 0));
+    auto fov = glm::radians(60.0f);
+    auto aspectRatio = (float)window->getWidth() / window->getHeight();
+    auto camera = std::make_unique<Camera>(fov, aspectRatio, Camera::NEAR_CLIP, Camera::FAR_CLIP);
 
-    cameraController = std::make_unique<CameraController>();
-    cameraController->setCamer
+    camera->setPosition(glm::vec3{ 6, 10, 6 });
+
+    glm::quat camRot = camera->getRotation();
+    camRot = glm::rotate(camRot, glm::radians(55.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
+    camRot = glm::rotate(camRot, glm::radians(-45.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+    camera->setRotation(camRot);
+
+    cameraController = std::make_unique<BasicCameraController>();
+    cameraController->setCamera(std::move(camera));
 }

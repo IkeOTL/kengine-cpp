@@ -6,7 +6,7 @@ class ExecutorService;
 class VulkanContext;
 class RenderContext;
 
-class MainGameState : State<Game> {
+class MainGameState : public State<Game> {
 private:
     ExecutorService& workerPool;
     VulkanContext& vkContext;

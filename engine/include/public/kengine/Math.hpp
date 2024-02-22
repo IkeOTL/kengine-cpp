@@ -14,6 +14,11 @@ namespace math {
         PLANE_PZ
     };
 
+    static float toRadians(float degrees) {
+        static constexpr float toRads = 3.14159265358979323846f / 180.0f;
+        return degrees * toRads;
+    }
+
     static glm::vec4 frustumPlane(const glm::mat4& matrix, FrustumPlane plane) {
         glm::vec4 dest;
         switch (plane) {

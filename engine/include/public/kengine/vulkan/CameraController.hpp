@@ -7,6 +7,8 @@ protected:
     std::unique_ptr<Camera> camera;
 
 public:
+    virtual ~CameraController() = default;
+
     virtual void update(float delta) = 0;
 
     Camera* getCamera() {
