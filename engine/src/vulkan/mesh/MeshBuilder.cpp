@@ -87,7 +87,6 @@ std::unique_ptr<Mesh> MeshBuilder::build(VulkanContext* vkContext, bool generate
     return std::make_unique<Mesh>(std::move(meshData), std::move(idxBuffer->releaseBuffer()), std::move(vertBuffer->releaseBuffer()));
 }
 
-
 void MeshBuilder::calculateNormals() {
     glm::vec3 p1{};
     glm::vec3 p2{};
