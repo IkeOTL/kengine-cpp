@@ -14,22 +14,24 @@ private:
 public:
     Bone(int boneId, std::string name)
         : Spatial(name), boneId(boneId) {}
+
+    void applyBindPose();
 };
 
 class Skeleton : public Spatial {
 private:
     std::vector<glm::mat4> prevTransforms;
-    std::vector<Bone> bones;
+    std::vector<std::shared_ptr<Bone>> bones;
 
     void attachRootBones();
 public:
-    Skeleton(std::string name, std::vector<Bone>&& bones)
-        : Spatial(name), bones(std::move(bones)) {
+    Skeleton(std::string name, std::vector<std::shared_ptr<Bone>> bones)
+        : Spatial(name), bones(bones) {
         attachRootBones();
         prevTransforms.resize(this->bones.size());
     };
 
-    const std::vector<Bone>& getBones() const {
+    const std::vector<std::shared_ptr<Bone>>& getBones() const {
         return bones;
     }
 
