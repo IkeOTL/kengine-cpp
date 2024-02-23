@@ -135,8 +135,62 @@ void VulkanContext::renderBegin(RenderFrameContext& cxt) {
 
 void VulkanContext::renderEnd(RenderFrameContext& cxt) {
 
-    {
+    vkEndCommandBuffer(cxt.cmd);
 
+    auto frameSemaphore = frameSync->getFrameSemaphore(cxt.frameIndex);
+
+    {
+        auto sCount = cxt.cullComputeSemaphore ? 2 : 1;
+
+        std::vector<VkSemaphoreSubmitInfo> sumbitSemaInfo(sCount);
+
+        sumbitSemaInfo[0].sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+        sumbitSemaInfo[0].semaphore = cxt.imageSemaphore;
+        sumbitSemaInfo[0].stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+        if (cxt.cullComputeSemaphore) {
+            sumbitSemaInfo[1].sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+            sumbitSemaInfo[1].semaphore = cxt.cullComputeSemaphore;
+            sumbitSemaInfo[1].stageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+        }
+
+        VkCommandBufferSubmitInfo cmdInfo{};
+        cmdInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
+        cmdInfo.commandBuffer = cxt.cmd;
+
+        VkSemaphoreSubmitInfo presentSemaInfo{};
+        presentSemaInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
+        presentSemaInfo.semaphore = frameSemaphore;
+
+        VkSubmitInfo2 submit{};
+        submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+        submit.commandBufferInfoCount = 1;
+        submit.pCommandBufferInfos = &cmdInfo;
+
+        submit.waitSemaphoreInfoCount = sCount;
+        submit.pWaitSemaphoreInfos = sumbitSemaInfo.data();
+
+        submit.signalSemaphoreInfoCount = 1;
+        submit.pWaitSemaphoreInfos = &presentSemaInfo;
+
+        graphicsQueue->submit(1, &submit, cxt.fence);
+    }
+
+    {
+        auto swapchainHandle = swapchain->getSwapchain();
+        auto swapchainImgIdx = cxt.swapchainIndex;
+
+        VkPresentInfoKHR presentInfo{};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = &frameSemaphore;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = &swapchainHandle;
+        presentInfo.pImageIndices = &swapchainImgIdx;
+
+        auto result = graphicsQueue->present(&presentInfo);
+
+        swapchainCreator.setMustRecreate(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR);
     }
 
     processFinishedFences();
