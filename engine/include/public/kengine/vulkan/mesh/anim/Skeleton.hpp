@@ -1,6 +1,50 @@
 #pragma once
+#include <kengine/Spatial.hpp>
+#include <glm/mat4x4.hpp>
 
-class Skeleton {
+class VulkanContext;
+class CachedGpuBuffer;
+
+class Bone : public Spatial {
+private:
+    Transform bindTransform{};
+    glm::mat4 boneOffset{};
+
+    const int boneId;
 public:
-   
+    Bone(int boneId, std::string name)
+        : Spatial(name), boneId(boneId) {}
+};
+
+class Skeleton : public Spatial {
+private:
+    std::vector<glm::mat4> prevTransforms;
+    std::vector<Bone> bones;
+
+    void attachRootBones();
+public:
+    Skeleton(std::string name, std::vector<Bone>&& bones)
+        : Spatial(name), bones(std::move(bones)) {
+        attachRootBones();
+        prevTransforms.resize(this->bones.size());
+    };
+
+    const std::vector<Bone>& getBones() const {
+        return bones;
+    }
+
+    int size() {
+        return singleSize() * bones.size();
+    }
+
+    int singleSize() {
+        return sizeof(glm::mat4);
+    }
+
+    void applyBindPose();
+    void saveBindPose();
+    int getBoneCount();
+    void forceUpdateBones();
+    void savePreviousTransforms();
+    void upload(VulkanContext& vkCxt, CachedGpuBuffer& vmaBuffer, int frameIdx, float alpha);
 };
