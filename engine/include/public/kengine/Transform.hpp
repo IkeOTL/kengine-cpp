@@ -33,7 +33,7 @@ public:
 
     void setDirty(bool isDirty);
     void set(const Transform& in);
-    glm::mat4 getTransMatrix();
+    const glm::mat4& getTransMatrix();
     void setPosition(const glm::vec3& p);
     void setPosition(float x, float y, float z);
     void setScale(const glm::vec3& s);

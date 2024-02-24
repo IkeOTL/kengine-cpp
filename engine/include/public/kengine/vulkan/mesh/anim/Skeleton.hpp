@@ -16,6 +16,7 @@ public:
         : Spatial(name), boneId(boneId) {}
 
     void applyBindPose();
+    void saveBindPose();
 };
 
 class Skeleton : public Spatial {
@@ -24,6 +25,7 @@ private:
     std::vector<std::shared_ptr<Bone>> bones;
 
     void attachRootBones();
+
 public:
     Skeleton(std::string name, std::vector<std::shared_ptr<Bone>> bones)
         : Spatial(name), bones(bones) {

@@ -11,7 +11,7 @@ void Transform::set(const Transform& in) {
     setDirty(true);
 }
 
-glm::mat4 Transform::getTransMatrix() {
+const glm::mat4& Transform::getTransMatrix() {
     if (dirty)
         updateTransform();
 
