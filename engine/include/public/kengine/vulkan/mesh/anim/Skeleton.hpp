@@ -15,6 +15,10 @@ public:
     Bone(int boneId, std::string name)
         : Spatial(name), boneId(boneId) {}
 
+    const glm::mat4& getInverseBindWorldMatrix() {
+        return boneOffset;
+    }
+
     void applyBindPose();
     void saveBindPose();
 };
@@ -35,14 +39,6 @@ public:
 
     const std::vector<std::shared_ptr<Bone>>& getBones() const {
         return bones;
-    }
-
-    int size() {
-        return singleSize() * bones.size();
-    }
-
-    int singleSize() {
-        return sizeof(glm::mat4);
     }
 
     void applyBindPose();

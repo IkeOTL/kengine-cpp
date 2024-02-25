@@ -19,6 +19,11 @@ namespace math {
         return degrees * toRads;
     }
 
+    static glm::quat setFromUnnormalized(glm::mat4 mat) {
+        setFromUnnormalized(mat.m00(), mat.m01(), mat.m02(), mat.m10(), mat.m11(), mat.m12(), mat.m20(), mat.m21(), mat.m22());
+        return this;
+    }
+
     static glm::vec4 frustumPlane(const glm::mat4& matrix, FrustumPlane plane) {
         glm::vec4 dest;
         switch (plane) {
