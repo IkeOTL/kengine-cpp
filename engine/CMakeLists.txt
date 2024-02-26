@@ -55,6 +55,7 @@ set(HEADERS
     include/public/kengine/vulkan/mesh/Mesh.hpp
     include/public/kengine/vulkan/mesh/MeshBuilder.hpp
     include/public/kengine/vulkan/mesh/ModelFactory.hpp
+    include/public/kengine/vulkan/mesh/GltfModelFactory.hpp
     include/public/kengine/vulkan/mesh/Vertex.hpp
     include/public/kengine/vulkan/mesh/ModelNode.hpp
 
@@ -129,7 +130,7 @@ set(SOURCES
 
     src/vulkan/mesh/Mesh.cpp
     src/vulkan/mesh/MeshBuilder.cpp
-    src/vulkan/mesh/ModelFactory.cpp
+    src/vulkan/mesh/GltfModelFactory.cpp
 
     src/vulkan/mesh/anim/Skeleton.cpp
 
