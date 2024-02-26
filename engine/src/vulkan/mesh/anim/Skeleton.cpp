@@ -2,6 +2,10 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
 
+void Bone::setInverseBindWorldMatrix(glm::mat4& boneOffset) {
+    this->boneOffset = boneOffset;
+}
+
 void Bone::applyBindPose() {
     this->setLocalTransform(bindTransform);
 }
@@ -73,12 +77,12 @@ void Skeleton::upload(VulkanContext& vkCxt, CachedGpuBuffer& vmaBuffer, int fram
             tempMat = bone->getWorldTransform().getTransMatrix();
 
         glm::vec3 cPos = glm::vec3(tempMat[3]);
-        // NOTE: glm::quat_cast doent include scale! if there are issues with animations investigate (orig: JOML mat4.getUnnormalizedRotation)
+        // NOTE: glm::quat_cast/toQuat doesnt include scale! if there are issues with animations investigate (orig: JOML mat4.getUnnormalizedRotation)
         glm::quat cRot = glm::toQuat(tempMat);
         glm::vec3 cScl = glm::vec3(glm::length(tempMat[0]), glm::length(tempMat[1]), glm::length(tempMat[2]));
 
         glm::vec3 prevPos = glm::vec3(prevTransforms[i][3]);
-        // NOTE: glm::quat_cast doent include scale! if there are issues with animations investigate (orig: JOML mat4.getUnnormalizedRotation)
+        // NOTE: glm::quat_cast/toQuat doesnt include scale! if there are issues with animations investigate (orig: JOML mat4.getUnnormalizedRotation)
         glm::quat prevRot = glm::toQuat(prevTransforms[i]);
         glm::vec3 prevScl = glm::vec3(glm::length(prevTransforms[i][0]), glm::length(prevTransforms[i][1]), glm::length(prevTransforms[i][2]));
 

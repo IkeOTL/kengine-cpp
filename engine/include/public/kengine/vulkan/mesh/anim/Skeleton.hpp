@@ -10,13 +10,23 @@ private:
     Transform bindTransform{};
     glm::mat4 boneOffset{};
 
-    const int boneId;
+    const uint32_t boneId;
 public:
-    Bone(int boneId, std::string name)
+    Bone(uint32_t boneId, std::string name)
         : Spatial(name), boneId(boneId) {}
 
-    const glm::mat4& getInverseBindWorldMatrix() {
+    void setInverseBindWorldMatrix(glm::mat4& boneOffset);
+
+    const glm::mat4& getInverseBindWorldMatrix() const {
         return boneOffset;
+    }
+
+    const uint32_t getBoneId() const {
+        return boneId;
+    }
+
+    const Transform& getBindPose()const {
+        return bindTransform;
     }
 
     void applyBindPose();

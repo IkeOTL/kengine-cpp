@@ -36,7 +36,7 @@ public:
     std::shared_ptr<Spatial> removeChild(const std::string& name);
     void removeFromParent();
     void setChangeCb(std::function<void()>&& cb);
-    Transform& getLocalTransform();
+    const Transform& getLocalTransform() const;
     void setLocalTransform(const Transform& t);
     Transform& getWorldTransform();
     void forceUpdateTransform();

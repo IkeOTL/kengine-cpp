@@ -54,7 +54,10 @@ set(HEADERS
 
     include/public/kengine/vulkan/mesh/Mesh.hpp
     include/public/kengine/vulkan/mesh/MeshBuilder.hpp
+    include/public/kengine/vulkan/mesh/ModelFactory.hpp
     include/public/kengine/vulkan/mesh/Vertex.hpp
+    include/public/kengine/vulkan/mesh/ModelMesh.hpp
+    include/public/kengine/vulkan/mesh/ModelNode.hpp
 
     include/public/kengine/vulkan/mesh/anim/Skeleton.hpp
 
@@ -127,6 +130,10 @@ set(SOURCES
 
     src/vulkan/mesh/Mesh.cpp
     src/vulkan/mesh/MeshBuilder.cpp
+    src/vulkan/mesh/ModelFactory.cpp
+    src/vulkan/mesh/ModelMesh.cpp
+    src/vulkan/mesh/ModelNode.cpp
+
     src/vulkan/mesh/anim/Skeleton.cpp
 
     src/vulkan/material/AsyncMaterialCache.cpp
