@@ -1,4 +1,5 @@
 #pragma once
+#include <kengine/vulkan/mesh/Model.hpp>
 #include <string>
 #include <memory>
 
