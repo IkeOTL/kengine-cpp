@@ -13,6 +13,15 @@ public:
 
     Aabb(const Aabb& other) : pos(other.pos), extents(other.extents) { }
 
+    Aabb& operator=(const Aabb& other) {
+        if (this != &other) { // protect against invalid self-assignment
+            pos = other.pos;
+            extents = other.extents;
+        }
+
+        return *this;
+    }
+
     void getMinMax(glm::vec3& min, glm::vec3& max);
     Aabb transform(const glm::mat4& mat);
 
@@ -27,6 +36,17 @@ private:
 public:
     Bounds(const glm::vec3& pos, const glm::vec3& extents);
     Bounds(const Aabb& aabb);
+
+    Bounds(const Bounds& other) : aabb(other.aabb), sphereBounds(other.sphereBounds) { }
+
+    Bounds& operator=(const Bounds& other) {
+        if (this != &other) { // protect against invalid self-assignment
+            aabb = other.aabb;
+            sphereBounds = other.sphereBounds;
+        }
+
+        return *this;
+    }
 
     Bounds transform(const glm::mat4& mat);
 

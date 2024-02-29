@@ -3,6 +3,7 @@
 #include <kengine/vulkan/mesh/ModelNode.hpp>
 #include <kengine/vulkan/mesh/anim/Skeleton.hpp>
 #include <memory>
+#include <kengine/Bounds.hpp>
 
 class Model {
 private:
@@ -10,6 +11,7 @@ private:
     std::vector<std::shared_ptr<ModelNode>> nodes{};
     std::vector<ModelMesh*> meshes{}; // references the meshes in nodes for faster access
     std::vector<std::shared_ptr<Bone>> bones{};
+    Bounds bounds = Bounds(glm::vec3{}, glm::vec3{});
 
 public:
     Model(std::unique_ptr<Mesh>&& mesh);
