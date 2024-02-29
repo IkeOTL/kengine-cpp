@@ -5,9 +5,10 @@
 
 struct Aabb {
 public:
-    glm::vec3 pos;
-    glm::vec3 extents;
+    glm::vec3 pos{};
+    glm::vec3 extents{};
 
+    Aabb() {};
     Aabb(const glm::vec3& position, const glm::vec3& size)
         : pos(position), extents(size) {}
 
@@ -30,10 +31,11 @@ public:
 
 class Bounds {
 private:
-    Aabb aabb;
+    Aabb aabb{};
     glm::vec4 sphereBounds{};
 
 public:
+    Bounds() {};
     Bounds(const glm::vec3& pos, const glm::vec3& extents);
     Bounds(const Aabb& aabb);
 

@@ -83,7 +83,7 @@ std::unique_ptr<Mesh> MeshBuilder::build(VulkanContext* vkContext, bool generate
         VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, xferFlag, nullptr);
 
     auto meshData = std::make_unique<MeshData>(std::move(vertices), getVertexAttributes(), getIndexCount(), getVertexCount());
-    //meshData->calcAabb();
+    meshData->calcBounds();
     return std::make_unique<Mesh>(std::move(meshData), std::move(idxBuffer->releaseBuffer()), std::move(vertBuffer->releaseBuffer()));
 }
 

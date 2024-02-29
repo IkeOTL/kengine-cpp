@@ -11,7 +11,7 @@ private:
     std::vector<std::shared_ptr<ModelNode>> nodes{};
     std::vector<ModelMesh*> meshes{}; // references the meshes in nodes for faster access
     std::vector<std::shared_ptr<Bone>> bones{};
-    Bounds bounds = Bounds(glm::vec3{}, glm::vec3{});
+    Bounds bounds{};
 
 public:
     Model(std::unique_ptr<Mesh>&& mesh);

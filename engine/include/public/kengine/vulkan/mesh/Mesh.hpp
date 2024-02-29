@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <memory>
+#include <kengine/Bounds.hpp>
 
 class MeshData {
 private:
@@ -14,6 +15,8 @@ private:
     const int vertexCount;
 
     const std::vector<std::unique_ptr<Vertex>> vertices;
+
+    Bounds bounds{};
 
 public:
     MeshData(std::vector<std::unique_ptr<Vertex>>&& vertices, int vertexAttributes, uint32_t indexCount, uint32_t vertexCount)
@@ -25,6 +28,12 @@ public:
     }
 
     const std::vector<std::unique_ptr<Vertex>>& getVertices() const;
+
+    const Bounds& getBounds() const {
+        return bounds;
+    }
+
+    void calcBounds();
 
     int getIndexCount() const {
         return indexCount;
@@ -47,6 +56,11 @@ public:
         : meshData(std::move(meshData)), indexBuf(std::move(indexBuf)), vertexBuf(std::move(vertexBuf)) {}
 
     const std::vector<std::unique_ptr<Vertex>>& getVertices() const;
+
+    const MeshData& getMeshData() const {
+        return *meshData;
+    }
+
     uint32_t getIndexCount() const;
     uint32_t getVertexCount() const;
 
