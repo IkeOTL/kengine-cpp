@@ -31,6 +31,7 @@ public:
     void setSceneId(int sceneId);
     Spatial* getParent() const;
     const std::string& getName() const;
+    const bool hasChildren() const;
     std::vector<std::shared_ptr<Spatial>> getChildren() const;
     std::shared_ptr<Spatial> addChild(std::shared_ptr<Spatial> s);
     std::shared_ptr<Spatial> removeChild(const std::string& name);
