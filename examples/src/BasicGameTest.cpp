@@ -20,6 +20,7 @@
 #include <utility>
 #include <glm/glm.hpp>
 #include <kengine/game/BasicCameraController.hpp>
+#include <kengine/vulkan/mesh/GltfModelFactory.hpp>
 
 float BasicGameTest::getDelta() {
     return 0.0f;
@@ -64,6 +65,15 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     assetIo = std::make_unique<FileSystemAssetIO>();
     bufCache = std::make_unique<GpuBufferCache>(*vulkanCxt);
     lightsManager = std::make_unique<LightsManager>(*cameraController);
+
+
+    auto gltfLoader = std::make_unique<GltfModelFactory>(*vulkanCxt, *assetIo);
+
+    auto model = gltfLoader->loadModel(
+        "res/gltf/char01.glb",
+        VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
+        | VertexAttribute::TANGENTS | VertexAttribute::SKELETON
+    );
 
     // asset io test
     auto asset = assetIo->loadBuffer("res/src/skinned.vert.spv");
