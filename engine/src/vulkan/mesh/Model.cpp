@@ -1,5 +1,13 @@
 #include <kengine/vulkan/mesh/Model.hpp>
 
+MeshGroup::MeshGroup(uint32_t meshCount) {
+    meshes.reserve(meshCount);
+}
+
+void MeshGroup::addMesh(std::unique_ptr<Mesh>&& mesh) {
+    meshes.push_back(std::move(mesh));
+}
+
 Model::Model(std::unique_ptr<Mesh>&& mesh) {
     auto node = std::make_shared<ModelNode>("Main Node");
     rootNode = node;

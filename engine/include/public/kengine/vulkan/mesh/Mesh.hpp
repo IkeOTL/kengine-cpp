@@ -44,6 +44,9 @@ public:
     }
 };
 
+/// <summary>
+/// The geometry thats uploaded to the GPU
+/// </summary>
 class Mesh {
 private:
     const std::unique_ptr<MeshData> meshData;

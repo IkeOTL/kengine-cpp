@@ -5,6 +5,19 @@
 #include <memory>
 #include <kengine/Bounds.hpp>
 
+/// <summary>
+/// Equivalent to a "mesh" in GLTF2, GLTF2's usage of the term "mesh" doesnt match what you typically see
+/// </summary>
+class MeshGroup {
+private:
+    std::vector<std::unique_ptr<Mesh>> meshes;
+
+    MeshGroup(uint32_t meshCount);
+
+public:
+    void addMesh(std::unique_ptr<Mesh>&& mesh);
+};
+
 class Model {
 private:
     std::shared_ptr<Spatial> rootNode = nullptr;
@@ -21,3 +34,5 @@ public:
     Model(std::vector<std::shared_ptr<ModelNode>>&& nodes);
 
 };
+
+
