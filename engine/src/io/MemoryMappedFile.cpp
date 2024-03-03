@@ -5,11 +5,15 @@ const unsigned char* MemoryMappedFile::data() const {
     return static_cast<const unsigned char*>(mappedView);
 }
 
+uint64_t MemoryMappedFile::length() const {
+    return static_cast<std::uint64_t>(fileSize.QuadPart);
+}
+
 void MemoryMappedFile::map() {
     fileHandle = CreateFile(
         fileName.c_str(),
         GENERIC_READ, // Desired access
-        0, // Share mode
+        FILE_SHARE_READ, // Share mode
         NULL, // Security attributes
         OPEN_EXISTING, // Creation disposition
         FILE_ATTRIBUTE_NORMAL, // Flags and attributes
@@ -18,6 +22,7 @@ void MemoryMappedFile::map() {
     if (fileHandle == INVALID_HANDLE_VALUE)
         throw std::runtime_error("Failed to create file handle.");
 
+    GetFileSizeEx(fileHandle, &fileSize);
 
     mapHandle = CreateFileMapping(
         fileHandle,

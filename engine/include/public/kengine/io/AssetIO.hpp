@@ -8,7 +8,7 @@ class AssetData {
 public:
     // need to add byte count or something. maybe implement javas ByteBuffer?
     virtual const unsigned char* data() = 0;
-    virtual const unsigned int length() = 0;
+    virtual const uint64_t length() = 0;
 
     virtual ~AssetData() = default;
 };
@@ -35,9 +35,8 @@ public:
     MemoryMappedFileAssetData(std::unique_ptr<MemoryMappedFile>&& mmapFile)
         : mmapFile(std::move(mmapFile)) {}
 
-    const unsigned int length() override {
-        // need to figure this oout for memory mapped files on linux and windows
-        return 1337;
+    const uint64_t length() override {
+        return mmapFile->length();
     }
 
     const unsigned char* data() override {

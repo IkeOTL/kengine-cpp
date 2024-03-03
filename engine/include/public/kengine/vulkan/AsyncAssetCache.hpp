@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/ExecutorService.hpp>
+#include <kengine/Hashable.hpp>
 #include <unordered_map>
 #include <functional>
 #include <shared_mutex>
@@ -7,12 +8,14 @@
 template <typename V, typename K>
 class AsyncAssetCache {
 private:
+    static_assert(std::is_base_of<Hashable, K>::value, "K must be derived from Hashable");
+
     ExecutorService& workerPool;
 
     // maybe change to shared pointers? profile later
-    std::unordered_map<size_t, std::unique_ptr<V>> cache;
-    std::unordered_map<size_t, std::shared_future<V*>> backgroundTasks;
-    std::shared_mutex lock;
+    std::unordered_map<size_t, std::unique_ptr<V>> cache{};
+    std::unordered_map<size_t, std::shared_future<V*>> backgroundTasks{};
+    std::shared_mutex lock{};
 
 protected:
     virtual std::unique_ptr<V> create(std::shared_ptr<K> keyObj) = 0;
@@ -83,21 +86,18 @@ public:
 
             backgroundTasks[key] = promise.get_future().share();
 
-            lock.unlock();
+            lock.unlock(); // allow other cache requests to be fulfilled
             auto asset = this->create(keyObj);
 
-            {
-                lock.lock();
-                auto& storedAsset = this->cache[key] = std::move(asset);
-                promise.set_value(storedAsset.get());
-                this->backgroundTasks.erase(key);
-            }
+            lock.lock();
+            auto& storedAsset = this->cache[key] = std::move(asset);
+            promise.set_value(storedAsset.get());
+            this->backgroundTasks.erase(key);
 
             return *(storedAsset.get());
         }
     }
 
-    // possible improvement: have multiple semaphore for the different phases so we dont block the entire section
     std::shared_future<V*> getAsync(std::shared_ptr<K> keyObj) {
         size_t key = keyObj->hashCode();
 
@@ -136,7 +136,7 @@ public:
             if (taskIt != backgroundTasks.end())
                 return taskIt->second;
 
-            auto task = workerPool.submitShared([this, key, keyObj]() {
+            auto task = backgroundTasks[key] = workerPool.submitShared([this, key, keyObj]() {
                 // need to handle exception to propagate to caller
                 auto asset = this->create(keyObj);
 
@@ -148,8 +148,6 @@ public:
                     return storedAsset.get();
                 }
                 });
-
-            backgroundTasks[key] = task;
 
             return task;
         }

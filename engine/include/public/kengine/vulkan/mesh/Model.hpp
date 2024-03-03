@@ -15,6 +15,7 @@ private:
 
     static void fillRoot(std::shared_ptr<Spatial> root, const std::vector<std::shared_ptr<Spatial>> nodes);
     static void flattenMeshes(const std::vector<std::shared_ptr<Spatial>> nodes, std::vector<ModelMesh*> meshes);
+
 public:
     Model(std::unique_ptr<Mesh>&& mesh);
     Model(std::vector<std::shared_ptr<ModelNode>>&& nodes);

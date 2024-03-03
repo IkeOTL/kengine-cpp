@@ -65,6 +65,10 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     bufCache = std::make_unique<GpuBufferCache>(*vulkanCxt);
     lightsManager = std::make_unique<LightsManager>(*cameraController);
 
+    // asset io test
+    auto asset = assetIo->loadBuffer("res/src/skinned.vert.spv");
+    auto len = asset->length();
+
     renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
 
     return std::make_unique<MainGameState>(*threadPool, *vulkanCxt, *renderContext);
