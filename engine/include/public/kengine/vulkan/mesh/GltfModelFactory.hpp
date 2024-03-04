@@ -7,6 +7,7 @@
 
 class VulkanContext;
 class assetIo;
+class MeshBuilder;
 
 class GltfModelFactory : public ModelFactory {
 private:
@@ -25,5 +26,5 @@ private:
     void processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshIndices) const;
     void loadMeshGroup(const tinygltf::Model& model, int meshGroupIdx, std::unordered_map<int, std::unique_ptr<MeshGroup>>& mesheGroups, int vertexAttributes) const;
     void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& meshPrimitive, MeshGroup& meshGroup, int vertexAttributes) const;
-
+    void readIndices(MeshBuilder& mb, const tinygltf::Primitive& meshPrimitive);
 };

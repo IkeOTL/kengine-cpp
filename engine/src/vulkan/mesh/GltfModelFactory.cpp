@@ -5,8 +5,8 @@
 #include <kengine/vulkan/mesh/GltfModelFactory.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/Model.hpp>
-#include <kengine/io/AssetIO.hpp>
 #include <kengine/vulkan/mesh/MeshBuilder.hpp>
+#include <kengine/io/AssetIO.hpp>
 
 thread_local tinygltf::TinyGLTF GltfModelFactory::gltfLoader{};
 
@@ -23,9 +23,11 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
     // meshes that we should actually load
     std::unordered_set<int> meshGroupIndices{};
 
+    // load node heirarchy
     for (size_t i = 0; i < model.scenes[model.defaultScene].nodes.size(); i++)
         processNode(model, model.scenes[model.defaultScene].nodes[i], meshGroupIndices);
 
+    // load meshes
     std::unordered_map<int, std::unique_ptr<MeshGroup>> meshGroups{};
     for (auto& meshGroupIdx : meshGroupIndices)
         loadMeshGroup(model, meshGroupIdx, meshGroups, vertexAttributes);
@@ -57,7 +59,8 @@ void GltfModelFactory::loadMeshGroup(const tinygltf::Model& model, int meshGroup
 void GltfModelFactory::loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& meshPrimitive, MeshGroup& meshGroup, int vertexAttributes) const {
     MeshBuilder mb(vertexAttributes);
 
-
+    readIndices(mb, meshPrimitive);
+    readVertices(mb, meshPrimitive, vertexAttributes);
 
     meshGroup.addMesh(
         mb.build(&vkContext,
@@ -65,4 +68,7 @@ void GltfModelFactory::loadMesh(const tinygltf::Model& model, const tinygltf::Pr
             vertexAttributes | VertexAttribute::TANGENTS
         )
     );
+}
+
+void GltfModelFactory::readIndices(MeshBuilder& mb, const tinygltf::Primitive& meshPrimitive) const {
 }
