@@ -1,5 +1,7 @@
 #pragma once
 #include <kengine/vulkan/mesh/ModelFactory.hpp>
+#include <kengine/vulkan/mesh/MeshBuilder.hpp>
+#include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/io/AssetIO.hpp>
 #include <thirdparty/tiny_gltf.h>
 #include <unordered_set>
@@ -7,7 +9,6 @@
 
 class VulkanContext;
 class assetIo;
-class MeshBuilder;
 
 class GltfModelFactory : public ModelFactory {
 private:
@@ -25,6 +26,62 @@ public:
 private:
     void processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshIndices) const;
     void loadMeshGroup(const tinygltf::Model& model, int meshGroupIdx, std::unordered_map<int, std::unique_ptr<MeshGroup>>& mesheGroups, int vertexAttributes) const;
-    void loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& meshPrimitive, MeshGroup& meshGroup, int vertexAttributes) const;
-    void readIndices(MeshBuilder& mb, const tinygltf::Primitive& meshPrimitive);
+
+    template<typename V>
+    void readAttribute(const tinygltf::Model& model, MeshBuilder<V>& mb, const tinygltf::Primitive& primitive, const std::string& attributeName) {
+        auto it = primitive.attributes.find(attributeName);
+        if (it == primitive.attributes.end())
+            throw new std::runtime_error("Vertex attribute not found.");
+
+        int accessorIndex = it->second;
+        const auto& accessor = model.accessors[accessorIndex];
+        const auto& bufferView = model.bufferViews[accessor.bufferView];
+        const auto& buffer = model.buffers[bufferView.buffer];
+        const auto byteOffset = accessor.byteOffset + bufferView.byteOffset;
+        const T* dataPtr = reinterpret_cast<const T*>(&buffer.data[byteOffset]);
+
+        for (size_t i = 0; i < accessor.count; ++i)
+            mb.vert[i] = dataPtr[i];
+        ehreradasdasd
+    }
+
+    template <typename V>
+    void loadMesh(const tinygltf::Model& model, MeshBuilder<V>& mb, const tinygltf::Primitive& primitive, MeshGroup& meshGroup) const {
+        // load indices
+        {
+            auto indicesIdx = primitive.indices;
+
+            if (indicesIdx == -1)
+                throw new std::runtime_error("Currently only support indexed meshes.");
+
+            auto& accessor = model.accessors[indicesIdx];
+
+            if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+                throw new std::runtime_error("Component type not handled.");
+
+            auto& bufferView = model.bufferViews[accessor.bufferView];
+            auto& buffer = model.buffers[bufferView.buffer];
+
+            // Accessor could define a byte offset within the bufferView
+            const auto byteOffset = accessor.byteOffset + bufferView.byteOffset;
+            const auto indices = reinterpret_cast<const unsigned short*>(&(buffer.data[byteOffset]));
+
+            // assume builder has had resize() executed
+            memcpy(mb.getIndices().data(), indices, sizeof(uint16_t) * accessor.count);
+        }
+
+        // load vertices
+        {
+
+        }
+
+        meshGroup.addMesh(
+            mb.build(&vkContext
+                //,
+                //vertexAttributes | VertexAttribute::NORMAL,
+                //vertexAttributes | VertexAttribute::TANGENTS
+            )
+        );
+    }
+
 };

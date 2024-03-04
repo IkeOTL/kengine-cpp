@@ -3,9 +3,7 @@
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 
 #include <kengine/vulkan/mesh/GltfModelFactory.hpp>
-#include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/Model.hpp>
-#include <kengine/vulkan/mesh/MeshBuilder.hpp>
 #include <kengine/io/AssetIO.hpp>
 
 thread_local tinygltf::TinyGLTF GltfModelFactory::gltfLoader{};
@@ -51,24 +49,39 @@ void GltfModelFactory::loadMeshGroup(const tinygltf::Model& model, int meshGroup
 
     auto meshCount = meshGroupData.primitives.size();
     auto& meshGroup = meshGroups[meshGroupIdx] = std::make_unique<MeshGroup>(meshCount);
-    for (auto i = 0; i < meshCount; i++)
-        loadMesh(model, meshGroupData.primitives[i], *meshGroup, vertexAttributes);
+    for (auto i = 0; i < meshCount; i++) {
+        // is there a better way?
+        if (vertexAttributes & VertexAttribute::TEX_COORDS) {
+            if (vertexAttributes & VertexAttribute::SKELETON) {
+                MeshBuilder<RiggedTexturedVertex> mb(vertexAttributes);
+                loadMesh(model, mb, meshGroupData.primitives[i], *meshGroup);
+            }
+            else if (vertexAttributes & VertexAttribute::NORMAL) {
+                MeshBuilder<TexturedVertex> mb(vertexAttributes);
+                loadMesh<TexturedVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
+            }
+            else {
+                MeshBuilder<SimpleTexturedVertex> mb(vertexAttributes);
+                loadMesh<SimpleTexturedVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
+            }
+        }
+        else if (vertexAttributes & VertexAttribute::COLOR) {
+            if (vertexAttributes & VertexAttribute::SKELETON) {
+                MeshBuilder<RiggedColoredVertex> mb(vertexAttributes);
+                loadMesh<RiggedColoredVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
+            }
+            else if (vertexAttributes & VertexAttribute::NORMAL) {
+                MeshBuilder<ColoredVertex> mb(vertexAttributes);
+                loadMesh<ColoredVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
+            }
+            else {
+                MeshBuilder<SimpleColoredVertex> mb(vertexAttributes);
+                loadMesh<SimpleColoredVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
+            }
+        }
+
+        MeshBuilder<Vertex> mb(vertexAttributes);
+        loadMesh<Vertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
+    }
 }
 
-
-void GltfModelFactory::loadMesh(const tinygltf::Model& model, const tinygltf::Primitive& meshPrimitive, MeshGroup& meshGroup, int vertexAttributes) const {
-    MeshBuilder mb(vertexAttributes);
-
-    readIndices(mb, meshPrimitive);
-    readVertices(mb, meshPrimitive, vertexAttributes);
-
-    meshGroup.addMesh(
-        mb.build(&vkContext,
-            vertexAttributes | VertexAttribute::NORMAL,
-            vertexAttributes | VertexAttribute::TANGENTS
-        )
-    );
-}
-
-void GltfModelFactory::readIndices(MeshBuilder& mb, const tinygltf::Primitive& meshPrimitive) const {
-}
