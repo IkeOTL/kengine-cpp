@@ -51,7 +51,7 @@ public:
         glm::vec3 _max(-9999999);
 
         for (const V& vert : vertices) {
-            const auto& pos = vert.getPosition();
+            const auto& pos = vert.position;
             _min = glm::min(pos, _min);
             _max = glm::max(pos, _max);
         }

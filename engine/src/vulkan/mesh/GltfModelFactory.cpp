@@ -79,9 +79,10 @@ void GltfModelFactory::loadMeshGroup(const tinygltf::Model& model, int meshGroup
                 loadMesh<SimpleColoredVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
             }
         }
-
-        MeshBuilder<Vertex> mb(vertexAttributes);
-        loadMesh<Vertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
+        else {
+            MeshBuilder<Vertex> mb(vertexAttributes);
+            loadMesh<Vertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
+        }
     }
 }
 

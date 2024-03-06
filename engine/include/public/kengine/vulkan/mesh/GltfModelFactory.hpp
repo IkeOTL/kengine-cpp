@@ -28,7 +28,7 @@ private:
     void loadMeshGroup(const tinygltf::Model& model, int meshGroupIdx, std::unordered_map<int, std::unique_ptr<MeshGroup>>& mesheGroups, int vertexAttributes) const;
 
     template<typename T>
-    T* getAttrBuffer(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const std::string attributeName) {
+    const T* getAttrBuffer(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const std::string attributeName, uint32_t& count) const {
         auto it = primitive.attributes.find(attributeName);
         if (it == primitive.attributes.end())
             throw new std::runtime_error("Vertex attribute not found.");
@@ -38,6 +38,9 @@ private:
         const auto& bufferView = model.bufferViews[accessor.bufferView];
         const auto& buffer = model.buffers[bufferView.buffer];
         const auto byteOffset = accessor.byteOffset + bufferView.byteOffset;
+
+        // is accessor.count obj count or byte count?
+        count = accessor.count;
         return reinterpret_cast<const T*>(&buffer.data[byteOffset]);
     }
 
@@ -55,6 +58,12 @@ private:
             if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
                 throw new std::runtime_error("Component type not handled.");
 
+            // resize mesh builder
+            {
+                const auto& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
+                mb.resize(accessor.count, posAccessor.count);
+            }
+
             const auto& bufferView = model.bufferViews[accessor.bufferView];
             const auto& buffer = model.buffers[bufferView.buffer];
 
@@ -70,11 +79,12 @@ private:
         {
             auto vertexAttributes = mb.getVertexAttributes();
             if (vertexAttributes & VertexAttribute::POSITION) {
-              //  auto attr = getAttrBuffer<glm::vec3>(model, primitive, "POSITION");
-              /*  for (int32_t i = 0; i < attr; i++)
+                uint32_t count;
+                const auto attr = getAttrBuffer<glm::vec3>(model, primitive, "POSITION", count);
+                for (int32_t i = 0; i < count; i++)
                 {
 
-                }*/
+                }
             }
         }
 
