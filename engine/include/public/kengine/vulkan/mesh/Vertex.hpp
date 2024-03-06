@@ -31,7 +31,7 @@ struct Vertex {
     virtual void setBlendIndex(glm::uvec4 v) {}
     virtual void setBlendWeight(glm::vec4 v) {}
 
-    virtual glm::vec3& getPosition() {
+    virtual glm::vec3 getPosition() const {
         return position;
     }
 

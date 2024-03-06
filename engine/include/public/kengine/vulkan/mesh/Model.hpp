@@ -12,9 +12,9 @@ class MeshGroup {
 private:
     std::vector<std::unique_ptr<Mesh>> meshes;
 
+public:
     MeshGroup(uint32_t meshCount);
 
-public:
     void addMesh(std::unique_ptr<Mesh>&& mesh);
 };
 

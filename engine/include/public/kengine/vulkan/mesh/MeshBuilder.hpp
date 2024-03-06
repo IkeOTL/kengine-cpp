@@ -10,17 +10,17 @@ class MeshBuilder;
 
 class IndexBuffer : public GpuUploadable {
 private:
-    std::vector<uint16_t>& indices;
+    std::vector<uint32_t>& indices;
 
 public:
-    IndexBuffer(std::vector<uint16_t>& indices) : indices(indices) {}
+    IndexBuffer(std::vector<uint32_t>& indices) : indices(indices) {}
 
     void upload(VulkanContext& vkCxt, void* data) override {
         memcpy(data, indices.data(), size());
     }
 
     VkDeviceSize size() override {
-        return sizeof(uint16_t) * indices.size();
+        return sizeof(uint32_t) * indices.size();
     }
 };
 
@@ -39,7 +39,7 @@ public:
     }
 
     VkDeviceSize VertexBuffer::size() override {
-        return vertices[0]->sizeOf() * vertices.size();
+        return vertices[0].sizeOf() * vertices.size();
     }
 };
 
@@ -50,11 +50,8 @@ private:
 
     const int vertexAttributes;
 
-    std::vector<uint16_t> indices;
+    std::vector<uint32_t> indices;
     std::vector<V> vertices;
-
-    void calculateNormals();
-    void calculateTangents();
 
 public:
     MeshBuilder(int vertexAttributes) : vertexAttributes(vertexAttributes) {}
@@ -62,7 +59,7 @@ public:
     /// <summary>
     /// will NOT add/init verts
     /// </summary>
-    void reserve(uint16_t indexCnt, uint16_t vertCnt) {
+    void reserve(uint32_t indexCnt, uint32_t vertCnt) {
         indices.reserve(indexCnt);
         vertices.reserve(vertCnt);
     }
@@ -70,12 +67,12 @@ public:
     /// <summary>
     /// WILL add/init verts
     /// </summary>
-    void resize(uint16_t indexCnt, uint16_t vertCnt) {
+    void resize(uint32_t indexCnt, uint32_t vertCnt) {
         indices.resize(indexCnt);
         vertices.resize(vertCnt);
     }
 
-    std::vector<uint16_t>& getIndices() const {
+    std::vector<uint32_t>& getIndices() {
         return indices;
     }
 
@@ -83,11 +80,11 @@ public:
         return vertices;
     }
 
-    uint16_t getIndexCount() {
+    uint32_t getIndexCount() {
         return indices.size();
     }
 
-    uint16_t getVertexCount() const {
+    uint32_t getVertexCount() const {
         return vertices.size();
     }
 
@@ -95,7 +92,7 @@ public:
         return vertexAttributes;
     }
 
-    V& getVertex(uint16_t i) const {
+    V& getVertex(uint32_t i) const {
         return vertices[i];
     }
 
@@ -103,22 +100,20 @@ public:
         return build(vkContext, false, false);
     }
 
-    std::unique_ptr<Mesh> build(VulkanContext* vkContext, bool generateNormals, bool generateTangents);
-
     V createVertex() const {
         return V();
     }
 
-    uint16_t pushVertex(V&& vert) {
+    uint32_t pushVertex(V&& vert) {
         vertices.push_back(std::move(vert));
         return vertices.size() - 1;
     }
 
-    void pushIndex(uint16_t i1) {
+    void pushIndex(uint32_t i1) {
         indices.push_back(i1);
     }
 
-    void pushTriangle(uint16_t i1, uint16_t i2, uint16_t i3) {
+    void pushTriangle(uint32_t i1, uint32_t i2, uint32_t i3) {
         indices.push_back(i1);
         indices.push_back(i2);
         indices.push_back(i3);
@@ -133,8 +128,13 @@ public:
 
         // used in systems that dont render, like servers
         if (!vkContext) {
-            auto meshData = std::make_unique<MeshData>(std::move(vertices), getVertexAttributes(), getIndexCount(), getVertexCount());
-            return std::make_unique<Mesh>(std::move(meshData), nullptr, nullptr);
+            auto vertData = std::make_unique<VertexData<V>>(std::move(vertices), getVertexAttributes(), getIndexCount(), getVertexCount());
+            vertData->calcBounds();
+            return std::make_unique<Mesh>(
+                getVertexAttributes(),
+                getIndexCount(), nullptr,
+                getVertexCount(), nullptr,
+                vertData->getBounds());
         }
 
         auto xferFlag = 0;
@@ -144,14 +144,18 @@ public:
             VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR, VK_ACCESS_2_INDEX_READ_BIT,
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT, xferFlag, nullptr);
 
-        auto vertBuffer = std::make_unique<VertexBuffer>(vertices);
+        auto vertBuffer = std::make_unique<VertexBuffer<V>>(vertices);
         vkContext->uploadBuffer(*vertBuffer,
             VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR, VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT,
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, xferFlag, nullptr);
 
-        auto meshData = std::make_unique<MeshData>(std::move(vertices), getVertexAttributes(), getIndexCount(), getVertexCount());
-        meshData->calcBounds();
-        return std::make_unique<Mesh>(std::move(meshData), std::move(idxBuffer->releaseBuffer()), std::move(vertBuffer->releaseBuffer()));
+        auto vertData = std::make_unique<VertexData<V>>(std::move(vertices), getVertexAttributes(), getIndexCount(), getVertexCount());
+        vertData->calcBounds();
+        return std::make_unique<Mesh>(
+            getVertexAttributes(),
+            getIndexCount(), std::move(idxBuffer->releaseBuffer()),
+            getVertexCount(), std::move(vertBuffer->releaseBuffer()),
+            vertData->getBounds());
     }
 
 private:
@@ -167,21 +171,21 @@ private:
             auto index2 = indices[i + 1];
             auto index3 = indices[i + 2];
 
-            p1 = vertices[index1]->getPosition();
-            p2 = vertices[index2]->getPosition();
-            p3 = vertices[index3]->getPosition();
+            p1 = vertices[index1].getPosition();
+            p2 = vertices[index2].getPosition();
+            p3 = vertices[index3].getPosition();
 
             u = p2 - p1;
             v = p3 - p1;
             u = glm::cross(u, v);
 
-            *vertices[index1]->getNormal() += u;
-            *vertices[index2]->getNormal() += u;
-            *vertices[index3]->getNormal() += u;
+            *vertices[index1].getNormal() += u;
+            *vertices[index2].getNormal() += u;
+            *vertices[index3].getNormal() += u;
         }
 
         for (auto& vert : vertices)
-            vert->setNormal(glm::normalize(*vert->getNormal()));
+            vert.setNormal(glm::normalize(*vert.getNormal()));
     }
 
     void calculateTangents() {
@@ -194,13 +198,13 @@ private:
             auto i2 = indices[i + 2];
 
 
-            edge1 = vertices[i1]->getPosition() - vertices[i0]->getPosition();
-            edge2 = vertices[i2]->getPosition() - vertices[i0]->getPosition();
+            edge1 = vertices[i1].getPosition() - vertices[i0].getPosition();
+            edge2 = vertices[i2].getPosition() - vertices[i0].getPosition();
 
-            auto deltaU1 = vertices[i1]->getTexCoords()->x - vertices[i0]->getTexCoords()->x;
-            auto deltaV1 = vertices[i1]->getTexCoords()->y - vertices[i0]->getTexCoords()->y;
-            auto deltaU2 = vertices[i2]->getTexCoords()->x - vertices[i0]->getTexCoords()->x;
-            auto deltaV2 = vertices[i2]->getTexCoords()->y - vertices[i0]->getTexCoords()->y;
+            auto deltaU1 = vertices[i1].getTexCoords()->x - vertices[i0].getTexCoords()->x;
+            auto deltaV1 = vertices[i1].getTexCoords()->y - vertices[i0].getTexCoords()->y;
+            auto deltaU2 = vertices[i2].getTexCoords()->x - vertices[i0].getTexCoords()->x;
+            auto deltaV2 = vertices[i2].getTexCoords()->y - vertices[i0].getTexCoords()->y;
 
             auto dividend = deltaU1 * deltaV2 - deltaU2 * deltaV1;
 
@@ -210,12 +214,12 @@ private:
             tangent.y = f * (deltaV2 * edge1.y - deltaV1 * edge2.y);
             tangent.z = f * (deltaV2 * edge1.z - deltaV1 * edge2.z);
 
-            *vertices[i0]->getTangent() += tangent;
-            *vertices[i1]->getTangent() += tangent;
-            *vertices[i2]->getTangent() += tangent;
+            *vertices[i0].getTangent() += tangent;
+            *vertices[i1].getTangent() += tangent;
+            *vertices[i2].getTangent() += tangent;
         }
 
         for (auto& vert : vertices)
-            vert->setTangent(glm::normalize(*vert->getTangent()));
+            vert.setTangent(glm::normalize(*vert.getTangent()));
     }
 };

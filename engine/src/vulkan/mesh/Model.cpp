@@ -12,7 +12,7 @@ Model::Model(std::unique_ptr<Mesh>&& mesh) {
     auto node = std::make_shared<ModelNode>("Main Node");
     rootNode = node;
 
-    bounds = mesh->getMeshData().getBounds();
+    bounds = mesh->getBounds();
 
     auto modelMesh = std::make_unique<ModelMesh>(std::move(mesh));
 
