@@ -76,7 +76,7 @@ public:
         return indices;
     }
 
-    std::vector<V>& getVertices() const {
+    std::vector<V>& getVertices() {
         return vertices;
     }
 

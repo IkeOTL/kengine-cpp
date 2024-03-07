@@ -27,11 +27,11 @@ private:
     void processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshIndices) const;
     void loadMeshGroup(const tinygltf::Model& model, int meshGroupIdx, std::unordered_map<int, std::unique_ptr<MeshGroup>>& mesheGroups, int vertexAttributes) const;
 
-    template<typename T>
-    const T* getAttrBuffer(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const std::string attributeName, uint32_t& count) const {
+    template <typename T>
+    const unsigned char* getAttrBuffer(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const std::string attributeName, size_t& count, size_t& stride) const {
         auto it = primitive.attributes.find(attributeName);
         if (it == primitive.attributes.end())
-            throw new std::runtime_error("Vertex attribute not found.");
+            throw std::runtime_error("Vertex attribute not found.");
 
         auto accessorIndex = it->second;
         const auto& accessor = model.accessors[accessorIndex];
@@ -39,9 +39,9 @@ private:
         const auto& buffer = model.buffers[bufferView.buffer];
         const auto byteOffset = accessor.byteOffset + bufferView.byteOffset;
 
-        // is accessor.count obj count or byte count?
         count = accessor.count;
-        return reinterpret_cast<const T*>(&buffer.data[byteOffset]);
+        stride = bufferView.byteStride ? bufferView.byteStride : sizeof(T);
+        return&buffer.data[byteOffset];
     }
 
     template <typename V>
@@ -51,12 +51,13 @@ private:
             auto indicesIdx = primitive.indices;
 
             if (indicesIdx == -1)
-                throw new std::runtime_error("Currently only support indexed meshes.");
+                throw std::runtime_error("Currently only support indexed meshes.");
 
             const auto& accessor = model.accessors[indicesIdx];
 
-            if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
-                throw new std::runtime_error("Component type not handled.");
+            if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT
+                && accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
+                throw std::runtime_error("Component type not handled.");
 
             // resize mesh builder
             {
@@ -69,21 +70,79 @@ private:
 
             // Accessor could define a byte offset within the bufferView
             const auto byteOffset = accessor.byteOffset + bufferView.byteOffset;
-            const auto indices = reinterpret_cast<const unsigned short*>(&(buffer.data[byteOffset]));
+            const auto meshIndices = &(buffer.data[byteOffset]);
 
+            auto& targetIndices = mb.getIndices();
             // assume builder has had resize() executed
-            memcpy(mb.getIndices().data(), indices, sizeof(uint16_t) * accessor.count);
+            if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+                const auto meshIndices = reinterpret_cast<const uint16_t*>(&(buffer.data[byteOffset]));
+                for (auto i = 0; i < accessor.count; i++)
+                    targetIndices[i] = meshIndices[i];
+            }
+            else if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
+                memcpy(targetIndices.data(), &(buffer.data[byteOffset]), accessor.count * sizeof(uint32_t));
         }
 
         // load vertices
         {
+            auto& verts = mb.getVertices();
+
             auto vertexAttributes = mb.getVertexAttributes();
             if (vertexAttributes & VertexAttribute::POSITION) {
-                uint32_t count;
-                const auto attr = getAttrBuffer<glm::vec3>(model, primitive, "POSITION", count);
-                for (int32_t i = 0; i < count; i++)
-                {
+                size_t count;
+                size_t stride;
+                const auto* attr = getAttrBuffer<glm::vec3>(model, primitive, "POSITION", count, stride);
+                for (auto i = 0; i < count; i++)
+                    memcpy(&(verts[i].position), attr + (i * stride), sizeof(glm::vec3));
+            }
 
+            if (vertexAttributes & VertexAttribute::NORMAL) {
+                if constexpr (std::is_base_of_v<V, TexturedVertex> || std::is_base_of_v<V, ColoredVertex>) {
+                    size_t count;
+                    size_t stride;
+                    const auto* attr = getAttrBuffer<glm::vec3>(model, primitive, "NORMAL", count, stride);
+                    for (auto i = 0; i < count; i++)
+                        memcpy(&(verts[i].normal), attr + (i * stride), sizeof(glm::vec3));
+                }
+            }
+
+            if (vertexAttributes & VertexAttribute::COLOR) {
+                // not used atm
+            }
+
+            if (vertexAttributes & VertexAttribute::TEX_COORDS) {
+                if constexpr (std::is_base_of_v<V, TexturedVertex>) {
+                    size_t count;
+                    size_t stride;
+                    const auto attr = getAttrBuffer<glm::vec2>(model, primitive, "TEXCOORD_0", count, stride);
+                    for (auto i = 0; i < count; i++)
+                        memcpy(&(verts[i].texCoords), attr + (i * stride), sizeof(glm::vec2));
+                }
+            }
+
+            if (vertexAttributes & VertexAttribute::TANGENTS) {
+                if constexpr (std::is_base_of_v<V, TexturedVertex> || std::is_base_of_v<V, ColoredVertex>) {
+                    size_t count;
+                    size_t stride;
+                    const auto attr = getAttrBuffer(model, primitive, "TANGENT", count, stride);
+                    for (auto i = 0; i < count; i++)
+                        memcpy(&(verts[i].tangent), attr + (i * stride), sizeof(glm::vec4));
+                }
+            }
+
+            if (vertexAttributes & VertexAttribute::SKELETON) {
+                if constexpr (std::is_base_of_v<V, RiggedTexturedVertex> || std::is_base_of_v<V, RiggedColoredVertex>) {
+                    // joints
+                    {
+                        size_t count;
+                        size_t stride;
+                        const auto attr = getAttrBuffer(model, primitive, "JOINTS_0", count, stride);
+
+                        if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+                            for (auto i = 0; i < count; i++)
+                                memcpy(&(verts[i].blendIndex), attr + (i * stride), sizeof(glm::uvec4));
+                        }
+                    }
                 }
             }
         }
