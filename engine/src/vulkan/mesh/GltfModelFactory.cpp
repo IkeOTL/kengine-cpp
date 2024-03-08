@@ -64,8 +64,10 @@ void GltfModelFactory::loadMeshGroup(const tinygltf::Model& model, int meshGroup
                 MeshBuilder<SimpleTexturedVertex> mb(vertexAttributes);
                 loadMesh<SimpleTexturedVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
             }
+            continue;
         }
-        else if (vertexAttributes & VertexAttribute::COLOR) {
+
+        if (vertexAttributes & VertexAttribute::COLOR) {
             if (vertexAttributes & VertexAttribute::SKELETON) {
                 MeshBuilder<RiggedColoredVertex> mb(vertexAttributes);
                 loadMesh<RiggedColoredVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
@@ -78,11 +80,11 @@ void GltfModelFactory::loadMeshGroup(const tinygltf::Model& model, int meshGroup
                 MeshBuilder<SimpleColoredVertex> mb(vertexAttributes);
                 loadMesh<SimpleColoredVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
             }
+            continue;
         }
-        else {
-            MeshBuilder<Vertex> mb(vertexAttributes);
-            loadMesh<Vertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
-        }
+
+        MeshBuilder<Vertex> mb(vertexAttributes);
+        loadMesh<Vertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
     }
 }
 

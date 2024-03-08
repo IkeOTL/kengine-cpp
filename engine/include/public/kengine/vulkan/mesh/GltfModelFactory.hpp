@@ -27,7 +27,7 @@ private:
     void processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshIndices) const;
     void loadMeshGroup(const tinygltf::Model& model, int meshGroupIdx, std::unordered_map<int, std::unique_ptr<MeshGroup>>& mesheGroups, int vertexAttributes) const;
 
-    const tinygltf::Accessor& getAccessor(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const std::string attributeName) {
+    const tinygltf::Accessor& getAccessor(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const std::string attributeName) const {
         auto it = primitive.attributes.find(attributeName);
         if (it == primitive.attributes.end())
             throw std::runtime_error("Vertex attribute not found.");
@@ -50,12 +50,20 @@ private:
     template <typename T>
     const unsigned char* getAttrBuffer(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const std::string attributeName, size_t& count, size_t& stride) const {
         const auto& accessor = getAccessor(model, primitive, attributeName);
-        return getAttrBuffer(model, accessor, count, stride);
+        return getAttrBuffer<T>(model, accessor, count, stride);
     }
 
     template <typename V>
     void loadMesh(const tinygltf::Model& model, MeshBuilder<V>& mb, const tinygltf::Primitive& primitive, MeshGroup& meshGroup) const {
-        // load verts
+        // prepare indices
+        auto indicesIdx = primitive.indices;
+
+        if (indicesIdx == -1)
+            throw std::runtime_error("Currently only support indexed meshes.");
+
+        const auto& idxAccessor = model.accessors[indicesIdx];
+
+        // prepare verts
         const unsigned char* positionAttr = nullptr;
         const unsigned char* normalAttr = nullptr;
         const unsigned char* colorAttr = nullptr;
@@ -69,6 +77,7 @@ private:
             tangentStride = 0, jointIndexStride = 0, jointWeightStride = 0;
         int jointComponentType;
 
+        auto vertexAttributes = mb.getVertexAttributes();
         if (vertexAttributes & VertexAttribute::POSITION)
             positionAttr = getAttrBuffer<glm::vec3>(model, primitive, "POSITION", vertCount, positionStride);
 
@@ -95,144 +104,71 @@ private:
             jointWeightAttr = getAttrBuffer<glm::vec4>(model, primitive, "WEIGHTS_0", vertCount, jointWeightStride);
         }
 
-        auto& verts = mb.getVertices();
-        for (size_t i = 0; i < vertCount; i++) {
-            memcpy(&(verts[i].position), positionAttr + (i * positionStride), sizeof(glm::vec3));
-
-            if constexpr (std::is_base_of_v<V, TexturedVertex> || std::is_base_of_v<V, ColoredVertex>)
-                memcpy(&(verts[i].normal), normalAttr + (i * normalStride), sizeof(glm::vec3));
-
-            if constexpr (std::is_base_of_v<V, ColoredVertex>) { /* probably wont even use */ }
-
-            if constexpr (std::is_base_of_v<V, TexturedVertex>)
-                memcpy(&(verts[i].texCoords), texCoordAttr + (i * texCoordStride), sizeof(glm::vec2));
-
-            if constexpr (std::is_base_of_v<V, TexturedVertex> || std::is_base_of_v<V, ColoredVertex>)
-                memcpy(&(verts[i].tangents), tangentAttr + (i * tangentStride), sizeof(glm::vec4));
-
-            if constexpr (std::is_base_of_v<V, RiggedTexturedVertex> || std::is_base_of_v<V, RiggedColoredVertex>) {
-                if (jointComponentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
-                    memcpy(&(verts[i].blendIndex), jointIndexAttr + (i * jointIndexStride), sizeof(glm::u8vec4));
-                else if (jointComponentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
-                    memcpy(&(verts[i].blendIndex), jointIndexAttr + (i * jointIndexStride), sizeof(glm::u16vec4));
-
-                memcpy(&(verts[i].blendWeight), jointWeightAttr + (i * jointWeightStride), sizeof(glm::vec4));
-            }
-        }
-
-
+        // resize mesh builder            
+        mb.resize(idxAccessor.count, vertCount);
 
         // load indices
         {
-            auto indicesIdx = primitive.indices;
-
-            if (indicesIdx == -1)
-                throw std::runtime_error("Currently only support indexed meshes.");
-
-            const auto& accessor = model.accessors[indicesIdx];
-
-            if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT
-                && accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
+            if (idxAccessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT
+                && idxAccessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
                 throw std::runtime_error("Component type not handled.");
 
-            // resize mesh builder
-            {
-                const auto& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
-                mb.resize(accessor.count, posAccessor.count);
-            }
-
-            const auto& bufferView = model.bufferViews[accessor.bufferView];
+            const auto& bufferView = model.bufferViews[idxAccessor.bufferView];
             const auto& buffer = model.buffers[bufferView.buffer];
 
             // Accessor could define a byte offset within the bufferView
-            const auto byteOffset = accessor.byteOffset + bufferView.byteOffset;
-            const auto meshIndices = &(buffer.data[byteOffset]);
+            const auto byteOffset = idxAccessor.byteOffset + bufferView.byteOffset;
+            const auto* meshIndices = &(buffer.data[byteOffset]);
 
             auto& targetIndices = mb.getIndices();
             // assume builder has had resize() executed
-            if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+            if (idxAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
                 const auto meshIndices = reinterpret_cast<const uint16_t*>(&(buffer.data[byteOffset]));
-                for (auto i = 0; i < accessor.count; i++)
+                for (auto i = 0; i < idxAccessor.count; i++)
                     targetIndices[i] = meshIndices[i];
             }
-            else if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
-                memcpy(targetIndices.data(), &(buffer.data[byteOffset]), accessor.count * sizeof(uint32_t));
+            else if (idxAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
+                memcpy(targetIndices.data(), &(buffer.data[byteOffset]), idxAccessor.count * sizeof(uint32_t));
         }
 
         // load vertices
         {
+            auto& verts = mb.getVertices();
+            for (size_t i = 0; i < vertCount; i++) {
+                if (positionAttr)
+                    memcpy(&(verts[i].position), positionAttr + (i * positionStride), sizeof(glm::vec3));
 
-            auto vertexAttributes = mb.getVertexAttributes();
-            if (vertexAttributes & VertexAttribute::POSITION) {
-                size_t count;
-                size_t stride;
-                const auto* attr = getAttrBuffer<glm::vec3>(model, primitive, "POSITION", count, stride);
-                for (auto i = 0; i < count; i++)
-                    memcpy(&(verts[i].position), attr + (i * stride), sizeof(glm::vec3));
-            }
+                if constexpr (std::is_base_of_v<TexturedVertex, V> || std::is_base_of_v<ColoredVertex, V>)
+                    if (normalAttr)
+                        memcpy(&(verts[i].normal), normalAttr + (i * normalStride), sizeof(glm::vec3));
 
-            if (vertexAttributes & VertexAttribute::NORMAL) {
-                if constexpr (std::is_base_of_v<V, TexturedVertex> || std::is_base_of_v<V, ColoredVertex>) {
-                    size_t count;
-                    size_t stride;
-                    const auto* attr = getAttrBuffer<glm::vec3>(model, primitive, "NORMAL", count, stride);
-                    for (auto i = 0; i < count; i++)
-                        memcpy(&(verts[i].normal), attr + (i * stride), sizeof(glm::vec3));
-                }
-            }
+                if constexpr (std::is_base_of_v<ColoredVertex, V>) { /* probably wont even use */ }
 
-            if (vertexAttributes & VertexAttribute::COLOR) {
-                // not used atm
-            }
+                if constexpr (std::is_base_of_v<TexturedVertex, V>)
+                    if (texCoordAttr)
+                        memcpy(&(verts[i].texCoords), texCoordAttr + (i * texCoordStride), sizeof(glm::vec2));
 
-            if (vertexAttributes & VertexAttribute::TEX_COORDS) {
-                if constexpr (std::is_base_of_v<V, TexturedVertex>) {
-                    size_t count;
-                    size_t stride;
-                    const auto attr = getAttrBuffer<glm::vec2>(model, primitive, "TEXCOORD_0", count, stride);
-                    for (auto i = 0; i < count; i++)
-                        memcpy(&(verts[i].texCoords), attr + (i * stride), sizeof(glm::vec2));
-                }
-            }
+                if constexpr (std::is_base_of_v<TexturedVertex, V> || std::is_base_of_v<ColoredVertex, V>)
+                    if (tangentAttr)
+                        memcpy(&(verts[i].tangent), tangentAttr + (i * tangentStride), sizeof(glm::vec4));
 
-            if (vertexAttributes & VertexAttribute::TANGENTS) {
-                if constexpr (std::is_base_of_v<V, TexturedVertex> || std::is_base_of_v<V, ColoredVertex>) {
-                    size_t count;
-                    size_t stride;
-                    const auto attr = getAttrBuffer(model, primitive, "TANGENT", count, stride);
-                    for (auto i = 0; i < count; i++)
-                        memcpy(&(verts[i].tangent), attr + (i * stride), sizeof(glm::vec4));
-                }
-            }
-
-            if (vertexAttributes & VertexAttribute::SKELETON) {
-                if constexpr (std::is_base_of_v<V, RiggedTexturedVertex> || std::is_base_of_v<V, RiggedColoredVertex>) {
-                    // joints
-                    {
-                        size_t count;
-                        size_t stride;
-                        const auto attr = getAttrBuffer(model, primitive, "JOINTS_0", count, stride);
-
-                        if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
-                            for (auto i = 0; i < count; i++)
-                                memcpy(&(verts[i].blendIndex), attr + (i * stride), sizeof(glm::uvec4));
-                        }
+                // todo: improve strategy to load effeciently
+                if constexpr (std::is_base_of_v<RiggedTexturedVertex, V> || std::is_base_of_v<RiggedColoredVertex, V>) {
+                    if (jointIndexAttr && jointComponentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+                        glm::u8vec4 tmp;
+                        memcpy(&tmp, jointIndexAttr + (i * jointIndexStride), sizeof(glm::u8vec4));
+                        verts[i].blendIndex = glm::uvec4(tmp);
+                    }
+                    else if (jointIndexAttr && jointComponentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+                        glm::u16vec4 tmp;
+                        memcpy(&tmp, jointIndexAttr + (i * jointIndexStride), sizeof(glm::u16vec4));
+                        verts[i].blendIndex = glm::uvec4(tmp);
                     }
 
-                    // weights
-                    {
-                        size_t count;
-                        size_t stride;
-                        const auto attr = getAttrBuffer(model, primitive, "JOINTS_0", count, stride);
-
-                        if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
-                            for (auto i = 0; i < count; i++)
-                                memcpy(&(verts[i].blendIndex), attr + (i * stride), sizeof(glm::uvec4));
-                        }
-                    }
+                    if (jointWeightAttr)
+                        memcpy(&(verts[i].blendWeight), jointWeightAttr + (i * jointWeightStride), sizeof(glm::vec4));
                 }
             }
-
         }
 
         meshGroup.addMesh(

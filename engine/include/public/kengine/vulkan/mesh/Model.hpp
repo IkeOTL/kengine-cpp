@@ -26,6 +26,9 @@ private:
     std::vector<std::shared_ptr<Bone>> bones{};
     Bounds bounds{};
 
+
+  //  std::unordered_map<int, std::unique_ptr<MeshGroup>> meshGroups;
+
     static void fillRoot(std::shared_ptr<Spatial> root, const std::vector<std::shared_ptr<Spatial>> nodes);
     static void flattenMeshes(const std::vector<std::shared_ptr<Spatial>> nodes, std::vector<ModelMesh*> meshes);
 
