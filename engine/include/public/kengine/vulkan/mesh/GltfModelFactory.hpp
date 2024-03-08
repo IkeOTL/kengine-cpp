@@ -66,14 +66,13 @@ private:
         // prepare verts
         const unsigned char* positionAttr = nullptr;
         const unsigned char* normalAttr = nullptr;
-        const unsigned char* colorAttr = nullptr;
         const unsigned char* texCoordAttr = nullptr;
         const unsigned char* tangentAttr = nullptr;
         const unsigned char* jointIndexAttr = nullptr;
         const unsigned char* jointWeightAttr = nullptr;
 
         size_t vertCount = 0;
-        size_t positionStride = 0, normalStride = 0, colorStride = 0, texCoordStride = 0,
+        size_t positionStride = 0, normalStride = 0, texCoordStride = 0,
             tangentStride = 0, jointIndexStride = 0, jointWeightStride = 0;
         int jointComponentType;
 
@@ -83,8 +82,6 @@ private:
 
         if (vertexAttributes & VertexAttribute::NORMAL)
             normalAttr = getAttrBuffer<glm::vec3>(model, primitive, "NORMAL", vertCount, normalStride);
-
-        if (vertexAttributes & VertexAttribute::COLOR) { /* probably wont even use */ }
 
         if (vertexAttributes & VertexAttribute::TEX_COORDS)
             texCoordAttr = getAttrBuffer<glm::vec2>(model, primitive, "TEXCOORD_0", vertCount, texCoordStride);
@@ -138,22 +135,20 @@ private:
                 if (positionAttr)
                     memcpy(&(verts[i].position), positionAttr + (i * positionStride), sizeof(glm::vec3));
 
-                if constexpr (std::is_base_of_v<TexturedVertex, V> || std::is_base_of_v<ColoredVertex, V>)
+                if constexpr (std::is_base_of_v<TexturedVertex, V>)
                     if (normalAttr)
                         memcpy(&(verts[i].normal), normalAttr + (i * normalStride), sizeof(glm::vec3));
-
-                if constexpr (std::is_base_of_v<ColoredVertex, V>) { /* probably wont even use */ }
 
                 if constexpr (std::is_base_of_v<TexturedVertex, V>)
                     if (texCoordAttr)
                         memcpy(&(verts[i].texCoords), texCoordAttr + (i * texCoordStride), sizeof(glm::vec2));
 
-                if constexpr (std::is_base_of_v<TexturedVertex, V> || std::is_base_of_v<ColoredVertex, V>)
+                if constexpr (std::is_base_of_v<TexturedVertex, V>)
                     if (tangentAttr)
                         memcpy(&(verts[i].tangent), tangentAttr + (i * tangentStride), sizeof(glm::vec4));
 
                 // todo: improve strategy to load effeciently
-                if constexpr (std::is_base_of_v<RiggedTexturedVertex, V> || std::is_base_of_v<RiggedColoredVertex, V>) {
+                if constexpr (std::is_base_of_v<RiggedTexturedVertex, V>) {
                     if (jointIndexAttr && jointComponentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
                         glm::u8vec4 tmp;
                         memcpy(&tmp, jointIndexAttr + (i * jointIndexStride), sizeof(glm::u8vec4));

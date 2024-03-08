@@ -18,6 +18,24 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
 
     auto ret = gltfLoader.LoadBinaryFromMemory(&model, &err, &warn, assetData->data(), assetData->length());
 
+    // find all joint indices
+    std::unordered_set<uint32_t> jointNodeIndices;
+    for (const auto& skin : model.skins)
+        for (const auto jointIndex : skin.joints)
+            jointNodeIndices.insert(jointIndex);
+
+    std::vector<std::shared_ptr<Spatial>> nodes;
+    nodes.reserve(model.nodes.size());
+    for (size_t i = 0; i < model.nodes.size(); i++)
+    {
+        if (jointNodeIndices.find(i) != jointNodeIndices.end()) {
+            // make bone spatial
+            continue;
+        }
+
+        // make normal spatial
+    }
+
     // meshes that we should actually load
     std::unordered_set<int> meshGroupIndices{};
 
@@ -50,41 +68,26 @@ void GltfModelFactory::loadMeshGroup(const tinygltf::Model& model, int meshGroup
     auto meshCount = meshGroupData.primitives.size();
     auto& meshGroup = meshGroups[meshGroupIdx] = std::make_unique<MeshGroup>(meshCount);
     for (auto i = 0; i < meshCount; i++) {
-        // is there a better way?
-        if (vertexAttributes & VertexAttribute::TEX_COORDS) {
-            if (vertexAttributes & VertexAttribute::SKELETON) {
-                MeshBuilder<RiggedTexturedVertex> mb(vertexAttributes);
-                loadMesh(model, mb, meshGroupData.primitives[i], *meshGroup);
-            }
-            else if (vertexAttributes & VertexAttribute::NORMAL) {
-                MeshBuilder<TexturedVertex> mb(vertexAttributes);
-                loadMesh<TexturedVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
-            }
-            else {
-                MeshBuilder<SimpleTexturedVertex> mb(vertexAttributes);
-                loadMesh<SimpleTexturedVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
-            }
+        if ((vertexAttributes & VertexAttribute::TEX_COORDS) == 0) {
+            MeshBuilder<Vertex> mb(vertexAttributes);
+            loadMesh<Vertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
             continue;
         }
 
-        if (vertexAttributes & VertexAttribute::COLOR) {
-            if (vertexAttributes & VertexAttribute::SKELETON) {
-                MeshBuilder<RiggedColoredVertex> mb(vertexAttributes);
-                loadMesh<RiggedColoredVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
-            }
-            else if (vertexAttributes & VertexAttribute::NORMAL) {
-                MeshBuilder<ColoredVertex> mb(vertexAttributes);
-                loadMesh<ColoredVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
-            }
-            else {
-                MeshBuilder<SimpleColoredVertex> mb(vertexAttributes);
-                loadMesh<SimpleColoredVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
-            }
+        if (vertexAttributes & VertexAttribute::SKELETON) {
+            MeshBuilder<RiggedTexturedVertex> mb(vertexAttributes);
+            loadMesh(model, mb, meshGroupData.primitives[i], *meshGroup);
             continue;
         }
 
-        MeshBuilder<Vertex> mb(vertexAttributes);
-        loadMesh<Vertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
+        if (vertexAttributes & VertexAttribute::NORMAL) {
+            MeshBuilder<TexturedVertex> mb(vertexAttributes);
+            loadMesh<TexturedVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
+            continue;
+        }
+
+        MeshBuilder<SimpleTexturedVertex> mb(vertexAttributes);
+        loadMesh<SimpleTexturedVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
     }
 }
 

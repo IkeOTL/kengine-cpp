@@ -21,13 +21,10 @@ public:
 class Model {
 private:
     std::shared_ptr<Spatial> rootNode = nullptr;
-    std::vector<std::shared_ptr<ModelNode>> nodes{};
-    std::vector<ModelMesh*> meshes{}; // references the meshes in nodes for faster access
-    std::vector<std::shared_ptr<Bone>> bones{};
+    std::vector<std::shared_ptr<ModelNode>> nodes;
+    std::unordered_map<int, std::unique_ptr<MeshGroup>> meshGroups;
+    std::vector<uint32_t> bones;
     Bounds bounds{};
-
-
-  //  std::unordered_map<int, std::unique_ptr<MeshGroup>> meshGroups;
 
     static void fillRoot(std::shared_ptr<Spatial> root, const std::vector<std::shared_ptr<Spatial>> nodes);
     static void flattenMeshes(const std::vector<std::shared_ptr<Spatial>> nodes, std::vector<ModelMesh*> meshes);
