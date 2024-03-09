@@ -29,6 +29,8 @@ Model::Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
     : nodes(std::move(nodes)), meshGroups(std::move(meshGroups)), bones(std::move(bones)) {
     rootNode = std::make_shared<ModelNode>("Main Node");
     fillRoot(rootNode, this->nodes);
+
+    // calc bounds
 }
 
 

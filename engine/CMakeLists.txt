@@ -53,13 +53,14 @@ set(HEADERS
     include/public/kengine/vulkan/SamplerCache.hpp
     include/public/kengine/vulkan/LightsManager.hpp
 
+    include/public/kengine/vulkan/mesh/AsyncModelCache.hpp
+    include/public/kengine/vulkan/mesh/Model.hpp
     include/public/kengine/vulkan/mesh/Mesh.hpp
     include/public/kengine/vulkan/mesh/MeshBuilder.hpp
     include/public/kengine/vulkan/mesh/ModelFactory.hpp
     include/public/kengine/vulkan/mesh/GltfModelFactory.hpp
     include/public/kengine/vulkan/mesh/Vertex.hpp
     include/public/kengine/vulkan/mesh/ModelNode.hpp
-    include/public/kengine/vulkan/mesh/Model.hpp
 
     include/public/kengine/vulkan/mesh/anim/Skeleton.hpp
 
@@ -131,6 +132,7 @@ set(SOURCES
     src/vulkan/texture/TextureConfig.cpp
     src/vulkan/texture/Texture2d.cpp
 
+    src/vulkan/mesh/AsyncModelCache.cpp
     src/vulkan/mesh/Mesh.cpp
     src/vulkan/mesh/MeshBuilder.cpp
     src/vulkan/mesh/Model.cpp

@@ -19,7 +19,7 @@ public:
 
     void addMesh(std::unique_ptr<Mesh>&& mesh);
 
-    uint32_t getNodeIndex() {
+    uint32_t getNodeIndex() const {
         return nodeIdx;
     }
 };
