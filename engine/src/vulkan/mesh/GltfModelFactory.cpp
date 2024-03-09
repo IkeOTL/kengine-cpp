@@ -7,6 +7,7 @@
 #include <kengine/io/AssetIO.hpp>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 thread_local tinygltf::TinyGLTF GltfModelFactory::gltfLoader{};
@@ -20,6 +21,9 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
     auto assetData = assetIo.loadBuffer(meshKey);
 
     auto ret = gltfLoader.LoadBinaryFromMemory(&model, &err, &warn, assetData->data(), assetData->length());
+
+    std::vector<std::shared_ptr<Spatial>> spatialNodes;
+    std::vector<std::shared_ptr<Bone>> spatialBones;
 
     // load nodes and bones
     {
@@ -35,32 +39,74 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
                 memcpy(&(inverseBindMatrices[i]), inverseBindMatricesData + (i * bufferView.byteStride), sizeof(glm::mat4));
         }
 
-        // find all joint indices
+        // find all joint indices for first skin
         std::unordered_set<uint32_t> jointNodeIndices;
         if (!model.skins.empty())
-            for (const auto jointIndex : model.skins[0].joints) // lets only use the first skin
+            for (const auto jointIndex : model.skins[0].joints)
                 jointNodeIndices.insert(jointIndex);
 
         // create node entries
-        std::vector<std::shared_ptr<Spatial>> nodes;
-        nodes.reserve(model.nodes.size());
+        spatialNodes.reserve(model.nodes.size());
 
-        std::vector<std::shared_ptr<Bone>> bones;
-        nodes.reserve(jointNodeIndices.size());
-        for (size_t i = 0; i < model.nodes.size(); i++)
-        {
+        spatialBones.reserve(jointNodeIndices.size());
+
+        // load all nodes to keep it simple
+        for (size_t i = 0; i < model.nodes.size(); i++) {
+            auto& node = model.nodes[i];
+
+            // normal node, aka not a joint
             if (jointNodeIndices.find(i) == jointNodeIndices.end()) {
-                auto node = std::make_shared<Spatial>("node: " + i);
-                nodes.push_back(node);
+                auto spatial = std::make_shared<Spatial>("node: " + i);
+
+                if (!node.translation.empty()) {
+                    glm::dvec3 pos;
+                    memcpy(&pos, node.translation.data(), sizeof(glm::dvec3));
+                    spatial->setLocalPosition(glm::vec3(pos));
+                }
+
+                if (!node.rotation.empty()) {
+                    glm::dquat rot;
+                    memcpy(&rot, node.rotation.data(), sizeof(glm::dquat));
+                    spatial->setLocalRotation(glm::quat(rot));
+                }
+
+                if (!node.scale.empty()) {
+                    glm::dvec3 scl;
+                    memcpy(&scl, node.scale.data(), sizeof(glm::dvec3));
+                    spatial->setLocalScale(glm::vec3(scl));
+                }
+
+                spatialNodes.push_back(spatial);
 
                 continue;
             }
 
-            auto boneSpatial = std::make_shared<Bone>(bones.size(), model.nodes[i].name);
+            auto boneSpatial = std::make_shared<Bone>(spatialBones.size(), model.nodes[i].name);
             boneSpatial->setInverseBindWorldMatrix(inverseBindMatrices[boneSpatial->getBoneId()]);
 
-            nodes.push_back(boneSpatial);
-            bones.push_back(boneSpatial);
+
+            if (!node.translation.empty()) {
+                glm::dvec3 pos;
+                memcpy(&pos, node.translation.data(), sizeof(glm::dvec3));
+                boneSpatial->setLocalPosition(glm::vec3(pos));
+            }
+
+            if (!node.rotation.empty()) {
+                glm::dquat rot;
+                memcpy(&rot, node.rotation.data(), sizeof(glm::dquat));
+                boneSpatial->setLocalRotation(glm::quat(rot));
+            }
+
+            if (!node.scale.empty()) {
+                glm::dvec3 scl;
+                memcpy(&scl, node.scale.data(), sizeof(glm::dvec3));
+                boneSpatial->setLocalScale(glm::vec3(scl));
+            }
+
+            boneSpatial->saveBindPose();
+
+            spatialNodes.push_back(boneSpatial);
+            spatialBones.push_back(boneSpatial);
         }
     }
 
@@ -69,7 +115,7 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
 
     // load node heirarchy
     for (size_t i = 0; i < model.scenes[model.defaultScene].nodes.size(); i++)
-        processNode(model, model.scenes[model.defaultScene].nodes[i], meshGroupIndices);
+        processNode(model, model.scenes[model.defaultScene].nodes[i], meshGroupIndices, spatialNodes);
 
     // load meshes
     std::unordered_map<int, std::unique_ptr<MeshGroup>> meshGroups{};
@@ -79,15 +125,18 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
     return std::unique_ptr<Model>();
 }
 
-void GltfModelFactory::processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshGroupIndices) const {
-    const tinygltf::Node& node = model.nodes[nodeIndex];
+void GltfModelFactory::processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshGroupIndices, std::vector<std::shared_ptr<Spatial>>& spatialNodes) const {
+    const auto& node = model.nodes[nodeIndex];
+    auto& parentSpatial = spatialNodes[nodeIndex];
 
     // if a node we touch has a mesh group we mark it for loading
     if (node.mesh != -1)
         meshGroupIndices.insert(node.mesh);
 
-    for (int childIndex : node.children)
-        processNode(model, childIndex, meshGroupIndices);
+    for (auto childIndex : node.children) {
+        parentSpatial->addChild(spatialNodes[childIndex]);
+        processNode(model, childIndex, meshGroupIndices, spatialNodes);
+    }
 }
 
 void GltfModelFactory::loadMeshGroup(const tinygltf::Model& model, int meshGroupIdx, std::unordered_map<int, std::unique_ptr<MeshGroup>>& meshGroups, int vertexAttributes) const {

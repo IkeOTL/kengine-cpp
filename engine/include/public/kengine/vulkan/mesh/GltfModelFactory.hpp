@@ -24,7 +24,7 @@ public:
     std::unique_ptr<Model> loadModel(std::string meshKey, int vertexAttributes) override;
 
 private:
-    void processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshIndices) const;
+    void processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshIndices, std::vector<std::shared_ptr<Spatial>>& spatialNodes) const;
     void loadMeshGroup(const tinygltf::Model& model, int meshGroupIdx, std::unordered_map<int, std::unique_ptr<MeshGroup>>& mesheGroups, int vertexAttributes) const;
 
     const tinygltf::Accessor& getAccessor(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const std::string attributeName) const {
