@@ -17,7 +17,7 @@ Model::Model(std::unique_ptr<Mesh>&& mesh) {
     auto modelMesh = std::make_unique<ModelMesh>(std::move(mesh));
 
     // add to quick access
-    meshes.push_back(modelMesh.get());
+   // meshes.push_back(modelMesh.get());
 
     node->addMesh(std::move(modelMesh));
 }

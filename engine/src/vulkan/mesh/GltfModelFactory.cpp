@@ -6,6 +6,9 @@
 #include <kengine/vulkan/mesh/Model.hpp>
 #include <kengine/io/AssetIO.hpp>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 thread_local tinygltf::TinyGLTF GltfModelFactory::gltfLoader{};
 
 std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vertexAttributes) {
@@ -18,22 +21,47 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
 
     auto ret = gltfLoader.LoadBinaryFromMemory(&model, &err, &warn, assetData->data(), assetData->length());
 
-    // find all joint indices
-    std::unordered_set<uint32_t> jointNodeIndices;
-    for (const auto& skin : model.skins)
-        for (const auto jointIndex : skin.joints)
-            jointNodeIndices.insert(jointIndex);
-
-    std::vector<std::shared_ptr<Spatial>> nodes;
-    nodes.reserve(model.nodes.size());
-    for (size_t i = 0; i < model.nodes.size(); i++)
+    // load nodes and bones
     {
-        if (jointNodeIndices.find(i) != jointNodeIndices.end()) {
-            // make bone spatial
-            continue;
+        std::vector<glm::mat4> inverseBindMatrices;
+        if (model.skins[0].inverseBindMatrices > -1) {
+            const auto& accessor = model.accessors[model.skins[0].inverseBindMatrices];
+            const auto& bufferView = model.bufferViews[accessor.bufferView];
+            const auto& buffer = model.buffers[bufferView.buffer];
+            const unsigned char* inverseBindMatricesData = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
+
+            inverseBindMatrices.resize(accessor.count);
+            for (size_t i = 0; i < accessor.count; ++i)
+                memcpy(&(inverseBindMatrices[i]), inverseBindMatricesData + (i * bufferView.byteStride), sizeof(glm::mat4));
         }
 
-        // make normal spatial
+        // find all joint indices
+        std::unordered_set<uint32_t> jointNodeIndices;
+        if (!model.skins.empty())
+            for (const auto jointIndex : model.skins[0].joints) // lets only use the first skin
+                jointNodeIndices.insert(jointIndex);
+
+        // create node entries
+        std::vector<std::shared_ptr<Spatial>> nodes;
+        nodes.reserve(model.nodes.size());
+
+        std::vector<std::shared_ptr<Bone>> bones;
+        nodes.reserve(jointNodeIndices.size());
+        for (size_t i = 0; i < model.nodes.size(); i++)
+        {
+            if (jointNodeIndices.find(i) == jointNodeIndices.end()) {
+                auto node = std::make_shared<Spatial>("node: " + i);
+                nodes.push_back(node);
+
+                continue;
+            }
+
+            auto boneSpatial = std::make_shared<Bone>(bones.size(), model.nodes[i].name);
+            boneSpatial->setInverseBindWorldMatrix(inverseBindMatrices[boneSpatial->getBoneId()]);
+
+            nodes.push_back(boneSpatial);
+            bones.push_back(boneSpatial);
+        }
     }
 
     // meshes that we should actually load
