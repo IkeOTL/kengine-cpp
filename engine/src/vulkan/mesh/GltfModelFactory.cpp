@@ -24,6 +24,7 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
 
     std::vector<std::shared_ptr<Spatial>> spatialNodes;
     std::vector<std::shared_ptr<Bone>> spatialBones;
+    std::vector<uint32_t> bonesNodeIndices;
 
     // load nodes and bones
     {
@@ -40,23 +41,23 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
         }
 
         // find all joint indices for first skin
-        std::unordered_set<uint32_t> jointNodeIndices;
+        std::unordered_set<uint32_t> uniqueBoneNodeIndices;
         if (!model.skins.empty())
             for (const auto jointIndex : model.skins[0].joints)
-                jointNodeIndices.insert(jointIndex);
+                uniqueBoneNodeIndices.insert(jointIndex);
 
         // create node entries
         spatialNodes.reserve(model.nodes.size());
-
-        spatialBones.reserve(jointNodeIndices.size());
+        spatialBones.reserve(uniqueBoneNodeIndices.size());
+        bonesNodeIndices.resize(uniqueBoneNodeIndices.size());
 
         // load all nodes to keep it simple
         for (size_t i = 0; i < model.nodes.size(); i++) {
             auto& node = model.nodes[i];
 
             // normal node, aka not a joint
-            if (jointNodeIndices.find(i) == jointNodeIndices.end()) {
-                auto spatial = std::make_shared<Spatial>("node: " + i);
+            if (uniqueBoneNodeIndices.find(i) == uniqueBoneNodeIndices.end()) {
+                auto spatial = std::make_shared<Spatial>("node: (" + std::to_string(i) + ") " + node.name);
 
                 if (!node.translation.empty()) {
                     glm::dvec3 pos;
@@ -83,7 +84,7 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
 
             auto boneSpatial = std::make_shared<Bone>(spatialBones.size(), model.nodes[i].name);
             boneSpatial->setInverseBindWorldMatrix(inverseBindMatrices[boneSpatial->getBoneId()]);
-
+            bonesNodeIndices[boneSpatial->getBoneId()] = i;
 
             if (!node.translation.empty()) {
                 glm::dvec3 pos;
@@ -112,30 +113,37 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
 
     // meshes that we should actually load
     std::unordered_set<int> meshGroupIndices{};
+    std::unordered_map<int, std::unique_ptr<MeshGroup>> meshGroups{};
 
-    // load node heirarchy
+    // load node heirarchy, and apply parenting
     for (size_t i = 0; i < model.scenes[model.defaultScene].nodes.size(); i++)
-        processNode(model, model.scenes[model.defaultScene].nodes[i], meshGroupIndices, spatialNodes);
+        processNode(model, model.scenes[model.defaultScene].nodes[i], meshGroupIndices, meshGroups, spatialNodes);
 
     // load meshes
-    std::unordered_map<int, std::unique_ptr<MeshGroup>> meshGroups{};
-    for (auto& meshGroupIdx : meshGroupIndices)
+    for (auto meshGroupIdx : meshGroupIndices)
         loadMeshGroup(model, meshGroupIdx, meshGroups, vertexAttributes);
 
-    return std::unique_ptr<Model>();
+    return std::make_unique<Model>(std::move(spatialNodes), std::move(meshGroups), std::move(bonesNodeIndices));
 }
 
-void GltfModelFactory::processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshGroupIndices, std::vector<std::shared_ptr<Spatial>>& spatialNodes) const {
+void GltfModelFactory::processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshGroupIndices,
+    std::unordered_map<int, std::unique_ptr<MeshGroup>>& meshGroups, std::vector<std::shared_ptr<Spatial>>& spatialNodes) const {
     const auto& node = model.nodes[nodeIndex];
     auto& parentSpatial = spatialNodes[nodeIndex];
 
     // if a node we touch has a mesh group we mark it for loading
-    if (node.mesh != -1)
+    if (node.mesh != -1) {
         meshGroupIndices.insert(node.mesh);
+        auto& meshGroupData = model.meshes[node.mesh];
+
+        // create mesh group entry
+        auto meshCount = meshGroupData.primitives.size();
+        auto& meshGroup = meshGroups[node.mesh] = std::make_unique<MeshGroup>(nodeIndex, meshCount);
+    }
 
     for (auto childIndex : node.children) {
         parentSpatial->addChild(spatialNodes[childIndex]);
-        processNode(model, childIndex, meshGroupIndices, spatialNodes);
+        processNode(model, childIndex, meshGroupIndices, meshGroups, spatialNodes);
     }
 }
 
@@ -143,7 +151,7 @@ void GltfModelFactory::loadMeshGroup(const tinygltf::Model& model, int meshGroup
     auto& meshGroupData = model.meshes[meshGroupIdx];
 
     auto meshCount = meshGroupData.primitives.size();
-    auto& meshGroup = meshGroups[meshGroupIdx] = std::make_unique<MeshGroup>(meshCount);
+    auto& meshGroup = meshGroups[meshGroupIdx];
     for (auto i = 0; i < meshCount; i++) {
         if ((vertexAttributes & VertexAttribute::TEX_COORDS) == 0) {
             MeshBuilder<Vertex> mb(vertexAttributes);

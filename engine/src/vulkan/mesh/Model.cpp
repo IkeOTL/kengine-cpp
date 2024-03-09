@@ -1,6 +1,7 @@
 #include <kengine/vulkan/mesh/Model.hpp>
 
-MeshGroup::MeshGroup(uint32_t meshCount) {
+MeshGroup::MeshGroup(uint32_t nodeIdx, uint32_t meshCount)
+    : nodeIdx(nodeIdx) {
     meshes.reserve(meshCount);
 }
 
@@ -8,31 +9,26 @@ void MeshGroup::addMesh(std::unique_ptr<Mesh>&& mesh) {
     meshes.push_back(std::move(mesh));
 }
 
-Model::Model(std::unique_ptr<Mesh>&& mesh) {
-    auto node = std::make_shared<ModelNode>("Main Node");
-    rootNode = node;
+//Model::Model(std::unique_ptr<Mesh>&& mesh) {
+//    auto node = std::make_shared<ModelNode>("Main Node");
+//    rootNode = node;
+//
+//    bounds = mesh->getBounds();
+//
+//    auto modelMesh = std::make_unique<ModelMesh>(std::move(mesh));
+//
+//    // add to quick access
+//   // meshes.push_back(modelMesh.get());
+//
+//    node->addMesh(std::move(modelMesh));
+//}
 
-    bounds = mesh->getBounds();
-
-    auto modelMesh = std::make_unique<ModelMesh>(std::move(mesh));
-
-    // add to quick access
-   // meshes.push_back(modelMesh.get());
-
-    node->addMesh(std::move(modelMesh));
-}
-
-Model::Model(std::vector<std::shared_ptr<ModelNode>>&& nodes)
-    : nodes(std::move(nodes)) {
+Model::Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
+    std::unordered_map<int, std::unique_ptr<MeshGroup>>&& meshGroups,
+    std::vector<uint32_t>&& bones)
+    : nodes(std::move(nodes)), meshGroups(std::move(meshGroups)), bones(std::move(bones)) {
     rootNode = std::make_shared<ModelNode>("Main Node");
-
-    std::vector<std::shared_ptr<Spatial>> spatials;
-    spatials.reserve(this->nodes.size());
-
-    for (const auto& modelNode : this->nodes)
-        spatials.push_back(std::static_pointer_cast<Spatial>(modelNode));
-
-    fillRoot(rootNode, spatials);
+    fillRoot(rootNode, this->nodes);
 }
 
 
@@ -45,18 +41,5 @@ void Model::fillRoot(std::shared_ptr<Spatial> root, const std::vector<std::share
 
         if (node->hasChildren())
             fillRoot(root, node->getChildren());
-    }
-}
-
-void Model::flattenMeshes(const std::vector<std::shared_ptr<Spatial>> nodes, std::vector<ModelMesh*> meshes) {
-    for (const auto& sNode : nodes) {
-        auto node = std::static_pointer_cast<ModelNode>(sNode);
-
-        auto& nodeMeshes = node->getMeshes();
-        for (const auto& mesh : nodeMeshes)
-            meshes.push_back(mesh.get());
-
-        if (sNode->hasChildren())
-            flattenMeshes(sNode->getChildren(), meshes);
     }
 }
