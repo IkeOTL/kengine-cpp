@@ -20,7 +20,7 @@ size_t MaterialConfig::hashCode() const noexcept {
     size_t hash = 5;
     size_t prime = 53;
     hash = prime * hash + pipelineTypeIndex.hash_code();
-    hash = prime * hash + MapHasher::hash(this->bindingConfigs);
+    hash = prime * hash + MapHasher::hash(this->bindingConfigs); // cache somehow
     hash = prime * hash + (_hasShadow ? 1 : 0);
     hash = prime * hash + (_hasSkeleton ? 1 : 0);
     hash = prime * hash + skeletonBufferId;
@@ -38,7 +38,7 @@ bool MaterialConfig::operator==(const MaterialConfig& other) const {
     if (!(bindingConfigs == other.bindingConfigs))
         return false;
 
-    return this->hash() == other.hash();
+    return this->hashCode() == other.hashCode();
 }
 
 bool MaterialConfig::operator!=(const MaterialConfig& other) const {

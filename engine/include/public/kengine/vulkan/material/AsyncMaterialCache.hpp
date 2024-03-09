@@ -6,13 +6,16 @@
 
 class Material;
 
-class AsyncMaterialCache : AsyncAssetCache<Material, MaterialConfig> {
+class AsyncMaterialCache : public AsyncAssetCache<Material, MaterialConfig> {
 private:
     std::atomic<int> runningId;
 
     std::shared_ptr<PipelineCache> pipelineCache;
     std::shared_ptr<AsyncTextureCache> textureCache;
     std::shared_ptr<GpuBufferCache> bufferCache;
+
+protected:
+    std::unique_ptr<Material> create(std::shared_ptr<MaterialConfig> keyObj) override;
 
 public:
 
@@ -27,5 +30,4 @@ public:
     AsyncMaterialCache(ExecutorService& workerPool)
         : AsyncAssetCache(workerPool) {}
 
-    std::unique_ptr<Material> create(std::shared_ptr<MaterialConfig> keyObj) override;
 };

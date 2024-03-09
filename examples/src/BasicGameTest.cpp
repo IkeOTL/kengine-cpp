@@ -1,4 +1,5 @@
 #include <kengine/game/BasicGameTest.hpp>
+#include <kengine/game/BasicCameraController.hpp>
 #include <kengine/vulkan/ColorFormatAndSpace.hpp>
 #include <kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp>
 #include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
@@ -19,8 +20,6 @@
 #include <thread>
 #include <utility>
 #include <glm/glm.hpp>
-#include <kengine/game/BasicCameraController.hpp>
-#include <kengine/vulkan/mesh/GltfModelFactory.hpp>
 
 float BasicGameTest::getDelta() {
     return 0.0f;
@@ -42,7 +41,7 @@ void BasicGameTest::run() {
             lastFrame = newTime;
 
             // cap delta
-            delta = std::min(delta, .2f);
+            delta = std::min<float>(delta, .2f);
 
             sm.update();
         }
@@ -67,14 +66,21 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     lightsManager = std::make_unique<LightsManager>(*cameraController);
 
 
-    auto gltfLoader = std::make_unique<GltfModelFactory>(*vulkanCxt, *assetIo);
+    modelFactory = std::make_unique<GltfModelFactory>(*vulkanCxt, *assetIo);
+    modelCache = std::make_unique<AsyncModelCache>(*modelFactory, *threadPool);
 
-    auto model = gltfLoader->loadModel(
-        "res/gltf/char01.glb",
+    auto modelConfig = std::make_shared<ModelConfig>("res/gltf/char01.glb",
         VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
         | VertexAttribute::TANGENTS | VertexAttribute::SKELETON
     );
+    auto& model = modelCache->get(modelConfig);
 
+    auto modelConfig0 = std::make_shared<ModelConfig>("res/gltf/char01.glb",
+        VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
+        | VertexAttribute::TANGENTS | VertexAttribute::SKELETON
+    );
+    auto& model0 = modelCache->get(modelConfig0);
+  
     // asset io test
     auto asset = assetIo->loadBuffer("res/src/skinned.vert.spv");
     auto len = asset->length();

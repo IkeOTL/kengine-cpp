@@ -1,7 +1,7 @@
 #pragma once
+#include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/ModelFactory.hpp>
 #include <kengine/vulkan/mesh/MeshBuilder.hpp>
-#include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/io/AssetIO.hpp>
 #include <thirdparty/tiny_gltf.h>
 #include <unordered_set>
@@ -21,7 +21,7 @@ public:
     GltfModelFactory(VulkanContext& vkContext, AssetIO& assetIo)
         : vkContext(vkContext), assetIo(assetIo) {}
 
-    std::unique_ptr<Model> loadModel(std::string meshKey, int vertexAttributes) override;
+    std::unique_ptr<Model> loadModel(const ModelConfig& config) override;
 
 private:
     void processNode(const tinygltf::Model& model, int nodeIndex,

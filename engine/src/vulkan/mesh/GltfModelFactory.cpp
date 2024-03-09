@@ -12,13 +12,13 @@
 
 thread_local tinygltf::TinyGLTF GltfModelFactory::gltfLoader{};
 
-std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vertexAttributes) {
+std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
     std::shared_ptr<Spatial> rootNode = nullptr;
 
     tinygltf::Model model;
     std::string err, warn;
 
-    auto assetData = assetIo.loadBuffer(meshKey);
+    auto assetData = assetIo.loadBuffer(config.getModelKey());
 
     auto ret = gltfLoader.LoadBinaryFromMemory(&model, &err, &warn, assetData->data(), assetData->length());
 
@@ -121,7 +121,7 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(std::string meshKey, int vert
 
     // load meshes
     for (auto meshGroupIdx : meshGroupIndices)
-        loadMeshGroup(model, meshGroupIdx, meshGroups, vertexAttributes);
+        loadMeshGroup(model, meshGroupIdx, meshGroups, config.getAttributes());
 
     return std::make_unique<Model>(std::move(spatialNodes), std::move(meshGroups), std::move(bonesNodeIndices));
 }
