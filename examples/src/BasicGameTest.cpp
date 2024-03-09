@@ -69,21 +69,17 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     modelFactory = std::make_unique<GltfModelFactory>(*vulkanCxt, *assetIo);
     modelCache = std::make_unique<AsyncModelCache>(*modelFactory, *threadPool);
 
-    auto modelConfig = std::make_shared<ModelConfig>("res/gltf/char01.glb",
-        VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
-        | VertexAttribute::TANGENTS | VertexAttribute::SKELETON
-    );
-    auto& model = modelCache->get(modelConfig);
-
-    auto modelConfig0 = std::make_shared<ModelConfig>("res/gltf/char01.glb",
-        VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
-        | VertexAttribute::TANGENTS | VertexAttribute::SKELETON
-    );
-    auto& model0 = modelCache->get(modelConfig0);
+    //auto modelConfig = std::make_shared<ModelConfig>("res/gltf/char01.glb",
+    //    VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
+    //    | VertexAttribute::TANGENTS | VertexAttribute::SKELETON
+    //);
+    //auto modelTask = modelCache->getAsync(modelConfig);
   
-    // asset io test
-    auto asset = assetIo->loadBuffer("res/src/skinned.vert.spv");
-    auto len = asset->length();
+    //auto* model = modelTask.get();
+
+    //// asset io test
+    //auto asset = assetIo->loadBuffer("res/src/skinned.vert.spv");
+    //auto len = asset->length();
 
     renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
 

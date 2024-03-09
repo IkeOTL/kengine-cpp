@@ -13,6 +13,8 @@ set(HEADERS
     include/public/kengine/util/MapUtils.hpp
     include/public/kengine/util/VecUtils.hpp
 
+    include/public/kengine/ecs/BaseSystem.hpp
+
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
 
