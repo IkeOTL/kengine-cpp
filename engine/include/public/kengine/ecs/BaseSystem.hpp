@@ -1,12 +1,12 @@
 #pragma once
-#include <thirdparty/entt.hpp>
+
+class EcsWorld;
 
 class BaseSystem {
 private:
-    entt::registry& registry;
+    EcsWorld& ecsWorld;
 
 protected:
-    virtual void init() = 0;
 
     virtual void processSystem() = 0;
 
@@ -18,7 +18,10 @@ protected:
     }
 
 public:
-    BaseSystem(entt::registry& registry) : registry(registry) {}
+    BaseSystem(EcsWorld& ecsWorld) : ecsWorld(ecsWorld) {}
+
+    // called by the world
+    virtual void init() = 0;
 
     void process() {
         if (!checkProcessing())
