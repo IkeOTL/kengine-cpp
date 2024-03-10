@@ -13,7 +13,7 @@ private:
 
 public:
     SceneData(CameraController& cameraController, glm::vec3 lightDir)
-        :cameraController(cameraController), lightDir(lightDir) {}
+        : cameraController(cameraController), lightDir(lightDir) {}
 
     static size_t alignedFrameSize(VulkanContext& vkCxt);
     static size_t size();

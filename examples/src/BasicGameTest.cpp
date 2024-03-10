@@ -70,7 +70,9 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     textureFactory = std::make_unique<TextureFactory>(*vulkanCxt, *assetIo);
     textureCache = std::make_unique<AsyncTextureCache>(*textureFactory, *threadPool);
     materialCache = std::make_unique<AsyncMaterialCache>(*threadPool);
+
     renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
+    renderContext->init();
 
     world = std::make_unique<World>(WorldConfig()
         // injectable objects. order doesnt matter
