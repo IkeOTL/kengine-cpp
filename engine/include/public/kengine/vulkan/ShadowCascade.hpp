@@ -18,7 +18,7 @@ public:
         return splitDepth;
     }
 
-    glm::mat4 getViewProj() {
+    const glm::mat4& getViewProj() const {
         return viewProj;
     }
 };
@@ -33,8 +33,8 @@ private:
 
 public:
     ShadowCascade& getCascade(int i);
-    void uploadShadowPass(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, size_t frameIndex);
-    void uploadCompositionPass(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, size_t frameIndex);
+    void uploadShadowPass(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, int frameIndex);
+    void uploadCompositionPass(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, int frameIndex);
 
     void setLightDir(glm::vec3 l) {
         lightDir = l;

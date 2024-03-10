@@ -63,6 +63,52 @@ void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const
     this->splitDepth = -(camNear + splitDist * clipRange);
 }
 
+ShadowCascade& ShadowCascadeData::getCascade(int i) {
+    return cascades[i];
+}
+
+void ShadowCascadeData::uploadShadowPass(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, int frameIdx) {
+    glm::mat4 cascadeViewProjs[ShadowCascadeData::SHADOW_CASCADE_COUNT];
+
+    for (auto i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++)
+        memcpy(&cascadeViewProjs[i], &cascades[i].getViewProj(), sizeof(glm::mat4));
+
+    auto size = ShadowCascadeData::SHADOW_CASCADE_COUNT * sizeof(glm::mat4);
+    auto pos = gpuBuffer.getFrameOffset(frameIdx);
+
+    auto buf = static_cast<unsigned char*>(gpuBuffer.getGpuBuffer().data());
+    memcpy(buf + pos, &cascadeViewProjs[0], size);
+    gpuBuffer.getGpuBuffer().flush(pos, size);
+}
+
+void ShadowCascadeData::uploadCompositionPass(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, int frameIdx) {
+    struct ToUpload {
+        glm::mat4 viewProj[ShadowCascadeData::SHADOW_CASCADE_COUNT];
+        glm::vec4 splits;
+        glm::vec3 lightDir;
+    };
+
+    ToUpload data{};
+    {
+        for (auto i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++)
+            data.viewProj[i] = cascades[i].getViewProj();
+        //memcpy(&data.viewProj[i], &cascades[i].getViewProj(), sizeof(glm::mat4));
+
+        for (auto i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++)
+            data.splits[i] = cascades[i].getSplitDepth();
+
+        data.lightDir = lightDir;
+        //memcpy(&data.lightDir, &lightDir, sizeof(glm::vec3));
+    }
+
+    auto size = sizeof(ToUpload);
+    auto pos = gpuBuffer.getFrameOffset(frameIdx);
+
+    auto buf = static_cast<unsigned char*>(gpuBuffer.getGpuBuffer().data());
+    memcpy(buf + pos, &data, size);
+    gpuBuffer.getGpuBuffer().flush(pos, size);
+}
+
 size_t ShadowCascadeData::alignedFrameSize(VulkanContext& vkCxt) {
     return vkCxt.alignUboFrame(size());
 }
