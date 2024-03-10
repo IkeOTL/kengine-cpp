@@ -13,6 +13,7 @@
 #include <kengine/ExecutorService.hpp>
 #include <kengine/io/AssetIO.hpp>
 #include <kengine/ecs/World.hpp>
+#include <thirdparty/entt.hpp>
 
 #include <memory>
 
@@ -35,6 +36,7 @@ private:
     std::unique_ptr<AsyncTextureCache> textureCache;
     std::unique_ptr<AsyncMaterialCache> materialCache;
 
+    entt::registry ecs;
     std::unique_ptr<World> world;
     StateMachine<Game> sm;
 

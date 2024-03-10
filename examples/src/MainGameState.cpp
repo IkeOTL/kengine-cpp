@@ -3,6 +3,7 @@
 #include <kengine/ExecutorService.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/ecs/World.hpp>
+#include <kengine/game/RenderSystem.hpp>
 
 
 MainGameState::MainGameState(World& world) :
@@ -32,8 +33,7 @@ void MainGameState::update(Game& parent) {
         }
 
         //sceneTime.setDelta(GAME_UPDATE_TICK_INTERVAL);
-        //world.setDelta(GAME_UPDATE_TICK_INTERVAL);
-        //world.process();
+        world.process(GAME_UPDATE_TICK_INTERVAL);
         accumulator -= GAME_UPDATE_TICK_INTERVAL;
     }
 
@@ -41,8 +41,7 @@ void MainGameState::update(Game& parent) {
 
     auto alpha = accumulator / GAME_UPDATE_TICK_INTERVAL;
     //sceneTime.setAlpha(alpha);
-    //world.setDelta(alpha);
-    //world.getSystem(DeferredRenderSystem.class).processSystem();
+    world.getSystem<RenderSystem>()->processSystem(alpha);
 
 }
 

@@ -14,6 +14,7 @@ set(HEADERS
     include/public/kengine/util/VecUtils.hpp
 
     include/public/kengine/ecs/BaseSystem.hpp
+    include/public/kengine/ecs/EcsSystem.hpp
     include/public/kengine/ecs/World.hpp
 
     include/public/kengine/io/AssetIO.hpp

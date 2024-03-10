@@ -23,7 +23,7 @@
 #include <kengine/game/RenderSystem.hpp>
 
 float BasicGameTest::getDelta() {
-    return 0.0f;
+    return delta;
 }
 
 void BasicGameTest::run() {
@@ -76,6 +76,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         // injectable objects. order doesnt matter
         .addService<VulkanContext>(vulkanCxt.get())
         .addService<RenderContext>(renderContext.get())
+        .addService<entt::registry>(&ecs)
 
         .addService<ExecutorService>(threadPool.get())
         .addService<AssetIO>(assetIo.get())

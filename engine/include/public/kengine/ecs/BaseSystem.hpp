@@ -11,6 +11,10 @@ protected:
     virtual void begin() {}
     virtual void end() {}
 
+    World& getWorld() {
+        return *world;
+    }
+
     virtual bool checkProcessing() {
         return true;
     }
@@ -19,15 +23,22 @@ public:
     BaseSystem() = default;
 
     // called by the world
-    virtual void init() = 0;
-    virtual void processSystem() = 0;
+    virtual void initialize() = 0;
 
-    void process() {
+    /// <summary>
+    /// No checks, just starts processing
+    /// </summary>
+    virtual void processSystem(float delta) = 0;
+
+    /// <summary>
+    /// First checks if system should be processed
+    /// </summary>
+    void process(float delta) {
         if (!checkProcessing())
             return;
 
         begin();
-        processSystem();
+        processSystem(delta);
         end();
     }
 };
