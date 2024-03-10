@@ -14,6 +14,7 @@ set(HEADERS
     include/public/kengine/util/VecUtils.hpp
 
     include/public/kengine/ecs/BaseSystem.hpp
+    include/public/kengine/ecs/EcsWorld.hpp
 
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
@@ -106,6 +107,8 @@ set(SOURCES
     
     src/io/FlieSystemAssetIO.cpp
     src/io/MemoryMappedFile.cpp
+
+    src/ecs/EcsWorld.cpp
 
     src/vulkan/VulkanContext.cpp
     src/vulkan/RenderContext.cpp

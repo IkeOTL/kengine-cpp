@@ -5,10 +5,8 @@ class BaseSystem {
 private:
     entt::registry& registry;
 
-public:
-    BaseSystem(entt::registry& registry) : registry(registry) {}
-
 protected:
+    virtual void init() = 0;
 
     virtual void processSystem() = 0;
 
@@ -17,5 +15,17 @@ protected:
 
     virtual bool checkProcessing() {
         return true;
+    }
+
+public:
+    BaseSystem(entt::registry& registry) : registry(registry) {}
+
+    void process() {
+        if (!checkProcessing())
+            return;
+
+        begin();
+        processSystem();
+        end();
     }
 };
