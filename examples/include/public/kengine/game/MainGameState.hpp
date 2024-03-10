@@ -5,6 +5,7 @@
 class ExecutorService;
 class VulkanContext;
 class RenderContext;
+class EcsWorld;
 
 class MainGameState : public State<Game> {
 private:
@@ -16,8 +17,7 @@ private:
     float accumulator = 0;
 
 public:
-    MainGameState(ExecutorService& workerPool, VulkanContext& vkContext, RenderContext& renderContext)
-        : workerPool(workerPool), vkContext(vkContext), renderContext(renderContext) {}
+    MainGameState(EcsWorld& ecs);
 
     void init() override;
     void enter(Game& parent) override;

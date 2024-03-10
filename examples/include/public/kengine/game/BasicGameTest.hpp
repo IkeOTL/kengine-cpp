@@ -12,6 +12,7 @@
 #include <kengine/Window.hpp>
 #include <kengine/ExecutorService.hpp>
 #include <kengine/io/AssetIO.hpp>
+#include <kengine/ecs/EcsWorld.hpp>
 
 #include <memory>
 
@@ -30,6 +31,7 @@ private:
     std::unique_ptr<LightsManager> lightsManager;
     std::unique_ptr<CameraController> cameraController;
 
+    std::unique_ptr<EcsWorld> ecsWorld;
     StateMachine<Game> sm;
     inline static std::unique_ptr<ExecutorService> threadPool;
 

@@ -74,7 +74,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     //    | VertexAttribute::TANGENTS | VertexAttribute::SKELETON
     //);
     //auto modelTask = modelCache->getAsync(modelConfig);
-  
+
     //auto* model = modelTask.get();
 
     //// asset io test
@@ -83,7 +83,13 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
     renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
 
-    return std::make_unique<MainGameState>(*threadPool, *vulkanCxt, *renderContext);
+    ecsWorld = std::make_unique<EcsWorld>(EcsWorldConfig()
+        .addService<ExecutorService>(threadPool.get())
+        .addService<VulkanContext>(vulkanCxt.get())
+        .addService<RenderContext>(renderContext.get())
+    );
+
+    return std::make_unique<MainGameState>(*ecsWorld);
 }
 
 void BasicGameTest::initVulkan() {
