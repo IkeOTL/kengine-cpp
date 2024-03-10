@@ -15,6 +15,10 @@ set(HEADERS
     include/public/kengine/game/MainGameState.hpp
     include/public/kengine/game/BasicCameraController.hpp
     include/public/kengine/game/RenderSystem.hpp
+
+# components
+    include/public/kengine/game/components/Model.hpp
+
 )
 
 set(SOURCES
@@ -23,6 +27,7 @@ set(SOURCES
     src/MainGameState.cpp
     src/BasicCameraController.cpp
     src/RenderSystem.cpp
+
 )
 
 target_sources(example 

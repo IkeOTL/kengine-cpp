@@ -22,5 +22,10 @@ void RenderSystem::processSystem(float delta) {
 
 
 void RenderSystem::drawEntities(RenderFrameContext& ctx) {
+    auto view = getEcs().view<Component::Model>();
 
+    for (auto& e : view) {
+        auto& model = view.get<Component::Model>(e);
+        auto* lol = this;
+    }
 }

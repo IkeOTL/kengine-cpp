@@ -98,6 +98,7 @@ public:
         }
     }
 
+    // lets not use shared ptrs for keys? causes paradigm issues when using the keys in ECS components
     std::shared_future<V*> getAsync(std::shared_ptr<K> keyObj) {
         size_t key = keyObj->hashCode();
 
