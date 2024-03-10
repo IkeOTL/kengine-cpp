@@ -20,6 +20,7 @@
 #include <thread>
 #include <utility>
 #include <glm/glm.hpp>
+#include <kengine/game/RenderSystem.hpp>
 
 float BasicGameTest::getDelta() {
     return 0.0f;
@@ -64,32 +65,35 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     assetIo = std::make_unique<FileSystemAssetIO>();
     bufCache = std::make_unique<GpuBufferCache>(*vulkanCxt);
     lightsManager = std::make_unique<LightsManager>(*cameraController);
-
-
     modelFactory = std::make_unique<GltfModelFactory>(*vulkanCxt, *assetIo);
     modelCache = std::make_unique<AsyncModelCache>(*modelFactory, *threadPool);
-
-    //auto modelConfig = std::make_shared<ModelConfig>("res/gltf/char01.glb",
-    //    VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
-    //    | VertexAttribute::TANGENTS | VertexAttribute::SKELETON
-    //);
-    //auto modelTask = modelCache->getAsync(modelConfig);
-
-    //auto* model = modelTask.get();
-
-    //// asset io test
-    //auto asset = assetIo->loadBuffer("res/src/skinned.vert.spv");
-    //auto len = asset->length();
-
+    textureFactory = std::make_unique<TextureFactory>(*vulkanCxt, *assetIo);
+    textureCache = std::make_unique<AsyncTextureCache>(*textureFactory, *threadPool);
+    materialCache = std::make_unique<AsyncMaterialCache>(*threadPool);
     renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
 
-    ecsWorld = std::make_unique<EcsWorld>(EcsWorldConfig()
-        .addService<ExecutorService>(threadPool.get())
+    world = std::make_unique<World>(WorldConfig()
+        // injectable objects. order doesnt matter
         .addService<VulkanContext>(vulkanCxt.get())
         .addService<RenderContext>(renderContext.get())
+
+        .addService<ExecutorService>(threadPool.get())
+        .addService<AssetIO>(assetIo.get())
+        .addService<LightsManager>(lightsManager.get())
+        .addService<CameraController>(cameraController.get())
+
+        .addService<GpuBufferCache>(bufCache.get())
+        .addService<GltfModelFactory>(modelFactory.get())
+        .addService<AsyncModelCache>(modelCache.get())
+        .addService<TextureFactory>(textureFactory.get())
+        .addService<AsyncTextureCache>(textureCache.get())
+        .addService<AsyncMaterialCache>(materialCache.get())
+
+        // systems. order matters.
+        .setSystem<RenderSystem>()
     );
 
-    return std::make_unique<MainGameState>(*ecsWorld);
+    return std::make_unique<MainGameState>(*world);
 }
 
 void BasicGameTest::initVulkan() {

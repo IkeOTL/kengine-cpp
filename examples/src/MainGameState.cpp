@@ -2,14 +2,14 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/ExecutorService.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
-#include <kengine/ecs/EcsWorld.hpp>
+#include <kengine/ecs/World.hpp>
 
 
-MainGameState::MainGameState(EcsWorld& ecs) :
-    ecs(ecs),
-    workerPool(*ecs.getService<ExecutorService>()),
-    vkContext(*ecs.getService<VulkanContext>()),
-    renderContext(*ecs.getService<RenderContext>()) {}
+MainGameState::MainGameState(World& world) :
+    world(world),
+    workerPool(*world.getService<ExecutorService>()),
+    vkContext(*world.getService<VulkanContext>()),
+    renderContext(*world.getService<RenderContext>()) {}
 
 void MainGameState::init() {
 

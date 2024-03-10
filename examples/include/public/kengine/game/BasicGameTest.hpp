@@ -12,28 +12,31 @@
 #include <kengine/Window.hpp>
 #include <kengine/ExecutorService.hpp>
 #include <kengine/io/AssetIO.hpp>
-#include <kengine/ecs/EcsWorld.hpp>
+#include <kengine/ecs/World.hpp>
 
 #include <memory>
 
 class BasicGameTest : Game {
 private:
+    inline static std::unique_ptr<ExecutorService> threadPool;
+
     std::unique_ptr<Window> window;
     std::unique_ptr<VulkanContext> vulkanCxt;
     std::unique_ptr<RenderContext> renderContext;
-    std::unique_ptr<GpuBufferCache> bufCache;
-
-
-    std::unique_ptr<GltfModelFactory> modelFactory;
-    std::unique_ptr<AsyncModelCache> modelCache;
-
     std::unique_ptr<FileSystemAssetIO> assetIo;
     std::unique_ptr<LightsManager> lightsManager;
     std::unique_ptr<CameraController> cameraController;
 
-    std::unique_ptr<EcsWorld> ecsWorld;
+    std::unique_ptr<GpuBufferCache> bufCache;
+
+    std::unique_ptr<GltfModelFactory> modelFactory;
+    std::unique_ptr<AsyncModelCache> modelCache;
+    std::unique_ptr<TextureFactory> textureFactory;
+    std::unique_ptr<AsyncTextureCache> textureCache;
+    std::unique_ptr<AsyncMaterialCache> materialCache;
+
+    std::unique_ptr<World> world;
     StateMachine<Game> sm;
-    inline static std::unique_ptr<ExecutorService> threadPool;
 
     float delta = 0;
 

@@ -1,15 +1,13 @@
 #pragma once
 
-class EcsWorld;
+class World;
 
 class BaseSystem {
 private:
-    EcsWorld& ecsWorld;
+    friend class World;
+    World* world;
 
 protected:
-
-    virtual void processSystem() = 0;
-
     virtual void begin() {}
     virtual void end() {}
 
@@ -18,10 +16,11 @@ protected:
     }
 
 public:
-    BaseSystem(EcsWorld& ecsWorld) : ecsWorld(ecsWorld) {}
+    BaseSystem() = default;
 
     // called by the world
     virtual void init() = 0;
+    virtual void processSystem() = 0;
 
     void process() {
         if (!checkProcessing())

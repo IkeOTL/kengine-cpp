@@ -7,36 +7,39 @@
 #include <memory>
 #include <stdexcept>
 
-class EcsWorldConfig {
+class WorldConfig {
 protected:
-    friend class EcsWorld;
+    friend class World;
     std::unordered_map<std::type_index, void*> services;
     std::vector<std::unique_ptr<BaseSystem>> systems;
 
 public:
     template<typename T>
-    EcsWorldConfig& addService(void* service) {
+    WorldConfig& addService(void* service) {
         services[std::type_index(typeid(T))] = service;
         return *this;
     }
 
     template<typename T>
-    EcsWorldConfig& setSystem(void* service) {
+    WorldConfig& setSystem() {
+        static_assert(std::is_base_of<BaseSystem, T>::value, "T must be derived from BaseSystem");
         systems.push_back(std::make_unique<T>());
         return *this;
     }
 };
 
-class EcsWorld {
+class World {
 private:
     std::unordered_map<std::type_index, void*> services;
     std::vector<std::unique_ptr<BaseSystem>> systems;
 
 public:
-    EcsWorld(EcsWorldConfig& wc)
+    World(WorldConfig& wc)
         : services(std::move(wc.services)), systems(std::move(wc.systems)) {
-        for (auto& sys : this->systems)
+        for (auto& sys : this->systems) {
+            sys->world = this;
             sys->init();
+        }
     }
 
     template<typename T>

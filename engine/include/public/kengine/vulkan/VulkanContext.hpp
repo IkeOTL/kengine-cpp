@@ -155,15 +155,15 @@ public:
 
     void recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence);
 
-    uint32_t getGfxQueueFamilyIndex() {
+    uint32_t getGfxQueueFamilyIndex() const {
         return gfxQueueFamilyIndex;
     }
 
-    uint32_t getCompQueueFamilyIndex() {
+    uint32_t getCompQueueFamilyIndex() const {
         return compQueueFamilyIndex;
     }
 
-    uint32_t getXferQueueFamilyIndex() {
+    uint32_t getXferQueueFamilyIndex() const {
         return xferQueueFamilyIndex;
     }
 
@@ -261,15 +261,15 @@ private:
 public:
     void init(VkDevice vkDevice);
 
-    VkFence getFrameFence(uint32_t i) {
+    VkFence getFrameFence(uint32_t i) const {
         return frameFences[i];
     }
 
-    VkSemaphore getFrameSemaphore(uint32_t i) {
+    VkSemaphore getFrameSemaphore(uint32_t i) const {
         return frameSemaphores[i];
     }
 
-    VkSemaphore getImageAcquireSemaphore(uint32_t i) {
+    VkSemaphore getImageAcquireSemaphore(uint32_t i) const {
         return imageAcquireSemaphores[i];
     }
 };

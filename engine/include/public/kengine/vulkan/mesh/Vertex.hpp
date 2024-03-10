@@ -17,7 +17,7 @@ public:
 struct Vertex {
     glm::vec3 position;
 
-    virtual ~Vertex() = default;
+    //virtual ~Vertex() = default;
 
     static size_t sizeOf() {
         return sizeof(Vertex);

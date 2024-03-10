@@ -52,7 +52,7 @@ void VulkanContext::init(Window& window, bool validationOn) {
 
     swapchainCreator.init(window);
 
-    // where should this be initiated? need to try to get this into render thread
+    // todo: where should this be initiated? need to try to get this into render thread
     commandPool = std::make_unique<CommandPool>(vkDevice);
     commandPool->initThread(*this);
     for (auto i = 0; i < FRAME_OVERLAP; i++)
