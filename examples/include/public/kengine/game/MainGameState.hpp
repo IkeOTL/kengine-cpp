@@ -9,6 +9,7 @@ class EcsWorld;
 
 class MainGameState : public State<Game> {
 private:
+    EcsWorld& ecs;
     ExecutorService& workerPool;
     VulkanContext& vkContext;
     RenderContext& renderContext;

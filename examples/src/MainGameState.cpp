@@ -6,6 +6,7 @@
 
 
 MainGameState::MainGameState(EcsWorld& ecs) :
+    ecs(ecs),
     workerPool(*ecs.getService<ExecutorService>()),
     vkContext(*ecs.getService<VulkanContext>()),
     renderContext(*ecs.getService<RenderContext>()) {}
