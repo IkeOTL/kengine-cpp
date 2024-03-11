@@ -1,7 +1,7 @@
 #include <kengine/vulkan/descriptor/DescriptorSetPool.hpp>
 
 void DescriptorSetPool::init() {
-    std::vector<VkDescriptorPoolSize> typeCounts(4);
+    std::vector<VkDescriptorPoolSize> typeCounts(6);
     typeCounts[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     typeCounts[0].descriptorCount = static_cast<uint32_t>(POOL_SIZE * 0.1);
 

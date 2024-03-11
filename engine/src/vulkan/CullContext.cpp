@@ -14,12 +14,12 @@ VkSemaphore CullContext::getSemaphore(size_t frameIdx) {
 }
 
 void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators) {
-    // allocate compute cmdbufs
     for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++)
+
+    // create compute cmdbufs and sempahores
+    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         computeCmdBufs[i] = vkCxt.getCommandPool()->createComputeCmdBuf();
 
-    // create sempahores
-    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         VkSemaphoreCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
 

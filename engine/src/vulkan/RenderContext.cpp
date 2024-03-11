@@ -20,6 +20,7 @@
 void RenderContext::init() {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto ptr = std::make_unique<DescriptorSetAllocator>(vkContext.getVkDevice(), vkContext.getDescSetLayoutCache());
+        ptr->init();
         descSetAllocators.push_back(std::move(ptr));
     }
 
@@ -240,7 +241,7 @@ void RenderContext::initDescriptors() {
             setWrites[6].dstBinding = binding.bindingIndex;
             setWrites[6].descriptorCount = binding.descriptorCount;
             setWrites[6].descriptorType = binding.descriptorType;
-            setWrites[6].pBufferInfo = &bufferInfos[4];
+            setWrites[6].pBufferInfo = &bufferInfos[5];
         }
 
         vkUpdateDescriptorSets(vkContext.getVkDevice(), setWrites.size(), setWrites.data(), 0, nullptr);

@@ -12,8 +12,8 @@ class CameraController;
 
 class CullContext {
 private:
-    std::vector<std::unique_ptr<CommandBuffer>> computeCmdBufs;
-    std::vector<VkSemaphore> semaphores;
+    std::unique_ptr<CommandBuffer> computeCmdBufs[VulkanContext::FRAME_OVERLAP];
+    VkSemaphore semaphores[VulkanContext::FRAME_OVERLAP];
 
     CachedGpuBuffer& indirectBuf;
     CachedGpuBuffer& objectInstanceBuf;
