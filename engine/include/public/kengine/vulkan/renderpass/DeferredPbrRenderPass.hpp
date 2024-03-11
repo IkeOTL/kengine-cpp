@@ -16,7 +16,7 @@ private:
         const glm::uvec2& extents
     ) override;
 
-    std::unique_ptr<GpuImageView>&& createAttachmentImage(VmaAllocator vmaAllocator, VkFormat format, VkImageUsageFlags imageUsage,
+    std::unique_ptr<GpuImageView> createAttachmentImage(VmaAllocator vmaAllocator, VkFormat format, VkImageUsageFlags imageUsage,
         VmaMemoryUsage memUsage, VkImageAspectFlags viewAspectMask, const glm::uvec2 extents);
 
 public:

@@ -105,6 +105,8 @@ std::unique_ptr<Swapchain> Swapchain::replace(VkPhysicalDevice physicalDevice, V
                 "Failed to create image view");
         }
 
+        swapchain->imageExtents = this->imageExtents;
+
         return swapchain;
     }
 }

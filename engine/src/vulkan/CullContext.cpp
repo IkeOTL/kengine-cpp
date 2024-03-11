@@ -21,7 +21,7 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Descrip
         computeCmdBufs[i] = vkCxt.getCommandPool()->createComputeCmdBuf();
 
         VkSemaphoreCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_EXPORT_SEMAPHORE_CREATE_INFO;
+        createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
         VKCHECK(vkCreateSemaphore(vkCxt.getVkDevice(), &createInfo, nullptr, &semaphores[i]),
             "Failed to create semaphore");

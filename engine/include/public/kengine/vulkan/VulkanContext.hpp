@@ -64,7 +64,7 @@ public:
 private:
     std::mutex lock{};
     int targetWidth = 0, targetHeight = 0;
-    bool mustRecreate = false;
+    bool mustRecreate = true;
     OnSwapchainCreate onSwapchainCreate;
 };
 

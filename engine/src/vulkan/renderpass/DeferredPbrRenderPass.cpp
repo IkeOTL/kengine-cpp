@@ -42,7 +42,7 @@ VkFramebuffer DeferredPbrRenderTarget::createFramebuffer(RenderPass& renderPass,
     return framebuffer;
 }
 
-std::unique_ptr<GpuImageView>&& DeferredPbrRenderTarget::createAttachmentImage(VmaAllocator vmaAllocator, VkFormat format, VkImageUsageFlags imageUsage,
+std::unique_ptr<GpuImageView> DeferredPbrRenderTarget::createAttachmentImage(VmaAllocator vmaAllocator, VkFormat format, VkImageUsageFlags imageUsage,
     VmaMemoryUsage memUsage, VkImageAspectFlags viewAspectMask, const glm::uvec2 extents) {
     VkImageCreateInfo imageCreateInfo{};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -148,7 +148,7 @@ void DeferredPbrRenderPass::begin(RenderPassContext& cxt) {
     clearVal[6].depthStencil = { 1, 0 };
 
     VkRenderPassBeginInfo rpInfo{};
-    rpInfo.sType = VK_STRUCTURE_TYPE_DEVICE_GROUP_RENDER_PASS_BEGIN_INFO;
+    rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     rpInfo.renderPass = getVkRenderPass();
 
     rpInfo.clearValueCount = clearCount;
@@ -316,8 +316,8 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
     subpasses[2] = {
         0, // flags
         VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-        static_cast<uint32_t>(subpass3_colorReferences.size()), // inputAttachmentCount
-        subpass3_colorReferences.data(), // pInputAttachments
+        static_cast<uint32_t>(subpass3_inputRefs.size()), // inputAttachmentCount
+        subpass3_inputRefs.data(), // pInputAttachments
         static_cast<uint32_t>(subpass3_colorReferences.size()), // colorAttachmentCount
         subpass3_colorReferences.data(), // pColorAttachments
         nullptr, // pResolveAttachments
@@ -426,7 +426,7 @@ std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAlloc
     VkImageCreateInfo imageCreateInfo{};
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageCreateInfo.format = getColorFormatAndSpace().getColorFormat();
+    imageCreateInfo.format = getColorFormatAndSpace().getDepthFormat();
     imageCreateInfo.mipLevels = 1;
     imageCreateInfo.arrayLayers = 1;
     imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -449,18 +449,18 @@ std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAlloc
     VKCHECK(vmaCreateImage(vmaAllocator, &imageCreateInfo, &allocationCreateInfo, &vkImage, &vmaImageAllocation, &allocationInfo),
         "Failed to create depth stencil image.");
 
-    auto depthImage = std::make_shared<GpuImage>(GpuImage{
-            getVkDevice(),
-            vmaAllocator,
-            vkImage,
-            vmaImageAllocation,
-            imageCreateInfo
-        });
+    auto depthImage = std::make_shared<GpuImage>(
+        getVkDevice(),
+        vmaAllocator,
+        vkImage,
+        vmaImageAllocation,
+        imageCreateInfo
+    );
 
     VkImageViewCreateInfo imageViewCreateInfo{};
     imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    imageViewCreateInfo.format = getColorFormatAndSpace().getColorFormat();
+    imageViewCreateInfo.format = getColorFormatAndSpace().getDepthFormat();
     imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
     imageViewCreateInfo.subresourceRange.levelCount = 1;
     imageViewCreateInfo.subresourceRange.layerCount = 1;
@@ -470,11 +470,11 @@ std::unique_ptr<GpuImageView> DeferredPbrRenderPass::createDepthStencil(VmaAlloc
     VKCHECK(vkCreateImageView(getVkDevice(), &imageViewCreateInfo, VK_NULL_HANDLE, &vkImageView),
         "Failed to create depth stencil image view.");
 
-    return std::make_unique<GpuImageView>(GpuImageView{
-            depthImage,
-            vkImageView,
-            imageViewCreateInfo
-        });
+    return std::make_unique<GpuImageView>(
+        depthImage,
+        vkImageView,
+        imageViewCreateInfo
+    );
 }
 
 void DeferredPbrRenderPass::createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView> sharedImageViews, const glm::uvec2 extents) {
