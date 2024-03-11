@@ -477,7 +477,7 @@ void RenderContext::end() {
         vkContext.renderBegin(*frameCxt);
         {
             auto& dAllocator = descSetAllocators[frameIdx];
-            dAllocator.reset();
+            dAllocator->reset();
 
             shadowContext->execute(vkContext, *frameCxt, *dAllocator,
                 shadowNonSkinnedBatchCache, staticShadowNonSkinnedBatches + totalShadowNonSkinnedBatches,

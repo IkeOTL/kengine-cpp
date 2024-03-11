@@ -25,13 +25,13 @@ public:
 
     V* unsafeAdd(K& keyObj, std::unique_ptr<V>&& value) {
         size_t key = keyObj.hashCode();
-        std::lock_guard<std::mutex> lock(this->lock);
+        std::lock_guard<std::shared_mutex> lock(this->lock);
         auto& asset = cache[key] = std::move(value);
         return asset.get();
     }
 
     std::unique_ptr<V> remove(K& keyObj) {
-        std::lock_guard<std::mutex> lock(this->lock);
+        std::lock_guard<std::shared_mutex> lock(this->lock);
         size_t key = keyObj.hashCode();
         auto it = cache.find(key);
         if (it == cache.end())

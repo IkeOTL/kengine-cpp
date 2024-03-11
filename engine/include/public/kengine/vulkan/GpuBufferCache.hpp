@@ -43,7 +43,7 @@ private:
     std::atomic<unsigned int> runningId;
     const VulkanContext& vkContext;
     std::unordered_map<unsigned int, std::unique_ptr<CachedGpuBuffer>> cache;
-    std::mutex mtx;
+    std::mutex mtx{};
 
 public:
     GpuBufferCache(const VulkanContext& vkContext)

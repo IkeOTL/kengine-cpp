@@ -225,10 +225,10 @@ private:
 
     std::unique_ptr<FrameSyncObjects> frameSync;
 
-    mutable std::mutex qXferMtx;
+    mutable std::mutex qXferMtx{};
     std::queue<std::shared_ptr<QueueOwnerTransfer>> vkQueueTransfers;
 
-    mutable std::mutex waitingFenceMtx;
+    mutable std::mutex waitingFenceMtx{};
     std::unordered_map<VkFence, std::function<void()>> vkFenceActions;
     std::unique_ptr<GpuBufferCache> gpuBufferCache;
 

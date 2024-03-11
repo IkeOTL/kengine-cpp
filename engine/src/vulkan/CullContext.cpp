@@ -16,16 +16,16 @@ VkSemaphore CullContext::getSemaphore(size_t frameIdx) {
 void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators) {
     for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++)
 
-    // create compute cmdbufs and sempahores
-    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
-        computeCmdBufs[i] = vkCxt.getCommandPool()->createComputeCmdBuf();
+        // create compute cmdbufs and sempahores
+        for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+            computeCmdBufs[i] = vkCxt.getCommandPool()->createComputeCmdBuf();
 
-        VkSemaphoreCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+            VkSemaphoreCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-        VKCHECK(vkCreateSemaphore(vkCxt.getVkDevice(), &createInfo, nullptr, &semaphores[i]),
-            "Failed to create semaphore");
-    }
+            VKCHECK(vkCreateSemaphore(vkCxt.getVkDevice(), &createInfo, nullptr, &semaphores[i]),
+                "Failed to create semaphore");
+        }
 
     // init descriptorsets with buffers
     {
@@ -125,7 +125,9 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 
     VkSubmitInfo2 submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
+    submitInfo.commandBufferInfoCount = 1;
     submitInfo.pCommandBufferInfos = &cmdBufSubmitInfo;
+    submitInfo.signalSemaphoreInfoCount = 1;
     submitInfo.pSignalSemaphoreInfos = &semaInfo;
 
     vkCxt.getComputeQueue().submit(1, &submitInfo, VK_NULL_HANDLE);

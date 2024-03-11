@@ -13,8 +13,8 @@ private:
     std::vector<std::unique_ptr<DescriptorSetPool>> availablePools;
     std::vector<std::unique_ptr<DescriptorSetPool>> unavailablePools;
 
-    std::mutex globalPoolMtx;
-    std::mutex leasePoolMtx;
+    std::mutex globalPoolMtx{};
+    std::mutex leasePoolMtx{};
 
     DescriptorSetPool& getPool();
 

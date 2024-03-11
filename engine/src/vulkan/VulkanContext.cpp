@@ -78,7 +78,7 @@ uint32_t VulkanContext::acquireImage(uint32_t& pImageIndex) {
     auto idx = static_cast<uint32_t>(frameNumber % FRAME_OVERLAP);
 
     auto fence = frameSync->getFrameFence(idx);
-    vkWaitForFences(vkDevice, 1, &fence, true, 99999999L);
+    vkWaitForFences(vkDevice, 1, &fence, true, 0x7fffffffffffffffL);
     vkResetFences(vkDevice, 1, &fence);
 
     auto imgSemaphore = frameSync->getImageAcquireSemaphore(idx);
@@ -91,7 +91,7 @@ uint32_t VulkanContext::acquireImage(uint32_t& pImageIndex) {
         frameNumber = 0;
 
         fence = frameSync->getFrameFence(idx);
-        vkWaitForFences(vkDevice, 1, &fence, true, 999999L);
+        vkWaitForFences(vkDevice, 1, &fence, true, 0x7fffffffffffffffL);
         vkResetFences(vkDevice, 1, &fence);
 
         imgSemaphore = frameSync->getImageAcquireSemaphore(idx);
@@ -171,7 +171,7 @@ void VulkanContext::renderEnd(RenderFrameContext& cxt) {
         submit.pWaitSemaphoreInfos = sumbitSemaInfo.data();
 
         submit.signalSemaphoreInfoCount = 1;
-        submit.pWaitSemaphoreInfos = &presentSemaInfo;
+        submit.pSignalSemaphoreInfos = &presentSemaInfo;
 
         graphicsQueue->submit(1, &submit, cxt.fence);
     }

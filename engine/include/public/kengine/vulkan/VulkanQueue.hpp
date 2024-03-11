@@ -10,7 +10,7 @@ private:
     VkQueue queue = VK_NULL_HANDLE;
 
     // sync queue commands
-    std::mutex mtx;
+    std::mutex mtx{};
 
 public:
     VulkanQueue(VkDevice vkDevice, unsigned int famIdx)
