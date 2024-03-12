@@ -1,6 +1,9 @@
 #include <kengine/vulkan/QueueOwnerTransfer.hpp>
 
 void BufferQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
+    if (srcQueueFamily == dstQueueFamily)
+        return;
+
     VkBufferMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
     barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
@@ -21,6 +24,9 @@ void BufferQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
 }
 
 void BufferQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
+    if (srcQueueFamily == dstQueueFamily)
+        return;
+
     VkBufferMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
     barrier.srcStageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
@@ -47,6 +53,9 @@ void ImageQueueOwnerTransfer::setMips(uint32_t mipLevels, int32_t texWidth, int3
 }
 
 void ImageQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
+    if (srcQueueFamily == dstQueueFamily)
+        return;
+
     VkImageMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
     barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
@@ -74,6 +83,9 @@ void ImageQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
 }
 
 void ImageQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
+    if (srcQueueFamily == dstQueueFamily)
+        return;
+
     VkImageMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
     barrier.srcStageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;

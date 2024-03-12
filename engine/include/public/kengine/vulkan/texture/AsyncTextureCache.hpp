@@ -15,5 +15,5 @@ public:
     AsyncTextureCache(TextureFactory& factory, ExecutorService& workerPool)
         : AsyncAssetCache(workerPool), factory(factory) {}
 
-    std::shared_future<Texture2d*> getAsync(std::string key);
+    AsyncCacheTask<Texture2d*> getAsync(std::string key);
 };

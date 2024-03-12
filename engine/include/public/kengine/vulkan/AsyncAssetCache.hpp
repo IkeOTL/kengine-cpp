@@ -5,6 +5,31 @@
 #include <functional>
 #include <shared_mutex>
 
+/// <summary>
+/// Makes checking futures are done easier, also optimizes not needing to create dummy futures when asset is already cached
+/// </summary>
+template <typename V>
+class AsyncCacheTask {
+private:
+    std::shared_future<V> task;
+    V result;
+
+public:
+    AsyncCacheTask(std::shared_future<V> future) : task(std::move(future)) {}
+    AsyncCacheTask(V result) : result(result) {}
+
+    bool isDone() const {
+        return  result || task.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    }
+
+    V get() {
+        if (result)
+            return result;
+
+        return task.get();
+    }
+};
+
 template <typename V, typename K>
 class AsyncAssetCache {
 private:
@@ -99,7 +124,7 @@ public:
     }
 
     // lets not use shared ptrs for keys? causes paradigm issues when using the keys in ECS components
-    std::shared_future<V*> getAsync(std::shared_ptr<K> keyObj) {
+    AsyncCacheTask<V*> getAsync(std::shared_ptr<K> keyObj) {
         size_t key = keyObj->hashCode();
 
         // quick check with shared read lock
@@ -108,16 +133,13 @@ public:
 
             // already loaded
             auto cacheIt = cache.find(key);
-            if (cacheIt != cache.end()) {
-                std::promise<V*> promise;
-                promise.set_value(cacheIt->second.get());
-                return promise.get_future().share();
-            }
+            if (cacheIt != cache.end())
+                return AsyncCacheTask<V*>(cacheIt->second.get());
 
             // currently loading
             auto taskIt = backgroundTasks.find(key);
             if (taskIt != backgroundTasks.end())
-                return taskIt->second;
+                return AsyncCacheTask<V*>(taskIt->second);
         }
 
         // write
@@ -126,16 +148,13 @@ public:
 
             // already loaded
             auto cacheIt = cache.find(key);
-            if (cacheIt != cache.end()) {
-                std::promise<V*> promise;
-                promise.set_value(cacheIt->second.get());
-                return promise.get_future().share();
-            }
+            if (cacheIt != cache.end())
+                return AsyncCacheTask<V*>(cacheIt->second.get());
 
             // double check
             auto taskIt = backgroundTasks.find(key);
             if (taskIt != backgroundTasks.end())
-                return taskIt->second;
+                return AsyncCacheTask<V*>(taskIt->second);
 
             auto task = backgroundTasks[key] = workerPool.submitShared([this, key, keyObj]() {
                 // need to handle exception to propagate to caller
@@ -150,7 +169,7 @@ public:
                 }
                 });
 
-            return task;
+            return AsyncCacheTask<V*>(task);
         }
     }
 };

@@ -4,6 +4,7 @@
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/ecs/World.hpp>
 #include <kengine/game/RenderSystem.hpp>
+#include <kengine/vulkan/mesh/ModelConfig.hpp>
 
 
 MainGameState::MainGameState(World& world) :
@@ -13,7 +14,6 @@ MainGameState::MainGameState(World& world) :
     renderContext(*world.getService<RenderContext>()) {}
 
 void MainGameState::init() {
-
 }
 
 void MainGameState::enter(Game& parent) {

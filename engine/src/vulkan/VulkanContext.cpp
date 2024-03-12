@@ -126,10 +126,11 @@ void VulkanContext::renderBegin(RenderFrameContext& cxt) {
     VKCHECK(vkBeginCommandBuffer(cxt.cmd, &cmdBeginInfo),
         "Command buffer failed to do the thing.");
 
+    std::lock_guard<std::mutex> lock(qXferMtx);
     while (!vkQueueTransfers.empty()) {
         auto& xfer = vkQueueTransfers.front();
-        vkQueueTransfers.pop();
         xfer->applyAcquireBarrier(cxt.cmd);
+        vkQueueTransfers.pop();
     }
 }
 
