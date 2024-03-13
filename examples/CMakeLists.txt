@@ -18,6 +18,7 @@ set(HEADERS
 
 # components
     include/public/kengine/game/components/Model.hpp
+    include/public/kengine/game/components/Material.hpp
 
 )
 

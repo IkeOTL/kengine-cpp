@@ -185,7 +185,7 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, RenderFrameContext&
 
         {
             // Extracting texture and sampler setup
-            auto& bindingTexture = static_cast<ImageBinding&>(indirectBatch.getMaterial()->getBinding(2, 0)).getTexture();
+            auto& bindingTexture = static_cast<const ImageBinding&>(indirectBatch.getMaterial()->getBinding(2, 0)).getTexture();
 
             // move to material code
             auto samplerConfig = SamplerConfig(
@@ -225,7 +225,7 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, RenderFrameContext&
             std::vector<uint32_t> offsets = { 0 };
 
             if (skinned) {
-                auto& bindingSkele = static_cast<BufferBinding&>(indirectBatch.getMaterial()->getBinding(2, 5)).getGpuBuffer();
+                auto& bindingSkele = static_cast<const BufferBinding&>(indirectBatch.getMaterial()->getBinding(2, 5)).getGpuBuffer();
                 auto& skeletonBinding = layout.getBinding(1);
                 VkDescriptorBufferInfo bufferInfo = {};
                 bufferInfo.buffer = bindingSkele.getGpuBuffer().getVkBuffer();
@@ -257,7 +257,7 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, RenderFrameContext&
             );
         }
 
-        auto mesh = indirectBatch.getMesh();
+        const auto* mesh = indirectBatch.getMesh();
         VkBuffer vertexBuffers[] = { mesh->getVertexBuf().getVkBuffer() };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(vkCmd, 0, 1, vertexBuffers, offsets);

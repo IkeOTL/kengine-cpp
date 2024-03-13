@@ -1,18 +1,19 @@
 #pragma once
 #include <kengine/vulkan/AsyncAssetCache.hpp>
-#include <kengine/vulkan/texture/AsyncTextureCache.hpp>
-#include <kengine/vulkan/pipelines/PipelineCache.hpp>
 #include <kengine/vulkan/material/MaterialConfig.hpp>
 
 class Material;
+class PipelineCache;
+class AsyncTextureCache;
+class GpuBufferCache;
 
 class AsyncMaterialCache : public AsyncAssetCache<Material, MaterialConfig> {
 private:
     std::atomic<int> runningId;
 
-    std::shared_ptr<PipelineCache> pipelineCache;
-    std::shared_ptr<AsyncTextureCache> textureCache;
-    std::shared_ptr<GpuBufferCache> bufferCache;
+    PipelineCache& pipelineCache;
+    AsyncTextureCache& textureCache;
+    GpuBufferCache& bufferCache;
 
 protected:
     std::unique_ptr<Material> create(std::shared_ptr<MaterialConfig> keyObj) override;
@@ -27,7 +28,7 @@ public:
      */
     static const int START_ID = 0;
 
-    AsyncMaterialCache(ExecutorService& workerPool)
-        : AsyncAssetCache(workerPool) {}
+    AsyncMaterialCache(PipelineCache& pipelineCache, AsyncTextureCache& textureCache, GpuBufferCache& bufferCache, ExecutorService& workerPool)
+        : pipelineCache(pipelineCache), textureCache(textureCache), bufferCache(bufferCache), AsyncAssetCache(workerPool) {}
 
 };

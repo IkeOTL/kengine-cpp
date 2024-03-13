@@ -27,7 +27,7 @@ public:
         return bindingIndex;
     }
 
-    virtual std::future<std::unique_ptr<MaterialBinding>> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) = 0;
+    virtual std::unique_ptr<MaterialBinding> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) = 0;
 
     virtual int hash() const = 0;
 
@@ -42,7 +42,7 @@ public:
     BufferBindingConfig(unsigned int descriptorSetIndex, unsigned int bindingIndex, int bufferCacheKey)
         : MaterialBindingConfig(descriptorSetIndex, bindingIndex), bufferCacheKey(bufferCacheKey) {}
 
-    std::future<std::unique_ptr<MaterialBinding>> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) override;
+    std::unique_ptr<MaterialBinding> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) override;
 
     int hash() const override;
 };
@@ -50,13 +50,13 @@ public:
 class ImageBindingConfig : public MaterialBindingConfig {
 private:
     // use shared pointers? ask opinions
-    TextureConfig textureConfig;
+    std::shared_ptr<TextureConfig> textureConfig;
 
 public:
-    ImageBindingConfig(unsigned int descriptorSetIndex, unsigned int bindingIndex, TextureConfig textureConfig)
+    ImageBindingConfig(unsigned int descriptorSetIndex, unsigned int bindingIndex, std::shared_ptr<TextureConfig> textureConfig)
         : MaterialBindingConfig(descriptorSetIndex, bindingIndex), textureConfig(textureConfig) {}
 
-    std::future<std::unique_ptr<MaterialBinding>> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) override;
+    std::unique_ptr<MaterialBinding> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) override;
 
     int hash() const override;
 };

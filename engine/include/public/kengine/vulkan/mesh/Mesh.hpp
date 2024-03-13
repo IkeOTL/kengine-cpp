@@ -87,7 +87,7 @@ public:
         return *indexBuf;
     }
 
-    const GpuBuffer& getVertexBuf() {
+    const GpuBuffer& getVertexBuf() const {
         return *vertexBuf;
     }
 

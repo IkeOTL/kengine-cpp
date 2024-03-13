@@ -57,8 +57,8 @@ void ImageQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
         return;
 
     VkImageMemoryBarrier2 barrier{};
-    barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+    barrier.srcStageMask = VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
     barrier.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
     barrier.dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT;
     barrier.dstAccessMask = 0;
@@ -87,7 +87,7 @@ void ImageQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
         return;
 
     VkImageMemoryBarrier2 barrier{};
-    barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
     barrier.srcStageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
     barrier.srcAccessMask = 0;
     barrier.dstStageMask = dstStageMask;
@@ -119,33 +119,30 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
     auto mipWidth = texWidth;
     auto mipHeight = texHeight;
 
+    VkImageMemoryBarrier2 barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+    barrier.image = vkImage;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.subresourceRange.levelCount = 1;
+
+    VkDependencyInfo depsInfo{};
+    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    depsInfo.pImageMemoryBarriers = &barrier;
+
     for (uint32_t level = 1; level < mipLevels; level++) {
-        {
-            VkImageMemoryBarrier2 barrier{};
-            barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-            barrier.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            barrier.dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.image = vkImage;
-            barrier.subresourceRange = {
-                VK_IMAGE_ASPECT_COLOR_BIT,
-                level - 1,
-                1,
-                0,
-                1
-            };
+        barrier.subresourceRange.baseMipLevel = level - 1;
 
-            VkDependencyInfo depsInfo{};
-            depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-            depsInfo.pImageMemoryBarriers = &barrier;
-
-            vkCmdPipelineBarrier2(cmd, &depsInfo);
-        }
+        barrier.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        barrier.dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        vkCmdPipelineBarrier2(cmd, &depsInfo);
 
         // blit
         {
@@ -176,32 +173,13 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
                 VK_FILTER_LINEAR);
         }
 
-        {
-            VkImageMemoryBarrier2 barrier{};
-            barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-            barrier.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            barrier.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.image = vkImage;
-            barrier.subresourceRange = {
-                VK_IMAGE_ASPECT_COLOR_BIT,
-                level - 1,
-                1,
-                0,
-                1
-            };
-
-            VkDependencyInfo depsInfo{};
-            depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-            depsInfo.pImageMemoryBarriers = &barrier;
-
-            vkCmdPipelineBarrier2(cmd, &depsInfo);
-        }
+        barrier.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        barrier.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        vkCmdPipelineBarrier2(cmd, &depsInfo);
 
         if (mipWidth > 1)
             mipWidth /= 2;
@@ -210,28 +188,12 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
             mipHeight /= 2;
     }
 
-    VkImageMemoryBarrier2 barrier{};
-    barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+    barrier.subresourceRange.baseMipLevel = mipLevels - 1;
     barrier.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
     barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = vkImage;
-    barrier.subresourceRange = {
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        mipLevels - 1,
-        1,
-        0,
-        1
-    };
-
-    VkDependencyInfo depsInfo{};
-    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-    depsInfo.pImageMemoryBarriers = &barrier;
-
     vkCmdPipelineBarrier2(cmd, &depsInfo);
 }

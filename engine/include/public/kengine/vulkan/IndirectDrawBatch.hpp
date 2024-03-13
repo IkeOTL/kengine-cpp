@@ -10,8 +10,8 @@ class Material;
 class IndirectDrawBatch {
 
 private:
-    Mesh* mesh;
-    Material* material;
+    const Mesh* mesh;
+    const Material* material;
 
     uint32_t cmdId = 0;
     uint32_t firstInstanceIdx = 0;
@@ -40,19 +40,19 @@ public:
         cmdId = id;
     }
 
-    Mesh* getMesh() {
+    const Mesh* getMesh() {
         return mesh;
     }
 
-    void setMesh(Mesh* m) {
+    void setMesh(const Mesh* m) {
         mesh = m;
     }
 
-    Material* getMaterial() {
+    const Material* getMaterial() {
         return material;
     }
 
-    void setMaterial(Material* m) {
+    void setMaterial(const Material* m) {
         material = m;
     }
 

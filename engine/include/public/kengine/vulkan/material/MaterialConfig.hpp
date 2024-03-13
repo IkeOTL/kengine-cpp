@@ -33,7 +33,7 @@ private:
 public:
     MaterialConfig(std::type_index type) : pipelineTypeIndex(type) {}
 
-    const std::type_index& getPipeline() const {
+    const std::type_index getPipeline() const {
         return pipelineTypeIndex;
     }
 

@@ -22,6 +22,10 @@ public:
     uint32_t getNodeIndex() const {
         return nodeIdx;
     }
+
+    const Mesh& getMesh(uint32_t i) const {
+        return *meshes[i];
+    }
 };
 
 class Model {
@@ -41,6 +45,8 @@ public:
         std::unordered_map<int, std::unique_ptr<MeshGroup>>&& meshGroups,
         std::vector<uint32_t>&& bones
     );
+
+    const Mesh& getAMesh() const;
 };
 
 

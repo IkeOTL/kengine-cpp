@@ -3,6 +3,7 @@
 #include <glm/vec4.hpp>
 
 #include <future>
+#include <kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp>
 
 class VulkanContext;
 
@@ -46,10 +47,9 @@ private:
     float roughnessFactor = 0;
 
 public:
-    inline static const TextureConfig EMPTY_CONFIG = TextureConfig("empty.png");
+    inline static const TextureConfig EMPTY_CONFIG = TextureConfig("res/img/empty.png");
 
-    PbrMaterialConfig(std::type_index type) :
-        MaterialConfig(type) {}
+    PbrMaterialConfig();
 
     void upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) override;
     size_t hash() const noexcept override;

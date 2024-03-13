@@ -25,14 +25,14 @@ public:
         return id - AsyncMaterialCache::START_ID;
     }
 
-    Pipeline& getPipeline();
+    const Pipeline& getPipeline() const;
 
-    boolean hasShadow();
-    boolean hasSkeleton();
+    boolean hasShadow() const;
+    boolean hasSkeleton() const;
 
-    MaterialBinding& getBinding(int descSetIdx, int bindingIdx);
+    const MaterialBinding& getBinding(int descSetIdx, int bindingIdx) const;
     void addBinding(std::unique_ptr<MaterialBinding>&& binding);
-    void upload(VulkanContext& vkCxt, CachedGpuBuffer& buf, int frameIdx);
-    void bindPipeline(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex);
-    void bindMaterial(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex);
+    void upload(VulkanContext& vkCxt, CachedGpuBuffer& buf, int frameIdx) const;
+    void bindPipeline(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) const;
+    void bindMaterial(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) const;
 };

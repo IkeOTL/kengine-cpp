@@ -7,7 +7,7 @@
 
 class PipelineCache {
 private:
-    std::unordered_map<std::type_index, std::unique_ptr<Pipeline>> pipelines;
+    std::unordered_map<std::type_index, std::unique_ptr<Pipeline>> pipelines{};
 
 public:
     inline static const DescriptorSetLayoutConfig globalLayout = {
@@ -31,7 +31,7 @@ public:
         return *pipeline;
     }
 
-    Pipeline& getPipeline(const std::type_index& typeIdx) {
+    Pipeline& getPipeline(std::type_index typeIdx) {
         auto it = pipelines.find(typeIdx);
         if (it == pipelines.end())
             throw std::runtime_error("Pipeline not found.");

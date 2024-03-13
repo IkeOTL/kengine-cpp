@@ -40,7 +40,7 @@ protected:
 public:
     virtual ~Pipeline() = default;
 
-    VkPipeline getVkPipeline() {
+    VkPipeline getVkPipeline() const {
         return vkPipeline;
     }
 

@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <functional>
 #include <shared_mutex>
+#include <optional>
 
 /// <summary>
 /// Makes checking futures are done easier, also optimizes not needing to create dummy futures when asset is already cached
@@ -11,22 +12,29 @@
 template <typename V>
 class AsyncCacheTask {
 private:
-    std::shared_future<V> task;
-    V result;
+    std::optional<std::shared_future<V>> task;
+    V result = nullptr;
 
 public:
     AsyncCacheTask(std::shared_future<V> future) : task(std::move(future)) {}
     AsyncCacheTask(V result) : result(result) {}
 
     bool isDone() const {
-        return  result || task.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+        if (task.has_value())
+            return task.value().wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+
+        // check to avoid awaiting forever
+        if (!result)
+            throw std::runtime_error("Must either have a future, or a result.");
+
+        return result;
     }
 
     V get() {
-        if (result)
-            return result;
+        if (task.has_value())
+            return task.value().get();
 
-        return task.get();
+        return result;
     }
 };
 

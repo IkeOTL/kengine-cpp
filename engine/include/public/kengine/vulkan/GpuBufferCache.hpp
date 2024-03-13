@@ -10,7 +10,7 @@ class CachedGpuBuffer {
 public:
     CachedGpuBuffer(int id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize);
 
-    GpuBuffer& getGpuBuffer() {
+    GpuBuffer& getGpuBuffer() const {
         return *(gpuBuffer.get());
     }
 

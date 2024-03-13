@@ -45,3 +45,11 @@ void Model::fillRoot(std::shared_ptr<Spatial> root, const std::vector<std::share
             fillRoot(root, node->getChildren());
     }
 }
+
+
+
+
+const Mesh& Model::getAMesh() const {
+    for (const auto& mg : meshGroups)
+        return mg.second->getMesh(0);
+}

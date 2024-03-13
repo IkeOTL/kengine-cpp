@@ -3,7 +3,7 @@
 #include <kengine/util/MapUtils.hpp>
 
 void MaterialConfig::addImageBinding(unsigned int descriptorSetIndex, unsigned int bindingIndex, TextureConfig config) {
-    auto ptr = std::make_shared<ImageBindingConfig>(descriptorSetIndex, bindingIndex, config);
+    auto ptr = std::make_shared<ImageBindingConfig>(descriptorSetIndex, bindingIndex, std::make_shared<TextureConfig>(config));
     bindingConfigs[std::make_pair(descriptorSetIndex, bindingIndex)] = ptr;
 }
 

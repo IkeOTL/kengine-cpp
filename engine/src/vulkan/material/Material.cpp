@@ -4,19 +4,19 @@
 #include <kengine/vulkan/pipelines/Pipeline.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 
-Pipeline& Material::getPipeline() {
+const Pipeline& Material::getPipeline() const {
     return pipeline;
 }
 
-boolean Material::hasShadow() {
+boolean Material::hasShadow() const {
     return config->hasShadow();
 }
 
-boolean Material::hasSkeleton() {
+boolean Material::hasSkeleton()  const {
     return config->hasSkeleton();
 }
 
-MaterialBinding& Material::getBinding(int descSetIdx, int bindingIdx) {
+const  MaterialBinding& Material::getBinding(int descSetIdx, int bindingIdx) const {
     auto it = materialBindings.find(descSetIdx);
 
     if (it == materialBindings.end())
@@ -29,15 +29,15 @@ void Material::addBinding(std::unique_ptr<MaterialBinding>&& binding) {
     materialBindings[binding->getDescriptorSetIndex()].push_back(std::move(binding));
 }
 
-void Material::upload(VulkanContext& vkCxt, CachedGpuBuffer& buf, int frameIdx) {
+void Material::upload(VulkanContext& vkCxt, CachedGpuBuffer& buf, int frameIdx) const {
     config->upload(vkCxt, buf, frameIdx, id);
 }
 
-void Material::bindPipeline(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) {
+void Material::bindPipeline(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) const {
     pipeline.bind(cxt, descSetAllocator, cmd, frameIndex);
 }
 
-void Material::bindMaterial(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) {
+void Material::bindMaterial(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) const {
     if (!materialBindings.size())
         return;
 

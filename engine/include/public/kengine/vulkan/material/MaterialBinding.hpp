@@ -34,7 +34,7 @@ public:
     BufferBinding(std::shared_ptr<MaterialBindingConfig> bindingConfig, CachedGpuBuffer& gpuBuffer)
         : MaterialBinding(bindingConfig), gpuBuffer(gpuBuffer) {}
 
-    CachedGpuBuffer& getGpuBuffer() {
+    const CachedGpuBuffer& getGpuBuffer() const {
         return gpuBuffer;
     }
 
@@ -50,7 +50,7 @@ public:
     ImageBinding(std::shared_ptr<MaterialBindingConfig> bindingConfig, Texture2d& texture)
         : MaterialBinding(bindingConfig), texture(texture) {}
 
-    Texture2d& getTexture() {
+    const Texture2d& getTexture() const {
         return texture;
     }
 

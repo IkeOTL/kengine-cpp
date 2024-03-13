@@ -79,7 +79,7 @@ void Texture2d::init(VulkanContext& vkCxt, const unsigned char* image, uint32_t 
         copyRegion.imageSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
         copyRegion.imageExtent = imageExtent;
 
-        vkCmdCopyBufferToImage(cmdBuf.vkCmdBuf, stagingBuffer->getVkBuffer(), imageHandle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+        vkCmdCopyBufferToImage(cmdBuf.vkCmdBuf, sStagingBuf->getVkBuffer(), imageHandle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 
         qXfer->applyReleaseBarrier(cmdBuf.vkCmdBuf);
 

@@ -14,6 +14,4 @@ protected:
 public:
     AsyncTextureCache(TextureFactory& factory, ExecutorService& workerPool)
         : AsyncAssetCache(workerPool), factory(factory) {}
-
-    AsyncCacheTask<Texture2d*> getAsync(std::string key);
 };

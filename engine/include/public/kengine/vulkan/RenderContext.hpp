@@ -75,7 +75,7 @@ private:
     void initBuffers();
     void initDescriptors();
 
-    IndirectDrawBatch& getStaticBatch(int instanceIdx, Mesh& mesh, Material& material, boolean hasShadow);
+    IndirectDrawBatch& getStaticBatch(int instanceIdx, const Mesh& mesh, const Material& material, boolean hasShadow);
     void deferredPass(DescriptorSetAllocator& descSetAllocator);
     void compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d);
 
@@ -87,8 +87,8 @@ public:
 
     void init();
 
-    void addStaticInstance(Mesh& mesh, Material& material, glm::mat4 transform, glm::vec4 boundingSphere, boolean hasShadow);
-    int draw(Mesh& mesh, Material& material, glm::mat4 transform, glm::vec4 boundingSphere);
+    void addStaticInstance(const Mesh& mesh, const Material& material, glm::mat4 transform, glm::vec4 boundingSphere, boolean hasShadow);
+    int draw(const Mesh& mesh, const Material& material, glm::mat4 transform, glm::vec4 boundingSphere);
     void begin(RenderFrameContext& frameCxt, float sceneTime, float alpha);
     void end();
 

@@ -1,7 +1,6 @@
 #pragma once
 #include <kengine/ecs/BaseSystem.hpp>
 #include <kengine/ecs/EcsSystem.hpp>
-#include <kengine/game/components/Model.hpp>
 
 #include <thirdparty/entt.hpp>
 
@@ -12,12 +11,14 @@ class VulkanContext;
 class RenderContext;
 class RenderFrameContext;
 class AsyncModelCache;
+class AsyncMaterialCache;
 
 class RenderSystem : public EcsSystem {
 private:
     VulkanContext* vulkanCtx;
     RenderContext* renderCtx;
     AsyncModelCache* modelCache;
+    AsyncMaterialCache* materialCache;
 
 public:
     RenderSystem() = default;

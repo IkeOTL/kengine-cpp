@@ -69,7 +69,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     modelCache = std::make_unique<AsyncModelCache>(*modelFactory, *threadPool);
     textureFactory = std::make_unique<TextureFactory>(*vulkanCxt, *assetIo);
     textureCache = std::make_unique<AsyncTextureCache>(*textureFactory, *threadPool);
-    materialCache = std::make_unique<AsyncMaterialCache>(*threadPool);
+    materialCache = std::make_unique<AsyncMaterialCache>(vulkanCxt->getPipelineCache(), *textureCache, *bufCache, *threadPool);
 
     renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
     renderContext->init();

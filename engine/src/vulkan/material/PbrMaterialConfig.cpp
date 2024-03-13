@@ -4,6 +4,15 @@
 
 #include <future>
 
+PbrMaterialConfig::PbrMaterialConfig() :
+    MaterialConfig(typeid(DeferredCompositionPbrPipeline)) {
+    addAlbedoTexture(nullptr);
+    addNormalsTexture(nullptr);
+    addMetallicRoughnessTexture(nullptr);
+    addAmbientOcclusionTexture(nullptr);
+    addEmissiveTexture(nullptr);
+}
+
 void PbrMaterialConfig::upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) {
     auto mat = PbrMaterialData{
         albedoFactor,

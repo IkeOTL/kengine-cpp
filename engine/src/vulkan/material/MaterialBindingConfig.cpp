@@ -3,23 +3,20 @@
 
 #include <future>
 
-size_t MaterialBindingConfig::hashCode() const noexcept {
-    int hash = 5;
-    hash = 73 * hash + descriptorSetIndex;
-    hash = 73 * hash + bindingIndex;
-    hash = 73 * hash + this->hash();
-    return hash;
+
+std::unique_ptr<MaterialBinding> ImageBindingConfig::getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) {
+    auto texture = textureCache.getAsync(textureConfig).get();
+    return std::make_unique<ImageBinding>(shared_from_this(), *texture);
 }
 
-std::future<std::unique_ptr<MaterialBinding>> BufferBindingConfig::getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) {
+// maybe change return type to AsyncCacheTask instead
+std::unique_ptr<MaterialBinding> BufferBindingConfig::getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) {
     auto buf = bufferCache.get(bufferCacheKey);
 
     if (!buf)
         throw std::runtime_error("Buffer not found.");
 
-    std::promise<std::unique_ptr<MaterialBinding>> promise;
-    promise.set_value(std::make_unique<BufferBinding>(shared_from_this(), *buf));
-    return promise.get_future();
+    return std::make_unique<BufferBinding>(shared_from_this(), *buf);
 }
 
 int BufferBindingConfig::hash() const {
@@ -29,5 +26,13 @@ int BufferBindingConfig::hash() const {
 }
 
 int ImageBindingConfig::hash() const {
-    return textureConfig.hashCode();
+    return textureConfig->hashCode();
+}
+
+size_t MaterialBindingConfig::hashCode() const noexcept {
+    int hash = 5;
+    hash = 73 * hash + descriptorSetIndex;
+    hash = 73 * hash + bindingIndex;
+    hash = 73 * hash + this->hash();
+    return hash;
 }
