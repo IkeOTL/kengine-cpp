@@ -18,6 +18,7 @@ void BufferQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
 
     VkDependencyInfo depsInfo{};
     depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    depsInfo.bufferMemoryBarrierCount = 1;
     depsInfo.pBufferMemoryBarriers = &barrier;
 
     vkCmdPipelineBarrier2(cmd, &depsInfo);
@@ -41,6 +42,7 @@ void BufferQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
 
     VkDependencyInfo depsInfo{};
     depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    depsInfo.bufferMemoryBarrierCount = 1;
     depsInfo.pBufferMemoryBarriers = &barrier;
 
     vkCmdPipelineBarrier2(cmd, &depsInfo);
@@ -77,6 +79,7 @@ void ImageQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
 
     VkDependencyInfo depsInfo{};
     depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    depsInfo.imageMemoryBarrierCount = 1;
     depsInfo.pImageMemoryBarriers = &barrier;
 
     vkCmdPipelineBarrier2(cmd, &depsInfo);
@@ -99,14 +102,13 @@ void ImageQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
     barrier.image = vkImage;
     barrier.subresourceRange = {
         VK_IMAGE_ASPECT_COLOR_BIT,
-        0,
-        VK_REMAINING_MIP_LEVELS,
-        0,
-        VK_REMAINING_ARRAY_LAYERS
+        0, VK_REMAINING_MIP_LEVELS,
+        0, VK_REMAINING_ARRAY_LAYERS
     };
 
     VkDependencyInfo depsInfo{};
     depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    depsInfo.imageMemoryBarrierCount = 1;
     depsInfo.pImageMemoryBarriers = &barrier;
 
     vkCmdPipelineBarrier2(cmd, &depsInfo);
@@ -131,6 +133,7 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
 
     VkDependencyInfo depsInfo{};
     depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    depsInfo.imageMemoryBarrierCount = 1;
     depsInfo.pImageMemoryBarriers = &barrier;
 
     for (uint32_t level = 1; level < mipLevels; level++) {
@@ -152,8 +155,7 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
             blit.srcSubresource = {
                 VK_IMAGE_ASPECT_COLOR_BIT,
                 level - 1,
-                0,
-                1
+                0, 1
             };
 
             blit.dstOffsets[0] = { 0, 0, 0 };
@@ -161,8 +163,7 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
             blit.dstSubresource = {
                 VK_IMAGE_ASPECT_COLOR_BIT,
                 level,
-                0,
-                1
+                0,  1
             };
 
             vkCmdBlitImage(
