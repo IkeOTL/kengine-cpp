@@ -86,36 +86,39 @@ void ImageQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
 }
 
 void ImageQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
-    if (srcQueueFamily == dstQueueFamily)
-        return;
+    auto shouldGenerateMipmaps = mipLevels > 1;
+    auto shouldTransferOwnership = srcQueueFamily != dstQueueFamily;
 
-    VkImageMemoryBarrier2 barrier{};
-    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
-    barrier.srcAccessMask = 0;
-    barrier.dstStageMask = dstStageMask;
-    barrier.dstAccessMask = dstAccessMask;
-    barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    barrier.srcQueueFamilyIndex = srcQueueFamily;
-    barrier.dstQueueFamilyIndex = dstQueueFamily;
-    barrier.image = vkImage;
-    barrier.subresourceRange = {
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        0, VK_REMAINING_MIP_LEVELS,
-        0, VK_REMAINING_ARRAY_LAYERS
-    };
+    // transfer ownership if needed, and transition
+    {
+        VkImageMemoryBarrier2 barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+        barrier.srcStageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
+        barrier.srcAccessMask = 0;
+        barrier.dstStageMask = dstStageMask;
+        barrier.dstAccessMask = dstAccessMask;
+        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        barrier.newLayout = shouldGenerateMipmaps ? VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barrier.srcQueueFamilyIndex = shouldTransferOwnership ? srcQueueFamily : VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = shouldTransferOwnership ? dstQueueFamily : VK_QUEUE_FAMILY_IGNORED;
+        barrier.image = vkImage;
+        barrier.subresourceRange = {
+            VK_IMAGE_ASPECT_COLOR_BIT,
+            0, VK_REMAINING_MIP_LEVELS,
+            0, VK_REMAINING_ARRAY_LAYERS
+        };
 
-    VkDependencyInfo depsInfo{};
-    depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-    depsInfo.imageMemoryBarrierCount = 1;
-    depsInfo.pImageMemoryBarriers = &barrier;
+        VkDependencyInfo depsInfo{};
+        depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+        depsInfo.imageMemoryBarrierCount = 1;
+        depsInfo.pImageMemoryBarriers = &barrier;
 
-    vkCmdPipelineBarrier2(cmd, &depsInfo);
+        vkCmdPipelineBarrier2(cmd, &depsInfo);
+    }
 
-    generateMipmaps(cmd);
+    if (shouldGenerateMipmaps)
+        generateMipmaps(cmd);
 }
-
 
 void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
     auto mipWidth = texWidth;
@@ -139,10 +142,10 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
     for (uint32_t level = 1; level < mipLevels; level++) {
         barrier.subresourceRange.baseMipLevel = level - 1;
 
-        barrier.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        barrier.dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+        barrier.dstStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+        barrier.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT;
         barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         vkCmdPipelineBarrier2(cmd, &depsInfo);
@@ -174,10 +177,10 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
                 VK_FILTER_LINEAR);
         }
 
-        barrier.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        barrier.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+        barrier.dstStageMask = dstStageMask;
+        barrier.srcAccessMask = VK_ACCESS_2_TRANSFER_READ_BIT;
+        barrier.dstAccessMask = dstAccessMask;
         barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
         barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         vkCmdPipelineBarrier2(cmd, &depsInfo);
@@ -190,10 +193,10 @@ void ImageQueueOwnerTransfer::generateMipmaps(VkCommandBuffer cmd) {
     }
 
     barrier.subresourceRange.baseMipLevel = mipLevels - 1;
-    barrier.srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    barrier.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+    barrier.dstStageMask = dstStageMask;
+    barrier.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = dstAccessMask;
     barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     vkCmdPipelineBarrier2(cmd, &depsInfo);

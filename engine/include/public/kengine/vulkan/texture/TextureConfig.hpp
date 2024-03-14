@@ -39,7 +39,7 @@ public:
             imageType,
             imageViewType,
             channels,
-            VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT_KHR,
+            VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT,
             VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
             mipmaps)
     {}

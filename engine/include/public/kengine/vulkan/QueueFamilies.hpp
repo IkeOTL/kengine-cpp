@@ -16,6 +16,7 @@ public:
     }
 
     std::vector<unsigned int>& getTransferQueues() {
-        return transfer;
+        // if dedicated transfer queue not find, use graphics queue
+        return transfer.size() ? transfer : gfxCompXfer;
     }
 };
