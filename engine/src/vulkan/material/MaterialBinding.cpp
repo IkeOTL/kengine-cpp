@@ -20,6 +20,7 @@ void BufferBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet
     std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) {
     auto& bindingConfig = layoutConfig.getBinding(getBindingIndex());
 
+    // i dont like this, need to think of a more effecient way
     pBufferInfos.push_back(VkDescriptorBufferInfo{});
     auto& bufferInfo = pBufferInfos[pBufferInfos.size() - 1];
     bufferInfo.buffer = gpuBuffer.getGpuBuffer().getVkBuffer();
@@ -57,6 +58,7 @@ void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet&
 
     auto& bindingConfig = layoutConfig.getBinding(getBindingIndex());
 
+    // i dont like this, need to think of a more effecient way
     pImageInfos.push_back(VkDescriptorImageInfo{});
     auto& imageInfo = pImageInfos[pImageInfos.size() - 1];
     imageInfo.sampler = sampler;

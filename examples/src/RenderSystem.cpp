@@ -25,7 +25,7 @@ void RenderSystem::init() {
         auto* ecs = getWorld().getService<entt::registry>();
         auto modelConfig = std::make_shared<ModelConfig>("res/gltf/char01.glb",
             VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
-            | VertexAttribute::TANGENTS | VertexAttribute::SKELETON
+            | VertexAttribute::TANGENTS
         );
 
         auto materialConfig = std::make_shared<PbrMaterialConfig>();
