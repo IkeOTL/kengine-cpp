@@ -13,7 +13,8 @@ void IndirectDrawBatch::predraw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, Mat
 void IndirectDrawBatch::draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, VkBuffer indirectCmdBuf, DescriptorSetAllocator& descSetAllocator, int frameIdx, MaterialBindManager& bindManager) {
     predraw(vkCxt, vkCmd, bindManager, descSetAllocator, frameIdx);
 
-    vkCmdBindVertexBuffers(vkCmd, 0, 1, &mesh->getVertexBuf().vkBuffer, { 0 });
+    VkDeviceSize offsets = 0;
+    vkCmdBindVertexBuffers(vkCmd, 0, 1, &mesh->getVertexBuf().vkBuffer, &offsets);
     vkCmdBindIndexBuffer(vkCmd, mesh->getIndexBuf().vkBuffer, 0, VK_INDEX_TYPE_UINT32);
 
     vkCmdDrawIndexedIndirect(

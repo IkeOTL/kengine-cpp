@@ -10,7 +10,7 @@
 #include <kengine/vulkan/SceneData.hpp>
 
 void DeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) {
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, getVkPipeline());
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
 
     VkDescriptorSet descriptorSets[] = {
        descSetAllocator.getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),

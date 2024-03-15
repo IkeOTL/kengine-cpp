@@ -6,7 +6,7 @@ void BufferQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
 
     VkBufferMemoryBarrier2 barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+    barrier.srcStageMask = VK_PIPELINE_STAGE_2_ALL_TRANSFER_BIT;
     barrier.srcAccessMask = VK_ACCESS_2_TRANSFER_WRITE_BIT;
     barrier.dstStageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT;
     barrier.dstAccessMask = 0;
@@ -84,7 +84,8 @@ void ImageQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
 
     vkCmdPipelineBarrier2(cmd, &depsInfo);
 }
-
+//https://discord.com/channels/427551838099996672/427833316536746005/1217868728130207784
+//https://discord.com/channels/427551838099996672/427833316536746005/1217868952550506556
 void ImageQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
     auto shouldGenerateMipmaps = mipLevels > 1;
     auto shouldTransferOwnership = srcQueueFamily != dstQueueFamily;

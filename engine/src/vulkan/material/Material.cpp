@@ -46,14 +46,21 @@ void Material::bindMaterial(VulkanContext& cxt, DescriptorSetAllocator& descSetA
         auto pDescSet = descSetAllocator.leaseDescriptorSet(descLayoutConfig);
         auto& bindings = set.second;
 
-        std::vector<uint32_t> offsets(bindings.size());
+        std::vector<uint32_t> offsets;
+        offsets.reserve(bindings.size());
+
+        // need better strategy for keeping these in scope
+        std::vector<VkDescriptorBufferInfo> pBufferInfos;
+        pBufferInfos.reserve(bindings.size());
+
+        // need better strategy for keeping these in scope
+        std::vector<VkDescriptorImageInfo> pImageInfos;
+        pImageInfos.reserve(bindings.size());
 
         std::vector<VkWriteDescriptorSet> pDescWrites(bindings.size());
-        for (int i = 0; i < bindings.size(); i++) {
-            auto& binding = bindings[i];
-            auto& setWrite = pDescWrites[i];
-            binding->apply(cxt, frameIndex, setWrite, pDescSet, descLayoutConfig, offsets);
-        }
+        for (int i = 0; i < bindings.size(); i++)
+            bindings[i]->apply(cxt, frameIndex, pDescWrites[i], pDescSet,
+                descLayoutConfig, pBufferInfos, pImageInfos, offsets);
 
         // move outside loop so we apply all updates once?
         vkUpdateDescriptorSets(cxt.getVkDevice(), pDescWrites.size(), pDescWrites.data(), 0, nullptr);

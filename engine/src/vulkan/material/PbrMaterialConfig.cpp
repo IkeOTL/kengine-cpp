@@ -1,11 +1,12 @@
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/util/VecUtils.hpp>
+#include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
 
 #include <future>
 
 PbrMaterialConfig::PbrMaterialConfig() :
-    MaterialConfig(typeid(DeferredCompositionPbrPipeline)) {
+    MaterialConfig(typeid(DeferredOffscreenPbrPipeline)) {
     addAlbedoTexture(nullptr);
     addNormalsTexture(nullptr);
     addMetallicRoughnessTexture(nullptr);

@@ -15,14 +15,17 @@ int MaterialBinding::getBindingIndex() {
     return bindingConfig->getBindingIndex();
 }
 
-void BufferBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite, VkDescriptorSet dstSet,
-    const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) {
+void BufferBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
+    VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
+    std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) {
     auto& bindingConfig = layoutConfig.getBinding(getBindingIndex());
 
-    VkDescriptorBufferInfo bufferInfo{};
+    pBufferInfos.push_back(VkDescriptorBufferInfo{});
+    auto& bufferInfo = pBufferInfos[pBufferInfos.size() - 1];
     bufferInfo.buffer = gpuBuffer.getGpuBuffer().getVkBuffer();
     bufferInfo.offset = 0;
     bufferInfo.range = gpuBuffer.getFrameSize();
+    pBufferInfos.push_back(bufferInfo);
 
     setWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     setWrite.dstBinding = bindingConfig.bindingIndex;
@@ -34,8 +37,9 @@ void BufferBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet
     offsets.push_back(static_cast<uint32_t>(gpuBuffer.getFrameOffset(frameIdx)));
 }
 
-void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite, VkDescriptorSet dstSet, 
-    const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) {
+void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
+    VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
+    std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) {
     auto samplerConfig = SamplerConfig(
         VK_SAMPLER_MIPMAP_MODE_LINEAR,
         VK_FILTER_NEAREST,
@@ -53,7 +57,8 @@ void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet 
 
     auto& bindingConfig = layoutConfig.getBinding(getBindingIndex());
 
-    VkDescriptorImageInfo imageInfo{};
+    pImageInfos.push_back(VkDescriptorImageInfo{});
+    auto& imageInfo = pImageInfos[pImageInfos.size() - 1];
     imageInfo.sampler = sampler;
     imageInfo.imageView = texture.getImageView();
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

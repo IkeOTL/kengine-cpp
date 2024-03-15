@@ -3,7 +3,6 @@
 #include <glm/vec4.hpp>
 
 #include <future>
-#include <kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp>
 
 class VulkanContext;
 

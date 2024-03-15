@@ -22,8 +22,9 @@ public:
     int getDescriptorSetIndex();
     int getBindingIndex();
 
-    virtual void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite, VkDescriptorSet dstSet,
-        const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) = 0;
+    virtual void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
+        VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
+        std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) = 0;
 };
 
 class BufferBinding : public MaterialBinding {
@@ -38,8 +39,9 @@ public:
         return gpuBuffer;
     }
 
-    void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite, VkDescriptorSet dstSet,
-        const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) override;
+    void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
+        VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
+        std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) override;
 };
 
 class ImageBinding : public MaterialBinding {
@@ -54,6 +56,7 @@ public:
         return texture;
     }
 
-    void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet setWrite, VkDescriptorSet dstSet,
-        const DescriptorSetLayoutConfig& layoutConfig, std::vector<uint32_t> offsets) override;
+    void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
+        VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
+        std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) override;
 };

@@ -7,7 +7,7 @@ class MaterialBindManager {
 private:
     VulkanContext& vkCtx;
     VkPipeline lastPipeline = VK_NULL_HANDLE;
-    uint32_t lastMaterialId = 0;
+    uint32_t lastMaterialId = -9999999;
 
 public:
     MaterialBindManager(VulkanContext& vkCtx)
