@@ -15,7 +15,8 @@ void SceneData::upload(VulkanContext& vkCxt, CachedGpuBuffer& buffer, float time
     auto camera = cameraController.getCamera();
     ToUpload data{};
     data.proj = camera->getProjectionMatrix();
-    camera->getIntegratedViewMatrix(alpha, data.view);
+    camera->getViewMatrix(data.view);
+    //camera->getIntegratedViewMatrix(alpha, data.view);
     data.lightDir = { lightDir, time };
 
     auto startPos = buffer.getFrameOffset(frameIndex);

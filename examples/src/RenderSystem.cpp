@@ -4,6 +4,7 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>
 #include <kengine/vulkan/mesh/Model.hpp>
+#include <kengine/game/Game.hpp>
 #include <kengine/game/components/Material.hpp>
 #include <kengine/game/components/Model.hpp>
 #include <kengine/vulkan/material/AsyncMaterialCache.hpp>
@@ -17,6 +18,7 @@ void RenderSystem::init() {
     renderCtx = getWorld().getService<RenderContext>();
     modelCache = getWorld().getService<AsyncModelCache>();
     materialCache = getWorld().getService<AsyncMaterialCache>();
+    sceneTime = getWorld().getService<SceneTime>();
 
     // test obj
     {
@@ -36,7 +38,7 @@ void RenderSystem::init() {
 
 void RenderSystem::processSystem(float delta) {
     auto ctx = vulkanCtx->createNextFrameContext();
-    renderCtx->begin(*ctx, 0, 0);
+    renderCtx->begin(*ctx, sceneTime->getSceneTime(), delta);
     {
         drawEntities(*ctx);
     }
@@ -65,6 +67,6 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx) {
         auto model = modelTask.get();
         auto material = materialTask.get();
         auto lol = "";
-        renderCtx->draw(model->getAMesh(), *material, glm::mat4(), glm::vec4(0, 0, 0, 1));
+        renderCtx->draw(model->getAMesh(), *material, glm::mat4(1), glm::vec4(0, 0, 0, 1));
     }
 }

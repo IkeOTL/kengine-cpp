@@ -1,4 +1,5 @@
 #include <kengine/game/MainGameState.hpp>
+#include <kengine/game/Game.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/ExecutorService.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
@@ -11,7 +12,8 @@ MainGameState::MainGameState(World& world) :
     world(world),
     workerPool(*world.getService<ExecutorService>()),
     vkContext(*world.getService<VulkanContext>()),
-    renderContext(*world.getService<RenderContext>()) {}
+    renderContext(*world.getService<RenderContext>()),
+    sceneTime(*world.getService<SceneTime>()) {}
 
 void MainGameState::init() {
 }
@@ -32,15 +34,14 @@ void MainGameState::update(Game& parent) {
             //world.getSystem(SkeletonPreviousTransformSystem.class).processSystem();
         }
 
-        //sceneTime.setDelta(GAME_UPDATE_TICK_INTERVAL);
+        sceneTime.setDelta(GAME_UPDATE_TICK_INTERVAL);
         world.process(GAME_UPDATE_TICK_INTERVAL);
-        accumulator -= GAME_UPDATE_TICK_INTERVAL;
+        accumulator -= GAME_UPDATE_TICK_INTERVAL; 
+        sceneTime.addSceneTime(GAME_UPDATE_TICK_INTERVAL);
     }
 
-    //sceneTime.addSceneTime(delta);
-
     auto alpha = accumulator / GAME_UPDATE_TICK_INTERVAL;
-    //sceneTime.setAlpha(alpha);
+    sceneTime.setAlpha(alpha);
     world.getSystem<RenderSystem>()->processSystem(alpha);
 
 }

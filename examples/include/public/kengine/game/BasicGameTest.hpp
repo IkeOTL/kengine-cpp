@@ -27,6 +27,7 @@ private:
     std::unique_ptr<FileSystemAssetIO> assetIo;
     std::unique_ptr<LightsManager> lightsManager;
     std::unique_ptr<CameraController> cameraController;
+    std::unique_ptr<SceneTime> sceneTime;
 
     std::unique_ptr<GpuBufferCache> bufCache;
 

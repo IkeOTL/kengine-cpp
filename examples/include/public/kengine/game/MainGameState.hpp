@@ -13,6 +13,7 @@ private:
     ExecutorService& workerPool;
     VulkanContext& vkContext;
     RenderContext& renderContext;
+    SceneTime& sceneTime;
 
     static constexpr float GAME_UPDATE_TICK_INTERVAL = 1 / 30.0f;
     float accumulator = 0;

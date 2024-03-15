@@ -12,6 +12,7 @@ class RenderContext;
 class RenderFrameContext;
 class AsyncModelCache;
 class AsyncMaterialCache;
+class SceneTime;
 
 class RenderSystem : public EcsSystem {
 private:
@@ -19,9 +20,14 @@ private:
     RenderContext* renderCtx;
     AsyncModelCache* modelCache;
     AsyncMaterialCache* materialCache;
+    SceneTime* sceneTime;
 
 public:
     RenderSystem() = default;
+
+    bool checkProcessing() override {
+        return false;
+    }
 
     void init() override;
     void processSystem(float delta) override;

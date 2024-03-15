@@ -9,18 +9,20 @@
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/DrawCullingPipeline.hpp>
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
-#include <kengine/math.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
+#include <kengine/game/RenderSystem.hpp>
 
 #include <kengine/game/MainGameState.hpp>
+#include <kengine/game/Game.hpp>
+#include <kengine/math.hpp>
+
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <thread>
 #include <utility>
 #include <glm/glm.hpp>
-#include <kengine/game/RenderSystem.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -65,6 +67,8 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     assetIo = std::make_unique<FileSystemAssetIO>();
     bufCache = std::make_unique<GpuBufferCache>(*vulkanCxt);
     lightsManager = std::make_unique<LightsManager>(*cameraController);
+    sceneTime = std::make_unique<SceneTime>();
+
     modelFactory = std::make_unique<GltfModelFactory>(*vulkanCxt, *assetIo);
     modelCache = std::make_unique<AsyncModelCache>(*modelFactory, *threadPool);
     textureFactory = std::make_unique<TextureFactory>(*vulkanCxt, *assetIo);
@@ -78,6 +82,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         // injectable objects. order doesnt matter
         .addService<VulkanContext>(vulkanCxt.get())
         .addService<RenderContext>(renderContext.get())
+        .addService<SceneTime>(sceneTime.get())
         .addService<entt::registry>(&ecs)
 
         .addService<ExecutorService>(threadPool.get())
@@ -151,11 +156,11 @@ void BasicGameTest::initCamera() {
     auto aspectRatio = (float)window->getWidth() / window->getHeight();
     auto camera = std::make_unique<Camera>(fov, aspectRatio, Camera::NEAR_CLIP, Camera::FAR_CLIP);
 
-    camera->setPosition(glm::vec3{ 6, 10, 6 });
+    camera->setPosition(glm::vec3(0, 0, 5));
 
     glm::quat camRot = camera->getRotation();
-    camRot = glm::rotate(camRot, glm::radians(55.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
-    camRot = glm::rotate(camRot, glm::radians(-45.0f), glm::vec3{ 0.0f, 1.0f, 0.0f });
+    //camRot = glm::rotate(camRot, glm::radians(55.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
+    camRot = glm::rotate(camRot, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     camera->setRotation(camRot);
 
     cameraController = std::make_unique<BasicCameraController>();
