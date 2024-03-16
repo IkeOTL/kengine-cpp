@@ -11,7 +11,7 @@ class Transform {
 protected:
     glm::vec3 position;
     glm::vec3 scale;
-    glm::quat rotation;
+    glm::quat rotation = glm::identity<glm::quat>();
 
     glm::mat4 transMatrix = glm::mat4(1.0f);
 
@@ -19,10 +19,10 @@ protected:
 
 public:
     Transform()
-        : position(0.0f), scale(1.0f), rotation(glm::quat(1.0, 0.0, 0.0, 0.0)) {}
+        : position(0.0f), scale(1.0f), rotation(glm::identity<glm::quat>()) {}
 
     Transform(const glm::vec3 p)
-        : position(p), scale(1.0f), rotation(glm::quat(1.0, 0.0, 0.0, 0.0)) {}
+        : position(p), scale(1.0f), rotation(glm::identity<glm::quat>()) {}
 
     Transform(const glm::vec3 p, const glm::vec3 s, const glm::quat r)
         : position(p), scale(s), rotation(r) {}

@@ -8,7 +8,6 @@
 #include <kengine/game/RenderSystem.hpp>
 #include <kengine/vulkan/mesh/ModelConfig.hpp>
 
-
 MainGameState::MainGameState(World& world) :
     world(world),
     window(*world.getService<Window>()),
@@ -48,7 +47,6 @@ void MainGameState::update(Game& parent) {
     auto alpha = accumulator / GAME_UPDATE_TICK_INTERVAL;
     sceneTime.setAlpha(alpha);
     world.getSystem<RenderSystem>()->processSystem(alpha);
-
 }
 
 void MainGameState::exit(Game& parent) {

@@ -59,7 +59,7 @@ Window::Window(std::string title, unsigned int width, unsigned int height)
     glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods)
         {
             auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
-            if (myWindow->inputManager)
+            if (!myWindow->inputManager)
                 return;
 
             myWindow->inputManager->onButtonEvent(window, button, action, mods);
@@ -69,7 +69,7 @@ Window::Window(std::string title, unsigned int width, unsigned int height)
         {
             auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
-            if (myWindow->inputManager)
+            if (!myWindow->inputManager)
                 return;
 
             if (action == GLFW_REPEAT)
@@ -82,7 +82,7 @@ Window::Window(std::string title, unsigned int width, unsigned int height)
         {
             auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
-            if (myWindow->inputManager)
+            if (!myWindow->inputManager)
                 return;
 
             myWindow->inputManager->onCharEvent(window, codepoint);

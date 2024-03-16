@@ -64,7 +64,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         vulkanCxt->getCommandPool()->initThread(*vulkanCxt);
         }));
 
-    initCamera();
+    initCamera(*inputManager);
 
     assetIo = std::make_unique<FileSystemAssetIO>();
     bufCache = std::make_unique<GpuBufferCache>(*vulkanCxt);
@@ -154,7 +154,7 @@ void BasicGameTest::initVulkan() {
     vulkanCxt->init(*window, true);
 }
 
-void BasicGameTest::initCamera() {
+void BasicGameTest::initCamera(InputManager& inputManager) {
     auto fov = glm::radians(60.0f);
     auto aspectRatio = (float)window->getWidth() / window->getHeight();
     auto camera = std::make_unique<Camera>(fov, aspectRatio, Camera::NEAR_CLIP, Camera::FAR_CLIP);
@@ -163,9 +163,9 @@ void BasicGameTest::initCamera() {
 
     glm::quat camRot = camera->getRotation();
     //camRot = glm::rotate(camRot, glm::radians(55.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
-    camRot = glm::rotate(camRot, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    camera->setRotation(camRot);
+    auto rot = glm::rotate(camRot, glm::radians(190.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    camera->setRotation(rot);
 
-    cameraController = std::make_unique<BasicCameraController>();
+    cameraController = std::make_unique<FreeCameraController>(inputManager);
     cameraController->setCamera(std::move(camera));
 }

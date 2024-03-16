@@ -15,6 +15,7 @@ set(HEADERS
 
     include/public/kengine/input/InputManager.hpp
     include/public/kengine/input/EventListener.hpp
+    include/public/kengine/input/InputEventAdapter.hpp
 
     include/public/kengine/ecs/BaseSystem.hpp
     include/public/kengine/ecs/EcsSystem.hpp
@@ -112,6 +113,7 @@ set(SOURCES
 
     src/input/InputManager.cpp
     src/input/EventListener.cpp
+    src/input/InputEventAdapter.cpp
 
     src/ecs/World.cpp
 

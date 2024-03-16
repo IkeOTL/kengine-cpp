@@ -67,6 +67,6 @@ public:
     }
 
     void unregisterMouseEventListener(MouseEventListener* listener) {
-        mouseEventListeners.push_back(listener);
+    //    mouseEventListeners.remove(listener);
     }
 };
