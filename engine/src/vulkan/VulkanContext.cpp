@@ -480,12 +480,14 @@ VkDeviceSize VulkanContext::alignSsboFrame(VkDeviceSize baseFrameSize) const {
 }
 
 void SwapchainCreator::init(Window& window) {
-    window.registerResizeListener([this](GLFWwindow* window, int newWidth, int newHeight) {
+    windowResizeListener = std::make_unique<Window::WindowResizeListener>([this](GLFWwindow* window, int newWidth, int newHeight) {
         std::lock_guard<std::mutex> lock(this->lock);
         targetWidth = newWidth;
         targetHeight = newHeight;
         setMustRecreate(true);
         });
+
+    window.registerResizeListener(windowResizeListener.get());
 }
 
 bool SwapchainCreator::recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain) {

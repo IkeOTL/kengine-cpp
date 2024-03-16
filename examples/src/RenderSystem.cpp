@@ -63,10 +63,8 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx) {
         if (!materialTask.isDone())
             continue;
 
-
         auto model = modelTask.get();
         auto material = materialTask.get();
-        auto lol = "";
         renderCtx->draw(model->getAMesh(), *material, glm::mat4(1), glm::vec4(0, 0, 0, 1));
     }
 }

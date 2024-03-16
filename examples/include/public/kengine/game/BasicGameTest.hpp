@@ -22,6 +22,7 @@ private:
     inline static std::unique_ptr<ExecutorService> threadPool;
 
     std::unique_ptr<Window> window;
+    std::unique_ptr<InputManager> inputManager;
     std::unique_ptr<VulkanContext> vulkanCxt;
     std::unique_ptr<RenderContext> renderContext;
     std::unique_ptr<FileSystemAssetIO> assetIo;

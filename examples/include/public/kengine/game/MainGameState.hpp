@@ -6,10 +6,12 @@ class ExecutorService;
 class VulkanContext;
 class RenderContext;
 class World;
+class Window;
 
 class MainGameState : public State<Game> {
 private:
     World& world;
+    Window& window;
     ExecutorService& workerPool;
     VulkanContext& vkContext;
     RenderContext& renderContext;

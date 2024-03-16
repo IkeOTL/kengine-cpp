@@ -1,39 +1,46 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/input/InputManager.hpp>
 #include <GLFW/glfw3.h>
 #include <string>
 #include <vector>
 #include <functional>
 
 class Window {
-
 public:
     using WindowResizeListener = std::function<void(GLFWwindow*, int, int)>;
 
+private:
+    GLFWwindow* window;
+    unsigned int width, height;
+    uint64_t lastMouseMove = 0L;
+
+    InputManager* inputManager = nullptr;
+
+    std::vector<WindowResizeListener*> resizeListeners;
+
+public:
     Window(std::string title, unsigned int width, unsigned int height);
     ~Window();
 
     void createSurface(VkInstance vkInstance, VkSurfaceKHR& surface);
-    void pollInput();
-    void registerResizeListener(const WindowResizeListener& listener);
-    void awaitEventsLoop();
+    void registerResizeListener(WindowResizeListener* listener);
 
+    void pollEvents();
 
     GLFWwindow* getWindow() {
         return window;
     }
 
-    unsigned int getWidth() {
+    void setInputManager(InputManager* im) {
+        inputManager = im;
+    }
+
+    unsigned int getWidth() const {
         return width;
     }
 
-    unsigned int getHeight() {
+    unsigned int getHeight() const {
         return height;
     }
-
-private:
-    GLFWwindow* window;
-    unsigned int width, height;
-
-    std::vector<WindowResizeListener> resizeListeners{};
 };

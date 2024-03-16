@@ -32,31 +32,33 @@ void BasicGameTest::run() {
     auto gameState = init();
 
     sm.setInitialState(gameState.get());
+    gameState->enter(*this);
 
-    std::thread renderThread([this]() {
-        using namespace std::chrono;
+    //std::thread renderThread([this]() {
+    using namespace std::chrono;
 
-        auto lastFrame = high_resolution_clock::now();
+    auto lastFrame = high_resolution_clock::now();
 
-        while (!glfwWindowShouldClose(this->window->getWindow())) {
-            auto newTime = high_resolution_clock::now();
-            delta = duration_cast<nanoseconds>(newTime - lastFrame).count() * .000000001f;
-            lastFrame = newTime;
+    while (!glfwWindowShouldClose(this->window->getWindow())) {
+        auto newTime = high_resolution_clock::now();
+        delta = duration_cast<nanoseconds>(newTime - lastFrame).count() * .000000001f;
+        lastFrame = newTime;
 
-            // cap delta
-            delta = std::min<float>(delta, .2f);
+        // cap delta
+        delta = std::min<float>(delta, .2f);
 
-            sm.update();
-        }
-        });
+        sm.update();
+    }
+    //    });
 
-    window->awaitEventsLoop();
-
-    renderThread.join();
+    //renderThread.join();
 }
 
 std::unique_ptr<State<Game>> BasicGameTest::init() {
     window = std::make_unique<Window>("rawr", 1920, 1080);
+    inputManager = std::make_unique<InputManager>();
+    window->setInputManager(inputManager.get());
+
     initVulkan();
     threadPool.reset(new ExecutorService(4, [&]() {
         vulkanCxt->getCommandPool()->initThread(*vulkanCxt);
@@ -80,6 +82,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
     world = std::make_unique<World>(WorldConfig()
         // injectable objects. order doesnt matter
+        .addService<Window>(window.get())
         .addService<VulkanContext>(vulkanCxt.get())
         .addService<RenderContext>(renderContext.get())
         .addService<SceneTime>(sceneTime.get())

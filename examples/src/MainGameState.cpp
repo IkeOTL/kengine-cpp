@@ -3,6 +3,7 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/ExecutorService.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
+#include <kengine/Window.hpp>
 #include <kengine/ecs/World.hpp>
 #include <kengine/game/RenderSystem.hpp>
 #include <kengine/vulkan/mesh/ModelConfig.hpp>
@@ -10,6 +11,7 @@
 
 MainGameState::MainGameState(World& world) :
     world(world),
+    window(*world.getService<Window>()),
     workerPool(*world.getService<ExecutorService>()),
     vkContext(*world.getService<VulkanContext>()),
     renderContext(*world.getService<RenderContext>()),
@@ -19,9 +21,12 @@ void MainGameState::init() {
 }
 
 void MainGameState::enter(Game& parent) {
+    glfwShowWindow(window.getWindow());
 }
 
 void MainGameState::update(Game& parent) {
+    window.pollEvents();
+
     auto delta = parent.getDelta();
 
     accumulator += delta;
@@ -36,7 +41,7 @@ void MainGameState::update(Game& parent) {
 
         sceneTime.setDelta(GAME_UPDATE_TICK_INTERVAL);
         world.process(GAME_UPDATE_TICK_INTERVAL);
-        accumulator -= GAME_UPDATE_TICK_INTERVAL; 
+        accumulator -= GAME_UPDATE_TICK_INTERVAL;
         sceneTime.addSceneTime(GAME_UPDATE_TICK_INTERVAL);
     }
 

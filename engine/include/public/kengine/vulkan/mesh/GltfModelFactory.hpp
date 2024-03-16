@@ -171,11 +171,7 @@ private:
         }
 
         meshGroup.addMesh(
-            mb.build(&vkContext
-                //,
-                //vertexAttributes | VertexAttribute::NORMAL,
-                //vertexAttributes | VertexAttribute::TANGENTS
-            )
+            mb.build(&vkContext)
         );
     }
 

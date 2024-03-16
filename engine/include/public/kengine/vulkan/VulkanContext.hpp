@@ -65,6 +65,7 @@ private:
     std::mutex lock{};
     int targetWidth = 0, targetHeight = 0;
     bool mustRecreate = true;
+    std::unique_ptr<Window::WindowResizeListener> windowResizeListener;
     OnSwapchainCreate onSwapchainCreate;
 };
 

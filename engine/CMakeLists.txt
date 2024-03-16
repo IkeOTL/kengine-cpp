@@ -13,6 +13,9 @@ set(HEADERS
     include/public/kengine/util/MapUtils.hpp
     include/public/kengine/util/VecUtils.hpp
 
+    include/public/kengine/input/InputManager.hpp
+    include/public/kengine/input/EventListener.hpp
+
     include/public/kengine/ecs/BaseSystem.hpp
     include/public/kengine/ecs/EcsSystem.hpp
     include/public/kengine/ecs/World.hpp
@@ -20,7 +23,6 @@ set(HEADERS
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
 
-    include/public/kengine/Engine.hpp
     include/public/kengine/Math.hpp
     include/public/kengine/Window.hpp
     include/public/kengine/ExecutorService.hpp
@@ -100,7 +102,6 @@ set(HEADERS
 )
 
 set(SOURCES
-    src/Engine.cpp
     src/Window.cpp
     src/Transform.cpp
     src/Spatial.cpp
@@ -108,6 +109,9 @@ set(SOURCES
     
     src/io/FlieSystemAssetIO.cpp
     src/io/MemoryMappedFile.cpp
+
+    src/input/InputManager.cpp
+    src/input/EventListener.cpp
 
     src/ecs/World.cpp
 
