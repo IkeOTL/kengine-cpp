@@ -14,7 +14,10 @@ set(HEADERS
     include/public/kengine/game/BasicGameTest.hpp
     include/public/kengine/game/MainGameState.hpp
     include/public/kengine/game/BasicCameraController.hpp
+
+# systems
     include/public/kengine/game/RenderSystem.hpp
+    include/public/kengine/game/CameraSystem.hpp
 
 # components
     include/public/kengine/game/components/Model.hpp
@@ -27,7 +30,10 @@ set(SOURCES
     src/BasicGameTest.cpp
     src/MainGameState.cpp
     src/BasicCameraController.cpp
+
+# systems
     src/RenderSystem.cpp
+    src/CameraSystem.cpp
 
 )
 

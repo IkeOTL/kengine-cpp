@@ -12,13 +12,12 @@
 #include <thirdparty/entt.hpp>
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 
-
 void RenderSystem::init() {
-    vulkanCtx = getWorld().getService<VulkanContext>();
-    renderCtx = getWorld().getService<RenderContext>();
-    modelCache = getWorld().getService<AsyncModelCache>();
-    materialCache = getWorld().getService<AsyncMaterialCache>();
-    sceneTime = getWorld().getService<SceneTime>();
+    vulkanCtx = getService<VulkanContext>();
+    renderCtx = getService<RenderContext>();
+    modelCache = getService<AsyncModelCache>();
+    materialCache = getService<AsyncMaterialCache>();
+    sceneTime = getService<SceneTime>();
 
     // test obj
     {
@@ -44,7 +43,6 @@ void RenderSystem::processSystem(float delta) {
     }
     renderCtx->end();
 }
-
 
 void RenderSystem::drawEntities(RenderFrameContext& ctx) {
     auto view = getEcs().view<Component::Model, Component::Material>();

@@ -13,6 +13,10 @@ namespace vecutils {
         return result;
     }
 
+    static bool isFinite(const glm::vec3& v) {
+        return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z);
+    }
+
     static void transformAab(const glm::mat4& m, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, glm::vec3& outMin, glm::vec3& outMax) {
         float xax = m[0][0] * minX, xay = m[0][1] * minX, xaz = m[0][2] * minX;
         float xbx = m[0][0] * maxX, xby = m[0][1] * maxX, xbz = m[0][2] * maxX;

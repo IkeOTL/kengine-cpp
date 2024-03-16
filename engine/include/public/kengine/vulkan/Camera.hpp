@@ -49,6 +49,9 @@ public:
     const glm::vec3& getPosition() const {
         return position;
     }
+    const void addPosition(glm::vec3& v) {
+        position += v;
+    }
 
     const void setPosition(const glm::vec3& p) {
         position = p;

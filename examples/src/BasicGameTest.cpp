@@ -10,6 +10,8 @@
 #include <kengine/vulkan/pipelines/DrawCullingPipeline.hpp>
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
 #include <kengine/game/RenderSystem.hpp>
+#include <kengine/game/CameraSystem.hpp>
+
 
 #include <kengine/game/MainGameState.hpp>
 #include <kengine/game/Game.hpp>
@@ -102,6 +104,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
         // systems. order matters.
         .setSystem<RenderSystem>()
+        .setSystem<CameraSystem>()
     );
 
     return std::make_unique<MainGameState>(*world);
@@ -161,10 +164,10 @@ void BasicGameTest::initCamera(InputManager& inputManager) {
 
     camera->setPosition(glm::vec3(0, 0, 5));
 
-    glm::quat camRot = camera->getRotation();
+    //glm::quat camRot = camera->getRotation();
     //camRot = glm::rotate(camRot, glm::radians(55.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
-    auto rot = glm::rotate(camRot, glm::radians(190.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    camera->setRotation(rot);
+    //auto rot = glm::rotate(camRot, glm::radians(190.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //camera->setRotation(rot);
 
     cameraController = std::make_unique<FreeCameraController>(inputManager);
     cameraController->setCamera(std::move(camera));

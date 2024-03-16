@@ -15,7 +15,7 @@ std::unique_ptr<Swapchain> Swapchain::replace(VkPhysicalDevice physicalDevice, V
     VKCHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities),
         "Failed to get physical device surface capabilities");
 
-   // auto swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+    //auto swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
     auto swapchainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
     //for (int i = 0; i < presentModeCount; i++) {
     //    if (pPresentModes.get(i) == VK_PRESENT_MODE_MAILBOX_KHR) {

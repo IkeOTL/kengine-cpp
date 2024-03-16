@@ -27,4 +27,9 @@ public:
 
         init();
     }
+
+    template<typename T>
+    T* getService() const {
+        return getWorld().getService<T>();
+    }
 };

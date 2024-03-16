@@ -5,13 +5,13 @@ class World;
 class BaseSystem {
 private:
     friend class World;
-    World* world;
+    World* world = nullptr;
 
 protected:
     virtual void begin() {}
     virtual void end() {}
 
-    World& getWorld() {
+    World& getWorld() const {
         return *world;
     }
 
