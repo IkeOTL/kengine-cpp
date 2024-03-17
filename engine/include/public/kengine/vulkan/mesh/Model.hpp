@@ -32,6 +32,7 @@ class Model {
 private:
     std::shared_ptr<Spatial> rootNode = nullptr;
     std::vector<std::shared_ptr<Spatial>> nodes;
+    std::vector<int16_t> parentIndices;
     std::unordered_map<int, std::unique_ptr<MeshGroup>> meshGroups;
     std::vector<uint32_t> bones;
     Bounds bounds{};
@@ -42,11 +43,10 @@ public:
     //Model(std::unique_ptr<Mesh>&& mesh);
     //Model(std::vector<std::shared_ptr<ModelNode>>&& nodes);
     Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
+        std::vector<int16_t>&& parentIndices,
         std::unordered_map<int, std::unique_ptr<MeshGroup>>&& meshGroups,
         std::vector<uint32_t>&& bones
     );
-
-    const Mesh& getAMesh() const;
 };
 
 

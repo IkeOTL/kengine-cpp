@@ -9,6 +9,7 @@
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/LightsManager.hpp>
+#include <kengine/SceneGraph.hpp>
 #include <kengine/Window.hpp>
 #include <kengine/ExecutorService.hpp>
 #include <kengine/io/AssetIO.hpp>
@@ -26,6 +27,7 @@ private:
     std::unique_ptr<VulkanContext> vulkanCxt;
     std::unique_ptr<RenderContext> renderContext;
     std::unique_ptr<FileSystemAssetIO> assetIo;
+    std::unique_ptr<SceneGraph> sceneGraph;
     std::unique_ptr<LightsManager> lightsManager;
     std::unique_ptr<CameraController> cameraController;
     std::unique_ptr<SceneTime> sceneTime;

@@ -3,20 +3,23 @@
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>
+#include <kengine/SceneGraph.hpp>
 #include <kengine/vulkan/mesh/Model.hpp>
+#include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 #include <kengine/game/Game.hpp>
 #include <kengine/game/components/Material.hpp>
 #include <kengine/game/components/Model.hpp>
+#include <kengine/game/components/Components.hpp>
 #include <kengine/vulkan/material/AsyncMaterialCache.hpp>
 #include <kengine/ecs/World.hpp>
 #include <thirdparty/entt.hpp>
-#include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 
 void RenderSystem::init() {
     vulkanCtx = getService<VulkanContext>();
     renderCtx = getService<RenderContext>();
     modelCache = getService<AsyncModelCache>();
     materialCache = getService<AsyncMaterialCache>();
+    sceneGraph = getService<SceneGraph>();
     sceneTime = getService<SceneTime>();
 
     // test obj
@@ -30,6 +33,7 @@ void RenderSystem::init() {
         auto materialConfig = std::make_shared<PbrMaterialConfig>();
 
         auto entity = ecs->create();
+        auto& renderable = ecs->emplace<Component::Renderable>(entity);
         ecs->emplace<Component::Model>(entity, modelConfig);
         ecs->emplace<Component::Material>(entity, materialConfig);
     }
@@ -45,9 +49,10 @@ void RenderSystem::processSystem(float delta) {
 }
 
 void RenderSystem::drawEntities(RenderFrameContext& ctx) {
-    auto view = getEcs().view<Component::Model, Component::Material>();
+    auto view = getEcs().view<Component::Renderable, Component::Model, Component::Material>();
 
     for (auto& e : view) {
+        auto& renderableComponent = view.get<Component::Renderable>(e);
         auto& modelComponent = view.get<Component::Model>(e);
         auto modelTask = modelCache->getAsync(modelComponent.config);
 
@@ -63,6 +68,6 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx) {
 
         auto model = modelTask.get();
         auto material = materialTask.get();
-        renderCtx->draw(model->getAMesh(), *material, glm::mat4(1), glm::vec4(0, 0, 0, 1));
+       // renderCtx->draw(model->getAMesh(), *material, glm::mat4(1), glm::vec4(0, 0, 0, 1));
     }
 }

@@ -20,6 +20,7 @@ set(HEADERS
     include/public/kengine/game/CameraSystem.hpp
 
 # components
+    include/public/kengine/game/components/Components.hpp
     include/public/kengine/game/components/Model.hpp
     include/public/kengine/game/components/Material.hpp
 
@@ -34,6 +35,8 @@ set(SOURCES
 # systems
     src/RenderSystem.cpp
     src/CameraSystem.cpp
+
+    src/Components.cpp
 
 )
 

@@ -25,6 +25,7 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
     std::vector<std::shared_ptr<Spatial>> spatialNodes;
     std::vector<std::shared_ptr<Bone>> spatialBones;
     std::vector<uint32_t> bonesNodeIndices;
+    std::vector<int16_t> parentIndices;
 
     // load nodes and bones
     {
@@ -50,6 +51,7 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
         spatialNodes.reserve(model.nodes.size());
         spatialBones.reserve(uniqueBoneNodeIndices.size());
         bonesNodeIndices.resize(uniqueBoneNodeIndices.size());
+        parentIndices.resize(model.nodes.size(), -1);
 
         // load all nodes to keep it simple
         for (size_t i = 0; i < model.nodes.size(); i++) {
@@ -117,17 +119,17 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
 
     // load node heirarchy, and apply parenting
     for (size_t i = 0; i < model.scenes[model.defaultScene].nodes.size(); i++)
-        processNode(model, model.scenes[model.defaultScene].nodes[i], meshGroupIndices, meshGroups, spatialNodes);
+        processNode(model, model.scenes[model.defaultScene].nodes[i], meshGroupIndices, meshGroups, spatialNodes, parentIndices);
 
     // load meshes
     for (auto meshGroupIdx : meshGroupIndices)
         loadMeshGroup(model, meshGroupIdx, meshGroups, config.getAttributes());
 
-    return std::make_unique<Model>(std::move(spatialNodes), std::move(meshGroups), std::move(bonesNodeIndices));
+    return std::make_unique<Model>(std::move(spatialNodes), std::move(parentIndices), std::move(meshGroups), std::move(bonesNodeIndices));
 }
 
 void GltfModelFactory::processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshGroupIndices,
-    std::unordered_map<int, std::unique_ptr<MeshGroup>>& meshGroups, std::vector<std::shared_ptr<Spatial>>& spatialNodes) const {
+    std::unordered_map<int, std::unique_ptr<MeshGroup>>& meshGroups, std::vector<std::shared_ptr<Spatial>>& spatialNodes, std::vector<int16_t>& parentIndices) const {
     const auto& node = model.nodes[nodeIndex];
     auto& parentSpatial = spatialNodes[nodeIndex];
 
@@ -142,8 +144,9 @@ void GltfModelFactory::processNode(const tinygltf::Model& model, int nodeIndex, 
     }
 
     for (auto childIndex : node.children) {
+        parentIndices[childIndex] = nodeIndex;
         parentSpatial->addChild(spatialNodes[childIndex]);
-        processNode(model, childIndex, meshGroupIndices, meshGroups, spatialNodes);
+        processNode(model, childIndex, meshGroupIndices, meshGroups, spatialNodes, parentIndices);
     }
 }
 

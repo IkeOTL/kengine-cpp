@@ -31,6 +31,7 @@ set(HEADERS
     include/public/kengine/Hashable.hpp
     include/public/kengine/Transform.hpp
     include/public/kengine/Spatial.hpp
+    include/public/kengine/SceneGraph.hpp
     include/public/kengine/Bounds.hpp
     
     include/public/kengine/vulkan/VulkanContext.hpp
@@ -106,6 +107,7 @@ set(SOURCES
     src/Window.cpp
     src/Transform.cpp
     src/Spatial.cpp
+    src/SceneGraph.cpp
     src/Bounds.cpp
     
     src/io/FlieSystemAssetIO.cpp

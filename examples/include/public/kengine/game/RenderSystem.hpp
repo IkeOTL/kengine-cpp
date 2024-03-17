@@ -12,6 +12,7 @@ class RenderContext;
 class RenderFrameContext;
 class AsyncModelCache;
 class AsyncMaterialCache;
+class SceneGraph;
 class SceneTime;
 
 class RenderSystem : public EcsSystem {
@@ -20,6 +21,7 @@ private:
     RenderContext* renderCtx;
     AsyncModelCache* modelCache;
     AsyncMaterialCache* materialCache;
+    SceneGraph* sceneGraph;
     SceneTime* sceneTime;
 
 public:

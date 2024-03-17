@@ -5,9 +5,11 @@
 #include <vector>
 #include <functional>
 
+class SceneGraph;
+
 class Spatial : public std::enable_shared_from_this<Spatial> {
 private:
-    int sceneId;
+    int32_t sceneId = -1;
     std::function<void()> changeCb;
 
     std::shared_ptr<Spatial> parent = nullptr;
@@ -20,15 +22,12 @@ private:
 
     bool transformDirty = true;
 
-protected:
-    Spatial(int sceneId, const std::string& name) : sceneId(sceneId), name(name) {}
-
 public:
-    Spatial(const std::string& name) : Spatial(-1, name) {}
+    Spatial(const std::string& name) : name(name) {}
     ~Spatial() = default;
 
-    int getSceneId() const;
-    void setSceneId(int sceneId);
+    int32_t getSceneId() const;
+    void setSceneId(int32_t sceneId);
     Spatial* getParent() const;
     const std::string& getName() const;
     const bool hasChildren() const;

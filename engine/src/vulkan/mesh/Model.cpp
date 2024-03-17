@@ -24,9 +24,10 @@ void MeshGroup::addMesh(std::unique_ptr<Mesh>&& mesh) {
 //}
 
 Model::Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
+    std::vector<int16_t>&& parentIndices,
     std::unordered_map<int, std::unique_ptr<MeshGroup>>&& meshGroups,
     std::vector<uint32_t>&& bones)
-    : nodes(std::move(nodes)), meshGroups(std::move(meshGroups)), bones(std::move(bones)) {
+    : nodes(std::move(nodes)), parentIndices(std::move(parentIndices)), meshGroups(std::move(meshGroups)), bones(std::move(bones)) {
     rootNode = std::make_shared<ModelNode>("Main Node");
     fillRoot(rootNode, this->nodes);
 
@@ -44,12 +45,4 @@ void Model::fillRoot(std::shared_ptr<Spatial> root, const std::vector<std::share
         if (node->hasChildren())
             fillRoot(root, node->getChildren());
     }
-}
-
-
-
-
-const Mesh& Model::getAMesh() const {
-    for (const auto& mg : meshGroups)
-        return mg.second->getMesh(0);
 }

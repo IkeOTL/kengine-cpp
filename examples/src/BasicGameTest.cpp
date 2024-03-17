@@ -72,6 +72,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     bufCache = std::make_unique<GpuBufferCache>(*vulkanCxt);
     lightsManager = std::make_unique<LightsManager>(*cameraController);
     sceneTime = std::make_unique<SceneTime>();
+    sceneGraph = std::make_unique<SceneGraph>();
 
     modelFactory = std::make_unique<GltfModelFactory>(*vulkanCxt, *assetIo);
     modelCache = std::make_unique<AsyncModelCache>(*modelFactory, *threadPool);
@@ -87,6 +88,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .addService<Window>(window.get())
         .addService<VulkanContext>(vulkanCxt.get())
         .addService<RenderContext>(renderContext.get())
+        .addService<SceneGraph>(sceneGraph.get())
         .addService<SceneTime>(sceneTime.get())
         .addService<entt::registry>(&ecs)
 

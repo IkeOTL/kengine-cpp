@@ -26,7 +26,7 @@ public:
 private:
     void processNode(const tinygltf::Model& model, int nodeIndex,
         std::unordered_set<int>& meshIndices, std::unordered_map<int, std::unique_ptr<MeshGroup>>& meshGroups,
-        std::vector<std::shared_ptr<Spatial>>& spatialNodes) const;
+        std::vector<std::shared_ptr<Spatial>>& spatialNodes, std::vector<int16_t>& parentIndex) const;
 
     void loadMeshGroup(const tinygltf::Model& model, int meshGroupIdx, std::unordered_map<int,
         std::unique_ptr<MeshGroup>>&mesheGroups, int vertexAttributes) const;

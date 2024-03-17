@@ -1,11 +1,11 @@
 #include <kengine/Spatial.hpp>
 #include <stdexcept>
 
-int Spatial::getSceneId() const {
+int32_t Spatial::getSceneId() const {
     return sceneId;
 }
 
-void Spatial::setSceneId(int sceneId) {
+void Spatial::setSceneId(int32_t sceneId) {
     this->sceneId = sceneId;
 }
 
