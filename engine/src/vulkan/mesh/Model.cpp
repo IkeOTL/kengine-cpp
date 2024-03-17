@@ -34,6 +34,12 @@ Model::Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
     // calc bounds
 }
 
+Model::Model(std::unique_ptr<Mesh>&& mesh){
+    rootNode = std::make_shared<ModelNode>("Main Node");
+    nodes.push_back(rootNode);
+    auto meshGroup = std::make_unique<MeshGroup>(0, 1);
+    meshGroup->addMesh(std::move(mesh));
+}
 
 void Model::fillRoot(std::shared_ptr<Spatial> root, const std::vector<std::shared_ptr<Spatial>> nodes) {
     for (const auto& node : nodes) {

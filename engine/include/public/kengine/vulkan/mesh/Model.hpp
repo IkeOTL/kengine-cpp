@@ -48,8 +48,8 @@ private:
     static void fillRoot(std::shared_ptr<Spatial> root, const std::vector<std::shared_ptr<Spatial>> nodes);
 
 public:
-    //Model(std::unique_ptr<Mesh>&& mesh);
-    //Model(std::vector<std::shared_ptr<ModelNode>>&& nodes);
+    Model(std::unique_ptr<Mesh>&& mesh);
+
     Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
         std::vector<int16_t>&& parentIndices,
         std::vector<std::unique_ptr<MeshGroup>>&& meshGroups,

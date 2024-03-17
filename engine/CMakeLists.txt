@@ -10,6 +10,7 @@ add_library(engine STATIC)
 #endif()
 
 set(HEADERS
+    include/public/kengine/util/Random.hpp
     include/public/kengine/util/MapUtils.hpp
     include/public/kengine/util/VecUtils.hpp
 
@@ -157,7 +158,6 @@ set(SOURCES
     src/vulkan/mesh/AsyncModelCache.cpp
     src/vulkan/mesh/ModelConfig.cpp
     src/vulkan/mesh/Mesh.cpp
-    src/vulkan/mesh/MeshBuilder.cpp
     src/vulkan/mesh/Model.cpp
     src/vulkan/mesh/GltfModelFactory.cpp
 

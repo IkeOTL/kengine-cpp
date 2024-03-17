@@ -16,6 +16,7 @@ private:
     const uint32_t tileWidth, tileHeight;
     const uint32_t spacing = 0, margin = 0;
 
+public:
     TileSheet(uint32_t textureWidth, uint32_t textureHeight, uint32_t tileWidth, uint32_t tileHeight)
         : textureWidth(textureWidth), textureHeight(textureHeight), tileWidth(tileWidth), tileHeight(tileHeight) {}
 
