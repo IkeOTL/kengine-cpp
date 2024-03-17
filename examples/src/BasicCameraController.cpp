@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 
 void BasicCameraController::update(float delta) {
@@ -16,10 +17,16 @@ void FreeCameraController::init() {
     inputManager.registerMouseEventListener(this);
     addDragHandler([this](GLFWwindow* window, int x, int y, int deltaX, int deltaY)
         {
-            glm::quat rot = getCamera()->getRotation();
-            rot = glm::rotate(rot, glm::radians(0.1f * deltaX), glm::vec3(0, 1, 0));
-            rot = glm::rotate(rot, glm::radians(0.1f * deltaY), glm::vec3(1, 0, 0));
-            getCamera()->setRotation(rot);
+            auto orientation = getCamera()->getRotation();
+
+            //auto rightAxis = orientation * glm::vec3(1.0f, 0.0f, 0.0f);
+            auto pitchRotation = glm::angleAxis(glm::radians(0.1f * deltaY), glm::vec3(1.0f, 0.0f, 0.0f));
+            orientation = pitchRotation * orientation;
+
+            auto yawRotation = glm::angleAxis(glm::radians(0.1f * deltaX), glm::vec3(0.0f, 1.0f, 0.0f));
+            orientation = yawRotation * orientation;
+
+            getCamera()->setRotation(orientation);
 
             return false;
         });
@@ -53,7 +60,7 @@ void FreeCameraController::update(float delta) {
     if (vecutils::isFinite(camMov)) {
         camMov *= 3.0f * delta;
         camera->addPosition(camMov);
-    }
+    }    
 }
 void FreeCameraController::setPosition(float x, float y, float z) {
     camera->setPosition(glm::vec3(x, y, z));

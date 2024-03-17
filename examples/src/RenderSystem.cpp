@@ -53,10 +53,9 @@ void RenderSystem::processSystem(float delta) {
 }
 
 void RenderSystem::drawEntities(RenderFrameContext& ctx) {
-    auto view = getEcs().view<Component::Renderable, Component::ModelComponent, Component::Material>();
+    auto view = getEcs().view<Component::Renderable, Component::Spatials, Component::ModelComponent, Component::Material>();
 
     for (auto& e : view) {
-        auto& renderableComponent = view.get<Component::Renderable>(e);
         auto& modelComponent = view.get<Component::ModelComponent>(e);
         auto modelTask = modelCache->getAsync(modelComponent.config);
 
@@ -70,8 +69,18 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx) {
         if (!materialTask.isDone())
             continue;
 
+        auto& renderableComponent = view.get<Component::Renderable>(e);
+        auto& spatialsComponent = view.get<Component::Spatials>(e);
+
         auto model = modelTask.get();
         auto material = materialTask.get();
-       // renderCtx->draw(model->getAMesh(), *material, glm::mat4(1), glm::vec4(0, 0, 0, 1));
+
+        auto curIdx = 0;
+        for (const auto& mg : model->getMeshGroups()) {
+            for (const auto& m : mg->getMeshes()) {
+                auto node = sceneGraph->get(spatialsComponent.meshSpatialsIds[curIdx++]);
+                renderCtx->draw(*m, *material, node->getWorldTransform().getTransMatrix(), glm::vec4(0, 0, 0, 1));
+            }
+        }
     }
 }
