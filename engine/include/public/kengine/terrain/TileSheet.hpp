@@ -5,8 +5,8 @@
 class TileSheet {
 public:
     enum TileCorner {
-        TOP_RIGHT,
         TOP_LEFT,
+        TOP_RIGHT,
         BOTTOM_LEFT,
         BOTTOM_RIGHT
     };
@@ -19,6 +19,13 @@ private:
     TileSheet(uint32_t textureWidth, uint32_t textureHeight, uint32_t tileWidth, uint32_t tileHeight)
         : textureWidth(textureWidth), textureHeight(textureHeight), tileWidth(tileWidth), tileHeight(tileHeight) {}
 
+    /*
+       UV coords
+        0    3
+        |    |
+        |    |
+        1----2
+     */
     glm::vec2 getUv(int tileId, TileCorner corner) {
         auto tileX = tileId % (textureWidth / tileWidth);
         auto tileY = tileId / (textureWidth / tileWidth);
