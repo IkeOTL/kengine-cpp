@@ -21,6 +21,10 @@ set(HEADERS
     include/public/kengine/ecs/EcsSystem.hpp
     include/public/kengine/ecs/World.hpp
 
+    include/public/kengine/terrain/TileTerrain.hpp
+    include/public/kengine/terrain/TileTerrainChunk.hpp
+    include/public/kengine/terrain/TileSheet.hpp
+
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
 
@@ -116,6 +120,9 @@ set(SOURCES
     src/input/InputManager.cpp
     src/input/EventListener.cpp
     src/input/InputEventAdapter.cpp
+
+    src/terrain/DualGridTileTerrain.cpp
+    src/terrain/TileTerrainChunk.cpp
 
     src/ecs/World.cpp
 
