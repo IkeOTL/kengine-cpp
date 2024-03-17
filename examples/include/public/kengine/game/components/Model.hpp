@@ -3,7 +3,7 @@
 #include <memory>
 
 namespace Component {
-    struct Model {
+    struct ModelComponent {
         std::shared_ptr<ModelConfig> config;
     };
 }

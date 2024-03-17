@@ -1,9 +1,9 @@
 #pragma once
+#include <kengine/SceneGraph.hpp>
 #include <string>
 #include <memory>
 #include <vector>
 
-class SceneGraph;
 class Model;
 
 namespace Component {
@@ -27,12 +27,12 @@ namespace Component {
         }
     };
 
-    struct Spatial {
+    struct Spatials {
     public:
         uint32_t rootSpatialId;
         std::vector<uint32_t> meshSpatialsIds;
 
-        std::shared_ptr<Spatial> generate(SceneGraph sceneGraph, Model model, std::string name);
+        std::shared_ptr<Spatial> generate(SceneGraph& sceneGraph, Model& model, std::string name);
     private:
 
     };

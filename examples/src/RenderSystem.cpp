@@ -34,8 +34,12 @@ void RenderSystem::init() {
 
         auto entity = ecs->create();
         auto& renderable = ecs->emplace<Component::Renderable>(entity);
-        ecs->emplace<Component::Model>(entity, modelConfig);
+        ecs->emplace<Component::ModelComponent>(entity, modelConfig);
         ecs->emplace<Component::Material>(entity, materialConfig);
+
+        auto& model = modelCache->get(modelConfig);
+        auto& spatials = ecs->emplace<Component::Spatials>(entity);
+        spatials.generate(*sceneGraph, model, "player");
     }
 }
 
@@ -49,11 +53,11 @@ void RenderSystem::processSystem(float delta) {
 }
 
 void RenderSystem::drawEntities(RenderFrameContext& ctx) {
-    auto view = getEcs().view<Component::Renderable, Component::Model, Component::Material>();
+    auto view = getEcs().view<Component::Renderable, Component::ModelComponent, Component::Material>();
 
     for (auto& e : view) {
         auto& renderableComponent = view.get<Component::Renderable>(e);
-        auto& modelComponent = view.get<Component::Model>(e);
+        auto& modelComponent = view.get<Component::ModelComponent>(e);
         auto modelTask = modelCache->getAsync(modelComponent.config);
 
         auto& materialComponent = view.get<Component::Material>(e);

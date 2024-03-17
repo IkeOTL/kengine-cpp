@@ -125,7 +125,12 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
     for (auto meshGroupIdx : meshGroupIndices)
         loadMeshGroup(model, meshGroupIdx, meshGroups, config.getAttributes());
 
-    return std::make_unique<Model>(std::move(spatialNodes), std::move(parentIndices), std::move(meshGroups), std::move(bonesNodeIndices));
+    std::vector<std::unique_ptr<MeshGroup>> listMeshGroups;
+    listMeshGroups.reserve(meshGroups.size());
+    for (auto& mge : meshGroups)
+        listMeshGroups.push_back(std::move(mge.second));
+
+    return std::make_unique<Model>(std::move(spatialNodes), std::move(parentIndices), std::move(listMeshGroups), std::move(bonesNodeIndices));
 }
 
 void GltfModelFactory::processNode(const tinygltf::Model& model, int nodeIndex, std::unordered_set<int>& meshGroupIndices,

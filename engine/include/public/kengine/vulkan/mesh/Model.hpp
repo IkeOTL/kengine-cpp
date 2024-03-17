@@ -26,6 +26,14 @@ public:
     const Mesh& getMesh(uint32_t i) const {
         return *meshes[i];
     }
+
+    uint32_t getMeshCount() const {
+        return meshes.size();
+    }
+
+    const std::vector<std::unique_ptr<Mesh>>& getMeshes() const {
+        return meshes;
+    }
 };
 
 class Model {
@@ -33,7 +41,7 @@ private:
     std::shared_ptr<Spatial> rootNode = nullptr;
     std::vector<std::shared_ptr<Spatial>> nodes;
     std::vector<int16_t> parentIndices;
-    std::unordered_map<int, std::unique_ptr<MeshGroup>> meshGroups;
+    std::vector<std::unique_ptr<MeshGroup>> meshGroups;
     std::vector<uint32_t> bones;
     Bounds bounds{};
 
@@ -44,9 +52,21 @@ public:
     //Model(std::vector<std::shared_ptr<ModelNode>>&& nodes);
     Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
         std::vector<int16_t>&& parentIndices,
-        std::unordered_map<int, std::unique_ptr<MeshGroup>>&& meshGroups,
+        std::vector<std::unique_ptr<MeshGroup>>&& meshGroups,
         std::vector<uint32_t>&& bones
     );
+
+    const std::vector<std::shared_ptr<Spatial>>& getNodes() const {
+        return nodes;
+    }
+
+    const std::vector<int16_t>& getParentIndices() const {
+        return parentIndices;
+    }
+
+    const std::vector<std::unique_ptr<MeshGroup>>& getMeshGroups() const {
+        return meshGroups;
+    }
 };
 
 

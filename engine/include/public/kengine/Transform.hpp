@@ -41,9 +41,9 @@ public:
     void setRotation(const glm::quat& q);
     void setRotation(float x, float y, float z, float w);
     void slerpRotation(const glm::quat& target, float alpha);
-    glm::vec3 getPosition();
-    glm::vec3 getScale();
-    glm::quat getRotation();
+    const glm::vec3& getPosition();
+    const glm::vec3& getScale();
+    const glm::quat& getRotation();
     void addPosition(const glm::vec3& v);
     void addPosition(float x, float y, float z);
     void rotate(float angle, const glm::vec3& axis);

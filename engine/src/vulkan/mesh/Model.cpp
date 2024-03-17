@@ -25,7 +25,7 @@ void MeshGroup::addMesh(std::unique_ptr<Mesh>&& mesh) {
 
 Model::Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
     std::vector<int16_t>&& parentIndices,
-    std::unordered_map<int, std::unique_ptr<MeshGroup>>&& meshGroups,
+    std::vector<std::unique_ptr<MeshGroup>>&& meshGroups,
     std::vector<uint32_t>&& bones)
     : nodes(std::move(nodes)), parentIndices(std::move(parentIndices)), meshGroups(std::move(meshGroups)), bones(std::move(bones)) {
     rootNode = std::make_shared<ModelNode>("Main Node");

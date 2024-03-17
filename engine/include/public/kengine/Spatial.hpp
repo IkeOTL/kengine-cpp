@@ -10,10 +10,10 @@ class SceneGraph;
 class Spatial : public std::enable_shared_from_this<Spatial> {
 private:
     int32_t sceneId = -1;
-    std::function<void()> changeCb;
+    std::function<void()> changeCb = nullptr;
 
     std::shared_ptr<Spatial> parent = nullptr;
-    std::string name;
+    const std::string name;
 
     std::unordered_map<std::string, std::shared_ptr<Spatial>> children;
 
@@ -36,10 +36,14 @@ public:
     std::shared_ptr<Spatial> removeChild(const std::string& name);
     void removeFromParent();
     void setChangeCb(std::function<void()>&& cb);
-    const Transform& getLocalTransform() const;
+    const Transform& getLocalTransform();
+    void setLocalTransform(const glm::vec3& p, const glm::vec3& s, const glm::quat& r);
     void setLocalTransform(const Transform& t);
     Transform& getWorldTransform();
     void forceUpdateTransform();
+    const glm::vec3& getPosition();
+    const glm::vec3& getScale();
+    const glm::quat& getRotation();
     void setLocalPosition(const glm::vec3& p);
     void setLocalScale(const glm::vec3& s);
     void setLocalRotation(const glm::quat& q);

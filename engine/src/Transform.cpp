@@ -53,21 +53,21 @@ void Transform::slerpRotation(const glm::quat& target, float alpha) {
     dirty = true;
 }
 
-glm::vec3 Transform::getPosition() {
+const glm::vec3& Transform::getPosition() {
     if (dirty)
         updateTransform();
 
     return position;
 }
 
-glm::vec3 Transform::getScale() {
+const glm::vec3& Transform::getScale() {
     if (dirty)
         updateTransform();
 
     return scale;
 }
 
-glm::quat Transform::getRotation() {
+const glm::quat& Transform::getRotation() {
     if (dirty)
         updateTransform();
 

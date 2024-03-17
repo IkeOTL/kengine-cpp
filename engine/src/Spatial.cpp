@@ -70,12 +70,19 @@ void Spatial::setChangeCb(std::function<void()>&& cb) {
         changeCb();
 }
 
-const Transform& Spatial::getLocalTransform() const {
+const Transform& Spatial::getLocalTransform() {
     return localTransform;
 }
 
 void Spatial::setLocalTransform(const Transform& t) {
     localTransform = t;
+    forceUpdateTransform();
+}
+
+void Spatial::setLocalTransform(const glm::vec3& p, const glm::vec3& s, const glm::quat& r) {
+    localTransform.setPosition(p);
+    localTransform.setScale(s);
+    localTransform.setRotation(r);
     forceUpdateTransform();
 }
 
@@ -92,6 +99,19 @@ void Spatial::forceUpdateTransform() {
 
     for (auto& child : children)
         child.second->forceUpdateTransform();
+}
+
+
+const glm::vec3& Spatial::getPosition() {
+    return localTransform.getPosition();
+}
+
+const glm::vec3& Spatial::getScale() {
+    return localTransform.getScale();
+}
+
+const glm::quat& Spatial::getRotation() {
+    return localTransform.getRotation();
 }
 
 void Spatial::setLocalPosition(const glm::vec3& p) {
