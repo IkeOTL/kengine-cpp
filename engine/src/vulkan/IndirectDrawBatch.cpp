@@ -1,6 +1,7 @@
 #include <kengine/vulkan/IndirectDrawBatch.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
+#include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <kengine/vulkan/MaterialBindManager.hpp>
 #include <kengine/vulkan/mesh/Mesh.hpp>
@@ -10,7 +11,7 @@ void IndirectDrawBatch::predraw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, Mat
     bindManager.bind(*getMaterial(), descSetAllocator, vkCmd, frameIdx);
 }
 
-void IndirectDrawBatch::draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, VkBuffer indirectCmdBuf, DescriptorSetAllocator& descSetAllocator, int frameIdx, MaterialBindManager& bindManager) {
+void IndirectDrawBatch::draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, CachedGpuBuffer& indirectCmdBuf, DescriptorSetAllocator& descSetAllocator, int frameIdx, MaterialBindManager& bindManager) {
     predraw(vkCxt, vkCmd, bindManager, descSetAllocator, frameIdx);
 
     VkDeviceSize offsets = 0;
@@ -19,8 +20,8 @@ void IndirectDrawBatch::draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, VkBuff
 
     vkCmdDrawIndexedIndirect(
         vkCmd,
-        indirectCmdBuf,
-        frameIdx * RenderContext::MAX_INSTANCES * sizeof(VkDrawIndexedIndirectCommand) + cmdId * sizeof(VkDrawIndexedIndirectCommand),
+        indirectCmdBuf.getGpuBuffer().getVkBuffer(),
+        indirectCmdBuf.getFrameOffset(frameIdx) + cmdId * sizeof(VkDrawIndexedIndirectCommand),
         1,
         sizeof(VkDrawIndexedIndirectCommand));
 

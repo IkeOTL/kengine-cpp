@@ -5,7 +5,6 @@
 #include <memory>
 
 std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, Model& model, std::string name) {
-
     const auto& modelNodes = model.getNodes();
     const auto& parentIndices = model.getParentIndices();
     const auto& meshGroups = model.getMeshGroups();
@@ -21,6 +20,8 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
     }
 
     auto rootSpatial = sceneGraph.create(name);
+    rootSpatialId = rootSpatial->getSceneId();
+
     // apply parenting
     for (auto i = 0; i < parentIndices.size(); i++) {
         auto pIdx = parentIndices[i];
@@ -37,8 +38,9 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
     meshSpatialsIds.reserve(meshGroups.size());
     for (const auto& mg : meshGroups) {
         auto meshCount = mg->getMeshCount();
+        // track each mesh in group to the group's target node
         for (auto i = 0; i < meshCount; i++)
-            meshSpatialsIds.push_back(mg->getNodeIndex());
+            meshSpatialsIds.push_back(nodes[mg->getNodeIndex()]->getSceneId());
     }
 
     return rootSpatial;

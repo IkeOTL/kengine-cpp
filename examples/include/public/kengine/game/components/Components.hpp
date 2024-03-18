@@ -29,7 +29,7 @@ namespace Component {
 
     struct Spatials {
     public:
-        uint32_t rootSpatialId;
+        uint32_t rootSpatialId = -1;
         std::vector<uint32_t> meshSpatialsIds;
 
         std::shared_ptr<Spatial> generate(SceneGraph& sceneGraph, Model& model, std::string name);

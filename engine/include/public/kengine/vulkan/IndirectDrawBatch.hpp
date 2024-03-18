@@ -6,6 +6,7 @@ class DescriptorSetAllocator;
 class MaterialBindManager;
 class Mesh;
 class Material;
+class CachedGpuBuffer;
 
 class IndirectDrawBatch {
 
@@ -21,7 +22,7 @@ public:
     void predraw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, MaterialBindManager& bindManager,
         DescriptorSetAllocator& descSetAllocator, int frameIdx);
 
-    void draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, VkBuffer indirectCmdBuf, DescriptorSetAllocator& descSetAllocator,
+    void draw(VulkanContext& vkCxt, VkCommandBuffer vkCmd, CachedGpuBuffer& indirectCmdBuf, DescriptorSetAllocator& descSetAllocator,
         int frameIdx, MaterialBindManager& bindManager);
 
     void reset() {

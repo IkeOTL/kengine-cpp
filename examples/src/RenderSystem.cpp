@@ -32,14 +32,19 @@ void RenderSystem::init() {
 
         auto materialConfig = std::make_shared<PbrMaterialConfig>();
 
-        auto entity = ecs->create();
-        auto& renderable = ecs->emplace<Component::Renderable>(entity);
-        ecs->emplace<Component::ModelComponent>(entity, modelConfig);
-        ecs->emplace<Component::Material>(entity, materialConfig);
+        for (size_t i = 0; i < 10; i++) {
+            auto entity = ecs->create();
+            auto& renderable = ecs->emplace<Component::Renderable>(entity);
+            ecs->emplace<Component::ModelComponent>(entity, modelConfig);
+            ecs->emplace<Component::Material>(entity, materialConfig);
 
-        auto& model = modelCache->get(modelConfig);
-        auto& spatials = ecs->emplace<Component::Spatials>(entity);
-        spatials.generate(*sceneGraph, model, "player");
+            auto& model = modelCache->get(modelConfig);
+            auto& spatials = ecs->emplace<Component::Spatials>(entity);
+            spatials.generate(*sceneGraph, model, "player" + std::to_string(i));
+
+            auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
+            rootSpatial->setLocalPosition(glm::vec3(3.0f * i, .1337f, 0));
+        }
     }
 }
 
@@ -79,7 +84,10 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx) {
         for (const auto& mg : model->getMeshGroups()) {
             for (const auto& m : mg->getMeshes()) {
                 auto node = sceneGraph->get(spatialsComponent.meshSpatialsIds[curIdx++]);
-                renderCtx->draw(*m, *material, node->getWorldTransform().getTransMatrix(), glm::vec4(0, 0, 0, 1));
+
+                // need to calc in Model still
+                auto tmpBounds = glm::vec4(0, 0, 0, 1);
+                renderCtx->draw(*m, *material, node->getWorldTransform().getTransMatrix(), tmpBounds);
             }
         }
     }

@@ -288,7 +288,7 @@ void RenderContext::addStaticInstance(const Mesh& mesh, const Material& material
 
 int RenderContext::draw(const Mesh& mesh, const Material& material, glm::mat4 transform, glm::vec4 boundingSphere) {
     auto frameIdx = frameCxt->frameIndex;
-    auto instanceIdx = staticInstances + dynamicInstances++;
+    uint32_t instanceIdx = staticInstances + dynamicInstances++;
 
     auto hasShadow = material.hasShadow();
     auto hasSkeleton = material.hasSkeleton();
@@ -550,13 +550,13 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
         {
             for (int i = 0; i < staticBatches; i++) {
                 auto& batch = staticBatchCache[i];
-                batch.draw(vkContext, vkCmd, indirectCmdBuf->getGpuBuffer().getVkBuffer(),
+                batch.draw(vkContext, vkCmd, *indirectCmdBuf,
                     descSetAllocator, frameIdx, bindManager);
             }
 
             for (int i = 0; i < dynamicBatches; i++) {
                 auto& batch = dynamicBatchCache[i];
-                batch.draw(vkContext, vkCmd, indirectCmdBuf->getGpuBuffer().getVkBuffer(),
+                batch.draw(vkContext, vkCmd, *indirectCmdBuf,
                     descSetAllocator, frameIdx, bindManager);
             }
         }
