@@ -11,8 +11,10 @@
 #include <kengine/game/components/Model.hpp>
 #include <kengine/game/components/Components.hpp>
 #include <kengine/vulkan/material/AsyncMaterialCache.hpp>
+#include <kengine/terrain/TileTerrain.hpp>
 #include <kengine/ecs/World.hpp>
 #include <thirdparty/entt.hpp>
+#include <kengine/util/Random.hpp>
 
 void RenderSystem::init() {
     vulkanCtx = getService<VulkanContext>();
@@ -44,6 +46,38 @@ void RenderSystem::init() {
 
             auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
             rootSpatial->setLocalPosition(glm::vec3(3.0f * i, .1337f, 0));
+        }
+    }
+
+    // test terrain
+    {
+        auto tilesWidth = 64;
+        auto tilesLength = 64;
+        // terrain
+
+        auto tileTerrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
+        
+        for (int z = 0; z < tileTerrain->getTerrainHeightsLength(); z++) {
+            for (int x = 0; x < tileTerrain->getTerrainHeightsWidth(); x++) {
+                tileTerrain->setHeight(x, z, random::randFloat(-.1f, .15f));
+            }
+        }
+
+        auto matConfig = std::make_shared<PbrMaterialConfig>();
+        TextureConfig textureConfig("poke-tileset.png");
+        matConfig->addAlbedoTexture(&textureConfig);
+        matConfig->setMetallicFactor(0.0f);
+        matConfig->setRoughnessFactor(0.5f);
+        tileTerrain->setMaterialConfig(matConfig);
+        tileTerrain->regenerate(*vulkanCtx, *modelCache);
+
+        // create entities 
+        for (int z = 0; z < tileTerrain->getChunkCountZ(); z++) {
+            for (int x = 0; x < tileTerrain->getChunkCountX(); x++) {
+                auto& chunk = tileTerrain->getChunk(x, z);
+
+
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 #include <kengine/terrain/TileTerrainChunk.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>
+#include <kengine/vulkan/texture/Texture2d.hpp>
 
 DualGridTileTerrain::DualGridTileTerrain(uint32_t terrainTilesWidth, uint32_t terrainTilesLength, uint32_t chunkWidth, uint32_t chunkLength)
     : terrainTilesWidth(terrainTilesWidth), terrainTilesLength(terrainTilesLength),

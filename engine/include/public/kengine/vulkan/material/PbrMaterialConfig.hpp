@@ -59,4 +59,6 @@ public:
     PbrMaterialConfig& addMetallicRoughnessTexture(TextureConfig* config);
     PbrMaterialConfig& addAmbientOcclusionTexture(TextureConfig* config);
     PbrMaterialConfig& addEmissiveTexture(TextureConfig* config);
+    PbrMaterialConfig& setMetallicFactor(float metallicFactor);
+    PbrMaterialConfig& setRoughnessFactor(float roughnessFactor);
 };

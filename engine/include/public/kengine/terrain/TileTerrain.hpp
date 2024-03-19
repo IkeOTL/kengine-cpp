@@ -114,7 +114,9 @@ public:
     }
 
     /// not supported for dual grid terrain
-    float getHeightFromWorld(int32_t x, int32_t z) override {}
+    float getHeightFromWorld(int32_t x, int32_t z) override {
+        throw std::runtime_error("Not supported for this terrain type");
+    }
 
     /// not supported for dual grid terrain
     void setHeightFromWorld(int32_t x, int32_t z, float h) override {}
@@ -132,7 +134,9 @@ public:
     }
 
     /// not supported for dual grid terrain
-    TileTerrainChunkTile& getTileFromWorld(int32_t x, int32_t z) override {}
+    TileTerrainChunkTile& getTileFromWorld(int32_t x, int32_t z) override {
+        throw std::runtime_error("Not supported for this terrain type");
+    }
 
     Texture2d* getTerrainHeightImage() override {
         return heightTexture.get();

@@ -120,3 +120,13 @@ PbrMaterialConfig& PbrMaterialConfig::addEmissiveTexture(TextureConfig* config) 
     emissiveFactor = glm::vec4(1.0f);
     return *this;
 }
+
+PbrMaterialConfig& PbrMaterialConfig::setMetallicFactor(float f) {
+    metallicFactor = f;
+    return *this;
+}
+
+PbrMaterialConfig& PbrMaterialConfig::setRoughnessFactor(float f) {
+    roughnessFactor = f;
+    return *this;
+}
