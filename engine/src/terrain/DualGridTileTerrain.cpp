@@ -66,5 +66,30 @@ TileTerrainChunkTile& DualGridTileTerrain::getTile(uint32_t x, uint32_t z) {
 }
 
 void DualGridTileTerrain::regenerate(VulkanContext& vkContext, AsyncModelCache& modelCache) {
+    for (int z = 0; z < chunkCountZ; z++) {
+        for (int x = 0; x < chunkCountX; x++) {
+            chunks[z * chunkCountX + x].regenerate(vkContext, modelCache);
+        }
+    }
 
+    // generate texture
+    {
+        auto hL = getTerrainHeightsWidth() * getTerrainHeightsLength();
+        auto& h = getHeights();
+        std::vector<float> hImageBbBuf;
+        hImageBbBuf.reserve(hL);
+        for (auto n = 0; n < hL; n++)
+            hImageBbBuf.push_back(h[n]);
+
+        heightTexture = std::make_unique<Texture2d>(
+            vkContext,
+            reinterpret_cast<const unsigned char*>(hImageBbBuf.data()),
+            getTerrainHeightsWidth(),
+            getTerrainHeightsLength(),
+            VK_FORMAT_R32_SFLOAT,
+            VK_IMAGE_TYPE_2D, VK_IMAGE_VIEW_TYPE_2D,
+            4, // 4 bytes per point, overkill
+            VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT, VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
+            false);
+    }
 }
