@@ -23,7 +23,7 @@ Aabb Aabb::fromMinMax(const glm::vec3& min, const glm::vec3& max) {
 // bounds
 Bounds::Bounds(const glm::vec3& pos, const glm::vec3& extents) :
     aabb(pos, extents),
-    sphereBounds(pos, extents.length()) {}
+    sphereBounds(pos, glm::length(extents)) {}
 
 Bounds::Bounds(const Aabb& aabb) :
     Bounds(aabb.pos, aabb.extents) {}

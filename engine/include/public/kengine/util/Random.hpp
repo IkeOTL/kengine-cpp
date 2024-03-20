@@ -17,7 +17,7 @@ namespace random {
         return dist(rng);
     }
 
-    inline static int32_t randFloat(float from, float to) {
+    inline static float randFloat(float from, float to) {
         std::uniform_real_distribution<float> dist(from, to);
         return dist(rng);
     }

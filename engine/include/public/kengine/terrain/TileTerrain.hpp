@@ -53,7 +53,7 @@ private:
     int chunkCountX, chunkCountZ;
     float worldOffsetX, worldOffsetZ;
 
-    std::vector<TileTerrainChunk> chunks;
+    std::vector<std::unique_ptr<TileTerrainChunk>> chunks;
 
     std::shared_ptr<MaterialConfig> materialConfig;
     std::unique_ptr<Texture2d> heightTexture;
@@ -130,7 +130,7 @@ public:
     }
 
     TileTerrainChunk& getChunk(uint32_t x, uint32_t z) override {
-        return chunks[z * chunkCountX + x];
+        return *chunks[z * chunkCountX + x];
     }
 
     /// not supported for dual grid terrain

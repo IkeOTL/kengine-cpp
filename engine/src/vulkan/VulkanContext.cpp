@@ -610,7 +610,7 @@ void VulkanContext::uploadBuffer(GpuUploadable& obj, const VkPipelineStageFlags2
 }
 
 void VulkanContext::recordAndSubmitTransferCmdBuf(CommandBufferRecordFunc func, bool awaitFence) {
-    recordAndSubmitCmdBuf(commandPool->createTransferCmdBuf(), *transferQueue, func, awaitFence);
+    recordAndSubmitCmdBuf(std::move(commandPool->createTransferCmdBuf()), *transferQueue, func, awaitFence);
 }
 
 void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence) {

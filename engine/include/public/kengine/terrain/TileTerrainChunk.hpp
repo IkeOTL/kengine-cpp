@@ -14,7 +14,7 @@ class TileTerrainChunk;
 
 struct TileTerrainChunkTile {
     TileTerrainChunk& parent;
-    uint16_t textureTileId;
+    uint16_t textureTileId = 0;
 
     TileTerrainChunkTile(TileTerrainChunk& parent) : parent(parent) {}
 };

@@ -17,15 +17,27 @@ void FreeCameraController::init() {
     inputManager.registerMouseEventListener(this);
     addDragHandler([this](GLFWwindow* window, int x, int y, int deltaX, int deltaY)
         {
+            /* auto orientation = getCamera()->getRotation();
+
+             auto rightAxis = orientation * glm::vec3(1.0f, 0.0f, 0.0f);
+             auto pitchRotation = glm::angleAxis(glm::radians(0.1f * deltaY), rightAxis);
+             orientation = pitchRotation * orientation;
+
+             auto yawRotation = glm::angleAxis(glm::radians(0.1f * deltaX), glm::vec3(0.0f, 1.0f, 0.0f));
+             orientation = yawRotation * orientation;
+
+             getCamera()->setRotation(orientation);*/
+
             auto orientation = getCamera()->getRotation();
+            auto right = glm::axis(orientation);
+            //glm::vec3 right = glm::rotate(orientation, glm::vec3(1.0f, 0.0f, 0.0f));
 
-            //auto rightAxis = orientation * glm::vec3(1.0f, 0.0f, 0.0f);
-            auto pitchRotation = glm::angleAxis(glm::radians(0.1f * deltaY), glm::vec3(1.0f, 0.0f, 0.0f));
-            orientation = pitchRotation * orientation;
+            // Calculate rotation quaternions
+            auto pitch = glm::angleAxis(glm::radians(0.1f * static_cast<float>(deltaY)), right);
+            auto yaw = glm::angleAxis(glm::radians(0.1f * static_cast<float>(deltaX)), glm::vec3(0.0f, 1.0f, 0.0f));
 
-            auto yawRotation = glm::angleAxis(glm::radians(0.1f * deltaX), glm::vec3(0.0f, 1.0f, 0.0f));
-            orientation = yawRotation * orientation;
-
+            // Combine the new rotations with the current orientation
+            orientation = glm::normalize(yaw * orientation * pitch);
             getCamera()->setRotation(orientation);
 
             return false;
@@ -60,7 +72,7 @@ void FreeCameraController::update(float delta) {
     if (vecutils::isFinite(camMov)) {
         camMov *= 3.0f * delta;
         camera->addPosition(camMov);
-    }    
+    }
 }
 void FreeCameraController::setPosition(float x, float y, float z) {
     camera->setPosition(glm::vec3(x, y, z));

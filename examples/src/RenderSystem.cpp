@@ -34,7 +34,7 @@ void RenderSystem::init() {
 
         auto materialConfig = std::make_shared<PbrMaterialConfig>();
 
-        for (size_t i = 0; i < 10; i++) {
+        for (size_t i = 0; i < 1; i++) {
             auto entity = ecs->create();
             auto& renderable = ecs->emplace<Component::Renderable>(entity);
             ecs->emplace<Component::ModelComponent>(entity, modelConfig);
@@ -51,32 +51,53 @@ void RenderSystem::init() {
 
     // test terrain
     {
+        auto* ecs = getWorld().getService<entt::registry>();
         auto tilesWidth = 64;
         auto tilesLength = 64;
         // terrain
 
         auto tileTerrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
-        
+
         for (int z = 0; z < tileTerrain->getTerrainHeightsLength(); z++) {
             for (int x = 0; x < tileTerrain->getTerrainHeightsWidth(); x++) {
                 tileTerrain->setHeight(x, z, random::randFloat(-.1f, .15f));
             }
         }
+        tileTerrain->regenerate(*vulkanCtx, *modelCache);
 
         auto matConfig = std::make_shared<PbrMaterialConfig>();
-        TextureConfig textureConfig("poke-tileset.png");
+        TextureConfig textureConfig("res/img/poke-tileset.png");
         matConfig->addAlbedoTexture(&textureConfig);
         matConfig->setMetallicFactor(0.0f);
         matConfig->setRoughnessFactor(0.5f);
         tileTerrain->setMaterialConfig(matConfig);
-        tileTerrain->regenerate(*vulkanCtx, *modelCache);
 
         // create entities 
         for (int z = 0; z < tileTerrain->getChunkCountZ(); z++) {
             for (int x = 0; x < tileTerrain->getChunkCountX(); x++) {
                 auto& chunk = tileTerrain->getChunk(x, z);
+                /*glm::vec4 sphereBounds(
+                    -tileTerrain->getTerrainHeightsWidth() * .5f + x * tileTerrain->getChunkWidth() + tileTerrain->getChunkWidth() * .5f,
+                    0,
+                    -tileTerrain->getTerrainHeightsLength() * .5f + z * tileTerrain->getChunkLength() + tileTerrain->getChunkLength() * .5f,
+                    (float)std::sqrt(2 * std::pow(std::max(tileTerrain->getChunkWidth(), tileTerrain->getChunkLength()), 2))
+                );*/
 
+                auto entity = ecs->create();
+                auto& renderable = ecs->emplace<Component::Renderable>(entity);
+                renderable.setStatic();
 
+                auto spatial = sceneGraph->create("terrain: x: " + std::to_string(x) + " z:" + std::to_string(z));
+                auto& spatialsComp = ecs->emplace<Component::Spatials>(entity);
+                spatialsComp.rootSpatialId = spatial->getSceneId();
+                spatialsComp.meshSpatialsIds.push_back(spatialsComp.rootSpatialId);
+
+                auto offset = chunk.getWorldOffset();
+                spatial->setLocalPosition(glm::vec3(offset.x, 0, offset.y));
+
+                auto& material = ecs->emplace<Component::Material>(entity, matConfig);
+                auto& model = ecs->emplace<Component::ModelComponent>(entity);
+                model.config = chunk.getModelConfig();
             }
         }
     }
@@ -120,8 +141,8 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx) {
                 auto node = sceneGraph->get(spatialsComponent.meshSpatialsIds[curIdx++]);
 
                 // need to calc in Model still
-                auto tmpBounds = glm::vec4(0, 0, 0, 1);
-                renderCtx->draw(*m, *material, node->getWorldTransform().getTransMatrix(), tmpBounds);
+                auto& bounds = m->getBounds();
+                renderCtx->draw(*m, *material, node->getWorldTransform().getTransMatrix(), bounds.getSphereBounds());
             }
         }
     }

@@ -39,6 +39,7 @@ Model::Model(std::unique_ptr<Mesh>&& mesh){
     nodes.push_back(rootNode);
     auto meshGroup = std::make_unique<MeshGroup>(0, 1);
     meshGroup->addMesh(std::move(mesh));
+    meshGroups.push_back(std::move(meshGroup));
 }
 
 void Model::fillRoot(std::shared_ptr<Spatial> root, const std::vector<std::shared_ptr<Spatial>> nodes) {

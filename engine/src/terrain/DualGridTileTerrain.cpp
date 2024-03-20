@@ -8,7 +8,7 @@ DualGridTileTerrain::DualGridTileTerrain(uint32_t terrainTilesWidth, uint32_t te
     : terrainTilesWidth(terrainTilesWidth), terrainTilesLength(terrainTilesLength),
     chunkWidth(chunkWidth), chunkLength(chunkLength),
     terrainHeightsWidth(terrainTilesWidth + 2), terrainHeightsLength(terrainTilesLength + 2),
-    worldOffsetX(-terrainTilesWidth / 2 - .5f), worldOffsetZ(-terrainTilesLength / 2 - .5f), // dual grid terrain: https://www.youtube.com/watch?v=Uxeo9c-PX-w&t=308s
+    worldOffsetX(-static_cast<float>(terrainTilesWidth) / 2.0f - .5f), worldOffsetZ(-static_cast<float>(terrainTilesLength) / 2.0f - .5f), // dual grid terrain: https://www.youtube.com/watch?v=Uxeo9c-PX-w&t=308s
     chunkCountX(terrainTilesWidth / chunkWidth), chunkCountZ(terrainTilesLength / chunkLength)
 {
     if (terrainTilesWidth % 2 != 0 || terrainTilesLength % 2 != 0
@@ -22,8 +22,8 @@ DualGridTileTerrain::DualGridTileTerrain(uint32_t terrainTilesWidth, uint32_t te
     chunks.reserve(chunkCountX * chunkCountZ);
     for (int z = 0; z < chunkCountZ; z++) {
         for (int x = 0; x < chunkCountX; x++) {
-            chunks.push_back(TileTerrainChunk(*this, x, z));
-            chunks[z * chunkCountX + x].setTileSheet(tileSheet);
+            chunks.push_back(std::make_unique<TileTerrainChunk>(*this, x, z));
+            chunks[z * chunkCountX + x]->setTileSheet(tileSheet);
         }
     }
 }
@@ -69,28 +69,28 @@ TileTerrainChunkTile& DualGridTileTerrain::getTile(uint32_t x, uint32_t z) {
 void DualGridTileTerrain::regenerate(VulkanContext& vkContext, AsyncModelCache& modelCache) {
     for (int z = 0; z < chunkCountZ; z++) {
         for (int x = 0; x < chunkCountX; x++) {
-            chunks[z * chunkCountX + x].regenerate(vkContext, modelCache);
+            getChunk(x, z).regenerate(vkContext, modelCache);
         }
     }
 
     // generate texture
-    {
-        auto hL = getTerrainHeightsWidth() * getTerrainHeightsLength();
-        auto& h = getHeights();
-        std::vector<float> hImageBbBuf;
-        hImageBbBuf.reserve(hL);
-        for (auto n = 0; n < hL; n++)
-            hImageBbBuf.push_back(h[n]);
+    //{
+    //    auto hL = getTerrainHeightsWidth() * getTerrainHeightsLength();
+    //    auto& h = getHeights();
+    //    std::vector<float> hImageBbBuf;
+    //    hImageBbBuf.reserve(hL);
+    //    for (auto n = 0; n < hL; n++)
+    //        hImageBbBuf.push_back(h[n]);
 
-        heightTexture = std::make_unique<Texture2d>(
-            vkContext,
-            reinterpret_cast<const unsigned char*>(hImageBbBuf.data()),
-            getTerrainHeightsWidth(),
-            getTerrainHeightsLength(),
-            VK_FORMAT_R32_SFLOAT,
-            VK_IMAGE_TYPE_2D, VK_IMAGE_VIEW_TYPE_2D,
-            4, // 4 bytes per point, overkill
-            VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT, VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
-            false);
-    }
+    //    heightTexture = std::make_unique<Texture2d>(
+    //        vkContext,
+    //        reinterpret_cast<const unsigned char*>(hImageBbBuf.data()),
+    //        getTerrainHeightsWidth(),
+    //        getTerrainHeightsLength(),
+    //        VK_FORMAT_R32_SFLOAT,
+    //        VK_IMAGE_TYPE_2D, VK_IMAGE_VIEW_TYPE_2D,
+    //        4, // 4 bytes per point, overkill
+    //        VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT, VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
+    //        false);
+    //}
 }

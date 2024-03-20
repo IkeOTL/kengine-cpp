@@ -82,6 +82,8 @@ void ImageQueueOwnerTransfer::applyReleaseBarrier(VkCommandBuffer cmd) {
     depsInfo.imageMemoryBarrierCount = 1;
     depsInfo.pImageMemoryBarriers = &barrier;
 
+
+
     vkCmdPipelineBarrier2(cmd, &depsInfo);
 }
 //https://discord.com/channels/427551838099996672/427833316536746005/1217868728130207784
