@@ -1,6 +1,7 @@
 #include <kengine/game/MainGameState.hpp>
 #include <kengine/game/Game.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
+#include <kengine/game/RenderablePreviousTransformSystem.hpp>
 #include <kengine/ExecutorService.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/Window.hpp>
@@ -31,14 +32,15 @@ void MainGameState::update(Game& parent) {
     accumulator += delta;
 
     while (accumulator >= GAME_UPDATE_TICK_INTERVAL) {
+        sceneTime.setDelta(GAME_UPDATE_TICK_INTERVAL);
+
         // these only need to be updated as the last updates
         // typically used for alpha lerping
         if (accumulator - GAME_UPDATE_TICK_INTERVAL < GAME_UPDATE_TICK_INTERVAL) {
-            //world.getSystem(RenderablePreviousTransformSystem.class).processSystem();
+            world.getSystem<RenderablePreviousTransformSystem>()->processSystem(GAME_UPDATE_TICK_INTERVAL);
             //world.getSystem(SkeletonPreviousTransformSystem.class).processSystem();
         }
 
-        sceneTime.setDelta(GAME_UPDATE_TICK_INTERVAL);
         world.process(GAME_UPDATE_TICK_INTERVAL);
         accumulator -= GAME_UPDATE_TICK_INTERVAL;
         sceneTime.addSceneTime(GAME_UPDATE_TICK_INTERVAL);

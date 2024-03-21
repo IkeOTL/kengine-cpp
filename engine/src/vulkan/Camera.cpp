@@ -15,7 +15,7 @@ void Camera::getViewMatrix(glm::mat4& dest) {
 
 void Camera::savePreviousTransform() {
     prevPosition = position;
-    prevRotation = prevRotation;
+    prevRotation = rotation;
 }
 
 void Camera::getIntegratedViewMatrix(float alpha, glm::mat4& dest) {

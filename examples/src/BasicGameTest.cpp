@@ -9,6 +9,7 @@
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/DrawCullingPipeline.hpp>
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
+#include <kengine/game/RenderablePreviousTransformSystem.hpp>
 #include <kengine/game/RenderSystem.hpp>
 #include <kengine/game/CameraSystem.hpp>
 
@@ -105,6 +106,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .addService<AsyncMaterialCache>(materialCache.get())
 
         // systems. order matters.
+        .setSystem<RenderablePreviousTransformSystem>()
         .setSystem<RenderSystem>()
         .setSystem<CameraSystem>()
     );

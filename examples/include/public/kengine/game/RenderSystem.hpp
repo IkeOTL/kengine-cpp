@@ -8,6 +8,11 @@
 
 #include <memory>
 
+namespace Component {
+    class Renderable;
+    class Spatials;
+}
+
 class World;
 class VulkanContext;
 class RenderContext;
@@ -39,5 +44,6 @@ public:
     void init() override;
     void processSystem(float delta) override;
     void drawEntities(RenderFrameContext& ctx, float delta);
-    void integrate(bool shouldIntegrate, Transform& prevTransform, Transform& curTranform, float delta, glm::mat4& dest);
+    void integrate(Component::Renderable& renderable, Component::Spatials& spatials,
+        Transform& curTranform, uint32_t meshIdx, float delta, glm::mat4& dest);
 };

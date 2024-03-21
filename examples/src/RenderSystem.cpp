@@ -44,8 +44,7 @@ void RenderSystem::init() {
 
             auto& model = modelCache->get(modelConfig);
             auto& spatials = ecs->emplace<Component::Spatials>(entity);
-            spatials.generate(*sceneGraph, model, "player" + std::to_string(i));
-            spatials.previousTransforms.resize(spatials.meshSpatialsIds.size());
+            spatials.generate(*sceneGraph, model, "player" + std::to_string(i), Component::Renderable::DYNAMIC_MODEL);
 
             auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
             rootSpatial->setLocalPosition(glm::vec3(3.0f * i, .1337f, 0));
@@ -88,7 +87,6 @@ void RenderSystem::init() {
                 auto& spatialsComp = ecs->emplace<Component::Spatials>(entity);
                 spatialsComp.rootSpatialId = spatial->getSceneId();
                 spatialsComp.meshSpatialsIds.push_back(spatialsComp.rootSpatialId);
-                spatialsComp.previousTransforms.resize(spatialsComp.meshSpatialsIds.size());
 
                 auto offset = chunk.getWorldOffset();
                 spatial->setLocalPosition(glm::vec3(offset.x, 0, offset.y));
@@ -129,11 +127,14 @@ void RenderSystem::processSystem(float delta) {
 }
 
 
-void RenderSystem::integrate(bool shouldIntegrate, Transform& prevTransform, Transform& curTranform, float delta, glm::mat4& dest) {
-    if (!shouldIntegrate) {
+void RenderSystem::integrate(Component::Renderable& renderable, Component::Spatials& spatials,
+    Transform& curTranform, uint32_t meshIdx, float delta, glm::mat4& dest) {
+    if (!renderable.integrateRendering) {
         dest = curTranform.getTransMatrix();
         return;
     }
+
+    auto& prevTransform = spatials.previousTransforms[meshIdx];
 
     auto position = glm::mix(prevTransform.getPosition(), curTranform.getPosition(), delta);
     auto rotation = glm::lerp(prevTransform.getRotation(), curTranform.getRotation(), delta);
@@ -177,10 +178,8 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
         for (const auto& mg : model->getMeshGroups()) {
             for (const auto& m : mg->getMeshes()) {
                 auto node = sceneGraph->get(spatialsComponent.meshSpatialsIds[curIdx]);
-                auto& prevTransform = spatialsComponent.previousTransforms[curIdx];
                 auto& curTranform = node->getWorldTransform();
-
-                integrate(renderableComponent.integrateRendering, prevTransform, curTranform, delta, blendMat);
+                integrate(renderableComponent, spatialsComponent, curTranform, curIdx, delta, blendMat);
 
                 // need to calc in Model still
                 auto& bounds = m->getBounds();

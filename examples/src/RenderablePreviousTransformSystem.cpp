@@ -18,9 +18,11 @@ void RenderablePreviousTransformSystem::init() {
 void RenderablePreviousTransformSystem::processSystem(float delta) {
     auto view = getEcs().view<Component::Renderable, Component::Spatials>();
 
-    std::vector<std::future<void>> tasks;
-    tasks.reserve(view.size_hint());
+    cameraController->getCamera()->savePreviousTransform();
 
+    std::vector<std::future<void>> tasks;
+
+    // parallelize
     for (auto& e : view) {
         auto& renderableComponent = view.get<Component::Renderable>(e);
 
@@ -29,22 +31,14 @@ void RenderablePreviousTransformSystem::processSystem(float delta) {
 
         auto& spatialsComponent = view.get<Component::Spatials>(e);
 
-        // root spatial
+        auto cnt = spatialsComponent.meshSpatialsIds.size();
+        for (auto i = 0; i < cnt; i++)
         {
-            auto spatial = sceneGraph->get(spatialsComponent.rootSpatialId);
-            auto& current = spatial.getWorldTransform();
+            auto spatial = sceneGraph->get(spatialsComponent.meshSpatialsIds[i]);
+            auto& current = spatial->getWorldTransform();
 
-            // we should only care about alpha lerping dynamic objects
-            if (renderableComp.type == RenderableComponent.RenderableType.DYNAMIC_MODEL) {
-                var previous = transformStore.get(spatialComp.rootSpatialId);
-                previous.set(current);
-            }
-
-            //                        var modelComp = mModel.get(eId);
-            //                        var model = modelCache.get(modelComp.modelConfig).join();
+            spatialsComponent.previousTransforms[i].set(current);
         }
     }
-
-
 }
 

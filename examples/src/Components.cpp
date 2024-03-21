@@ -4,7 +4,8 @@
 #include <kengine/vulkan/mesh/Model.hpp>
 #include <memory>
 
-std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, Model& model, std::string name) {
+std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, Model& model, std::string name,
+    Renderable::RenderableType renderType) {
     const auto& modelNodes = model.getNodes();
     const auto& parentIndices = model.getParentIndices();
     const auto& meshGroups = model.getMeshGroups();
@@ -42,6 +43,9 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
         for (auto i = 0; i < meshCount; i++)
             meshSpatialsIds.push_back(nodes[mg->getNodeIndex()]->getSceneId());
     }
+
+    if (renderType == Renderable::RenderableType::DYNAMIC_MODEL)
+        previousTransforms.resize(meshSpatialsIds.size());
 
     return rootSpatial;
 }
