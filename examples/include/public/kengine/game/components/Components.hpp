@@ -31,6 +31,7 @@ namespace Component {
     public:
         uint32_t rootSpatialId = -1;
         std::vector<uint32_t> meshSpatialsIds;
+        std::vector<Transform> previousTransforms;
 
         std::shared_ptr<Spatial> generate(SceneGraph& sceneGraph, Model& model, std::string name);
     private:

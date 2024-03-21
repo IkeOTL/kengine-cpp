@@ -3,6 +3,7 @@
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>
+#include <kengine/vulkan/CameraController.hpp>
 #include <kengine/SceneGraph.hpp>
 #include <kengine/vulkan/mesh/Model.hpp>
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
@@ -23,6 +24,7 @@ void RenderSystem::init() {
     materialCache = getService<AsyncMaterialCache>();
     sceneGraph = getService<SceneGraph>();
     sceneTime = getService<SceneTime>();
+    cameraController = getService<CameraController>();
 
     // test obj
     {
@@ -43,6 +45,7 @@ void RenderSystem::init() {
             auto& model = modelCache->get(modelConfig);
             auto& spatials = ecs->emplace<Component::Spatials>(entity);
             spatials.generate(*sceneGraph, model, "player" + std::to_string(i));
+            spatials.previousTransforms.resize(spatials.meshSpatialsIds.size());
 
             auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
             rootSpatial->setLocalPosition(glm::vec3(3.0f * i, .1337f, 0));
@@ -76,12 +79,6 @@ void RenderSystem::init() {
         for (int z = 0; z < tileTerrain->getChunkCountZ(); z++) {
             for (int x = 0; x < tileTerrain->getChunkCountX(); x++) {
                 auto& chunk = tileTerrain->getChunk(x, z);
-                /*glm::vec4 sphereBounds(
-                    -tileTerrain->getTerrainHeightsWidth() * .5f + x * tileTerrain->getChunkWidth() + tileTerrain->getChunkWidth() * .5f,
-                    0,
-                    -tileTerrain->getTerrainHeightsLength() * .5f + z * tileTerrain->getChunkLength() + tileTerrain->getChunkLength() * .5f,
-                    (float)std::sqrt(2 * std::pow(std::max(tileTerrain->getChunkWidth(), tileTerrain->getChunkLength()), 2))
-                );*/
 
                 auto entity = ecs->create();
                 auto& renderable = ecs->emplace<Component::Renderable>(entity);
@@ -91,6 +88,7 @@ void RenderSystem::init() {
                 auto& spatialsComp = ecs->emplace<Component::Spatials>(entity);
                 spatialsComp.rootSpatialId = spatial->getSceneId();
                 spatialsComp.meshSpatialsIds.push_back(spatialsComp.rootSpatialId);
+                spatialsComp.previousTransforms.resize(spatialsComp.meshSpatialsIds.size());
 
                 auto offset = chunk.getWorldOffset();
                 spatial->setLocalPosition(glm::vec3(offset.x, 0, offset.y));
@@ -98,6 +96,24 @@ void RenderSystem::init() {
                 auto& material = ecs->emplace<Component::Material>(entity, matConfig);
                 auto& model = ecs->emplace<Component::ModelComponent>(entity);
                 model.config = chunk.getModelConfig();
+
+                // need to profile if static batches are even worth it.
+                // since the drawcmd is always sent for them. the ebefit is that
+                // the mat and other details dont have to be uploaded again
+                //{
+                //    auto modelTask = modelCache->getAsync(model.config);
+                //    auto materialTask = materialCache->getAsync(material.config);
+
+                //    auto model = modelTask.get();
+                //    auto material = materialTask.get();
+                //    renderCtx->addStaticInstance(
+                //        model->getMeshGroups()[0]->getMesh(0),
+                //        *material,
+                //        spatial->getWorldTransform().getTransMatrix(),
+                //        glm::vec4(0, 0, 0, 2),
+                //        false
+                //    );
+                //}
             }
         }
     }
@@ -107,12 +123,29 @@ void RenderSystem::processSystem(float delta) {
     auto ctx = vulkanCtx->createNextFrameContext();
     renderCtx->begin(*ctx, sceneTime->getSceneTime(), delta);
     {
-        drawEntities(*ctx);
+        drawEntities(*ctx, delta);
     }
     renderCtx->end();
 }
 
-void RenderSystem::drawEntities(RenderFrameContext& ctx) {
+
+void RenderSystem::integrate(bool shouldIntegrate, Transform& prevTransform, Transform& curTranform, float delta, glm::mat4& dest) {
+    if (!shouldIntegrate) {
+        dest = curTranform.getTransMatrix();
+        return;
+    }
+
+    auto position = glm::mix(prevTransform.getPosition(), curTranform.getPosition(), delta);
+    auto rotation = glm::lerp(prevTransform.getRotation(), curTranform.getRotation(), delta);
+    auto scale = glm::mix(prevTransform.getScale(), curTranform.getScale(), delta);
+
+    rotation = glm::normalize(rotation);
+    dest = glm::translate(glm::mat4(1.0f), position) *
+        glm::toMat4(rotation) *
+        glm::scale(glm::mat4(1.0f), scale);
+}
+
+void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
     auto view = getEcs().view<Component::Renderable, Component::Spatials, Component::ModelComponent, Component::Material>();
 
     for (auto& e : view) {
@@ -130,19 +163,30 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx) {
             continue;
 
         auto& renderableComponent = view.get<Component::Renderable>(e);
+
+        //if (renderableComponent.type == Component::Renderable::STATIC_MODEL)
+        //    continue;
+
         auto& spatialsComponent = view.get<Component::Spatials>(e);
 
         auto model = modelTask.get();
         auto material = materialTask.get();
 
+        glm::mat4 blendMat{};
         auto curIdx = 0;
         for (const auto& mg : model->getMeshGroups()) {
             for (const auto& m : mg->getMeshes()) {
-                auto node = sceneGraph->get(spatialsComponent.meshSpatialsIds[curIdx++]);
+                auto node = sceneGraph->get(spatialsComponent.meshSpatialsIds[curIdx]);
+                auto& prevTransform = spatialsComponent.previousTransforms[curIdx];
+                auto& curTranform = node->getWorldTransform();
+
+                integrate(renderableComponent.integrateRendering, prevTransform, curTranform, delta, blendMat);
 
                 // need to calc in Model still
                 auto& bounds = m->getBounds();
-                renderCtx->draw(*m, *material, node->getWorldTransform().getTransMatrix(), bounds.getSphereBounds());
+                renderCtx->draw(*m, *material, blendMat, bounds.getSphereBounds());
+
+                curIdx++;
             }
         }
     }

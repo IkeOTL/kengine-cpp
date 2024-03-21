@@ -4,6 +4,8 @@
 
 #include <thirdparty/entt.hpp>
 
+#include <glm/mat4x4.hpp>
+
 #include <memory>
 
 class World;
@@ -12,8 +14,10 @@ class RenderContext;
 class RenderFrameContext;
 class AsyncModelCache;
 class AsyncMaterialCache;
+class CameraController;
 class SceneGraph;
 class SceneTime;
+class Transform;
 
 class RenderSystem : public EcsSystem {
 private:
@@ -23,6 +27,7 @@ private:
     AsyncMaterialCache* materialCache;
     SceneGraph* sceneGraph;
     SceneTime* sceneTime;
+    CameraController* cameraController;
 
 public:
     RenderSystem() = default;
@@ -33,5 +38,6 @@ public:
 
     void init() override;
     void processSystem(float delta) override;
-    void drawEntities(RenderFrameContext& ctx);
+    void drawEntities(RenderFrameContext& ctx, float delta);
+    void integrate(bool shouldIntegrate, Transform& prevTransform, Transform& curTranform, float delta, glm::mat4& dest);
 };

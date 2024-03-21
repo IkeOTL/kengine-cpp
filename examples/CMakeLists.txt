@@ -18,6 +18,7 @@ set(HEADERS
 # systems
     include/public/kengine/game/RenderSystem.hpp
     include/public/kengine/game/CameraSystem.hpp
+    include/public/kengine/game/RenderablePreviousTransformSystem.hpp
 
 # components
     include/public/kengine/game/components/Components.hpp
@@ -35,6 +36,7 @@ set(SOURCES
 # systems
     src/RenderSystem.cpp
     src/CameraSystem.cpp
+    src/RenderablePreviousTransformSystem.cpp
 
     src/Components.cpp
 
