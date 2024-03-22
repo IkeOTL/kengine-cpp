@@ -20,7 +20,7 @@ void Camera::savePreviousTransform() {
 
 void Camera::getIntegratedViewMatrix(float alpha, glm::mat4& dest) {
     auto t = glm::mix(prevPosition, position, alpha);
-    auto r = glm::slerp(prevRotation, rotation, alpha);
+    auto r = glm::normalize(glm::mix(prevRotation, rotation, alpha));
 
     dest = glm::toMat4(r);
     dest = glm::translate(dest, -t);

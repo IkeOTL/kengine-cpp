@@ -38,6 +38,7 @@ set(HEADERS
     include/public/kengine/Spatial.hpp
     include/public/kengine/SceneGraph.hpp
     include/public/kengine/Bounds.hpp
+    include/public/kengine/SpatialGrid.hpp
     
     include/public/kengine/vulkan/VulkanContext.hpp
     include/public/kengine/vulkan/RenderContext.hpp
@@ -114,6 +115,7 @@ set(SOURCES
     src/Spatial.cpp
     src/SceneGraph.cpp
     src/Bounds.cpp
+    src/SpatialGrid.cpp
     
     src/io/FlieSystemAssetIO.cpp
     src/io/MemoryMappedFile.cpp

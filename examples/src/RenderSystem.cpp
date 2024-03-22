@@ -36,7 +36,7 @@ void RenderSystem::init() {
 
         auto materialConfig = std::make_shared<PbrMaterialConfig>();
 
-        for (size_t i = 0; i < 1; i++) {
+        for (size_t i = 0; i < 5; i++) {
             auto entity = ecs->create();
             auto& renderable = ecs->emplace<Component::Renderable>(entity);
             ecs->emplace<Component::ModelComponent>(entity, modelConfig);
