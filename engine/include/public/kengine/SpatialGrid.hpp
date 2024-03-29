@@ -1,4 +1,5 @@
 #pragma once
+#include <kengine/FrustumIntersection.hpp>
 #include <thirdparty/entt.hpp>
 #include <glm/glm.hpp>
 
@@ -14,5 +15,5 @@ private:
 
 public:
     void getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoints,
-        FrustumIntersection frustumTester, std::vector<entt::entity> dest);
+        FrustumIntersection& frustumTester, std::vector<entt::entity> dest);
 };
