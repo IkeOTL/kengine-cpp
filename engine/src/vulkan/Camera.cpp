@@ -1,6 +1,5 @@
 #include <kengine/vulkan/Camera.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
 
 Camera::Camera(float fov, float aspectRatio, float zNear, float zFar)
     : fov(fov), aspectRatio(aspectRatio), zNear(zNear), zFar(zFar) {
@@ -9,7 +8,7 @@ Camera::Camera(float fov, float aspectRatio, float zNear, float zFar)
 }
 
 void Camera::getViewMatrix(glm::mat4& dest) {
-    dest = glm::toMat4(rotation);
+    dest = glm::mat4_cast(rotation);
     dest = glm::translate(dest, -position);
 }
 
@@ -22,7 +21,7 @@ void Camera::getIntegratedViewMatrix(float alpha, glm::mat4& dest) {
     auto t = glm::mix(prevPosition, position, alpha);
     auto r = glm::normalize(glm::mix(prevRotation, rotation, alpha));
 
-    dest = glm::toMat4(r);
+    dest = glm::mat4_cast(r);
     dest = glm::translate(dest, -t);
 }
 

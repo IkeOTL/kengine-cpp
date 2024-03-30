@@ -92,7 +92,7 @@ void Transform::rotate(float angle, const glm::vec3& axis) {
 void Transform::updateTransform() {
     rotation = glm::normalize(rotation);
     transMatrix = glm::translate(glm::mat4(1.0f), position) *
-        glm::toMat4(rotation) *
+        glm::mat4_cast(rotation) *
         glm::scale(glm::mat4(1.0f), scale);
     dirty = false;
 }

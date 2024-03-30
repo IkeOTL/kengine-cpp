@@ -13,6 +13,8 @@ private:
     std::vector<std::vector<entt::entity>> cells;
     std::unordered_set<entt::entity> dirtySet;
 
+    glm::vec3 intersectPoint(const glm::vec3& start, const glm::vec3& end);
+
 public:
     void getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoints,
         FrustumIntersection& frustumTester, std::vector<entt::entity> dest);

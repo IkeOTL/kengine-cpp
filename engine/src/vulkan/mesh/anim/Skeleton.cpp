@@ -78,19 +78,19 @@ void Skeleton::upload(VulkanContext& vkCxt, CachedGpuBuffer& vmaBuffer, int fram
 
             glm::vec3 cPos = glm::vec3(tempMat[3]);
             // NOTE: glm::quat_cast/toQuat doesnt include scale! if there are issues with animations investigate (orig: JOML mat4.getUnnormalizedRotation)
-            glm::quat cRot = glm::toQuat(tempMat);
+            glm::quat cRot = glm::quat_cast(tempMat);
             glm::vec3 cScl = glm::vec3(glm::length(tempMat[0]), glm::length(tempMat[1]), glm::length(tempMat[2]));
 
             glm::vec3 prevPos = glm::vec3(prevTransforms[i][3]);
             // NOTE: glm::quat_cast/toQuat doesnt include scale! if there are issues with animations investigate (orig: JOML mat4.getUnnormalizedRotation)
-            glm::quat prevRot = glm::toQuat(prevTransforms[i]);
+            glm::quat prevRot = glm::quat_cast(prevTransforms[i]);
             glm::vec3 prevScl = glm::vec3(glm::length(prevTransforms[i][0]), glm::length(prevTransforms[i][1]), glm::length(prevTransforms[i][2]));
 
             glm::vec3 mPos = glm::mix(prevPos, cPos, alpha);
             glm::quat mRot = glm::lerp(prevRot, cRot, alpha); // maybe slerp?
             glm::vec3 mScl = glm::mix(prevScl, cScl, alpha);
 
-            tempMatMix = glm::translate(glm::mat4(1.0f), mPos) * glm::toMat4(mRot) * glm::scale(glm::mat4(1.0f), mScl);
+            tempMatMix = glm::translate(glm::mat4(1.0f), mPos) * glm::mat4_cast(mRot) * glm::scale(glm::mat4(1.0f), mScl);
 
             // write to buf or to mem chunk for a single write?
             outMats[i] = tempMatMix * bone->getInverseBindWorldMatrix();

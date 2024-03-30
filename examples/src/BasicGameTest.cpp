@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include <kengine/game/BasicGameTest.hpp>
 #include <kengine/game/BasicCameraController.hpp>
 #include <kengine/vulkan/ColorFormatAndSpace.hpp>
@@ -16,16 +18,15 @@
 
 #include <kengine/game/MainGameState.hpp>
 #include <kengine/game/Game.hpp>
-#include <kengine/math.hpp>
+#include <kengine/Math.hpp>
 
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
 
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include <algorithm>
 #include <thread>
 #include <utility>
-#include <glm/glm.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -48,7 +49,7 @@ void BasicGameTest::run() {
         lastFrame = newTime;
 
         // cap delta
-        delta = std::min<float>(delta, .2f);
+        delta = math::min(delta, .2f);
 
         sm.update();
     }

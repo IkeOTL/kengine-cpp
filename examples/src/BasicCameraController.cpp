@@ -3,7 +3,6 @@
 #include <kengine/util/MatUtils.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 
@@ -74,7 +73,7 @@ void FreeCameraController::update(float delta) {
         );
 
         auto invRot = glm::inverse(camera->getRotation());
-        camMov = glm::rotate(invRot, camMov);
+        camMov = invRot * camMov;
 
         camMov.y += (inputManager.isKeyDown(GLFW_KEY_LEFT_SHIFT) ? -1 : 0) + (inputManager.isKeyDown(GLFW_KEY_SPACE) ? 1 : 0);
 

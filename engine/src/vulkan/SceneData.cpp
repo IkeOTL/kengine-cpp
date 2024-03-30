@@ -2,7 +2,6 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/Camera.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
 
 
 void SceneData::upload(VulkanContext& vkCxt, CachedGpuBuffer& buffer, float time, float alpha, size_t frameIndex) {

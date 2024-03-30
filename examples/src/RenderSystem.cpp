@@ -142,7 +142,7 @@ void RenderSystem::integrate(Component::Renderable& renderable, Component::Spati
 
     rotation = glm::normalize(rotation);
     dest = glm::translate(glm::mat4(1.0f), position) *
-        glm::toMat4(rotation) *
+        glm::mat4_cast(rotation) *
         glm::scale(glm::mat4(1.0f), scale);
 }
 
