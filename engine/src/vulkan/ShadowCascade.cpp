@@ -1,8 +1,6 @@
 #include <kengine/vulkan/ShadowCascade.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
-#include <kengine/Math.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
+#include <kengine/util/MatUtils.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const glm::vec3& lightDir,
@@ -20,14 +18,14 @@ void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const
     };
 
     glm::vec3 frustumCorners[8] = {
-           math::transformProject(invCam, baseCorners[0]),
-           math::transformProject(invCam, baseCorners[1]),
-           math::transformProject(invCam, baseCorners[2]),
-           math::transformProject(invCam, baseCorners[3]),
-           math::transformProject(invCam, baseCorners[4]),
-           math::transformProject(invCam, baseCorners[5]),
-           math::transformProject(invCam, baseCorners[6]),
-           math::transformProject(invCam, baseCorners[7])
+           matutils::transformProject(invCam, baseCorners[0]),
+           matutils::transformProject(invCam, baseCorners[1]),
+           matutils::transformProject(invCam, baseCorners[2]),
+           matutils::transformProject(invCam, baseCorners[3]),
+           matutils::transformProject(invCam, baseCorners[4]),
+           matutils::transformProject(invCam, baseCorners[5]),
+           matutils::transformProject(invCam, baseCorners[6]),
+           matutils::transformProject(invCam, baseCorners[7])
     };
 
     for (auto i = 0; i < 4; i++) {

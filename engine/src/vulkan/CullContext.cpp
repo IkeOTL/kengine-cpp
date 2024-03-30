@@ -8,6 +8,7 @@
 
 #include <glm/glm.hpp>
 #include <array>
+#include <kengine/util/MatUtils.hpp>
 
 VkSemaphore CullContext::getSemaphore(size_t frameIdx) {
     return semaphores[frameIdx];
@@ -74,8 +75,8 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
     {
         auto camera = cc.getCamera();
         auto& proj = camera->getProjectionMatrix();
-        auto frustumX = math::frustumPlane(proj, math::PLANE_NX);
-        auto frustumY = math::frustumPlane(proj, math::PLANE_PX);
+        auto frustumX = matutils::frustumPlane(proj, matutils::PLANE_NX);
+        auto frustumY = matutils::frustumPlane(proj, matutils::PLANE_PX);
 
         auto pc = DrawCullingPipeline::PushConstant{};
         camera->getViewMatrix(pc.viewMatrix);

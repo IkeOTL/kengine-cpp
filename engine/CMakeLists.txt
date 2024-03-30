@@ -13,6 +13,7 @@ set(HEADERS
     include/public/kengine/util/Random.hpp
     include/public/kengine/util/MapUtils.hpp
     include/public/kengine/util/VecUtils.hpp
+    include/public/kengine/util/MatUtils.hpp
 
     include/public/kengine/input/InputManager.hpp
     include/public/kengine/input/EventListener.hpp

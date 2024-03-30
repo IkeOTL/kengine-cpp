@@ -1,5 +1,5 @@
 #include <kengine/Bounds.hpp>
-#include <kengine/util/VecUtils.hpp>
+#include <kengine/util/MatUtils.hpp>
 
 // aabb
 void Aabb::getMinMax(glm::vec3& min, glm::vec3& max) {
@@ -11,7 +11,7 @@ Aabb Aabb::transform(const glm::mat4& mat) {
     glm::vec3 min{};
     glm::vec3 max{};
     getMinMax(min, max);
-    vecutils::transformAab(mat, min, max, min, max);
+    matutils::transformAab(mat, min, max, min, max);
 
     return Aabb::fromMinMax(min, max);
 }
