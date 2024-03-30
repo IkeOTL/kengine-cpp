@@ -2,20 +2,31 @@
 #include <kengine/FrustumIntersection.hpp>
 #include <thirdparty/entt.hpp>
 #include <glm/glm.hpp>
+#include <shared_mutex>
+#include <kengine/Bounds.hpp>
+#include <kengine/Transform.hpp>
 
 class SpatialGrid {
 private:
-    const int worldWidth, worldLength, cellSize;
-    const int cellCountX, cellCountZ;
-    const int worldOffsetX, worldOffsetZ;
+    const uint32_t worldWidth, worldLength, cellSize;
+    const uint32_t cellCountX, cellCountZ;
+    const int32_t worldOffsetX, worldOffsetZ;
 
     std::unordered_map<entt::entity, std::vector<entt::entity>*> entityIndex;
     std::vector<std::vector<entt::entity>> cells;
     std::unordered_set<entt::entity> dirtySet;
 
+    std::shared_mutex lock{};
+
     glm::vec3 intersectPoint(const glm::vec3& start, const glm::vec3& end);
 
 public:
+    SpatialGrid(uint32_t worldWidth, uint32_t worldLength, uint32_t cellSize);
+
     void getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoints,
         FrustumIntersection& frustumTester, std::vector<entt::entity> dest);
+
+    void updateEntity(int entityId, Transform& xform, Aabb& aabb);
+    void addEntity(int entityId, Transform& xform, Aabb& aabb);
+    void removeEntity(int entityId);
 };

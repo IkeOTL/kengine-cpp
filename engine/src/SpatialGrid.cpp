@@ -2,8 +2,27 @@
 #include <kengine/util/MatUtils.hpp>
 #include <kengine/Math.hpp>
 
+
+SpatialGrid::SpatialGrid(uint32_t worldWidth, uint32_t worldLength, uint32_t cellSize)
+    : worldWidth(worldWidth), worldLength(worldLength), cellSize(cellSize),
+    cellCountX(worldWidth / cellSize), cellCountZ(worldLength / cellSize),
+    worldOffsetX(-worldWidth / 2), worldOffsetZ(-worldLength / 2)
+{
+    if (worldWidth % 2 != 0 || worldLength % 2 != 0)
+        throw std::runtime_error("Grid dimensions must be even.");
+
+    if (worldWidth % cellSize != 0 || worldLength % cellSize != 0)
+        throw std::runtime_error("Grid dimensions a multiple of cell size.");
+
+    cells.resize(cellCountX * cellCountZ);
+    for (auto z = 0; z < cellCountZ; z++)
+        for (auto x = 0; x < cellCountX; x++)
+            cells[z * cellCountX + x].reserve(64);
+}
+
 glm::vec3 SpatialGrid::intersectPoint(const glm::vec3& start, const glm::vec3& end) {
-    // can't intersect with even ground plane
+    // ray never intersects with floor plane
+    // lets default the intersection happening at the end of the ray
     if ((start.y > 0 && end.y > 0) || (start.y < 0 && end.y < 0))
         return glm::vec3(end.x, 0, end.z);
 
@@ -12,7 +31,9 @@ glm::vec3 SpatialGrid::intersectPoint(const glm::vec3& start, const glm::vec3& e
     return glm::mix(start, end, factor);
 }
 
-
+/// <summary>
+/// gets cells visible to frustum and then grab all the entity ids for visible cells and adds them to the output list
+/// </summary>
 void SpatialGrid::getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoints,
     FrustumIntersection& frustumTester, std::vector<entt::entity> dest) {
     using namespace matutils;
@@ -24,14 +45,44 @@ void SpatialGrid::getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoi
     auto totMin = glm::min(topLeft, glm::min(topRight, glm::min(bottomLeft, glm::min(bottomRight, camPos))));
     auto totMax = glm::max(topLeft, glm::max(topRight, glm::max(bottomLeft, glm::max(bottomRight, camPos))));
 
-    auto startCellX = (int)(std::floor(totMin.x - worldOffsetX) / cellSize);
-    auto startCellZ = (int)(std::floor(totMin.z - worldOffsetZ) / cellSize);
-    auto endCellX = (int)(std::floor(totMax.x - worldOffsetX) / cellSize);
-    auto endCellZ = (int)(std::floor(totMax.z - worldOffsetZ) / cellSize);
+    auto startCellX = static_cast<int32_t>(std::floor(totMin.x - worldOffsetX) / cellSize);
+    auto startCellZ = static_cast<int32_t>(std::floor(totMin.z - worldOffsetZ) / cellSize);
+    auto endCellX = static_cast<int32_t>(std::floor(totMax.x - worldOffsetX) / cellSize);
+    auto endCellZ = static_cast<int32_t>(std::floor(totMax.z - worldOffsetZ) / cellSize);
 
     startCellX = math::max(0, math::min(startCellX, cellCountX - 1));
     startCellZ = math::max(0, math::min(startCellZ, cellCountZ - 1));
 
     endCellX = math::max(0, math::min(endCellX, cellCountX - 1));
     endCellZ = math::max(0, math::min(endCellZ, cellCountZ - 1));
+
+    std::unordered_set<entt::entity> set;
+
+    for (auto z = startCellZ; z <= endCellZ; z++) {
+        for (auto x = startCellX; x <= endCellX; x++) {
+            auto minWorldX = cellSize * x + worldOffsetX;
+            auto minWorldZ = cellSize * z + worldOffsetZ;
+            auto maxWorldX = minWorldX + cellSize;
+            auto maxWorldZ = minWorldZ + cellSize;
+
+            // maybe use entity heights here?
+            auto hit = frustumTester.testAab(minWorldX, 0, minWorldZ, maxWorldX, 0, maxWorldZ);
+
+            if (!hit)
+                continue;
+
+            {
+                std::shared_lock<std::shared_mutex> lock(this->lock);
+
+                auto cellIndex = z * cellCountX + x;
+                auto& cell = cells[cellIndex];
+
+                for (int i = 0; i < cell.size(); i++)
+                    set.insert(cell[i]);
+            }
+        }
+    }
+
+    for (auto& e : set)
+        dest.push_back(e);
 }
