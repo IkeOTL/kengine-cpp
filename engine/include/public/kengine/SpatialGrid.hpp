@@ -12,7 +12,7 @@ private:
     const uint32_t cellCountX, cellCountZ;
     const int32_t worldOffsetX, worldOffsetZ;
 
-    std::unordered_map<entt::entity, std::vector<entt::entity>*> entityIndex;
+    std::unordered_map<entt::entity, std::vector<uint32_t>> entityIndex;
     std::vector<std::vector<entt::entity>> cells;
     std::unordered_set<entt::entity> dirtySet;
 
@@ -26,7 +26,7 @@ public:
     void getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoints,
         FrustumIntersection& frustumTester, std::vector<entt::entity> dest);
 
-    void updateEntity(int entityId, Transform& xform, Aabb& aabb);
-    void addEntity(int entityId, Transform& xform, Aabb& aabb);
-    void removeEntity(int entityId);
+    void updateEntity(entt::entity entityId, Transform& xform, Aabb& aabb);
+    void addEntity(entt::entity entityId, Transform& xform, Aabb& aabb);
+    void removeEntity(entt::entity entityId);
 };

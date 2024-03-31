@@ -72,6 +72,7 @@ void SpatialGrid::getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoi
                 continue;
 
             {
+                // read lock
                 std::shared_lock<std::shared_mutex> lock(this->lock);
 
                 auto cellIndex = z * cellCountX + x;
@@ -85,4 +86,54 @@ void SpatialGrid::getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoi
 
     for (auto& e : set)
         dest.push_back(e);
+}
+
+
+void SpatialGrid::updateEntity(entt::entity entityId, Transform& xform, Aabb& aabb) {
+    removeEntity(entityId);
+    addEntity(entityId, xform, aabb);
+}
+
+void SpatialGrid::addEntity(entt::entity entityId, Transform& xform, Aabb& aabb) {
+    glm::vec3 min;
+    glm::vec3 max;
+    aabb.getMinMax(min, max);
+    matutils::transformAab(xform.getTransMatrix(), min, max, min, max);
+
+    // Adjust for the world's offset and then compute the row and column
+    auto startCellX = static_cast<int32_t>(std::floor(min.x - worldOffsetX) / cellSize);
+    auto startCellZ = static_cast<int32_t>(std::floor(min.z - worldOffsetZ) / cellSize);
+    auto endCellX = static_cast<int32_t>(std::floor(max.x - worldOffsetX) / cellSize);
+    auto endCellZ = static_cast<int32_t>(std::floor(max.z - worldOffsetZ) / cellSize);
+
+    startCellX = math::max(0, math::min(startCellX, cellCountX - 1));
+    startCellZ = math::max(0, math::min(startCellZ, cellCountZ - 1));
+
+    endCellX = math::max(0, math::min(endCellX, cellCountX - 1));
+    endCellZ = math::max(0, math::min(endCellZ, cellCountZ - 1));
+
+    for (auto z = startCellZ; z <= endCellZ; z++) {
+        for (auto x = startCellX; x <= endCellX; x++) {
+            // read/write lock
+            std::lock_guard<std::shared_mutex> lock(this->lock);
+
+            auto cellIndex = z * cellCountX + x;
+            cells[cellIndex].push_back(entityId);
+
+            // add to index for fast access in opposite direction            
+            entityIndex[entityId].push_back(cellIndex);
+        }
+    }
+}
+
+void SpatialGrid::removeEntity(entt::entity entityId) {
+    // read/write lock
+    std::lock_guard<std::shared_mutex> lock(this->lock);
+
+    auto it = entityIndex.find(entityId);
+    if (it == entityIndex.end())
+        return;
+
+    auto idxBag = std::move(it->second);
+    entityIndex.erase(it);
 }
