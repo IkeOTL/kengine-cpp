@@ -36,17 +36,18 @@ Model::Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
         glm::vec3 min(std::numeric_limits<float>::infinity());
         glm::vec3 max(-std::numeric_limits<float>::infinity());
 
-        glm::vec3 t0;
-        glm::vec3 t1;
-        for (auto& meshGroup : meshGroups) {
+        glm::vec3 t0{};
+        glm::vec3 t1{};
+        for (auto& meshGroup : this->meshGroups) {
             for (auto& mesh : meshGroup->getMeshes()) {
                 mesh->getBounds().getAabb().getMinMax(t0, t1);
                 min = glm::min(min, t0);
-                max = glm::min(max, t1);
+                max = glm::max(max, t1);
             }
         }
 
-        bounds = Aabb::fromMinMax(min, max);
+        bounds = Bounds::fromMinMax(min, max);
+        auto i = 0;
     }
 }
 
