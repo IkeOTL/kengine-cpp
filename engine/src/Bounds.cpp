@@ -2,7 +2,7 @@
 #include <kengine/util/MatUtils.hpp>
 
 // aabb
-void Aabb::getMinMax(glm::vec3& min, glm::vec3& max) {
+void Aabb::getMinMax(glm::vec3& min, glm::vec3& max) const {
     min = pos - extents;
     max = pos + extents;
 }

@@ -33,7 +33,7 @@ void SpatialGridUpdateSystem::processSystem(float delta) {
 
         return SpatialGrid::SpatialGridUpdate{
             e,
-            current,
+            current.getTransMatrix(),
             model.getBounds().getAabb()
         };
         });

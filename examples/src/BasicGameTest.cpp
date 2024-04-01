@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <thread>
 #include <utility>
+#include <kengine/game/SpatialGridUpdateSystem.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -110,8 +111,9 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
         // systems. order matters.
         .setSystem<RenderablePreviousTransformSystem>()
-        .setSystem<RenderSystem>()
         .setSystem<CameraSystem>()
+        .setSystem<SpatialGridUpdateSystem>()
+        .setSystem<RenderSystem>()
     );
 
     return std::make_unique<MainGameState>(*world);

@@ -23,7 +23,7 @@ public:
         return *this;
     }
 
-    void getMinMax(glm::vec3& min, glm::vec3& max);
+    void getMinMax(glm::vec3& min, glm::vec3& max) const;
     Aabb transform(const glm::mat4& mat);
 
     static Aabb fromMinMax(const glm::vec3& min, const glm::vec3& max);

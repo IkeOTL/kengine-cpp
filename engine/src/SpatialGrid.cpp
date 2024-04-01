@@ -89,16 +89,16 @@ void SpatialGrid::getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoi
 }
 
 
-void SpatialGrid::updateEntity(entt::entity entityId, Transform& xform, Aabb& aabb) {
+void SpatialGrid::updateEntity(entt::entity entityId, const glm::mat4& xform, const Aabb& aabb) {
     removeEntity(entityId);
     addEntity(entityId, xform, aabb);
 }
 
-void SpatialGrid::addEntity(entt::entity entityId, Transform& xform, Aabb& aabb) {
+void SpatialGrid::addEntity(entt::entity entityId, const glm::mat4& xform, const Aabb& aabb) {
     glm::vec3 min;
     glm::vec3 max;
     aabb.getMinMax(min, max);
-    matutils::transformAab(xform.getTransMatrix(), min, max, min, max);
+    matutils::transformAab(xform, min, max, min, max);
 
     // Adjust for the world's offset and then compute the row and column
     auto startCellX = static_cast<int32_t>(std::floor(min.x - worldOffsetX) / cellSize);

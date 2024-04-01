@@ -12,7 +12,7 @@ public:
 
     struct SpatialGridUpdate {
         entt::entity entity;
-        const Transform& transform;
+        const glm::mat4& transform;
         const Aabb& bounds;
     };
 
@@ -35,8 +35,8 @@ public:
     void getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoints,
         FrustumIntersection& frustumTester, std::vector<entt::entity> dest);
 
-    void updateEntity(entt::entity entityId, Transform& xform, Aabb& aabb);
-    void addEntity(entt::entity entityId, Transform& xform, Aabb& aabb);
+    void updateEntity(entt::entity entityId, const glm::mat4& xform, const Aabb& aabb);
+    void addEntity(entt::entity entityId, const glm::mat4& xform, const Aabb& aabb);
     void removeEntity(entt::entity entityId);
     void processDirtyEntities(std::function<SpatialGridUpdate(entt::entity)> func);
 };
