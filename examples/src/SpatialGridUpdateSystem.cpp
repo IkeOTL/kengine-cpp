@@ -22,13 +22,13 @@ void SpatialGridUpdateSystem::processSystem(float delta) {
     if (!spatialGrid)
         return;
 
-    auto& ecs = getEcs();
-    spatialGrid->processDirtyEntities([&ecs, sceneGraph = this->sceneGraph, modelCache = this ->modelCache](entt::entity e) {
+    spatialGrid->processDirtyEntities([&ecs = this->getEcs(), sceneGraph = this->sceneGraph, modelCache = this ->modelCache](entt::entity e) {
         auto& spatialComp = ecs.get<Component::Spatials>(e);
         auto spatial = sceneGraph->get(spatialComp.rootSpatialId);
         auto& current = spatial->getWorldTransform();
 
         auto& modelComp = ecs.get<Component::ModelComponent>(e);
+        // todo: try to async here, this means we have to keep the entity in the dirtyset in case of model not yet loaded
         auto& model = modelCache->get(modelComp.config);
 
         return SpatialGrid::SpatialGridUpdate{
