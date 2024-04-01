@@ -7,12 +7,21 @@
 #include <kengine/Transform.hpp>
 
 class SpatialGrid {
+public:
+    static const int MAX_CELLS_PER_ENTITY = 4;
+
+    struct SpatialGridUpdate {
+        entt::entity entity;
+        const Transform& transform;
+        const Aabb& bounds;
+    };
+
 private:
     const uint32_t worldWidth, worldLength, cellSize;
     const uint32_t cellCountX, cellCountZ;
     const int32_t worldOffsetX, worldOffsetZ;
 
-    std::unordered_map<entt::entity, std::vector<uint32_t>> entityIndex;
+    std::unordered_map<entt::entity, std::array<uint32_t, MAX_CELLS_PER_ENTITY>> entityIndex;
     std::vector<std::vector<entt::entity>> cells;
     std::unordered_set<entt::entity> dirtySet;
 
@@ -29,4 +38,5 @@ public:
     void updateEntity(entt::entity entityId, Transform& xform, Aabb& aabb);
     void addEntity(entt::entity entityId, Transform& xform, Aabb& aabb);
     void removeEntity(entt::entity entityId);
+    void processDirtyEntities(std::function<SpatialGridUpdate(entt::entity)> func);
 };

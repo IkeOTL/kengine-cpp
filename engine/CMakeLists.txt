@@ -40,6 +40,7 @@ set(HEADERS
     include/public/kengine/SceneGraph.hpp
     include/public/kengine/Bounds.hpp
     include/public/kengine/SpatialGrid.hpp
+    include/public/kengine/SpatialPartitioningManager.hpp
     include/public/kengine/FrustumIntersection.hpp
     
     include/public/kengine/vulkan/VulkanContext.hpp

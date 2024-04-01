@@ -67,6 +67,10 @@ public:
     const std::vector<std::unique_ptr<MeshGroup>>& getMeshGroups() const {
         return meshGroups;
     }
+
+    const Bounds& getBounds() const {
+        return bounds;
+    }
 };
 
 

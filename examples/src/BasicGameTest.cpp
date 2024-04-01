@@ -75,6 +75,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     lightsManager = std::make_unique<LightsManager>(*cameraController);
     sceneTime = std::make_unique<SceneTime>();
     sceneGraph = std::make_unique<SceneGraph>();
+    spatialPartitioningManager = std::make_unique<SpatialPartitioningManager>();
 
     modelFactory = std::make_unique<GltfModelFactory>(*vulkanCxt, *assetIo);
     modelCache = std::make_unique<AsyncModelCache>(*modelFactory, *threadPool);
@@ -87,12 +88,13 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
     world = std::make_unique<World>(WorldConfig()
         // injectable objects. order doesnt matter
+        .addService<entt::registry>(&ecs)
         .addService<Window>(window.get())
         .addService<VulkanContext>(vulkanCxt.get())
         .addService<RenderContext>(renderContext.get())
         .addService<SceneGraph>(sceneGraph.get())
         .addService<SceneTime>(sceneTime.get())
-        .addService<entt::registry>(&ecs)
+        .addService<SpatialPartitioningManager>(spatialPartitioningManager.get())
 
         .addService<ExecutorService>(threadPool.get())
         .addService<AssetIO>(assetIo.get())

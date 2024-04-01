@@ -19,6 +19,7 @@ set(HEADERS
     include/public/kengine/game/RenderSystem.hpp
     include/public/kengine/game/CameraSystem.hpp
     include/public/kengine/game/RenderablePreviousTransformSystem.hpp
+    include/public/kengine/game/SpatialGridUpdateSystem.hpp
 
 # components
     include/public/kengine/game/components/Components.hpp
@@ -37,6 +38,7 @@ set(SOURCES
     src/RenderSystem.cpp
     src/CameraSystem.cpp
     src/RenderablePreviousTransformSystem.cpp
+    src/SpatialGridUpdateSystem.cpp
 
     src/Components.cpp
 

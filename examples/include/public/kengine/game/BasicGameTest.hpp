@@ -3,6 +3,7 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/GltfModelFactory.hpp>
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>
+#include <kengine/SpatialPartitioningManager.hpp>
 #include <kengine/game/MainGameState.hpp>
 #include <kengine/StateMachine.hpp>
 #include <kengine/vulkan/CameraController.hpp>
@@ -31,6 +32,7 @@ private:
     std::unique_ptr<LightsManager> lightsManager;
     std::unique_ptr<CameraController> cameraController;
     std::unique_ptr<SceneTime> sceneTime;
+    std::unique_ptr<SpatialPartitioningManager> spatialPartitioningManager;
 
     std::unique_ptr<GpuBufferCache> bufCache;
 

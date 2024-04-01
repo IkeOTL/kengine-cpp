@@ -112,8 +112,17 @@ void SpatialGrid::addEntity(entt::entity entityId, Transform& xform, Aabb& aabb)
     endCellX = math::max(0, math::min(endCellX, cellCountX - 1));
     endCellZ = math::max(0, math::min(endCellZ, cellCountZ - 1));
 
-    for (auto z = startCellZ; z <= endCellZ; z++) {
+    auto& index = entityIndex[entityId];
+
+    // reset index list
+    index.fill(-1);
+
+    auto curIdx = 0;
+    for (auto z = startCellZ; z <= endCellZ && curIdx < MAX_CELLS_PER_ENTITY; z++) {
         for (auto x = startCellX; x <= endCellX; x++) {
+            if (curIdx == MAX_CELLS_PER_ENTITY)
+                break;
+
             // read/write lock
             std::lock_guard<std::shared_mutex> lock(this->lock);
 
@@ -121,8 +130,11 @@ void SpatialGrid::addEntity(entt::entity entityId, Transform& xform, Aabb& aabb)
             cells[cellIndex].push_back(entityId);
 
             // add to index for fast access in opposite direction            
-            entityIndex[entityId].push_back(cellIndex);
+            index[curIdx++] = cellIndex;
         }
+
+        if (curIdx == MAX_CELLS_PER_ENTITY)
+            break;
     }
 }
 
@@ -136,4 +148,23 @@ void SpatialGrid::removeEntity(entt::entity entityId) {
 
     auto idxBag = std::move(it->second);
     entityIndex.erase(it);
+
+    for (auto& c : idxBag) {
+        auto& cell = cells[c];
+        cell.erase(std::remove(cell.begin(), cell.end(), entityId), cell.end());
+    }
+}
+
+/// <summary>
+/// todo: parallelize
+/// </summary>
+void SpatialGrid::processDirtyEntities(std::function<SpatialGridUpdate(entt::entity)> func) {
+    std::lock_guard<std::shared_mutex> lock(this->lock);
+
+    for (auto& e : dirtySet) {
+        auto update = func(e);
+        updateEntity(update.entity, update.transform, update.bounds);
+    }
+
+    dirtySet.clear();
 }
