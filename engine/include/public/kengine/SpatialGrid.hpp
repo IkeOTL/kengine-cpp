@@ -32,8 +32,10 @@ private:
 public:
     SpatialGrid(uint32_t worldWidth, uint32_t worldLength, uint32_t cellSize);
 
-    void getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoints,
-        FrustumIntersection& frustumTester, std::vector<entt::entity> dest);
+    void setDirty(const entt::entity entity);
+
+    void getVisible(const glm::vec3& camPos, const std::array<glm::vec3, 8>& frustomPoints,
+        const FrustumIntersection& frustumTester, std::vector<entt::entity>& dest);
 
     void updateEntity(entt::entity entityId, const glm::mat4& xform, const Aabb& aabb);
     void addEntity(entt::entity entityId, const glm::mat4& xform, const Aabb& aabb);

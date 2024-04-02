@@ -12,10 +12,12 @@
 #include <kengine/game/components/Model.hpp>
 #include <kengine/game/components/Components.hpp>
 #include <kengine/vulkan/material/AsyncMaterialCache.hpp>
+#include <kengine/SpatialPartitioningManager.hpp>
 #include <kengine/terrain/TileTerrain.hpp>
 #include <kengine/ecs/World.hpp>
 #include <thirdparty/entt.hpp>
 #include <kengine/util/Random.hpp>
+#include <kengine/game/BasicCameraController.hpp>
 
 void RenderSystem::init() {
     vulkanCtx = getService<VulkanContext>();
@@ -25,6 +27,7 @@ void RenderSystem::init() {
     sceneGraph = getService<SceneGraph>();
     sceneTime = getService<SceneTime>();
     cameraController = getService<CameraController>();
+    spatialPartitioning = getService<SpatialPartitioningManager>();
 
     // test obj
     {
@@ -48,6 +51,8 @@ void RenderSystem::init() {
 
             auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
             rootSpatial->setLocalPosition(glm::vec3(3.0f * i, .1337f, 0));
+
+            spatialPartitioning->getSpatialGrid()-> setDirty(entity);
         }
     }
 
@@ -147,13 +152,21 @@ void RenderSystem::integrate(Component::Renderable& renderable, Component::Spati
 }
 
 void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
-    auto view = getEcs().view<Component::Renderable, Component::Spatials, Component::ModelComponent, Component::Material>();
+    //auto view = getEcs().view<Component::Renderable, Component::Spatials, Component::ModelComponent, Component::Material>();
 
-    for (auto& e : view) {
-        auto& modelComponent = view.get<Component::ModelComponent>(e);
+    auto& ecs = getEcs();
+
+    std::vector<entt::entity> entities;
+    entities.reserve(64);
+
+    auto* c = static_cast<FreeCameraController*>(cameraController);
+    spatialPartitioning->getSpatialGrid()->getVisible(c->getCamera()->getPosition(), c->getFrustumCorners(), c->getFrustumTester(), entities);
+
+    for (auto& e : entities) {
+        auto& modelComponent = ecs.get<Component::ModelComponent>(e);
         auto modelTask = modelCache->getAsync(modelComponent.config);
 
-        auto& materialComponent = view.get<Component::Material>(e);
+        auto& materialComponent = ecs.get<Component::Material>(e);
         auto materialTask = materialCache->getAsync(materialComponent.config);
 
         // maybe use a default material on a mesh if material isnt ready
@@ -163,12 +176,12 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
         if (!materialTask.isDone())
             continue;
 
-        auto& renderableComponent = view.get<Component::Renderable>(e);
+        auto& renderableComponent = ecs.get<Component::Renderable>(e);
 
         //if (renderableComponent.type == Component::Renderable::STATIC_MODEL)
         //    continue;
 
-        auto& spatialsComponent = view.get<Component::Spatials>(e);
+        auto& spatialsComponent = ecs.get<Component::Spatials>(e);
 
         auto model = modelTask.get();
         auto material = materialTask.get();

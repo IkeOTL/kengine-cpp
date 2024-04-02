@@ -41,7 +41,7 @@ void FrustumIntersection::set(const glm::mat4& m, bool allowTestSpheres) {
     planes[5] = { pzX, pzY, pzZ, pzW };
 }
 
-bool FrustumIntersection::testAab(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+bool FrustumIntersection::testAab(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) const {
     /*
      * This is an implementation of the "2.4 Basic intersection test" of the mentioned site.
      * It does not distinguish between partially inside and fully inside, though, so the test with the 'p' vertex is omitted.

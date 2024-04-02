@@ -23,6 +23,7 @@ class CameraController;
 class SceneGraph;
 class SceneTime;
 class Transform;
+class SpatialPartitioningManager;
 
 class RenderSystem : public EcsSystem {
 private:
@@ -33,6 +34,7 @@ private:
     SceneGraph* sceneGraph;
     SceneTime* sceneTime;
     CameraController* cameraController;
+    SpatialPartitioningManager* spatialPartitioning;
 
 public:
     RenderSystem() = default;

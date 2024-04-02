@@ -6,7 +6,7 @@
 SpatialGrid::SpatialGrid(uint32_t worldWidth, uint32_t worldLength, uint32_t cellSize)
     : worldWidth(worldWidth), worldLength(worldLength), cellSize(cellSize),
     cellCountX(worldWidth / cellSize), cellCountZ(worldLength / cellSize),
-    worldOffsetX(-worldWidth / 2), worldOffsetZ(-worldLength / 2)
+    worldOffsetX(-static_cast<int32_t>(worldWidth) / 2), worldOffsetZ(-static_cast<int32_t>(worldLength) / 2)
 {
     if (worldWidth % 2 != 0 || worldLength % 2 != 0)
         throw std::runtime_error("Grid dimensions must be even.");
@@ -20,10 +20,14 @@ SpatialGrid::SpatialGrid(uint32_t worldWidth, uint32_t worldLength, uint32_t cel
             cells[z * cellCountX + x].reserve(64);
 }
 
+void SpatialGrid::setDirty(const entt::entity entity) {
+    dirtySet.insert(entity);
+}
+
 glm::vec3 SpatialGrid::intersectPoint(const glm::vec3& start, const glm::vec3& end) {
     // ray never intersects with floor plane
     // lets default the intersection happening at the end of the ray
-    if ((start.y > 0 && end.y > 0) || (start.y < 0 && end.y < 0))
+    if ((start.y >= 0 && end.y >= 0) || (start.y <= 0 && end.y <= 0))
         return glm::vec3(end.x, 0, end.z);
 
     auto factor = start.y / (start.y - end.y);
@@ -34,8 +38,8 @@ glm::vec3 SpatialGrid::intersectPoint(const glm::vec3& start, const glm::vec3& e
 /// <summary>
 /// gets cells visible to frustum and then grab all the entity ids for visible cells and adds them to the output list
 /// </summary>
-void SpatialGrid::getVisible(glm::vec3 camPos, std::vector<glm::vec3> frustomPoints,
-    FrustumIntersection& frustumTester, std::vector<entt::entity> dest) {
+void SpatialGrid::getVisible(const glm::vec3& camPos, const std::array<glm::vec3, 8>& frustomPoints,
+    const FrustumIntersection& frustumTester, std::vector<entt::entity>& dest) {
     using namespace matutils;
     auto topLeft = intersectPoint(frustomPoints[FrustumCorner::CORNER_NXPYNZ], frustomPoints[FrustumCorner::CORNER_NXPYPZ]);
     auto bottomLeft = intersectPoint(frustomPoints[FrustumCorner::CORNER_NXNYNZ], frustomPoints[FrustumCorner::CORNER_NXNYPZ]);
@@ -157,10 +161,10 @@ void SpatialGrid::removeEntity(entt::entity entityId) {
 
 /// <summary>
 /// todo: parallelize
+/// while this is executing adding and removing from dirty set shoudl not be happening
+/// if we change to a reentrant lock it might be possible thought
 /// </summary>
 void SpatialGrid::processDirtyEntities(std::function<SpatialGridUpdate(entt::entity)> func) {
-    std::lock_guard<std::shared_mutex> lock(this->lock);
-
     for (auto& e : dirtySet) {
         auto update = func(e);
         updateEntity(update.entity, update.transform, update.bounds);

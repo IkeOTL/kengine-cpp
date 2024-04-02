@@ -10,17 +10,13 @@ class SpatialPartitioningManager;
 
 class SpatialGridUpdateSystem : public EcsSystem {
 private:
-    ExecutorService* executorService;
-    SceneGraph* sceneGraph;
-    AsyncModelCache* modelCache;
-    SpatialPartitioningManager* spatialPartitioning;
+    ExecutorService* executorService = nullptr;
+    SceneGraph* sceneGraph = nullptr;
+    AsyncModelCache* modelCache = nullptr;
+    SpatialPartitioningManager* spatialPartitioning = nullptr;
 
 public:
     SpatialGridUpdateSystem() = default;
-
-    bool checkProcessing() override {
-        return false;
-    }
 
     void init() override;
     void processSystem(float delta) override;

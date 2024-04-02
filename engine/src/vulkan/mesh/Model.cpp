@@ -47,7 +47,6 @@ Model::Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
         }
 
         bounds = Bounds::fromMinMax(min, max);
-        auto i = 0;
     }
 }
 

@@ -78,6 +78,8 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     sceneGraph = std::make_unique<SceneGraph>();
     spatialPartitioningManager = std::make_unique<SpatialPartitioningManager>();
 
+    spatialPartitioningManager->setSpatialGrid(std::make_unique<SpatialGrid>(64, 64, 16));
+
     modelFactory = std::make_unique<GltfModelFactory>(*vulkanCxt, *assetIo);
     modelCache = std::make_unique<AsyncModelCache>(*modelFactory, *threadPool);
     textureFactory = std::make_unique<TextureFactory>(*vulkanCxt, *assetIo);

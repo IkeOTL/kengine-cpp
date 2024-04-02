@@ -18,5 +18,5 @@ private:
 
 public:
     void set(const glm::mat4& m, bool allowTestSpheres);
-    bool testAab(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
+    bool testAab(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) const;
 };

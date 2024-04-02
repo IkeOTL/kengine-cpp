@@ -34,4 +34,12 @@ public:
     void update(float delta) override;
 
     void setPosition(float x, float y, float z);
+
+    std::array<glm::vec3, 8>& getFrustumCorners() {
+        return frustumCorners;
+    }
+
+    FrustumIntersection& getFrustumTester() {
+        return frustumTester;
+    }
 };
