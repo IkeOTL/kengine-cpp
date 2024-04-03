@@ -175,9 +175,12 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, RenderFrameContext&
         return;
 
     auto vkCmd = cxt.cmd;
+    CascadeShadowMapPipeline::PushConstant psCst{
+        cascadeIdx
+    };
     p1.bind(vkContext, dAllocator, vkCmd, cxt.frameIndex);
 
-    vkCmdPushConstants(vkCmd, p1.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(cascadeIdx), &cascadeIdx);
+    vkCmdPushConstants(vkCmd, p1.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(psCst), &psCst);
 
     auto indCmdFrameOffset = indirectCmdBuf.getFrameOffset(cxt.frameIndex);
     for (auto i = 0; i < batchesSize; i++) {
@@ -222,9 +225,23 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, RenderFrameContext&
             textureWrite.descriptorType = textureBinding.descriptorType;
             textureWrite.pImageInfo = &descImgBufInfo;
 
-            std::array<uint32_t, 1> offsets = { 0 };
 
-            if (skinned) {
+            // todo: simplify
+            if (!skinned) {
+                vkUpdateDescriptorSets(vkContext.getVkDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
+
+                vkCmdBindDescriptorSets(
+                    cxt.cmd,
+                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    p1.getVkPipelineLayout(),
+                    2,
+                    1,
+                    &pTexSet,
+                    0,
+                    nullptr
+                );
+            }
+            else {
                 auto& bindingSkele = static_cast<const BufferBinding&>(indirectBatch.getMaterial()->getBinding(2, 5)).getGpuBuffer();
                 auto& skeletonBinding = layout.getBinding(1);
                 VkDescriptorBufferInfo bufferInfo = {};
@@ -240,21 +257,21 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, RenderFrameContext&
                 skeletonWrite.descriptorType = skeletonBinding.descriptorType;
                 skeletonWrite.pBufferInfo = &bufferInfo;
 
-                offsets[0] = bindingSkele.getFrameOffset(cxt.frameIndex);
+                uint32_t offset = bindingSkele.getFrameOffset(cxt.frameIndex);
+
+                vkUpdateDescriptorSets(vkContext.getVkDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
+
+                vkCmdBindDescriptorSets(
+                    cxt.cmd,
+                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    p1.getVkPipelineLayout(),
+                    2,
+                    1,
+                    &pTexSet,
+                    1,
+                    &offset
+                );
             }
-
-            vkUpdateDescriptorSets(vkContext.getVkDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
-
-            vkCmdBindDescriptorSets(
-                cxt.cmd,
-                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                p1.getVkPipelineLayout(),
-                2,
-                1,
-                &pTexSet,
-                offsets.size(),
-                offsets.data()
-            );
         }
 
         const auto* mesh = indirectBatch.getMesh();
@@ -262,13 +279,6 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, RenderFrameContext&
         VkDeviceSize _offsets = 0;
         vkCmdBindVertexBuffers(vkCmd, 0, 1, &mesh->getVertexBuf().vkBuffer, &_offsets);
         vkCmdBindIndexBuffer(vkCmd, mesh->getIndexBuf().getVkBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-
-        auto i0 = vkCmd;
-        auto i1 = indirectCmdBuf.getGpuBuffer().getVkBuffer();
-        auto i2 = indirectCmdBuf.getFrameOffset(cxt.frameIndex);
-        auto i3 = indirectBatch.getCmdId();
-
 
         vkCmdDrawIndexedIndirect(
             vkCmd,
