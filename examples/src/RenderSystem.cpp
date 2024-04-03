@@ -52,7 +52,7 @@ void RenderSystem::init() {
             auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
             rootSpatial->setLocalPosition(glm::vec3(3.0f * i, .1337f, 0));
 
-            spatialPartitioning->getSpatialGrid()-> setDirty(entity);
+            spatialPartitioning->getSpatialGrid()->setDirty(entity);
         }
     }
 
@@ -89,6 +89,7 @@ void RenderSystem::init() {
                 renderable.setStatic();
 
                 auto spatial = sceneGraph->create("terrain: x: " + std::to_string(x) + " z:" + std::to_string(z));
+                spatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
                 auto& spatialsComp = ecs->emplace<Component::Spatials>(entity);
                 spatialsComp.rootSpatialId = spatial->getSceneId();
                 spatialsComp.meshSpatialsIds.push_back(spatialsComp.rootSpatialId);

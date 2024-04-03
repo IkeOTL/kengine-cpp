@@ -24,6 +24,10 @@ void SpatialGrid::setDirty(const entt::entity entity) {
     dirtySet.insert(entity);
 }
 
+std::function<void()> SpatialGrid::createCb(const entt::entity eId) {
+    return [this, eId]() { this->setDirty(eId); };
+}
+
 glm::vec3 SpatialGrid::intersectPoint(const glm::vec3& start, const glm::vec3& end) {
     // ray never intersects with floor plane
     // lets default the intersection happening at the end of the ray
@@ -64,10 +68,10 @@ void SpatialGrid::getVisible(const glm::vec3& camPos, const std::array<glm::vec3
 
     for (auto z = startCellZ; z <= endCellZ; z++) {
         for (auto x = startCellX; x <= endCellX; x++) {
-            auto minWorldX = cellSize * x + worldOffsetX;
-            auto minWorldZ = cellSize * z + worldOffsetZ;
-            auto maxWorldX = minWorldX + cellSize;
-            auto maxWorldZ = minWorldZ + cellSize;
+            int32_t minWorldX = cellSize * x + worldOffsetX;
+            int32_t minWorldZ = cellSize * z + worldOffsetZ;
+            int32_t maxWorldX = minWorldX + cellSize;
+            int32_t maxWorldZ = minWorldZ + cellSize;
 
             // maybe use entity heights here?
             auto hit = frustumTester.testAab(minWorldX, 0, minWorldZ, maxWorldX, 0, maxWorldZ);
@@ -119,7 +123,7 @@ void SpatialGrid::addEntity(entt::entity entityId, const glm::mat4& xform, const
     auto& index = entityIndex[entityId];
 
     // reset index list
-    index.fill(-1);
+    index.fill(-1); 
 
     auto curIdx = 0;
     for (auto z = startCellZ; z <= endCellZ && curIdx < MAX_CELLS_PER_ENTITY; z++) {
@@ -154,6 +158,9 @@ void SpatialGrid::removeEntity(entt::entity entityId) {
     entityIndex.erase(it);
 
     for (auto& c : idxBag) {
+        if (c == -1)
+            return;
+
         auto& cell = cells[c];
         cell.erase(std::remove(cell.begin(), cell.end(), entityId), cell.end());
     }

@@ -29,6 +29,8 @@ void FreeCameraController::init() {
 
             getCamera()->setRotation(orientation);
 
+            needsFrustumRecalc = true;
+
             return false;
         });
 }
@@ -37,53 +39,60 @@ void FreeCameraController::update(float delta) {
     if (!camera)
         return;
 
+    applyMovement(delta);
+
     // frustum update
-    {
-        glm::mat4 projViewMat;
-        camera->getViewMatrix(projViewMat);
-        projViewMat = camera->getProjectionMatrix() * projViewMat;
+    if (!needsFrustumRecalc)
+        return;
 
-        frustumTester.set(projViewMat, false);
+    // frustum recalc
+    glm::mat4 projViewMat;
+    camera->getViewMatrix(projViewMat);
+    projViewMat = camera->getProjectionMatrix() * projViewMat;
 
-        for (int i = 0; i < 8; i++)
-            matutils::frustumCorner(projViewMat, static_cast<matutils::FrustumCorner>(i), frustumCorners[i]);
+    frustumTester.set(projViewMat, false);
 
-        auto invProjview = glm::inverse(projViewMat);
-        matutils::frustumAabb(invProjview, frustumMin, frustumMax);
-    }
+    for (int i = 0; i < 8; i++)
+        matutils::frustumCorner(projViewMat, static_cast<matutils::FrustumCorner>(i), frustumCorners[i]);
 
-    // movement 
-    {
-        auto hasMovement = inputManager.isKeyDown(GLFW_KEY_A) || inputManager.isKeyDown(GLFW_KEY_D)
-            || inputManager.isKeyDown(GLFW_KEY_LEFT_SHIFT) || inputManager.isKeyDown(GLFW_KEY_SPACE)
-            || inputManager.isKeyDown(GLFW_KEY_W) || inputManager.isKeyDown(GLFW_KEY_S);
-
-        if (!hasMovement)
-            return;
-
-        auto* camera = getCamera();
-
-        if (!camera)
-            return;
-
-        auto camMov = glm::vec3(
-            (inputManager.isKeyDown(GLFW_KEY_A) ? -1 : 0) + (inputManager.isKeyDown(GLFW_KEY_D) ? 1 : 0),
-            0,
-            (inputManager.isKeyDown(GLFW_KEY_W) ? -1 : 0) + (inputManager.isKeyDown(GLFW_KEY_S) ? 1 : 0)
-        );
-
-        auto invRot = glm::inverse(camera->getRotation());
-        camMov = invRot * camMov;
-
-        camMov.y += (inputManager.isKeyDown(GLFW_KEY_LEFT_SHIFT) ? -1 : 0) + (inputManager.isKeyDown(GLFW_KEY_SPACE) ? 1 : 0);
-
-        camMov = glm::normalize(camMov);
-        if (vecutils::isFinite(camMov)) {
-            camMov *= 3.0f * delta;
-            camera->addPosition(camMov);
-        }
-    }
+    auto invProjview = glm::inverse(projViewMat);
+    matutils::frustumAabb(invProjview, frustumMin, frustumMax);
 }
+
+void FreeCameraController::applyMovement(float delta) {
+    auto hasMovement = inputManager.isKeyDown(GLFW_KEY_A) || inputManager.isKeyDown(GLFW_KEY_D)
+        || inputManager.isKeyDown(GLFW_KEY_LEFT_SHIFT) || inputManager.isKeyDown(GLFW_KEY_SPACE)
+        || inputManager.isKeyDown(GLFW_KEY_W) || inputManager.isKeyDown(GLFW_KEY_S);
+
+    if (!hasMovement)
+        return;
+
+    auto* camera = getCamera();
+
+    if (!camera)
+        return;
+
+    auto camMov = glm::vec3(
+        (inputManager.isKeyDown(GLFW_KEY_A) ? -1 : 0) + (inputManager.isKeyDown(GLFW_KEY_D) ? 1 : 0),
+        0,
+        (inputManager.isKeyDown(GLFW_KEY_W) ? -1 : 0) + (inputManager.isKeyDown(GLFW_KEY_S) ? 1 : 0)
+    );
+
+    auto invRot = glm::inverse(camera->getRotation());
+    camMov = invRot * camMov;
+
+    camMov.y += (inputManager.isKeyDown(GLFW_KEY_LEFT_SHIFT) ? -1 : 0) + (inputManager.isKeyDown(GLFW_KEY_SPACE) ? 1 : 0);
+
+    camMov = glm::normalize(camMov);
+    if (!vecutils::isFinite(camMov))
+        return;
+
+    camMov *= 3.0f * delta;
+    camera->addPosition(camMov);
+
+    needsFrustumRecalc = true;
+}
+
 void FreeCameraController::setPosition(float x, float y, float z) {
     camera->setPosition(glm::vec3(x, y, z));
 }

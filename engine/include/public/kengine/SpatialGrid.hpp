@@ -21,7 +21,7 @@ private:
     const uint32_t cellCountX, cellCountZ;
     const int32_t worldOffsetX, worldOffsetZ;
 
-    std::unordered_map<entt::entity, std::array<uint32_t, MAX_CELLS_PER_ENTITY>> entityIndex;
+    std::unordered_map<entt::entity, std::array<int32_t, MAX_CELLS_PER_ENTITY>> entityIndex;
     std::vector<std::vector<entt::entity>> cells;
     std::unordered_set<entt::entity> dirtySet;
 
@@ -33,6 +33,7 @@ public:
     SpatialGrid(uint32_t worldWidth, uint32_t worldLength, uint32_t cellSize);
 
     void setDirty(const entt::entity entity);
+    std::function<void()> createCb(const entt::entity eId);
 
     void getVisible(const glm::vec3& camPos, const std::array<glm::vec3, 8>& frustomPoints,
         const FrustumIntersection& frustumTester, std::vector<entt::entity>& dest);

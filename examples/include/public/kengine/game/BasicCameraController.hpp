@@ -23,6 +23,7 @@ private:
     FrustumIntersection frustumTester{};
     glm::vec3 frustumMin{}, frustumMax{};
     std::array<glm::vec3, 8> frustumCorners{};
+    bool needsFrustumRecalc = false;
 
     void init();
 
@@ -32,6 +33,8 @@ public:
     }
 
     void update(float delta) override;
+
+    void applyMovement(float delta);
 
     void setPosition(float x, float y, float z);
 
