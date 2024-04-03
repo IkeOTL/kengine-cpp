@@ -17,8 +17,8 @@ private:
     const float fov, zNear, zFar, aspectRatio;
 
 public:
-    inline static const float NEAR_CLIP = 0.01f;
-    inline static const float FAR_CLIP = 150;
+    inline static const float NEAR_CLIP = 0.1f;
+    inline static const float FAR_CLIP = 150.0f;
 
     Camera(float fov, float aspectRatio, float zNear, float zFar);
 

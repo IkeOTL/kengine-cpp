@@ -65,8 +65,16 @@ namespace matutils {
 
     inline static glm::vec3 transformProject(const glm::mat4& matrix, glm::vec3& vec) {
         glm::vec4 transformedVec = matrix * glm::vec4(vec, 1.0f);
-        auto invW = 1 / transformedVec.w; // for perspective division
-        return glm::vec3(transformedVec) * invW;
+
+        // for perspective division
+        if (transformedVec.w != 0) {
+            auto invW = 1.0f / transformedVec.w;
+            transformedVec.x *= invW;
+            transformedVec.y *= invW;
+            transformedVec.z *= invW;
+        }
+
+        return glm::vec3(transformedVec);
     }
 
     /// <summary>

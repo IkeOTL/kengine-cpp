@@ -29,16 +29,19 @@ void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const
     };
 
     for (auto i = 0; i < 4; i++) {
-        auto& cI = frustumCorners[i];
+      /*  auto& cI = frustumCorners[i];
         auto& c4 = frustumCorners[i + 4];
 
         auto dist = c4 - cI;
 
         c4 = splitDist * dist + cI;
-        cI += lastSplitDist * dist;
+        cI += lastSplitDist * dist;*/
+        glm::vec3 dist = frustumCorners[i + 4] - frustumCorners[i];
+        frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
+        frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
     }
 
-    glm::vec3 frustumCenter{};
+    glm::vec3 frustumCenter(0.0f);
     for (auto i = 0; i < 8; i++)
         frustumCenter += frustumCorners[i];
     frustumCenter *= 0.125f;
@@ -50,7 +53,7 @@ void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const
         radius = std::fmaxf(radius, distanceSq);
     }
     radius = std::ceilf(std::sqrtf(radius) * 16.0f) / 16.0f;
-
+     
     auto maxExtents = glm::vec3(radius);
     auto minExtents = -maxExtents;
 
