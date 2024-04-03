@@ -38,6 +38,7 @@ void RenderSystem::init() {
         );
 
         auto materialConfig = std::make_shared<PbrMaterialConfig>();
+        materialConfig->setHasShadow(true);
 
         for (size_t i = 0; i < 5; i++) {
             auto entity = ecs->create();

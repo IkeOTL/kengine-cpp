@@ -25,8 +25,8 @@ void CascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
 
     VkDescriptorSet descriptorSets[] = {
-        descSetAllocator.getGlobalDescriptorSet("shadow-pass0", shadowPassLayout),
-        descSetAllocator.getGlobalDescriptorSet("cascade", cascadeViewProjLayout)
+        descSetAllocator.getGlobalDescriptorSet("cascade", cascadeViewProjLayout),
+        descSetAllocator.getGlobalDescriptorSet("shadow-pass0", shadowPassLayout)
     };
 
     // TODO: check alignments

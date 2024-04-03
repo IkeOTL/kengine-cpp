@@ -49,6 +49,8 @@ public:
     inline static const TextureConfig EMPTY_CONFIG = TextureConfig("res/img/empty.png");
 
     PbrMaterialConfig();
+    PbrMaterialConfig(std::type_index type);
+    PbrMaterialConfig(bool hasShadow);
 
     void upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) override;
     size_t hash() const noexcept override;

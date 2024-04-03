@@ -6,7 +6,11 @@
 #include <future>
 
 PbrMaterialConfig::PbrMaterialConfig() :
-    MaterialConfig(typeid(DeferredOffscreenPbrPipeline)) {
+    PbrMaterialConfig(typeid(DeferredOffscreenPbrPipeline)) {
+}
+
+PbrMaterialConfig::PbrMaterialConfig(std::type_index type) :
+    MaterialConfig(type) {
     addAlbedoTexture(nullptr);
     addNormalsTexture(nullptr);
     addMetallicRoughnessTexture(nullptr);

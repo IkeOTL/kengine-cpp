@@ -222,7 +222,7 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, RenderFrameContext&
             textureWrite.descriptorType = textureBinding.descriptorType;
             textureWrite.pImageInfo = &descImgBufInfo;
 
-            std::vector<uint32_t> offsets = { 0 };
+            std::array<uint32_t, 1> offsets = { 0 };
 
             if (skinned) {
                 auto& bindingSkele = static_cast<const BufferBinding&>(indirectBatch.getMaterial()->getBinding(2, 5)).getGpuBuffer();
@@ -258,15 +258,22 @@ void ShadowContext::execShadowPass(VulkanContext& vkContext, RenderFrameContext&
         }
 
         const auto* mesh = indirectBatch.getMesh();
-        VkBuffer vertexBuffers[] = { mesh->getVertexBuf().getVkBuffer() };
-        VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(vkCmd, 0, 1, vertexBuffers, offsets);
+
+        VkDeviceSize _offsets = 0;
+        vkCmdBindVertexBuffers(vkCmd, 0, 1, &mesh->getVertexBuf().vkBuffer, &_offsets);
         vkCmdBindIndexBuffer(vkCmd, mesh->getIndexBuf().getVkBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+
+        auto i0 = vkCmd;
+        auto i1 = indirectCmdBuf.getGpuBuffer().getVkBuffer();
+        auto i2 = indirectCmdBuf.getFrameOffset(cxt.frameIndex);
+        auto i3 = indirectBatch.getCmdId();
+
 
         vkCmdDrawIndexedIndirect(
             vkCmd,
             indirectCmdBuf.getGpuBuffer().getVkBuffer(),
-            indCmdFrameOffset + indirectBatch.getCmdId() * sizeof(VkDrawIndexedIndirectCommand),
+            indirectCmdBuf.getFrameOffset(cxt.frameIndex) + indirectBatch.getCmdId() * sizeof(VkDrawIndexedIndirectCommand),
             1,
             sizeof(VkDrawIndexedIndirectCommand)
         );
