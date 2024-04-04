@@ -6,7 +6,7 @@
 void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const glm::vec3& lightDir,
     float lastSplitDist, float splitDist, float clipRange) {
 
-    glm::vec3 baseCorners[8] = {
+    glm::vec3 frustumCorners[8] = {
         glm::vec3(-1.0f, 1.0f, 0.0f),
         glm::vec3(1.0f, 1.0f, 0.0f),
         glm::vec3(1.0f, -1.0f, 0.0f),
@@ -17,28 +17,31 @@ void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const
         glm::vec3(-1.0f, -1.0f, 1.0f)
     };
 
-    glm::vec3 frustumCorners[8] = {
-           matutils::transformProject(invCam, baseCorners[0]),
-           matutils::transformProject(invCam, baseCorners[1]),
-           matutils::transformProject(invCam, baseCorners[2]),
-           matutils::transformProject(invCam, baseCorners[3]),
-           matutils::transformProject(invCam, baseCorners[4]),
-           matutils::transformProject(invCam, baseCorners[5]),
-           matutils::transformProject(invCam, baseCorners[6]),
-           matutils::transformProject(invCam, baseCorners[7])
-    };
+    /* glm::vec3 frustumCorners[8] = {
+            matutils::transformProject(invCam, baseCorners[0]),
+            matutils::transformProject(invCam, baseCorners[1]),
+            matutils::transformProject(invCam, baseCorners[2]),
+            matutils::transformProject(invCam, baseCorners[3]),
+            matutils::transformProject(invCam, baseCorners[4]),
+            matutils::transformProject(invCam, baseCorners[5]),
+            matutils::transformProject(invCam, baseCorners[6]),
+            matutils::transformProject(invCam, baseCorners[7])
+     };*/
+
+     // transformProject
+    for (auto i = 0; i < 8; i++) {
+        glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
+        frustumCorners[i] = invCorner / invCorner.w;
+    }
 
     for (auto i = 0; i < 4; i++) {
-      /*  auto& cI = frustumCorners[i];
+        auto& cI = frustumCorners[i];
         auto& c4 = frustumCorners[i + 4];
 
         auto dist = c4 - cI;
 
         c4 = splitDist * dist + cI;
-        cI += lastSplitDist * dist;*/
-        glm::vec3 dist = frustumCorners[i + 4] - frustumCorners[i];
-        frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
-        frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
+        cI += lastSplitDist * dist;
     }
 
     glm::vec3 frustumCenter(0.0f);
@@ -53,7 +56,7 @@ void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const
         radius = std::fmaxf(radius, distanceSq);
     }
     radius = std::ceilf(std::sqrtf(radius) * 16.0f) / 16.0f;
-     
+
     auto maxExtents = glm::vec3(radius);
     auto minExtents = -maxExtents;
 
@@ -61,7 +64,7 @@ void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const
     auto lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
     this->viewProj = lightOrthoMatrix * lightViewMatrix;
 
-    this->splitDepth = -(camNear + splitDist * clipRange);
+    this->splitDepth = (camNear + splitDist * clipRange) * -1.0f;
 }
 
 ShadowCascade& ShadowCascadeData::getCascade(int i) {
@@ -78,7 +81,7 @@ void ShadowCascadeData::uploadShadowPass(VulkanContext& vkCxt, CachedGpuBuffer& 
     auto pos = gpuBuffer.getFrameOffset(frameIdx);
 
     auto buf = static_cast<unsigned char*>(gpuBuffer.getGpuBuffer().data());
-    memcpy(buf + pos, &cascadeViewProjs[0], size);
+    memcpy(buf + pos, &cascadeViewProjs, size);
     gpuBuffer.getGpuBuffer().flush(pos, size);
 }
 
@@ -91,12 +94,11 @@ void ShadowCascadeData::uploadCompositionPass(VulkanContext& vkCxt, CachedGpuBuf
 
     ToUpload data{};
     {
-        for (auto i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++)
-            data.viewProj[i] = cascades[i].getViewProj();
-        //memcpy(&data.viewProj[i], &cascades[i].getViewProj(), sizeof(glm::mat4));
-
-        for (auto i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++)
+        for (auto i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
+            //data.viewProj[i] = cascades[i].getViewProj();
+            memcpy(&data.viewProj[i], &cascades[i].getViewProj(), sizeof(glm::mat4));
             data.splits[i] = cascades[i].getSplitDepth();
+        }
 
         data.lightDir = lightDir;
         //memcpy(&data.lightDir, &lightDir, sizeof(glm::vec3));

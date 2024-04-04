@@ -63,7 +63,7 @@ namespace matutils {
         return dest *= invLength;
     }
 
-    inline static glm::vec3 transformProject(const glm::mat4& matrix, glm::vec3& vec) {
+    inline static glm::vec3 transformProject(const glm::mat4& matrix, const glm::vec3& vec) {
         glm::vec4 transformedVec = matrix * glm::vec4(vec, 1.0f);
 
         // for perspective division

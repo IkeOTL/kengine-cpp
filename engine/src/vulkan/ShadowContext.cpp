@@ -121,28 +121,28 @@ void ShadowContext::execute(VulkanContext& vkContext, RenderFrameContext& cxt, D
 
     auto camera = cameraController.getCamera();
 
-    auto nearClip = camera->getNearClip();
-    auto farClip = camera->getFarClip();
-    auto clipRange = farClip - nearClip;
+    float nearClip = camera->getNearClip();
+    float farClip = camera->getFarClip();
+    float clipRange = farClip - nearClip;
 
-    auto minZ = nearClip;
-    auto maxZ = nearClip + clipRange;
+    float minZ = nearClip;
+    float maxZ = nearClip + clipRange;
 
-    auto range = maxZ - minZ;
-    auto ratio = maxZ / minZ;
+    float range = maxZ - minZ;
+    float ratio = maxZ / minZ;
 
     glm::mat4 invCamViewProj{};
     camera->getViewMatrix(invCamViewProj);
     invCamViewProj = glm::inverse(camera->getProjectionMatrix() * invCamViewProj);
 
-    auto cascadeSplitLambda = 0.95f;
-    auto lastDistSplit = 0.0f;
+    float cascadeSplitLambda = 0.95f;
+    float lastDistSplit = 0.0f;
     for (int i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
-        auto p = (i + 1.0f) / (float)ShadowCascadeData::SHADOW_CASCADE_COUNT;
-        auto log = minZ * std::powf(ratio, p);
-        auto uniform = minZ + range * p;
-        auto d = cascadeSplitLambda * (log - uniform) + uniform;
-        auto splitDist = (d - nearClip) / clipRange;
+        float p = (i + 1.0f) / static_cast<float>(ShadowCascadeData::SHADOW_CASCADE_COUNT);
+        float log = minZ * std::powf(ratio, p);
+        float uniform = minZ + range * p;
+        float d = cascadeSplitLambda * (log - uniform) + uniform;
+        float splitDist = (d - nearClip) / clipRange;
 
         auto& cascade = cascadesData.getCascade(i);
         cascade.updateViewProj(invCamViewProj, camera->getNearClip(), sceneData.getLightDir(),
