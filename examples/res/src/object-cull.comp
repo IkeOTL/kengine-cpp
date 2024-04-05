@@ -1,0 +1,87 @@
+#version 450
+
+layout (local_size_x = 256) in; // need to split this more
+
+struct DrawCommand
+{
+	uint indexCount;
+	uint instanceCount;
+	uint firstIndex;
+	uint vertexOffset;
+	uint firstInstance;
+};
+
+layout(std430, set = 0, binding = 0) buffer DrawCommandBuffer {
+    DrawCommand cmds[];
+} drawCommandBuffer;
+
+struct ObjectInstance {
+    uint cmdId;
+    uint drawObjectId;
+};
+
+// contains all instances to be rendered BEFORE culling and their ids
+layout(std430, set = 0, binding = 1) readonly buffer ObjectInstanceBuffer {
+    ObjectInstance instanceIds[];
+} objectInstanceBuffer;
+
+struct DrawObject {
+    mat4 transform;
+    vec4 boundingSphere;
+    int materialId;
+   // vec3 padding;
+};
+
+// contains all objects for the frame
+layout(std430, set = 0, binding = 2) readonly buffer DrawObjectBuffer {
+    DrawObject objects[];
+} drawObjectBuffer;
+
+// contains all instances to be rendered AFTER culling and their ids
+layout(std430, set = 0, binding = 3) buffer DrawInstanceBuffer {
+    uint instanceIds[];
+} drawInstanceBuffer;
+
+layout(push_constant) uniform PushConstants {
+    mat4 view;
+    float frustum[4];
+    float p00, p11, zNear, zFar;
+    uint totalInstances;
+} pcs;
+
+bool isVisible(uint objectId)
+{
+    DrawObject obj = drawObjectBuffer.objects[objectId];
+
+    vec4 sphereBounds = obj.boundingSphere;
+
+    vec3 center = (pcs.view * (obj.transform * vec4(sphereBounds.xyz, 1.0))).xyz;
+    float radius = sphereBounds.w;
+
+    // cull between left/right frustum planes
+    bool visible = center.z * pcs.frustum[1] - abs(center.x) * pcs.frustum[0] > -radius;
+    visible = visible && center.z * pcs.frustum[3] - abs(center.y) * pcs.frustum[2] > -radius;
+
+    // the near/far plane culling uses camera space Z directly
+    //visible = visible && center.z + radius > pcs.aux[2] && center.z - radius < pcs.aux[3];
+
+    return visible;
+}
+
+void main() {
+    uint gId = gl_GlobalInvocationID.x;
+
+    if (gId >= pcs.totalInstances)
+        return;
+
+    uint objectId = objectInstanceBuffer.instanceIds[gId].drawObjectId;
+
+    if (!isVisible(objectId))
+        return;
+
+    uint cmdId = objectInstanceBuffer.instanceIds[gId].cmdId;
+    uint relativeId = atomicAdd(drawCommandBuffer.cmds[cmdId].instanceCount, 1);
+    uint instanceIdx = drawCommandBuffer.cmds[cmdId].firstInstance + relativeId;
+
+    drawInstanceBuffer.instanceIds[instanceIdx] = objectId;
+}
