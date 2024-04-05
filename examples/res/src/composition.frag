@@ -237,7 +237,7 @@ void main()
                 color.rgb *= vec3(0.25f, 0.25f, 1.0f);
                 break;
             case 3 : 
-                color.rgb *= vec3(1.0f, 1.0f, 0.25f);
+                color.rgb *= vec3(1.0f, 0.25f, 1.0f);
                 break;
         }
     }

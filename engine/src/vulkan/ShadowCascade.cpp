@@ -7,14 +7,14 @@ void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const
     float lastSplitDist, float splitDist, float clipRange) {
 
     glm::vec3 frustumCorners[8] = {
-        glm::vec3(-1.0f, 1.0f, 0.0f),
-        glm::vec3(1.0f, 1.0f, 0.0f),
+        glm::vec3(-1.0f,  1.0f, 0.0f),
+        glm::vec3(1.0f,  1.0f, 0.0f),
         glm::vec3(1.0f, -1.0f, 0.0f),
         glm::vec3(-1.0f, -1.0f, 0.0f),
-        glm::vec3(-1.0f, 1.0f, 1.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        glm::vec3(1.0f, -1.0f, 1.0f),
-        glm::vec3(-1.0f, -1.0f, 1.0f)
+        glm::vec3(-1.0f,  1.0f,  1.0f),
+        glm::vec3(1.0f,  1.0f,  1.0f),
+        glm::vec3(1.0f, -1.0f,  1.0f),
+        glm::vec3(-1.0f, -1.0f,  1.0f),
     };
 
     /* glm::vec3 frustumCorners[8] = {

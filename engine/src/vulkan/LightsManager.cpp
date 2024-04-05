@@ -20,8 +20,8 @@ void LightsManager::upload(VulkanContext& vkCxt, CachedGpuBuffer& buffer, float 
     auto camera = cameraController.getCamera();
     ToUpload data{}; // todo: should we memcpy here instead?
     data.viewPos = camera->getPosition();
-    //camera->getViewMatrix(data.view);
-    camera->getIntegratedViewMatrix(alpha, data.view);
+    camera->getViewMatrix(data.view);
+    //camera->getIntegratedViewMatrix(alpha, data.view);
     data.lightCount = 0;
 
     auto startPos = buffer.getFrameOffset(frameIndex);
