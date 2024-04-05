@@ -57,6 +57,8 @@ void FreeCameraController::update(float delta) {
 
     auto invProjview = glm::inverse(projViewMat);
     matutils::frustumAabb(invProjview, frustumMin, frustumMax);
+
+    needsFrustumRecalc = false;
 }
 
 void FreeCameraController::applyMovement(float delta) {

@@ -19,9 +19,13 @@ void Camera::savePreviousTransform() {
 
 void Camera::getIntegratedViewMatrix(float alpha, glm::mat4& dest) {
     auto t = glm::mix(prevPosition, position, alpha);
-    auto r = glm::normalize(glm::mix(prevRotation, rotation, alpha));
+    
+    // interpolating the rotation is causing jittering??
+    // likely because the window input is polled once per frame, while camera movement is updated every fixed timestep??
+    //auto r = glm::normalize(glm::mix(prevRotation, rotation, alpha));
+    //dest = glm::mat4_cast(r);
 
-    dest = glm::mat4_cast(r);
+    dest = glm::mat4_cast(rotation);
     dest = glm::translate(dest, -t);
 }
 

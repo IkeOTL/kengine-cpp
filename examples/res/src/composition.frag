@@ -226,7 +226,7 @@ void main()
 
         color.xyz *= shadow; 
 
-        switch(cascadeIndex) {
+        /*switch(cascadeIndex) {
             case 0 : 
                 color.rgb *= vec3(1.0f, 0.25f, 0.25f);
                 break;
@@ -239,7 +239,7 @@ void main()
             case 3 : 
                 color.rgb *= vec3(1.0f, 0.25f, 1.0f);
                 break;
-        }
+        }*/
     }
 
     //HDR thing
