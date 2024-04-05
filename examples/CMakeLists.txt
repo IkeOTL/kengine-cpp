@@ -1,5 +1,7 @@
 add_executable(example)
 
+add_definitions(-DGLM_FORCE_DEPTH_ZERO_TO_ONE)
+
 #include(CheckCXXCompilerFlag)
 #check_cxx_compiler_flag(-fsanitize=address HAS_ASAN)
 #if (HAS_ASAN)

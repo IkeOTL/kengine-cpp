@@ -61,9 +61,7 @@ void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const
     auto minExtents = -maxExtents;
 
     auto lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-    auto lightOrthoMatrix = matutils::setOrtho(minExtents.x, maxExtents.x,
-        minExtents.y, maxExtents.y,
-        0.0f, maxExtents.z - minExtents.z, true);
+    auto lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
     this->viewProj = lightOrthoMatrix * lightViewMatrix;
 
     this->splitDepth = (camNear + splitDist * clipRange) * -1.0f;

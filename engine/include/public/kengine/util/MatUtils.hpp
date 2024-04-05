@@ -267,16 +267,4 @@ namespace matutils {
         point.y = (-c23y * d1 - c31y * d2 - c12y * d3) * invDot;
         point.z = (-c23z * d1 - c31z * d2 - c12z * d3) * invDot;
     }
-
-    inline static glm::mat4 setOrtho(float left, float right, float bottom, float top, float zNear, float zFar, bool zZeroToOne) {
-        glm::mat4 mat(1.0f);
-        mat[0][0] = 2.0f / (right - left);
-        mat[1][1] = 2.0f / (top - bottom);
-        mat[2][2] = (zZeroToOne ? 1.0f : 2.0f) / (zNear - zFar);
-        mat[3][0] = (right + left) / (left - right);
-        mat[3][1] = (top + bottom) / (bottom - top);
-        mat[3][2] = (zZeroToOne ? zNear : (zFar + zNear)) / (zNear - zFar);
-        return mat;
-    }
-
 }
