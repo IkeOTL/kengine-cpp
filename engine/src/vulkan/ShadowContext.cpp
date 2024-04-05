@@ -135,7 +135,7 @@ void ShadowContext::execute(VulkanContext& vkContext, RenderFrameContext& cxt, D
     camera->getViewMatrix(invCamViewProj);
     invCamViewProj = glm::inverse(camera->getProjectionMatrix() * invCamViewProj);
 
-    float cascadeSplitLambda = 0.95f;
+    float cascadeSplitLambda = 0.75f;
     float lastDistSplit = 0.0f;
     for (int i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
         float p = (i + 1.0f) / static_cast<float>(ShadowCascadeData::SHADOW_CASCADE_COUNT);

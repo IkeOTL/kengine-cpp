@@ -11,7 +11,7 @@ layout (location = 0) in vec2 inUV;
 
 layout (location = 0) out vec4 outColor;
 
-layout (constant_id = 0) const int MAX_NUM_LIGHTS = 2;
+layout (constant_id = 0) const int MAX_NUM_LIGHTS = 20;
 
 const float pi = 3.141592653589793;
 const float minRoughness = 0.04;

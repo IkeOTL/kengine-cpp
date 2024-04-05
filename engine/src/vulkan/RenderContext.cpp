@@ -423,7 +423,7 @@ void RenderContext::end() {
     auto frameIdx = frameCxt->frameIndex;
 
     sceneData->upload(vkContext, *sceneBuf, sceneTime, alpha, frameIdx);
-    lightsManager.upload(vkContext, *lightBuf, frameIdx);
+    lightsManager.upload(vkContext, *lightBuf, alpha, frameIdx);
 
     static constexpr float invIndCmdSize = 1.0f / sizeof(VkDrawIndexedIndirectCommand);
 

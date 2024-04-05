@@ -20,7 +20,7 @@ public:
 
     LightsManager(CameraController& cameraController) : cameraController(cameraController) {}
 
-    void upload(VulkanContext& vkCxt, CachedGpuBuffer& buffer, int frameIndex);
+    void upload(VulkanContext& vkCxt, CachedGpuBuffer& buffer, float alpha, int frameIndex);
 
     static int alignedFrameSize(VulkanContext& vkCxt);
     static int size();
