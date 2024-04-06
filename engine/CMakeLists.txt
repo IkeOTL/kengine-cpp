@@ -1,6 +1,8 @@
 add_library(engine STATIC)
 
 add_definitions(-DGLM_FORCE_DEPTH_ZERO_TO_ONE)
+add_definitions(-DTINYGLTF_NO_STB_IMAGE)
+add_definitions(-DTINYGLTF_NO_STB_IMAGE_WRITE)
 
 #include(CheckCXXCompilerFlag)
 #check_cxx_compiler_flag(-fsanitize=address HAS_ASAN)
@@ -82,7 +84,13 @@ set(HEADERS
     include/public/kengine/vulkan/mesh/Vertex.hpp
     include/public/kengine/vulkan/mesh/ModelNode.hpp
 
+    include/public/kengine/vulkan/mesh/anim/AsyncAnimationCache.hpp
+    include/public/kengine/vulkan/mesh/anim/AnimationFactory.hpp
+    include/public/kengine/vulkan/mesh/anim/GltfAnimationFactory.hpp
+    include/public/kengine/vulkan/mesh/anim/AnimationConfig.hpp
+    include/public/kengine/vulkan/mesh/anim/Animation.hpp
     include/public/kengine/vulkan/mesh/anim/Skeleton.hpp
+    include/public/kengine/vulkan/mesh/anim/BoneTrack.hpp
 
     include/public/kengine/vulkan/texture/AsyncTextureCache.hpp
     include/public/kengine/vulkan/texture/TextureFactory.hpp
@@ -168,6 +176,11 @@ set(SOURCES
     src/vulkan/mesh/Mesh.cpp
     src/vulkan/mesh/Model.cpp
     src/vulkan/mesh/GltfModelFactory.cpp
+
+    src/vulkan/mesh/anim/GltfAnimationFactory.cpp
+    src/vulkan/mesh/anim/AsyncAnimationCache.cpp
+    src/vulkan/mesh/anim/AnimationConfig.cpp
+    src/vulkan/mesh/anim/Animation.cpp
 
     src/vulkan/mesh/anim/Skeleton.cpp
 

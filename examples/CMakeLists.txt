@@ -1,6 +1,8 @@
 add_executable(example)
 
 add_definitions(-DGLM_FORCE_DEPTH_ZERO_TO_ONE)
+add_definitions(-DTINYGLTF_NO_STB_IMAGE)
+add_definitions(-DTINYGLTF_NO_STB_IMAGE_WRITE)
 
 #include(CheckCXXCompilerFlag)
 #check_cxx_compiler_flag(-fsanitize=address HAS_ASAN)

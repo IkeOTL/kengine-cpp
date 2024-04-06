@@ -38,7 +38,7 @@ void MainGameState::update(Game& parent) {
         // typically used for alpha lerping
         if (accumulator - GAME_UPDATE_TICK_INTERVAL < GAME_UPDATE_TICK_INTERVAL) {
             world.getSystem<RenderablePreviousTransformSystem>()->processSystem(GAME_UPDATE_TICK_INTERVAL);
-            //world.getSystem(SkeletonPreviousTransformSystem.class).processSystem();
+            //world.getSystem<SkeletonPreviousTransformSystem>()->processSystem(GAME_UPDATE_TICK_INTERVAL);
         }
 
         world.process(GAME_UPDATE_TICK_INTERVAL);
