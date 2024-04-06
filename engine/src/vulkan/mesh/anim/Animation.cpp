@@ -4,7 +4,64 @@
 Animation::Animation(std::string name, float ticksPerSecond, float duration, std::vector<BoneTrack>&& tracks)
     : name(name), ticksPerSecond(ticksPerSecond), duration(duration), tracks(std::move(tracks)) {
     calculateMaxRange();
-    updateSamples(this->tracks);
+    updateSamples();
+}
+
+float Animation::apply(Skeleton& skeleton, float time, bool loop) {
+    auto clamp = [](int input, int min, int max) { return (input < min) ? min : (input > max) ? max : input; };
+
+    time = adjustTime(time, loop);
+
+    auto& bones = skeleton.getBones();
+    for (auto& bone : bones) {
+        if (bone->getBoneId() >= tracks.size())
+            continue;
+
+        auto& track = tracks[bone->getBoneId()];
+        auto& times = track.getTimes();
+        int frameCount = track.getFrameCount();
+        int finalFrameIdx = frameCount - 1;
+
+        int startFrameIdx = getTargetFrameIdx(bone->getBoneId(), time, loop);
+        int nextFrameIdx = clamp(startFrameIdx + 1, 0, finalFrameIdx);
+        float blend = 0.0f;
+
+        if (startFrameIdx == finalFrameIdx) {
+            float guessedInterval = times[finalFrameIdx] - times[finalFrameIdx - 1];
+
+            if (guessedInterval > 0.0f)
+                blend = (time - times[startFrameIdx]) / guessedInterval;
+        }
+        else
+            blend = (time - times[startFrameIdx]) / (times[startFrameIdx + 1] - times[startFrameIdx]);
+
+
+        // NOTE: for some reason blend is coming out to under 0 and over 1
+        // need to fix
+        /*if (startFrameIdx == finalFrameIdx || blend < 0) {
+            track.getTranslation(startFrameIdx).get(bone.getLocalTransform().getPosition());
+            track.getRotation(startFrameIdx).get(bone.getLocalTransform().getRotation());
+            track.getScale(startFrameIdx).get(bone.getLocalTransform().getScale());
+            continue;
+        }
+
+        if (blend > 1) {
+            track.getTranslation(nextFrameIdx).get(bone.getLocalTransform().getPosition());
+            track.getRotation(nextFrameIdx).get(bone.getLocalTransform().getRotation());
+            track.getScale(nextFrameIdx).get(bone.getLocalTransform().getScale());
+            continue;
+        }*/
+
+        track.getTranslation(startFrameIdx).lerp(track.getTranslation(nextFrameIdx), blend, bone.getLocalTransform().getPosition());
+        track.getRotation(startFrameIdx).nlerp(track.getRotation(nextFrameIdx), blend, bone.getLocalTransform().getRotation());
+        track.getScale(startFrameIdx).lerp(track.getScale(nextFrameIdx), blend, bone.getLocalTransform().getScale());
+
+        bone.getLocalTransform().setDirty(true);
+    }
+
+    skeleton.forceUpdateTransform();
+
+    return time;
 }
 
 float Animation::adjustTime(float inTime, bool looping) {
