@@ -11,8 +11,6 @@
 thread_local tinygltf::TinyGLTF GltfModelFactory::gltfLoader{};
 
 std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
-    std::shared_ptr<Spatial> rootNode = nullptr;
-
     tinygltf::Model model;
     std::string err, warn;
 

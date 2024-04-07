@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+
+template <typename T, typename R, typename S>
 class BoneTrack {
 private:
     const uint32_t boneId;
@@ -11,15 +13,15 @@ private:
 
     const std::vector<float> times;
 
-    const std::vector<glm::vec3> translations;
-    const std::vector<glm::quat> rotations;
-    const std::vector<glm::vec3> scales;
+    const std::vector<T> translations;
+    const std::vector<R> rotations;
+    const std::vector<S> scales;
 
 public:
     BoneTrack(uint32_t boneId, std::string name,
-        std::vector<glm::vec3>&& translations,
-        std::vector<glm::quat>&& rotations,
-        std::vector<glm::vec3>&& scales)
+        std::vector<T>&& translations,
+        std::vector<R>&& rotations,
+        std::vector<S>&& scales)
         : boneId(boneId), name(name),
         translations(std::move(translations)),
         rotations(std::move(rotations)),
@@ -60,5 +62,32 @@ public:
 
     const glm::vec3 getScale(int i) const {
         return scales[i];
+    }
+
+    glm::vec3 lerpTranslation(T pos) {
+        if constexpr (std::is_base_of_v<TexturedVertex, T>) {
+
+        }
+        else if constexpr (std::is_base_of_v<TexturedVertex, T>) {
+
+        }
+    }
+
+    glm::quat lerpRotation(R pos) {
+        if constexpr (std::is_base_of_v<TexturedVertex, R>) {
+
+        }
+        else if constexpr (std::is_base_of_v<TexturedVertex, R>) {
+
+        }
+    }
+
+    glm::vec3 lerpScale(S pos) {
+        if constexpr (std::is_base_of_v<TexturedVertex, S>) {
+
+        }
+        else if constexpr (std::is_base_of_v<TexturedVertex, S>) {
+
+        }
     }
 };

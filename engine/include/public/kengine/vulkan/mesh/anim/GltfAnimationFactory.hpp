@@ -12,10 +12,12 @@ class GltfAnimationFactory : public AnimationFactory {
 private:
     static thread_local tinygltf::TinyGLTF gltfLoader;
 
+    VulkanContext& vkContext;
+    AssetIO& assetIo;
 
 public:
     GltfAnimationFactory(VulkanContext& vkContext, AssetIO& assetIo)
-        : AnimationFactory(vkContext, assetIo) {}
+        : vkContext(vkContext), assetIo(assetIo) {}
 
     std::unique_ptr<Animation> loadAnimation(const AnimationConfig& config) override;
 };

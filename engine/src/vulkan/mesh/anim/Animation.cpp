@@ -1,5 +1,5 @@
 #include <kengine/vulkan/mesh/anim/Animation.hpp>
-
+#include <kengine/Transform.hpp>
 
 Animation::Animation(std::string name, float ticksPerSecond, float duration, std::vector<BoneTrack>&& tracks)
     : name(name), ticksPerSecond(ticksPerSecond), duration(duration), tracks(std::move(tracks)) {
@@ -52,11 +52,10 @@ float Animation::apply(Skeleton& skeleton, float time, bool loop) {
             continue;
         }*/
 
-        track.getTranslation(startFrameIdx).lerp(track.getTranslation(nextFrameIdx), blend, bone.getLocalTransform().getPosition());
-        track.getRotation(startFrameIdx).nlerp(track.getRotation(nextFrameIdx), blend, bone.getLocalTransform().getRotation());
-        track.getScale(startFrameIdx).lerp(track.getScale(nextFrameIdx), blend, bone.getLocalTransform().getScale());
-
-        bone.getLocalTransform().setDirty(true);
+        auto iPos = glm::mix(track.getTranslation(startFrameIdx), track.getTranslation(nextFrameIdx), blend);
+        auto iRot = glm::lerp(track.getRotation(startFrameIdx), track.getRotation(nextFrameIdx), blend);
+        auto iScl = glm::mix(track.getScale(startFrameIdx), track.getScale(nextFrameIdx), blend);
+        bone->getLocalTransform().set(iPos, iRot, iScl);
     }
 
     skeleton.forceUpdateTransform();

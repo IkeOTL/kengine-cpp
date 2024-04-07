@@ -5,9 +5,13 @@ void Transform::setDirty(bool isDirty) {
 }
 
 void Transform::set(const Transform& in) {
-    position = in.position;
-    rotation = in.rotation;
-    scale = in.scale;
+    set(in.position, in.rotation, in.scale);
+}
+
+void Transform::set(const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scl) {
+    position = pos;
+    rotation = rot;
+    scale = scl;
     setDirty(true);
 }
 
@@ -102,4 +106,11 @@ void Transform::updateTransform(Transform& parent) {
     rotation = glm::normalize(parent.rotation * rotation);
     scale *= parent.scale;
     updateTransform();
+}
+
+void Transform::interpolate(const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scl, float factor) {
+    position = glm::mix(position, pos, factor);
+    rotation = glm::normalize(glm::lerp(rotation, rot, factor));
+    scale = glm::mix(scl, pos, factor);
+    dirty = true;
 }

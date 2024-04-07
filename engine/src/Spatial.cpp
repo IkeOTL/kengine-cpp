@@ -70,7 +70,7 @@ void Spatial::setChangeCb(std::function<void()>&& cb) {
         changeCb();
 }
 
-const Transform& Spatial::getLocalTransform() {
+Transform& Spatial::getLocalTransform() {
     return localTransform;
 }
 

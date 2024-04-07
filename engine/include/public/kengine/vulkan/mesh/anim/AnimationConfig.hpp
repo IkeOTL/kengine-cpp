@@ -10,11 +10,11 @@ public:
     AnimationConfig(std::string animationSet, std::string animationName) :
         animationSet(animationSet), animationName(animationName) {}
 
-    std::string getAnimationSet() {
+    std::string getAnimationSet() const {
         return animationSet;
     }
 
-    std::string getAnimationName() {
+    std::string getAnimationName() const {
         return animationName;
     }
 

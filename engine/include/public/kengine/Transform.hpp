@@ -1,7 +1,6 @@
 #pragma once
 
-#include <glm/vec3.hpp>
-#include <glm/matrix.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -31,6 +30,7 @@ public:
 
     void setDirty(bool isDirty);
     void set(const Transform& in);
+    void set(const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scl);
     const glm::mat4& getTransMatrix();
     void setPosition(const glm::vec3& p);
     void setPosition(float x, float y, float z);
@@ -39,6 +39,7 @@ public:
     void setRotation(const glm::quat& q);
     void setRotation(float x, float y, float z, float w);
     void slerpRotation(const glm::quat& target, float alpha);
+    void interpolate(const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scl, float factor);
     const glm::vec3& getPosition();
     const glm::vec3& getScale();
     const glm::quat& getRotation();

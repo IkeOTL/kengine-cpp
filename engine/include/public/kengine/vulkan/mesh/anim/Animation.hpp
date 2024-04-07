@@ -6,10 +6,11 @@
 #include <string>
 #include <vector>
 
+template<typename T, typename R, typename S>
 class Animation {
 private:
     const std::string name;
-    const std::vector<BoneTrack> tracks;
+    const std::vector<BoneTrack<T, R, S>> tracks;
     std::vector<std::vector<uint32_t>> sampleIndices;
 
     float startTime = 0, endTime = 0;
@@ -18,7 +19,7 @@ private:
     float duration;
 
 public:
-    Animation(std::string name, float ticksPerSecond, float duration, std::vector<BoneTrack>&& tracks);
+    Animation(std::string name, float ticksPerSecond, float duration, std::vector<BoneTrack<T, R, S>>&& tracks);
 
     float apply(Skeleton& skeleton, float time, bool loop);
 
