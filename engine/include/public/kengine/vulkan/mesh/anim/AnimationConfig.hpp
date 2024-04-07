@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/Hashable.hpp>
+#include <string>
 
 class AnimationConfig : Hashable {
 private:

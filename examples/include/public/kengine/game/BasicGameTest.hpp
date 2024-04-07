@@ -8,6 +8,8 @@
 #include <kengine/StateMachine.hpp>
 #include <kengine/vulkan/CameraController.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
+#include <kengine/vulkan/mesh/anim/GltfAnimationFactory.hpp>
+#include <kengine/vulkan/mesh/anim/AsyncAnimationCache.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/LightsManager.hpp>
 #include <kengine/SceneGraph.hpp>
@@ -38,6 +40,8 @@ private:
 
     std::unique_ptr<GltfModelFactory> modelFactory;
     std::unique_ptr<AsyncModelCache> modelCache;
+    std::unique_ptr<GltfAnimationFactory> animationFactory;
+    std::unique_ptr<AsyncAnimationCache> animationCache;
     std::unique_ptr<TextureFactory> textureFactory;
     std::unique_ptr<AsyncTextureCache> textureCache;
     std::unique_ptr<AsyncMaterialCache> materialCache;

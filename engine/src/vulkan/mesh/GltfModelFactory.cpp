@@ -1,5 +1,3 @@
-#define TINYGLTF_IMPLEMENTATION
-
 #include <kengine/vulkan/mesh/GltfModelFactory.hpp>
 #include <kengine/vulkan/mesh/Model.hpp>
 #include <kengine/io/AssetIO.hpp>

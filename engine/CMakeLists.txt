@@ -142,7 +142,8 @@ set(SOURCES
     src/terrain/TileTerrainChunk.cpp
 
     src/ecs/World.cpp
-
+    
+    src/vulkan/tinygltf_impl.cpp
     src/vulkan/VulkanContext.cpp
     src/vulkan/RenderContext.cpp
     src/vulkan/CullContext.cpp

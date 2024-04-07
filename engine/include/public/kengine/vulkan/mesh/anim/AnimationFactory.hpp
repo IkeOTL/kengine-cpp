@@ -2,6 +2,8 @@
 #include <kengine/vulkan/mesh/anim/Animation.hpp>
 #include <memory>
 
+class AnimationConfig;
+
 class AnimationFactory {
 
 public:

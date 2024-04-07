@@ -1,12 +1,12 @@
 #pragma once
 #include <kengine/vulkan/mesh/anim/AnimationFactory.hpp>
-#include <kengine/vulkan/mesh/anim/Animation.hpp>
 #include <thirdparty/tiny_gltf.h>
 #include <thread>
 
 class VulkanContext;
 class AssetIO;
 class AnimationConfig;
+class Animation;
 
 class GltfAnimationFactory : public AnimationFactory {
 private:
