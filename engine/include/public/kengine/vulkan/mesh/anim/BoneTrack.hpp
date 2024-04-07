@@ -4,29 +4,22 @@
 #include <string>
 #include <vector>
 
+class Transform;
 
-template <typename T, typename R, typename S>
 class BoneTrack {
-private:
+protected:
     const uint32_t boneId;
     const std::string name;
 
     const std::vector<float> times;
 
-    const std::vector<T> translations;
-    const std::vector<R> rotations;
-    const std::vector<S> scales;
-
 public:
-    BoneTrack(uint32_t boneId, std::string name,
-        std::vector<T>&& translations,
-        std::vector<R>&& rotations,
-        std::vector<S>&& scales)
-        : boneId(boneId), name(name),
-        translations(std::move(translations)),
-        rotations(std::move(rotations)),
-        scales(std::move(scales))
+    BoneTrack(uint32_t boneId, std::string name, std::vector<float>&& times)
+        : boneId(boneId), name(name), times(std::move(times))
     {}
+
+    virtual void setFrame(Transform& bTransform, uint32_t frameIdx) const = 0;
+    virtual void mixFrames(Transform& bTransform, uint32_t startFrameIdx, uint32_t nextFrameIdx, float factor) const = 0;
 
     uint32_t getBoneId() const {
         return boneId;
@@ -51,16 +44,36 @@ public:
     float getDuration() const {
         return getEndTime() - getStartTime();
     }
+};
 
-    const T& getTranslation(int i) const {
-        return translations[i];
-    }
+class LinearBoneTrack : public BoneTrack {
+    const std::vector<glm::vec3> translation;
+    const std::vector<glm::quat> rotation;
+    const std::vector<glm::vec3> scale;
 
-    const R& getRotation(int i) const {
-        return rotations[i];
-    }
+public:
+    LinearBoneTrack(uint32_t boneId, std::string name, std::vector<float>&& times,
+        std::vector<glm::vec3>&& translation, std::vector<glm::quat>&& rotation, std::vector<glm::vec3>&& scale)
+        : BoneTrack(boneId, name, std::move(times)),
+        translation(std::move(translation)), rotation(std::move(rotation)), scale(std::move(scale))
+    {}
 
-    const S& getScale(int i) const {
-        return scales[i];
-    }
+    void setFrame(Transform& bTransform, uint32_t frameIdx) const override;
+    void mixFrames(Transform& bTransform, uint32_t startFrameIdx, uint32_t nextFrameIdx, float factor) const override;
+};
+
+class CubicSplineBoneTrack : public BoneTrack {
+    const std::vector<glm::vec3> translation;
+    const std::vector<glm::quat> rotation;
+    const std::vector<glm::vec3> scale;
+
+public:
+    CubicSplineBoneTrack(uint32_t boneId, std::string name, std::vector<float>&& times,
+        std::vector<glm::vec3>&& translation, std::vector<glm::quat>&& rotation, std::vector<glm::vec3>&& scale)
+        : BoneTrack(boneId, name, std::move(times)),
+        translation(std::move(translation)), rotation(std::move(rotation)), scale(std::move(scale))
+    {}
+
+    void setFrame(Transform& bTransform, uint32_t frameIdx) const override;
+    void mixFrames(Transform& bTransform, uint32_t startFrameIdx, uint32_t nextFrameIdx, float factor) const override;
 };

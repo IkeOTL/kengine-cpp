@@ -181,7 +181,7 @@ set(SOURCES
     src/vulkan/mesh/anim/AsyncAnimationCache.cpp
     src/vulkan/mesh/anim/AnimationConfig.cpp
     src/vulkan/mesh/anim/Animation.cpp
-
+    src/vulkan/mesh/anim/BoneTrack.cpp
     src/vulkan/mesh/anim/Skeleton.cpp
 
     src/vulkan/material/AsyncMaterialCache.cpp
