@@ -52,42 +52,15 @@ public:
         return getEndTime() - getStartTime();
     }
 
-    const glm::vec3 getTranslation(int i) const {
+    const T& getTranslation(int i) const {
         return translations[i];
     }
 
-    const glm::quat getRotation(int i) const {
+    const R& getRotation(int i) const {
         return rotations[i];
     }
 
-    const glm::vec3 getScale(int i) const {
+    const S& getScale(int i) const {
         return scales[i];
-    }
-
-    glm::vec3 lerpTranslation(T pos) {
-        if constexpr (std::is_base_of_v<TexturedVertex, T>) {
-
-        }
-        else if constexpr (std::is_base_of_v<TexturedVertex, T>) {
-
-        }
-    }
-
-    glm::quat lerpRotation(R pos) {
-        if constexpr (std::is_base_of_v<TexturedVertex, R>) {
-
-        }
-        else if constexpr (std::is_base_of_v<TexturedVertex, R>) {
-
-        }
-    }
-
-    glm::vec3 lerpScale(S pos) {
-        if constexpr (std::is_base_of_v<TexturedVertex, S>) {
-
-        }
-        else if constexpr (std::is_base_of_v<TexturedVertex, S>) {
-
-        }
     }
 };
