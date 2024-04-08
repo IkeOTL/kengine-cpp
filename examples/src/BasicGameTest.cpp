@@ -92,7 +92,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     renderContext->init();
 
     auto config = std::make_shared<AnimationConfig>("res/gltf/char01.glb", "Run00");
-    animationCache->get(config);
+    auto& lol = animationCache->get(config);
 
 
     world = std::make_unique<World>(WorldConfig()
