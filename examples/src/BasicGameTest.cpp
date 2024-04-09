@@ -12,22 +12,16 @@
 #include <kengine/vulkan/pipelines/DrawCullingPipeline.hpp>
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
 #include <kengine/game/RenderablePreviousTransformSystem.hpp>
+#include <kengine/game/SpatialGridUpdateSystem.hpp>
 #include <kengine/game/RenderSystem.hpp>
 #include <kengine/game/CameraSystem.hpp>
-
 
 #include <kengine/game/MainGameState.hpp>
 #include <kengine/game/Game.hpp>
 #include <kengine/Math.hpp>
 
-#include <glm/gtc/quaternion.hpp>
-
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <algorithm>
-#include <thread>
 #include <utility>
-#include <kengine/game/SpatialGridUpdateSystem.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -77,6 +71,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     sceneTime = std::make_unique<SceneTime>();
     sceneGraph = std::make_unique<SceneGraph>();
     spatialPartitioningManager = std::make_unique<SpatialPartitioningManager>();
+    skeletonManager = std::make_unique<SkeletonManager>(*vulkanCxt, *bufCache);
 
     spatialPartitioningManager->setSpatialGrid(std::make_unique<SpatialGrid>(64, 64, 16));
 
@@ -108,6 +103,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .addService<ExecutorService>(threadPool.get())
         .addService<AssetIO>(assetIo.get())
         .addService<LightsManager>(lightsManager.get())
+        .addService<SkeletonManager>(skeletonManager.get())
         .addService<CameraController>(cameraController.get())
 
         .addService<GpuBufferCache>(bufCache.get())

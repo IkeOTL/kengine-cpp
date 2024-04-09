@@ -12,6 +12,7 @@
 #include <kengine/vulkan/mesh/anim/AsyncAnimationCache.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/LightsManager.hpp>
+#include <kengine/vulkan/SkeletonManager.hpp>
 #include <kengine/SceneGraph.hpp>
 #include <kengine/Window.hpp>
 #include <kengine/ExecutorService.hpp>
@@ -32,6 +33,7 @@ private:
     std::unique_ptr<FileSystemAssetIO> assetIo;
     std::unique_ptr<SceneGraph> sceneGraph;
     std::unique_ptr<LightsManager> lightsManager;
+    std::unique_ptr<SkeletonManager> skeletonManager;
     std::unique_ptr<CameraController> cameraController;
     std::unique_ptr<SceneTime> sceneTime;
     std::unique_ptr<SpatialPartitioningManager> spatialPartitioningManager;

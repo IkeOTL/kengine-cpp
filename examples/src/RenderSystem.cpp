@@ -18,6 +18,7 @@
 #include <thirdparty/entt.hpp>
 #include <kengine/util/Random.hpp>
 #include <kengine/game/BasicCameraController.hpp>
+#include <kengine/vulkan/SkeletonManager.hpp>
 
 void RenderSystem::init() {
     vulkanCtx = getService<VulkanContext>();
@@ -28,6 +29,7 @@ void RenderSystem::init() {
     sceneTime = getService<SceneTime>();
     cameraController = getService<CameraController>();
     spatialPartitioning = getService<SpatialPartitioningManager>();
+    skeletonManager = getService<SkeletonManager>();
 
     // test obj
     {
@@ -195,6 +197,14 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
                 auto node = sceneGraph->get(spatialsComponent.meshSpatialsIds[curIdx]);
                 auto& curTranform = node->getWorldTransform();
                 integrate(renderableComponent, spatialsComponent, curTranform, curIdx, delta, blendMat);
+
+                // TODO: need to make skeleton only up laod once, this might be uploading multiple times if meshes share a skeleton
+                // TODO: do this somewhere else, multithread it, and await finish before submitting frame
+                if (materialComponent.config->hasSkeleton()) {
+                    auto& skeleComp = ecs.get<Component::Skeleton>(e);
+                    auto skeleton = std::static_pointer_cast<Skeleton>(sceneGraph->get(skeleComp.skeletonId));
+                    skeletonManager->upload(*skeleton, skeleComp.bufId, ctx.frameIndex, delta);
+                }
 
                 // need to calc in Model still
                 auto& bounds = m->getBounds();
