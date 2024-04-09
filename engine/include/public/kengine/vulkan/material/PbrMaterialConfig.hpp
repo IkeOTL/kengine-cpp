@@ -50,7 +50,7 @@ public:
 
     PbrMaterialConfig();
     PbrMaterialConfig(std::type_index type);
-    PbrMaterialConfig(bool hasShadow);
+    PbrMaterialConfig(int skeletonBufferId);
 
     void upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) override;
     size_t hash() const noexcept override;

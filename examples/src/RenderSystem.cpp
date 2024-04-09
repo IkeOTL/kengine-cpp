@@ -39,23 +39,37 @@ void RenderSystem::init() {
             | VertexAttribute::TANGENTS
         );
 
-        auto materialConfig = std::make_shared<PbrMaterialConfig>();
-        materialConfig->setHasShadow(true);
 
         for (size_t i = 0; i < 5; i++) {
+
+
+
             auto entity = ecs->create();
             auto& renderable = ecs->emplace<Component::Renderable>(entity);
             ecs->emplace<Component::ModelComponent>(entity, modelConfig);
-            ecs->emplace<Component::Material>(entity, materialConfig);
+
+
 
             auto& model = modelCache->get(modelConfig);
             auto& spatials = ecs->emplace<Component::Spatials>(entity);
-            spatials.generate(*sceneGraph, model, "player" + std::to_string(i), Component::Renderable::DYNAMIC_MODEL);
+            auto spatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), Component::Renderable::DYNAMIC_MODEL);
 
             auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
             rootSpatial->setLocalPosition(glm::vec3(3.0f * i, .1337f, 0));
 
             spatialPartitioning->getSpatialGrid()->setDirty(entity);
+
+            auto& skeletonComp = ecs->emplace<Component::Skeleton>(entity);
+            auto& skeleton = model.acquireSkeleton("LOL SKELE");
+            auto skeletonId = sceneGraph->add(skeleton);
+            skeletonComp.skeletonId = skeletonId;
+            auto& buf = skeletonManager->createMappedBuf(skeleton);
+            skeletonComp.bufId = buf.getId();
+            spatial->addChild(skeleton);
+
+            auto materialConfig = std::make_shared<PbrMaterialConfig>(skeletonComp.bufId);
+            materialConfig->setHasShadow(true);
+            ecs->emplace<Component::Material>(entity, materialConfig);
         }
     }
 

@@ -7,8 +7,6 @@
 class Model;
 
 namespace Component {
-
-
     struct Renderable {
         enum RenderableType {
             DYNAMIC_MODEL,
@@ -17,7 +15,6 @@ namespace Component {
             //STATIC_MESH
         };
 
-    public:
         RenderableType type = DYNAMIC_MODEL;
         bool integrateRendering = true;
 
@@ -28,14 +25,16 @@ namespace Component {
     };
 
     struct Spatials {
-    public:
         uint32_t rootSpatialId = -1;
         std::vector<uint32_t> meshSpatialsIds;
         std::vector<Transform> previousTransforms;
 
         std::shared_ptr<Spatial> generate(SceneGraph& sceneGraph, Model& model, std::string name, Renderable::RenderableType renderType);
-    private:
+    };
 
+    struct Skeleton {
+        int skeletonId;
+        int bufId;
     };
 
 }

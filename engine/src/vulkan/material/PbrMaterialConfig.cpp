@@ -2,8 +2,14 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/util/VecUtils.hpp>
 #include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
+#include <kengine/vulkan/pipelines/SkinnedOffscreenPbrPipeline.hpp>
 
 #include <future>
+
+PbrMaterialConfig::PbrMaterialConfig(int skeletonBufferId) :
+    PbrMaterialConfig(typeid(SkinnedOffscreenPbrPipeline)) {
+    addSkeleton(skeletonBufferId);
+}
 
 PbrMaterialConfig::PbrMaterialConfig() :
     PbrMaterialConfig(typeid(DeferredOffscreenPbrPipeline)) {
