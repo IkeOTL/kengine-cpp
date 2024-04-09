@@ -39,7 +39,7 @@ float Animation::apply(Skeleton& skeleton, float time, bool loop) {
         // NOTE: for some reason blend is coming out to under 0 and over 1
         // in this case setFrame and start or finish?
 
-       // track.mixFrames(bone->getLocalTransform(), startFrameIdx, nextFrameIdx, blend);
+        bone->getLocalTransform().set(track.getTranslation(startFrameIdx), track.getRotation(startFrameIdx), track.getScale(startFrameIdx));
     }
 
     skeleton.forceUpdateTransform();

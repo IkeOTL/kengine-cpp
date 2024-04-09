@@ -56,5 +56,13 @@ public:
     int getBoneCount();
     void forceUpdateBones();
     void savePreviousTransforms();
-    void upload(VulkanContext& vkCxt, CachedGpuBuffer& vmaBuffer, int frameIdx, float alpha);
+    void upload(VulkanContext& vkCxt, const CachedGpuBuffer& vmaBuffer, int frameIdx, float alpha);
+
+    uint32_t size() {
+        return singleSize() * bones.size();
+    }
+
+    static uint32_t singleSize() {
+        return sizeof(glm::mat4);
+    }
 };

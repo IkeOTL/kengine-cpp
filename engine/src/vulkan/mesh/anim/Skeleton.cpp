@@ -58,7 +58,7 @@ void Skeleton::savePreviousTransforms() {
     }
 }
 
-void Skeleton::upload(VulkanContext& vkCxt, CachedGpuBuffer& vmaBuffer, int frameIdx, float alpha) {
+void Skeleton::upload(VulkanContext& vkCxt, const CachedGpuBuffer& vmaBuffer, int frameIdx, float alpha) {
     auto boneCount = bones.size();
     glm::mat4 outMats[125]; // maybe more?
     {

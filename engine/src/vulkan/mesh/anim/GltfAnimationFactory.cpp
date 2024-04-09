@@ -288,7 +288,5 @@ std::unique_ptr<Animation> GltfAnimationFactory::loadAnimation(const AnimationCo
         }
     }
 
-    auto ptr = std::make_unique<Animation>(config.getAnimationName(), ticksPerSecond, 0, std::move(tracks));
-
-    return ptr;
+    return std::make_unique<Animation>(config.getAnimationName(), ticksPerSecond, 0, std::move(tracks));
 }

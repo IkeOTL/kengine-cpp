@@ -46,4 +46,34 @@ public:
     float getDuration() const {
         return getEndTime() - getStartTime();
     }
+
+    const glm::vec3& getTranslation(uint32_t frameIdx) const {
+        if (frameIdx >= translation.size())
+            frameIdx = translation.size() - 1;
+
+        if (frameIdx < 0)
+            frameIdx = 0;
+
+        return translation[frameIdx];
+    }
+
+    const glm::quat& getRotation(uint32_t frameIdx) const {
+        if (frameIdx >= rotation.size())
+            frameIdx = rotation.size() - 1;
+
+        if (frameIdx < 0)
+            frameIdx = 0;
+
+        return rotation[frameIdx];
+    }
+
+    const glm::vec3& getScale(uint32_t frameIdx) const {
+        if (frameIdx >= scale.size())
+            frameIdx = scale.size() - 1;
+
+        if (frameIdx < 0)
+            frameIdx = 0;
+
+        return scale[frameIdx];
+    }
 };
