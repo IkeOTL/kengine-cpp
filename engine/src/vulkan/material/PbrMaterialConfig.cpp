@@ -58,8 +58,10 @@ size_t PbrMaterialConfig::hash() const noexcept {
 }
 
 void PbrMaterialConfig::addSkeleton(int skeletonBufferId) {
-    if (skeletonBufferId == -1)
+    if (skeletonBufferId == -1) {
+        setHasSkeleton(false);
         return;
+    }
 
     setHasSkeleton(true);
     setSkeletonBufferId(skeletonBufferId);

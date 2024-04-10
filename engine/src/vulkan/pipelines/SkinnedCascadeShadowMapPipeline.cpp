@@ -19,8 +19,8 @@ void SkinnedCascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAl
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
 
     VkDescriptorSet descriptorSets[] = {
-        descSetAllocator.getGlobalDescriptorSet("shadow-pass0", CascadeShadowMapPipeline::shadowPassLayout),
-        descSetAllocator.getGlobalDescriptorSet("cascade", CascadeShadowMapPipeline::cascadeViewProjLayout)
+        descSetAllocator.getGlobalDescriptorSet("cascade", CascadeShadowMapPipeline::cascadeViewProjLayout),
+        descSetAllocator.getGlobalDescriptorSet("shadow-pass0", CascadeShadowMapPipeline::shadowPassLayout)
     };
 
     // TODO: check alignments

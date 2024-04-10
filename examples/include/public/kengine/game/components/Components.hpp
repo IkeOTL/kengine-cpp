@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/SceneGraph.hpp>
+#include <kengine/vulkan/mesh/anim/Skeleton.hpp>
 #include <string>
 #include <memory>
 #include <vector>
@@ -25,16 +26,19 @@ namespace Component {
     };
 
     struct Spatials {
-        uint32_t rootSpatialId = -1;
+        uint32_t rootSpatialId;
+        std::vector<uint32_t> spatialsIds;
         std::vector<uint32_t> meshSpatialsIds;
         std::vector<Transform> previousTransforms;
 
         std::shared_ptr<Spatial> generate(SceneGraph& sceneGraph, Model& model, std::string name, Renderable::RenderableType renderType);
     };
 
-    struct Skeleton {
-        int skeletonId;
-        int bufId;
+    struct SkeletonComp {
+        uint32_t skeletonId;
+        uint32_t bufId;
+
+        std::shared_ptr<Skeleton> generate(SceneGraph& sceneGraph, Model& model, Component::Spatials& spatials, std::string name);
     };
 
 }

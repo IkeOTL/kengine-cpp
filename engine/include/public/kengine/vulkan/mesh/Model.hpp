@@ -60,6 +60,10 @@ public:
         return nodes;
     }
 
+    const std::vector<uint32_t>& getBoneIndices() const {
+        return bones;
+    }
+
     const std::vector<int16_t>& getParentIndices() const {
         return parentIndices;
     }
@@ -71,6 +75,8 @@ public:
     const Bounds& getBounds() const {
         return bounds;
     }
+
+    std::shared_ptr<Skeleton> acquireSkeleton(std::string name);
 };
 
 

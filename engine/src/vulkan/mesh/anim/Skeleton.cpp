@@ -2,7 +2,7 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
 
-void Bone::setInverseBindWorldMatrix(glm::mat4& boneOffset) {
+void Bone::setInverseBindWorldMatrix(const glm::mat4& boneOffset) {
     this->boneOffset = boneOffset;
 }
 

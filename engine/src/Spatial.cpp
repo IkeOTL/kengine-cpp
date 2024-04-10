@@ -32,9 +32,10 @@ std::shared_ptr<Spatial> Spatial::addChild(std::shared_ptr<Spatial> s) {
     if (!s)
         return nullptr;
 
-    //auto it = children.find(s->getName());
-    //if (it != children.end())
-    //    it->second->removeFromParent();
+    // check if theres already a child with the same name and remove it
+    auto it = children.find(s->getName());
+    if (it != children.end())
+        it->second->removeFromParent();
 
     s->removeFromParent();
     s->parent = shared_from_this();

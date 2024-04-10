@@ -72,3 +72,41 @@ void Model::fillRoot(std::shared_ptr<Spatial> root, const std::vector<std::share
             fillRoot(root, node->getChildren());
     }
 }
+
+std::shared_ptr<Skeleton> Model::acquireSkeleton(std::string name) {
+    std::vector<std::shared_ptr<Bone>> out;
+    out.reserve(bones.size());
+
+    // copy bones
+    std::unordered_map<std::string, std::shared_ptr<Bone>> m;
+    for (int i = 0; i < bones.size(); i++) {
+        auto boneNodeId = bones[i];
+        auto bone = std::static_pointer_cast<Bone>(nodes[boneNodeId]);
+
+        out.push_back(std::make_shared<Bone>(bone->getBoneId(), bone->getName()));
+        out[i]->setLocalTransform(bone->getLocalTransform());
+        out[i]->setInverseBindWorldMatrix(bone->getInverseBindWorldMatrix());
+        m[bone->getName()] = out[i];
+    }
+
+    // apply parenting
+    for (int i = 0; i < bones.size(); i++) {
+        auto boneNodeId = bones[i];
+        auto bone = std::static_pointer_cast<Bone>(nodes[boneNodeId]);
+
+        auto boneParent = bone->getParent();
+        if (!boneParent)
+            continue;
+
+        // check if we hit a non-bone parent
+        auto it = m.find(boneParent->getName());
+        if (it == m.end())
+            continue;
+
+        m[boneParent->getName()]->addChild(m[bone->getName()]);
+    }
+
+    auto skeleton = std::make_shared<Skeleton>(name, std::move(out));
+    skeleton->saveBindPose();
+    return skeleton;
+}

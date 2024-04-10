@@ -15,7 +15,7 @@ public:
     Bone(uint32_t boneId, std::string name)
         : Spatial(name), boneId(boneId) {}
 
-    void setInverseBindWorldMatrix(glm::mat4& boneOffset);
+    void setInverseBindWorldMatrix(const glm::mat4& boneOffset);
 
     const glm::mat4& getInverseBindWorldMatrix() const {
         return boneOffset;
@@ -41,8 +41,8 @@ private:
     void attachRootBones();
 
 public:
-    Skeleton(std::string name, std::vector<std::shared_ptr<Bone>> bones)
-        : Spatial(name), bones(bones) {
+    Skeleton(std::string name, std::vector<std::shared_ptr<Bone>>&& bones)
+        : Spatial(name), bones(std::move(bones)) {
         attachRootBones();
         prevTransforms.resize(this->bones.size());
     };

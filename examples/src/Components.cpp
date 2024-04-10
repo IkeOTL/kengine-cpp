@@ -10,6 +10,8 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
     const auto& parentIndices = model.getParentIndices();
     const auto& meshGroups = model.getMeshGroups();
 
+    spatialsIds.reserve(modelNodes.size());
+
     std::vector<std::shared_ptr<Spatial>> nodes;
     nodes.reserve(modelNodes.size());
 
@@ -17,6 +19,10 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
     for (const auto& n : modelNodes) {
         auto s = sceneGraph.create(n->getName());
         s->setLocalTransform(n->getPosition(), n->getScale(), n->getRotation());
+
+        // safe id in component since we'll need it for various operations (like skeleton bone indices)
+        spatialsIds.push_back(s->getSceneId());
+
         nodes.push_back(std::move(s));
     }
 
@@ -48,4 +54,20 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
         previousTransforms.resize(meshSpatialsIds.size());
 
     return rootSpatial;
+}
+
+
+/// <summary>
+/// create a skeleton based on spatials from the generated model spatial hierarchy
+/// </summary>
+std::shared_ptr<Skeleton> Component::SkeletonComp::generate(SceneGraph& sceneGraph, Model& model, Component::Spatials& spatials, std::string name) {
+    auto& boneIndices = model.getBoneIndices();
+
+    std::vector<std::shared_ptr<Bone>> bones;
+    bones.reserve(boneIndices.size());
+
+    for (auto i : boneIndices)
+        bones.push_back(std::static_pointer_cast<Bone>(sceneGraph.get(spatials.spatialsIds[i])));
+
+    return std::make_shared<Skeleton>(name, std::move(bones));
 }
