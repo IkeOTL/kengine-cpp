@@ -32,27 +32,31 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
 
             inverseBindMatrices.resize(accessor.count);
             for (size_t i = 0; i < accessor.count; ++i)
-                memcpy(&(inverseBindMatrices[i]), inverseBindMatricesData + (i * bufferView.byteStride), sizeof(glm::mat4));
+                memcpy(&inverseBindMatrices[i], inverseBindMatricesData + (i * bufferView.byteStride), sizeof(glm::mat4));
         }
 
         // find all joint indices for first skin
-        std::unordered_set<uint32_t> uniqueBoneNodeIndices;
-        if (!model.skins.empty())
-            for (const auto jointIndex : model.skins[0].joints)
-                uniqueBoneNodeIndices.insert(jointIndex);
+        auto& joints = model.skins[0].joints;
 
         // create node entries
         spatialNodes.reserve(model.nodes.size());
-        spatialBones.reserve(uniqueBoneNodeIndices.size());
-        bonesNodeIndices.resize(uniqueBoneNodeIndices.size());
+        spatialBones.reserve(joints.size());
         parentIndices.resize(model.nodes.size(), -1);
+
+        std::unordered_map<int, int> boneMap;
+        bonesNodeIndices.resize(joints.size());
+        for (auto i = 0; i < joints.size(); i++) {
+            bonesNodeIndices[i] = joints[i];
+            boneMap[joints[i]] = i;
+        }
 
         // load all nodes to keep it simple
         for (size_t i = 0; i < model.nodes.size(); i++) {
             auto& node = model.nodes[i];
 
             // normal node, aka not a joint
-            if (uniqueBoneNodeIndices.find(i) == uniqueBoneNodeIndices.end()) {
+            auto boneIdx = boneMap.find(i);
+            if (boneIdx == boneMap.end()) {
                 auto spatial = std::make_shared<Spatial>("node: (" + std::to_string(i) + ") " + node.name);
 
                 if (!node.translation.empty()) {
@@ -78,9 +82,9 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
                 continue;
             }
 
-            auto boneSpatial = std::make_shared<Bone>(spatialBones.size(), model.nodes[i].name);
+            auto boneSpatial = std::make_shared<Bone>(boneIdx->second, model.nodes[i].name);
+            make sure right bind matrix is going to right bone!
             boneSpatial->setInverseBindWorldMatrix(inverseBindMatrices[boneSpatial->getBoneId()]);
-            bonesNodeIndices[boneSpatial->getBoneId()] = i;
 
             if (!node.translation.empty()) {
                 glm::dvec3 pos;

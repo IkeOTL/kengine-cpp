@@ -16,18 +16,43 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
     std::vector<std::shared_ptr<Spatial>> nodes;
     nodes.reserve(modelNodes.size());
 
+    std::unordered_map<uint32_t, uint32_t> boneMap;
+    for (int i = 0; i < boneIndices.size(); i++)
+        boneMap[boneIndices[i]] = i;
+
     // copy node details
-    for (const auto& n : modelNodes) {
-        create a bone spatial if node is a bone
+    for (int i = 0; i < modelNodes.size(); i++) {
+        const auto& n = modelNodes[i];
 
+        // normal spatial
+        auto it = boneMap.find(i);
+        if (it == boneMap.end()) {
+            auto s = sceneGraph.create(n->getName());
+            s->setLocalTransform(n->getPosition(), n->getScale(), n->getRotation());
 
-        auto s = sceneGraph.create(n->getName());
-        s->setLocalTransform(n->getPosition(), n->getScale(), n->getRotation());
+            // save id in component since we'll need it for various operations (like skeleton bone indices)
+            spatialsIds.push_back(s->getSceneId());
 
-        // safe id in component since we'll need it for various operations (like skeleton bone indices)
-        spatialsIds.push_back(s->getSceneId());
+            nodes.push_back(std::move(s));
+            continue;
+        }
 
-        nodes.push_back(std::move(s));
+        // bone spatial
+        {
+            auto ogBone = std::static_pointer_cast<Bone>(n);
+            auto s = std::make_shared<Bone>(ogBone->getBoneId(), n->getName());
+
+            s->setLocalTransform(n->getPosition(), n->getScale(), n->getRotation());
+            s->setInverseBindWorldMatrix(ogBone->getInverseBindWorldMatrix());
+            s->saveBindPose();
+
+            sceneGraph.add(s);
+
+            // save id in component since we'll need it for various operations (like skeleton bone indices)
+            spatialsIds.push_back(s->getSceneId());
+
+            nodes.push_back(std::move(s));
+        }
     }
 
     auto rootSpatial = sceneGraph.create(name);
