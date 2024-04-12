@@ -8,7 +8,7 @@ class CachedGpuBuffer;
 class Bone : public Spatial {
 private:
     Transform bindTransform{};
-    glm::mat4 boneOffset{};
+    glm::mat4 boneOffset{1};
 
     const uint32_t boneId;
 public:

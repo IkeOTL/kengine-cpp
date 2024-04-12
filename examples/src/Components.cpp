@@ -9,6 +9,7 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
     const auto& modelNodes = model.getNodes();
     const auto& parentIndices = model.getParentIndices();
     const auto& meshGroups = model.getMeshGroups();
+    const auto& boneIndices = model.getBoneIndices();
 
     spatialsIds.reserve(modelNodes.size());
 
@@ -17,6 +18,9 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
 
     // copy node details
     for (const auto& n : modelNodes) {
+        create a bone spatial if node is a bone
+
+
         auto s = sceneGraph.create(n->getName());
         s->setLocalTransform(n->getPosition(), n->getScale(), n->getRotation());
 
