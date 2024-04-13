@@ -91,10 +91,10 @@ void FreeCameraController::applyMovement(float delta) {
 
     camMov *= 3.0f * delta;
     camera->addPosition(camMov);
-
     needsFrustumRecalc = true;
 }
 
 void FreeCameraController::setPosition(float x, float y, float z) {
     camera->setPosition(glm::vec3(x, y, z));
+    needsFrustumRecalc = true;
 }

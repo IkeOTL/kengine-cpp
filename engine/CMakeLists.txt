@@ -47,6 +47,7 @@ set(HEADERS
     include/public/kengine/SpatialPartitioningManager.hpp
     include/public/kengine/FrustumIntersection.hpp
     
+    include/public/kengine/vulkan/ImGuiContext.hpp
     include/public/kengine/vulkan/VulkanContext.hpp
     include/public/kengine/vulkan/RenderContext.hpp
     include/public/kengine/vulkan/CullContext.hpp
@@ -145,6 +146,7 @@ set(SOURCES
     src/ecs/World.cpp
     
     src/vulkan/tinygltf_impl.cpp
+    src/vulkan/ImGuiContext.cpp
     src/vulkan/VulkanContext.cpp
     src/vulkan/RenderContext.cpp
     src/vulkan/CullContext.cpp
@@ -212,16 +214,30 @@ set(SOURCES
     src/vulkan/renderpass/CascadeShadowMapRenderPass.cpp
 )
 
+set(IMGUI
+    ../thirdparty/imgui/imgui.cpp
+    ../thirdparty/imgui/imgui_demo.cpp
+    ../thirdparty/imgui/imgui_draw.cpp
+    ../thirdparty/imgui/imgui_widgets.cpp
+    ../thirdparty/imgui/imgui_tables.cpp
+    ../thirdparty/imgui/backends/imgui_impl_opengl3.cpp
+    ../thirdparty/imgui/backends/imgui_impl_glfw.cpp
+)
+
 target_sources(engine 
     PRIVATE
         ${HEADERS}
         ${SOURCES}
+        ${IMGUI}
 )
 
 source_group(
     TREE ${CMAKE_CURRENT_SOURCE_DIR}
     FILES ${HEADERS} ${SOURCES}
 )
+
+# imgui
+target_include_directories(engine PUBLIC ../thirdparty/imgui)
 
 target_include_directories(engine PUBLIC include/public)
 target_include_directories(engine PRIVATE include/private)

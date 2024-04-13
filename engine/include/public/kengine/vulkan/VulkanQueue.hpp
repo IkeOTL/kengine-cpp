@@ -23,4 +23,8 @@ public:
     VkResult submit(unsigned int submitCnt, VkSubmitInfo2* submits, VkFence fence);
     VkResult present(VkPresentInfoKHR* presentInfo);
     VkResult waitIdle();
+
+    VkQueue getVkQueue() const {
+        return queue;
+    }
 };

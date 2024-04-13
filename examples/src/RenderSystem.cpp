@@ -40,104 +40,103 @@ void RenderSystem::init() {
         );
 
 
-        for (size_t i = 0; i < 20; i++) {
+        for (size_t i = 0; i < 5; i++) {
+            for (size_t j = 0; j < 5; j++) {
+                auto entity = ecs->create();
+                auto& renderable = ecs->emplace<Component::Renderable>(entity);
+                ecs->emplace<Component::ModelComponent>(entity, modelConfig);
 
 
 
-            auto entity = ecs->create();
-            auto& renderable = ecs->emplace<Component::Renderable>(entity);
-            ecs->emplace<Component::ModelComponent>(entity, modelConfig);
+                auto& model = modelCache->get(modelConfig);
+                auto& spatials = ecs->emplace<Component::Spatials>(entity);
+                auto spatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), Component::Renderable::DYNAMIC_MODEL);
 
+                auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
+                rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - ((1.5f * 5.0f) * 0.5f), .1337f, (1.5f * j) - ((1.5f * 5.0f) * 0.5f)));
 
+                spatialPartitioning->getSpatialGrid()->setDirty(entity);
 
-            auto& model = modelCache->get(modelConfig);
-            auto& spatials = ecs->emplace<Component::Spatials>(entity);
-            auto spatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), Component::Renderable::DYNAMIC_MODEL);
+                auto& skeletonComp = ecs->emplace<Component::SkeletonComp>(entity);
+                auto skeleton = skeletonComp.generate(*sceneGraph, model, spatials, "LOL SKELE");
+                auto skeletonId = sceneGraph->add(skeleton);
+                skeletonComp.skeletonId = skeletonId;
+                auto& buf = skeletonManager->createMappedBuf(*skeleton);
+                skeletonComp.bufId = buf.getId();
+                //spatial->addChild(skeleton);
 
-            auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
-            rootSpatial->setLocalPosition(glm::vec3(1.5f * i, .1337f, 0));
-
-            spatialPartitioning->getSpatialGrid()->setDirty(entity);
-
-            auto& skeletonComp = ecs->emplace<Component::SkeletonComp>(entity);
-            auto skeleton = skeletonComp.generate(*sceneGraph, model, spatials, "LOL SKELE");
-            auto skeletonId = sceneGraph->add(skeleton);
-            skeletonComp.skeletonId = skeletonId;
-            auto& buf = skeletonManager->createMappedBuf(*skeleton);
-            skeletonComp.bufId = buf.getId();
-            //spatial->addChild(skeleton);
-
-            auto materialConfig = std::make_shared<PbrMaterialConfig>(skeletonComp.bufId);
-            materialConfig->setHasShadow(true);
-            ecs->emplace<Component::Material>(entity, materialConfig);
+                auto materialConfig = std::make_shared<PbrMaterialConfig>(skeletonComp.bufId);
+                materialConfig->setHasShadow(true);
+                ecs->emplace<Component::Material>(entity, materialConfig);
+            }
         }
     }
 
     // test terrain
-    //{
-    //    auto* ecs = getWorld().getService<entt::registry>();
-    //    auto tilesWidth = 64;
-    //    auto tilesLength = 64;
-    //    // terrain
+    {
+        auto* ecs = getWorld().getService<entt::registry>();
+        auto tilesWidth = 64;
+        auto tilesLength = 64;
+        // terrain
 
-    //    auto tileTerrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
+        auto tileTerrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
 
-    //    for (int z = 0; z < tileTerrain->getTerrainHeightsLength(); z++) {
-    //        for (int x = 0; x < tileTerrain->getTerrainHeightsWidth(); x++) {
-    //            tileTerrain->setHeight(x, z, random::randFloat(-.1f, .15f));
-    //        }
-    //    }
-    //    tileTerrain->regenerate(*vulkanCtx, *modelCache);
+        for (int z = 0; z < tileTerrain->getTerrainHeightsLength(); z++) {
+            for (int x = 0; x < tileTerrain->getTerrainHeightsWidth(); x++) {
+                tileTerrain->setHeight(x, z, random::randFloat(-.1f, .15f));
+            }
+        }
+        tileTerrain->regenerate(*vulkanCtx, *modelCache);
 
-    //    auto matConfig = std::make_shared<PbrMaterialConfig>();
-    //    TextureConfig textureConfig("res/img/poke-tileset.png");
-    //    matConfig->addAlbedoTexture(&textureConfig);
-    //    matConfig->setMetallicFactor(0.0f);
-    //    matConfig->setRoughnessFactor(0.5f);
-    //    tileTerrain->setMaterialConfig(matConfig);
+        auto matConfig = std::make_shared<PbrMaterialConfig>();
+        TextureConfig textureConfig("res/img/poke-tileset.png");
+        matConfig->addAlbedoTexture(&textureConfig);
+        matConfig->setMetallicFactor(0.0f);
+        matConfig->setRoughnessFactor(0.5f);
+        tileTerrain->setMaterialConfig(matConfig);
 
-    //    // create entities 
-    //    for (int z = 0; z < tileTerrain->getChunkCountZ(); z++) {
-    //        for (int x = 0; x < tileTerrain->getChunkCountX(); x++) {
-    //            auto& chunk = tileTerrain->getChunk(x, z);
+        // create entities 
+        for (int z = 0; z < tileTerrain->getChunkCountZ(); z++) {
+            for (int x = 0; x < tileTerrain->getChunkCountX(); x++) {
+                auto& chunk = tileTerrain->getChunk(x, z);
 
-    //            auto entity = ecs->create();
-    //            auto& renderable = ecs->emplace<Component::Renderable>(entity);
-    //            renderable.setStatic();
+                auto entity = ecs->create();
+                auto& renderable = ecs->emplace<Component::Renderable>(entity);
+                renderable.setStatic();
 
-    //            auto spatial = sceneGraph->create("terrain: x: " + std::to_string(x) + " z:" + std::to_string(z));
-    //            spatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
-    //            auto& spatialsComp = ecs->emplace<Component::Spatials>(entity);
-    //            spatialsComp.rootSpatialId = spatial->getSceneId();
-    //            spatialsComp.meshSpatialsIds.push_back(spatialsComp.rootSpatialId);
+                auto spatial = sceneGraph->create("terrain: x: " + std::to_string(x) + " z:" + std::to_string(z));
+                spatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
+                auto& spatialsComp = ecs->emplace<Component::Spatials>(entity);
+                spatialsComp.rootSpatialId = spatial->getSceneId();
+                spatialsComp.meshSpatialsIds.push_back(spatialsComp.rootSpatialId);
 
-    //            auto offset = chunk.getWorldOffset();
-    //            spatial->setLocalPosition(glm::vec3(offset.x, 0, offset.y));
+                auto offset = chunk.getWorldOffset();
+                spatial->setLocalPosition(glm::vec3(offset.x, 0, offset.y));
 
-    //            auto& material = ecs->emplace<Component::Material>(entity, matConfig);
-    //            auto& model = ecs->emplace<Component::ModelComponent>(entity);
-    //            model.config = chunk.getModelConfig();
+                auto& material = ecs->emplace<Component::Material>(entity, matConfig);
+                auto& model = ecs->emplace<Component::ModelComponent>(entity);
+                model.config = chunk.getModelConfig();
 
-    //            // need to profile if static batches are even worth it.
-    //            // since the drawcmd is always sent for them. the ebefit is that
-    //            // the mat and other details dont have to be uploaded again
-    //            //{
-    //            //    auto modelTask = modelCache->getAsync(model.config);
-    //            //    auto materialTask = materialCache->getAsync(material.config);
+                // need to profile if static batches are even worth it.
+                // since the drawcmd is always sent for them. the ebefit is that
+                // the mat and other details dont have to be uploaded again
+                //{
+                //    auto modelTask = modelCache->getAsync(model.config);
+                //    auto materialTask = materialCache->getAsync(material.config);
 
-    //            //    auto model = modelTask.get();
-    //            //    auto material = materialTask.get();
-    //            //    renderCtx->addStaticInstance(
-    //            //        model->getMeshGroups()[0]->getMesh(0),
-    //            //        *material,
-    //            //        spatial->getWorldTransform().getTransMatrix(),
-    //            //        glm::vec4(0, 0, 0, 2),
-    //            //        false
-    //            //    );
-    //            //}
-    //        }
-    //    }
-    //}
+                //    auto model = modelTask.get();
+                //    auto material = materialTask.get();
+                //    renderCtx->addStaticInstance(
+                //        model->getMeshGroups()[0]->getMesh(0),
+                //        *material,
+                //        spatial->getWorldTransform().getTransMatrix(),
+                //        glm::vec4(0, 0, 0, 2),
+                //        false
+                //    );
+                //}
+            }
+        }
+    }
 }
 
 void RenderSystem::processSystem(float delta) {
@@ -186,9 +185,6 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
 
         auto& materialComponent = ecs.get<Component::Material>(e);
         auto materialTask = materialCache->getAsync(materialComponent.config);
-
-
-        auto* lol = getService<ExecutorService>();
 
         // maybe use a default material on a mesh if material isnt ready
         if (!modelTask.isDone())

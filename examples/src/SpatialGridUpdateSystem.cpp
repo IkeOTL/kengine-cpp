@@ -22,7 +22,7 @@ void SpatialGridUpdateSystem::processSystem(float delta) {
     if (!spatialGrid)
         return;
 
-    spatialGrid->processDirtyEntities([&ecs = this->getEcs(), sceneGraph = this->sceneGraph, modelCache = this ->modelCache](entt::entity e) {
+    spatialGrid->processDirtyEntities([&ecs = this->getEcs(), sceneGraph = this->sceneGraph, modelCache = this->modelCache](entt::entity e) {
         auto& spatialComp = ecs.get<Component::Spatials>(e);
         auto spatial = sceneGraph->get(spatialComp.rootSpatialId);
         auto& current = spatial->getWorldTransform();

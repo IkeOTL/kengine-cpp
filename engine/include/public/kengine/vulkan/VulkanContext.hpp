@@ -182,11 +182,19 @@ public:
         return *computeQueue;
     }
 
+    VulkanQueue& getGraphicsQueue() {
+        return *graphicsQueue;
+    }
+
     VmaAllocator getVmaAllocator() {
         return vmaAllocator;
     }
 
     SamplerCache& getSamplerCache();
+
+    VkInstance getVkInstance() {
+        return vkInstance;
+    }
 
     void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);
 
