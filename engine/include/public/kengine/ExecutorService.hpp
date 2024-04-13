@@ -3,6 +3,7 @@
 #include <queue>
 #include <future>
 #include <condition_variable>
+#include <iostream>
 
 class ExecutorService {
 private:
@@ -34,7 +35,12 @@ public:
                         this->tasks.pop();
                     }
 
-                    task();
+                    try {
+                        task();
+                    }
+                    catch (const std::exception& e) {
+                        std::cerr << "Exception in worker: " << e.what() << std::endl;
+                    }
                 }
                 });
         }

@@ -5,8 +5,8 @@
 
 
 std::unique_ptr<MaterialBinding> ImageBindingConfig::getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) {
-    auto texture = textureCache.getAsync(textureConfig).get();
-    return std::make_unique<ImageBinding>(shared_from_this(), *texture);
+    auto& texture = textureCache.get(textureConfig);
+    return std::make_unique<ImageBinding>(shared_from_this(), texture);
 }
 
 // maybe change return type to AsyncCacheTask instead

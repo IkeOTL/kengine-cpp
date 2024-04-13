@@ -40,7 +40,7 @@ void RenderSystem::init() {
         );
 
 
-        for (size_t i = 0; i < 1; i++) {
+        for (size_t i = 0; i < 20; i++) {
 
 
 
@@ -55,7 +55,7 @@ void RenderSystem::init() {
             auto spatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), Component::Renderable::DYNAMIC_MODEL);
 
             auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
-            rootSpatial->setLocalPosition(glm::vec3(3.0f * i, .1337f, 0));
+            rootSpatial->setLocalPosition(glm::vec3(1.5f * i, .1337f, 0));
 
             spatialPartitioning->getSpatialGrid()->setDirty(entity);
 
@@ -186,6 +186,9 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
 
         auto& materialComponent = ecs.get<Component::Material>(e);
         auto materialTask = materialCache->getAsync(materialComponent.config);
+
+
+        auto* lol = getService<ExecutorService>();
 
         // maybe use a default material on a mesh if material isnt ready
         if (!modelTask.isDone())
