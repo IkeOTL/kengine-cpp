@@ -10,6 +10,9 @@ class Window;
 class ImGuiContext {
 private:
     VulkanContext& vkCtx;
+    VkDescriptorPool descPool;
+
+    VkDescriptorPool createDescriptorPool();
 
 public:
     ImGuiContext(VulkanContext& vkCtx) : vkCtx(vkCtx) {}
