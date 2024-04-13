@@ -30,9 +30,11 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
             const auto& buffer = model.buffers[bufferView.buffer];
             const unsigned char* inverseBindMatricesData = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
 
+            auto stride = bufferView.byteStride > 0 ? bufferView.byteStride : sizeof(glm::mat4);
+
             inverseBindMatrices.resize(accessor.count);
             for (size_t i = 0; i < accessor.count; ++i)
-                memcpy(&inverseBindMatrices[i], inverseBindMatricesData + (i * bufferView.byteStride), sizeof(glm::mat4));
+                memcpy(&inverseBindMatrices[i], inverseBindMatricesData + (i * stride), sizeof(glm::mat4));
         }
 
         // find all joint indices for first skin
@@ -83,7 +85,7 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
             }
 
             auto boneSpatial = std::make_shared<Bone>(boneIdx->second, model.nodes[i].name);
-            make sure right bind matrix is going to right bone!
+            //make sure right bind matrix is going to right bone!
             boneSpatial->setInverseBindWorldMatrix(inverseBindMatrices[boneSpatial->getBoneId()]);
 
             if (!node.translation.empty()) {
