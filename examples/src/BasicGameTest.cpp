@@ -83,7 +83,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     textureCache = std::make_unique<AsyncTextureCache>(*textureFactory, *threadPool);
     materialCache = std::make_unique<AsyncMaterialCache>(vulkanCxt->getPipelineCache(), *textureCache, *bufCache, *threadPool);
 
-    imGuiContext = std::make_unique<ImGuiKEContext>(*vulkanCxt);
+    imGuiContext = std::make_unique<TestGui>(*vulkanCxt);
     imGuiContext->init(*window);
 
     renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
@@ -190,4 +190,10 @@ void BasicGameTest::initCamera(InputManager& inputManager) {
 
     cameraController = std::make_unique<FreeCameraController>(inputManager);
     cameraController->setCamera(std::move(camera));
+}
+
+void TestGui::draw() {
+    ImGui::Begin("Another Window");   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+    ImGui::Text("Hello from another window!");
+    ImGui::End();
 }

@@ -35,7 +35,6 @@ VkDescriptorPool ImGuiKEContext::createDescriptorPool() {
 
 void ImGuiKEContext::init(Window& window) {
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForVulkan(window.getWindow(), true);
     ImGui_ImplVulkan_InitInfo init_info = {};
@@ -62,6 +61,8 @@ void ImGuiKEContext::draw(RenderFrameContext& rCtx) {
     ImGui::NewFrame();
 
     ImGui::ShowDemoWindow(&showDemoWindow);
+
+    draw();
 
     ImGui::Render();
     ImDrawData* draw_data = ImGui::GetDrawData();

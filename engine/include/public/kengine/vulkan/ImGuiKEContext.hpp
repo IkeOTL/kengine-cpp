@@ -17,7 +17,7 @@ private:
     VkDescriptorPool createDescriptorPool();
 
 protected:
-    //virtual void draw() = 0;
+    virtual void draw() = 0;
 
 public:
     ImGuiKEContext(VulkanContext& vkCtx) : vkCtx(vkCtx) {}

@@ -23,6 +23,13 @@
 
 #include <memory>
 
+class TestGui : public ImGuiKEContext {
+public:
+    TestGui(VulkanContext& vkCtx) : ImGuiKEContext(vkCtx) {}
+protected:
+    void draw() override;
+};
+
 class BasicGameTest : Game {
 private:
     inline static std::unique_ptr<ExecutorService> threadPool;
