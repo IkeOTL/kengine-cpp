@@ -83,8 +83,12 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     textureCache = std::make_unique<AsyncTextureCache>(*textureFactory, *threadPool);
     materialCache = std::make_unique<AsyncMaterialCache>(vulkanCxt->getPipelineCache(), *textureCache, *bufCache, *threadPool);
 
+    imGuiContext = std::make_unique<ImGuiKEContext>(*vulkanCxt);
+    imGuiContext->init(*window);
+
     renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
     renderContext->init();
+    renderContext->setImGuiContext(imGuiContext.get());
 
     auto config = std::make_shared<AnimationConfig>("res/gltf/char01.glb", "Run00");
     auto& lol = animationCache->get(config);

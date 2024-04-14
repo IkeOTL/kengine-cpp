@@ -14,6 +14,7 @@
 
 class CachedGpuBuffer;
 class CameraController;
+class ImGuiKEContext;
 
 struct ObjectInstance {
     uint32_t cmdId;
@@ -27,6 +28,7 @@ public:
 
 private:
     VulkanContext& vkContext;
+    ImGuiKEContext* imGuiContext;
     GpuBufferCache& bufCache;
 
     std::unique_ptr<CullContext> cullContext;
@@ -98,5 +100,9 @@ public:
 
     DescriptorSetAllocator& getDescSetAllocator(int i) const {
         return *descSetAllocators[i];
+    }
+
+    void setImGuiContext(ImGuiKEContext* imGuiCtx) {
+        imGuiContext = imGuiCtx;
     }
 };

@@ -47,7 +47,7 @@ set(HEADERS
     include/public/kengine/SpatialPartitioningManager.hpp
     include/public/kengine/FrustumIntersection.hpp
     
-    include/public/kengine/vulkan/ImGuiContext.hpp
+    include/public/kengine/vulkan/ImGuiKEContext.hpp
     include/public/kengine/vulkan/VulkanContext.hpp
     include/public/kengine/vulkan/RenderContext.hpp
     include/public/kengine/vulkan/CullContext.hpp
@@ -146,7 +146,7 @@ set(SOURCES
     src/ecs/World.cpp
     
     src/vulkan/tinygltf_impl.cpp
-    src/vulkan/ImGuiContext.cpp
+    src/vulkan/ImGuiKEContext.cpp
     src/vulkan/VulkanContext.cpp
     src/vulkan/RenderContext.cpp
     src/vulkan/CullContext.cpp
@@ -220,7 +220,7 @@ set(IMGUI
     ../thirdparty/imgui/imgui_draw.cpp
     ../thirdparty/imgui/imgui_widgets.cpp
     ../thirdparty/imgui/imgui_tables.cpp
-    ../thirdparty/imgui/backends/imgui_impl_opengl3.cpp
+    ../thirdparty/imgui/backends/imgui_impl_vulkan.cpp
     ../thirdparty/imgui/backends/imgui_impl_glfw.cpp
 )
 

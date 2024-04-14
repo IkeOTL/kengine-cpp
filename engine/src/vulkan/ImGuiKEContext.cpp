@@ -1,11 +1,16 @@
-#include <kengine/vulkan/ImGuiContext.hpp>
+#include <kengine/vulkan/ImGuiKEContext.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 #include <kengine/Window.hpp>
 #include <array>
 
-VkDescriptorPool ImGuiContext::createDescriptorPool()
-{
+ImGuiKEContext::~ImGuiKEContext() {
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+}
+
+VkDescriptorPool ImGuiKEContext::createDescriptorPool() {
     // Typically ImGui will need at least the following descriptor types
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_SAMPLER;
@@ -28,8 +33,7 @@ VkDescriptorPool ImGuiContext::createDescriptorPool()
     return descPool;
 }
 
-void ImGuiContext::init(Window& window)
-{
+void ImGuiKEContext::init(Window& window) {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     // Setup Platform/Renderer bindings
@@ -50,4 +54,16 @@ void ImGuiContext::init(Window& window)
     init_info.Subpass = 3;
     //init_info.CheckVkResultFn = check_vk_result;
     ImGui_ImplVulkan_Init(&init_info);
+}
+
+void ImGuiKEContext::draw(RenderFrameContext& rCtx) {
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::ShowDemoWindow(&showDemoWindow);
+
+    ImGui::Render();
+    ImDrawData* draw_data = ImGui::GetDrawData();
+    ImGui_ImplVulkan_RenderDrawData(draw_data, rCtx.cmd);
 }

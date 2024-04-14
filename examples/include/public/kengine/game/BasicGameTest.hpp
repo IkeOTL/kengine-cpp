@@ -13,6 +13,7 @@
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/LightsManager.hpp>
 #include <kengine/vulkan/SkeletonManager.hpp>
+#include <kengine/vulkan/ImGuiKEContext.hpp>
 #include <kengine/SceneGraph.hpp>
 #include <kengine/Window.hpp>
 #include <kengine/ExecutorService.hpp>
@@ -29,6 +30,7 @@ private:
     std::unique_ptr<Window> window;
     std::unique_ptr<InputManager> inputManager;
     std::unique_ptr<VulkanContext> vulkanCxt;
+    std::unique_ptr<ImGuiKEContext> imGuiContext;
     std::unique_ptr<RenderContext> renderContext;
     std::unique_ptr<FileSystemAssetIO> assetIo;
     std::unique_ptr<SceneGraph> sceneGraph;

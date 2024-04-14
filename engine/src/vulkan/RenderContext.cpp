@@ -3,6 +3,7 @@
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/SceneData.hpp>
 #include <kengine/vulkan/CullContext.hpp>
+#include <kengine/vulkan/ImGuiKEContext.hpp>
 #include <kengine/vulkan/CameraController.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/ShadowContext.hpp>
@@ -571,6 +572,8 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
         // since guimanager isnt implemented yet we need to push to next subpass manually
         // we'll remove this line once the guimanager is working
         vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
+        if (imGuiContext)
+            imGuiContext->draw(*frameCxt);
     }
     vkContext.endRenderPass(rpCxt);
 }
