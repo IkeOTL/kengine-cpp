@@ -11,7 +11,6 @@ ImGuiKEContext::~ImGuiKEContext() {
 }
 
 VkDescriptorPool ImGuiKEContext::createDescriptorPool() {
-    // Typically ImGui will need at least the following descriptor types
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_SAMPLER;
     poolSizes[0].descriptorCount = 500;
@@ -20,8 +19,8 @@ VkDescriptorPool ImGuiKEContext::createDescriptorPool() {
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT; // Optional: Allows individual descriptor sets to be freed
-    poolInfo.maxSets = 1000; // Maximum number of descriptor sets that can be allocated from the pool
+    poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    poolInfo.maxSets = 1000;
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
 
@@ -37,7 +36,7 @@ void ImGuiKEContext::init(Window& window) {
     ImGui::CreateContext();
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForVulkan(window.getWindow(), true);
-    ImGui_ImplVulkan_InitInfo init_info = {};
+    ImGui_ImplVulkan_InitInfo init_info{};
     init_info.Instance = vkCtx.getVkInstance();
     init_info.PhysicalDevice = vkCtx.getVkPhysicalDevice();
     init_info.Device = vkCtx.getVkDevice();
@@ -56,15 +55,18 @@ void ImGuiKEContext::init(Window& window) {
 }
 
 void ImGuiKEContext::draw(RenderFrameContext& rCtx) {
+    if (!isVisible)
+        return;
+
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::ShowDemoWindow(&showDemoWindow);
+    //ImGui::ShowDemoWindow(&showDemoWindow);
 
     draw();
 
     ImGui::Render();
-    ImDrawData* draw_data = ImGui::GetDrawData();
+    auto* draw_data = ImGui::GetDrawData();
     ImGui_ImplVulkan_RenderDrawData(draw_data, rCtx.cmd);
 }

@@ -16,6 +16,7 @@
 #include <functional>
 #include <memory>
 #include <queue>
+#include <kengine/DebugContext.hpp>
 
 class SamplerCache;
 class VulkanContext;
@@ -196,6 +197,14 @@ public:
         return vkInstance;
     }
 
+    void setDebugContext(DebugContext* d) {
+        debugContext = d;
+    }
+
+    DebugContext* getDebugContext() {
+        return debugContext;
+    }
+
     void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);
 
 private:
@@ -246,6 +255,8 @@ private:
     std::unique_ptr<DescriptorSetLayoutCache> descSetLayoutCache;
 
     uint64_t frameNumber = 0;
+
+    DebugContext* debugContext = nullptr;
 
     void createVkInstance(bool validationOn);
     void setupDebugging();

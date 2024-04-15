@@ -65,6 +65,9 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
     initCamera(*inputManager);
 
+    debugContext = std::make_unique<DebugContext>();
+    vulkanCxt->setDebugContext(debugContext.get());
+
     assetIo = std::make_unique<FileSystemAssetIO>();
     bufCache = std::make_unique<GpuBufferCache>(*vulkanCxt);
     lightsManager = std::make_unique<LightsManager>(*cameraController);
@@ -83,7 +86,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     textureCache = std::make_unique<AsyncTextureCache>(*textureFactory, *threadPool);
     materialCache = std::make_unique<AsyncMaterialCache>(vulkanCxt->getPipelineCache(), *textureCache, *bufCache, *threadPool);
 
-    imGuiContext = std::make_unique<TestGui>(*vulkanCxt);
+    imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
     imGuiContext->init(*window);
 
     renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
@@ -97,6 +100,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     world = std::make_unique<World>(WorldConfig()
         // injectable objects. order doesnt matter
         .addService<entt::registry>(&ecs)
+        .addService<DebugContext>(debugContext.get())
         .addService<Window>(window.get())
         .addService<VulkanContext>(vulkanCxt.get())
         .addService<RenderContext>(renderContext.get())
@@ -193,7 +197,7 @@ void BasicGameTest::initCamera(InputManager& inputManager) {
 }
 
 void TestGui::draw() {
-    ImGui::Begin("Another Window");   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-    ImGui::Text("Hello from another window!");
+    ImGui::Begin("Another Window");
+    ImGui::Text(std::to_string(debugCtx.getIntValue("spatialGridVisibleEntities")).c_str());
     ImGui::End();
 }

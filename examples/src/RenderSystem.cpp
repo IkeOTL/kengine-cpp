@@ -5,6 +5,7 @@
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>
 #include <kengine/vulkan/CameraController.hpp>
 #include <kengine/SceneGraph.hpp>
+#include <kengine/DebugContext.hpp>
 #include <kengine/vulkan/mesh/Model.hpp>
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 #include <kengine/game/Game.hpp>
@@ -22,6 +23,7 @@
 
 void RenderSystem::init() {
     vulkanCtx = getService<VulkanContext>();
+    debugCtx = getService<DebugContext>();
     renderCtx = getService<RenderContext>();
     modelCache = getService<AsyncModelCache>();
     materialCache = getService<AsyncMaterialCache>();
@@ -178,6 +180,8 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
 
     auto* c = static_cast<FreeCameraController*>(cameraController);
     spatialPartitioning->getSpatialGrid()->getVisible(c->getCamera()->getPosition(), c->getFrustumCorners(), c->getFrustumTester(), entities);
+
+    debugCtx->storeIntValue("spatialGridVisibleEntities", entities.size());
 
     for (auto& e : entities) {
         auto& modelComponent = ecs.get<Component::ModelComponent>(e);

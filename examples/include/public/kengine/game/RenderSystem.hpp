@@ -14,6 +14,7 @@ namespace Component {
 }
 
 class World;
+class DebugContext;
 class VulkanContext;
 class RenderContext;
 class RenderFrameContext;
@@ -28,6 +29,7 @@ class SkeletonManager;
 
 class RenderSystem : public EcsSystem {
 private:
+    DebugContext* debugCtx;
     VulkanContext* vulkanCtx;
     RenderContext* renderCtx;
     AsyncModelCache* modelCache;

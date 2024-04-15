@@ -4,6 +4,7 @@
 #include <kengine/vulkan/mesh/GltfModelFactory.hpp>
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>
 #include <kengine/SpatialPartitioningManager.hpp>
+#include <kengine/DebugContext.hpp>
 #include <kengine/game/MainGameState.hpp>
 #include <kengine/StateMachine.hpp>
 #include <kengine/vulkan/CameraController.hpp>
@@ -24,8 +25,14 @@
 #include <memory>
 
 class TestGui : public ImGuiKEContext {
+private:
+    DebugContext& debugCtx;
+    SceneTime& sceneTime;
+
 public:
-    TestGui(VulkanContext& vkCtx) : ImGuiKEContext(vkCtx) {}
+    TestGui(VulkanContext& vkCtx, SceneTime& sceneTime, DebugContext& debugCtx)
+        : ImGuiKEContext(vkCtx), sceneTime(sceneTime), debugCtx(debugCtx) {}
+
 protected:
     void draw() override;
 };
@@ -36,6 +43,7 @@ private:
 
     std::unique_ptr<Window> window;
     std::unique_ptr<InputManager> inputManager;
+    std::unique_ptr<DebugContext> debugContext;
     std::unique_ptr<VulkanContext> vulkanCxt;
     std::unique_ptr<ImGuiKEContext> imGuiContext;
     std::unique_ptr<RenderContext> renderContext;

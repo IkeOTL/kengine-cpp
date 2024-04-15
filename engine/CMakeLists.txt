@@ -34,6 +34,7 @@ set(HEADERS
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
 
+    include/public/kengine/DebugContext.hpp
     include/public/kengine/Math.hpp
     include/public/kengine/Window.hpp
     include/public/kengine/ExecutorService.hpp
@@ -132,6 +133,7 @@ set(SOURCES
     src/Bounds.cpp
     src/SpatialGrid.cpp
     src/FrustumIntersection.cpp
+    src/DebugContext.cpp
     
     src/io/FlieSystemAssetIO.cpp
     src/io/MemoryMappedFile.cpp

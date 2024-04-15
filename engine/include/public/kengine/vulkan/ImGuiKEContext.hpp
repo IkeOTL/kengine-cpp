@@ -12,7 +12,7 @@ class ImGuiKEContext {
 private:
     VulkanContext& vkCtx;
     VkDescriptorPool descPool = VK_NULL_HANDLE;
-    bool showDemoWindow = true;
+    bool isVisible = true;
 
     VkDescriptorPool createDescriptorPool();
 
