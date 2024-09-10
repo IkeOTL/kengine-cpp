@@ -241,6 +241,19 @@ if(NOT imgui_POPULATED)
     FetchContent_Populate(imgui)
 endif()
 
+# download glfw source
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW lib only")
+set(GLFW_INSTALL OFF CACHE BOOL "GLFW lib only")
+
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/glfw
+    GIT_TAG 3.4
+)
+
+FetchContent_MakeAvailable(glfw)
+
 target_sources(engine 
     PRIVATE
         ${HEADERS}
@@ -269,7 +282,6 @@ target_include_directories(engine PRIVATE include/thirdparty)
 
 find_package(Threads REQUIRED)
 find_package(Vulkan 1.3 REQUIRED) # expected to also install VMA and GLM
-find_package(glfw3 3.3 REQUIRED)
 
 target_link_libraries(engine PUBLIC Threads::Threads)
 target_link_libraries(engine PUBLIC Vulkan::Vulkan)
