@@ -235,7 +235,20 @@ target_sources(engine
 
 source_group(
     TREE ${CMAKE_CURRENT_SOURCE_DIR}
-    FILES ${HEADERS} ${SOURCES}
+    PREFIX "include"
+    FILES ${HEADERS}
+)
+
+source_group(
+    TREE ${CMAKE_CURRENT_SOURCE_DIR}
+    PREFIX "src"
+    FILES ${SOURCES}
+)
+
+source_group(
+    TREE ${CMAKE_SOURCE_DIR}
+    PREFIX "src"
+    FILES ${IMGUI}
 )
 
 # imgui
