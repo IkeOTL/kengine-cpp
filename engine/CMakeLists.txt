@@ -222,9 +222,24 @@ set(IMGUI
     ../thirdparty/imgui/imgui_draw.cpp
     ../thirdparty/imgui/imgui_widgets.cpp
     ../thirdparty/imgui/imgui_tables.cpp
+
     ../thirdparty/imgui/backends/imgui_impl_vulkan.cpp
     ../thirdparty/imgui/backends/imgui_impl_glfw.cpp
 )
+
+# download imgui source
+include(FetchContent)
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/imgui
+    GIT_TAG v1.91.1
+)
+
+FetchContent_GetProperties(imgui)
+if(NOT imgui_POPULATED)
+    FetchContent_Populate(imgui)
+endif()
 
 target_sources(engine 
     PRIVATE
@@ -243,12 +258,6 @@ source_group(
     TREE ${CMAKE_CURRENT_SOURCE_DIR}
     PREFIX "src"
     FILES ${SOURCES}
-)
-
-source_group(
-    TREE ${CMAKE_SOURCE_DIR}
-    PREFIX "src"
-    FILES ${IMGUI}
 )
 
 # imgui
