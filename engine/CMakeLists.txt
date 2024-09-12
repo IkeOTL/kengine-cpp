@@ -1,4 +1,4 @@
-add_library(engine STATIC)
+add_library(kengine_engine STATIC)
 
 add_definitions(-DGLM_FORCE_DEPTH_ZERO_TO_ONE)
 add_definitions(-DTINYGLTF_NO_STB_IMAGE)
@@ -18,6 +18,7 @@ set(HEADERS
     include/public/kengine/util/MapUtils.hpp
     include/public/kengine/util/VecUtils.hpp
     include/public/kengine/util/MatUtils.hpp
+    include/public/kengine/util/ProfileUtils.hpp
 
     include/public/kengine/input/InputManager.hpp
     include/public/kengine/input/EventListener.hpp
@@ -216,45 +217,55 @@ set(SOURCES
     src/vulkan/renderpass/CascadeShadowMapRenderPass.cpp
 )
 
-set(IMGUI
-    ../thirdparty/imgui/imgui.cpp
-    ../thirdparty/imgui/imgui_demo.cpp
-    ../thirdparty/imgui/imgui_draw.cpp
-    ../thirdparty/imgui/imgui_widgets.cpp
-    ../thirdparty/imgui/imgui_tables.cpp
-
-    ../thirdparty/imgui/backends/imgui_impl_vulkan.cpp
-    ../thirdparty/imgui/backends/imgui_impl_glfw.cpp
-)
-
 # download imgui source
 include(FetchContent)
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    SOURCE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/imgui
     GIT_TAG v1.91.1
 )
-
 FetchContent_GetProperties(imgui)
 if(NOT imgui_POPULATED)
     FetchContent_Populate(imgui)
 endif()
 
+set(IMGUI
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+)
+
 # download glfw source
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW lib only")
 set(GLFW_INSTALL OFF CACHE BOOL "GLFW lib only")
-
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
-    SOURCE_DIR ${CMAKE_SOURCE_DIR}/thirdparty/glfw
     GIT_TAG 3.4
 )
-
 FetchContent_MakeAvailable(glfw)
 
-target_sources(engine 
+# download JoltPhysics source
+#set(JPH_PROFILE_ENABLED ON CACHE BOOL "Enable internal profiling")
+#set(JPH_DEBUG_RENDERER ON CACHE BOOL "Enable debug rendering")
+#set(JPH_DOUBLE_PRECISION OFF CACHE BOOL "Use double precision for large worlds")
+set(JPH_CROSS_PLATFORM_DETERMINISTIC OFF CACHE BOOL "Make simulation deterministic across different platforms")
+set(PHYSICS_REPO_ROOT ${CMAKE_BINARY_DIR}/JoltPhysics)
+FetchContent_Declare(
+    JoltPhysics
+    GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
+    GIT_TAG v5.1.0
+    SOURCE_DIR ${PHYSICS_REPO_ROOT}
+)
+FetchContent_MakeAvailable(JoltPhysics)
+include(${PHYSICS_REPO_ROOT}/Jolt/Jolt.cmake)
+
+target_sources(kengine_engine 
     PRIVATE
         ${HEADERS}
         ${SOURCES}
@@ -273,16 +284,23 @@ source_group(
     FILES ${SOURCES}
 )
 
-# imgui
-target_include_directories(engine PUBLIC ../thirdparty/imgui)
+source_group(
+    TREE ${CMAKE_SOURCE_DIR}
+    PREFIX "src/thirdparty"
+    FILES ${IMGUI}
+)
 
-target_include_directories(engine PUBLIC include/public)
-target_include_directories(engine PRIVATE include/private)
-target_include_directories(engine PRIVATE include/thirdparty)
+# imgui
+target_include_directories(kengine_engine PUBLIC ${imgui_SOURCE_DIR})
+
+target_include_directories(kengine_engine PUBLIC include/public)
+target_include_directories(kengine_engine PRIVATE include/private)
+target_include_directories(kengine_engine PRIVATE include/thirdparty)
 
 find_package(Threads REQUIRED)
 find_package(Vulkan 1.3 REQUIRED) # expected to also install VMA and GLM
 
-target_link_libraries(engine PUBLIC Threads::Threads)
-target_link_libraries(engine PUBLIC Vulkan::Vulkan)
-target_link_libraries(engine PUBLIC glfw)
+target_link_libraries(kengine_engine PUBLIC Threads::Threads)
+target_link_libraries(kengine_engine PUBLIC Vulkan::Vulkan)
+target_link_libraries(kengine_engine PUBLIC glfw)
+target_link_libraries(kengine_engine PUBLIC JoltPhysics)

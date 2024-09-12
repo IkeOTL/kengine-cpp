@@ -42,8 +42,8 @@ void RenderSystem::init() {
         );
 
 
-        for (size_t i = 0; i < 15; i++) {
-            for (size_t j = 0; j < 15; j++) {
+        for (size_t i = 0; i < 5; i++) {
+            for (size_t j = 0; j < 5; j++) {
                 auto entity = ecs->create();
                 auto& renderable = ecs->emplace<Component::Renderable>(entity);
                 ecs->emplace<Component::ModelComponent>(entity, modelConfig);

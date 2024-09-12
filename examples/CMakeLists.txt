@@ -1,4 +1,4 @@
-add_executable(example)
+add_executable(kengine_example)
 
 add_definitions(-DGLM_FORCE_DEPTH_ZERO_TO_ONE)
 add_definitions(-DTINYGLTF_NO_STB_IMAGE)
@@ -47,10 +47,9 @@ set(SOURCES
     src/AnimationSystem.cpp
 
     src/Components.cpp
-
 )
 
-target_sources(example 
+target_sources(kengine_example 
     PRIVATE
         ${HEADERS}
         ${SOURCES}
@@ -61,11 +60,11 @@ source_group(
     FILES ${HEADERS} ${SOURCES}
 )
 
-target_include_directories(engine PUBLIC include/public)
-target_include_directories(engine PRIVATE include/private)
-target_include_directories(engine PRIVATE include/thirdparty)
+target_include_directories(kengine_engine PUBLIC include/public)
+target_include_directories(kengine_engine PRIVATE include/private)
+target_include_directories(kengine_engine PRIVATE include/thirdparty)
 
-target_link_libraries(example PRIVATE engine)
+target_link_libraries(kengine_example PRIVATE kengine_engine)
 
 
 # compile a shaders to SPIR-V
@@ -102,8 +101,8 @@ foreach(SHADER IN LISTS SHADERS)
     list(APPEND SPIRV_BINARY_FILES ${SHADER_SPIRV})
 endforeach()
 
-add_custom_target(shaders
+add_custom_target(kengine_shaders
     ALL DEPENDS ${SPIRV_BINARY_FILES}
     SOURCES ${SHADERS}
 )
-add_dependencies(example shaders)
+add_dependencies(kengine_example kengine_shaders)
