@@ -303,4 +303,4 @@ find_package(Vulkan 1.3 REQUIRED) # expected to also install VMA and GLM
 target_link_libraries(kengine_engine PUBLIC Threads::Threads)
 target_link_libraries(kengine_engine PUBLIC Vulkan::Vulkan)
 target_link_libraries(kengine_engine PUBLIC glfw)
-target_link_libraries(kengine_engine PUBLIC JoltPhysics)
+target_link_libraries(kengine_engine PUBLIC Jolt)
