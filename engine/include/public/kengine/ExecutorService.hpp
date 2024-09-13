@@ -78,7 +78,6 @@ public:
     template<typename F>
     auto submit(F&& f) -> std::future<decltype(f())> {
         using ReturnType = decltype(f());
-        using FutureType = std::future<ReturnType>;
 
         auto task = std::make_shared<std::packaged_task<ReturnType()>>(std::forward<F>(f));
 

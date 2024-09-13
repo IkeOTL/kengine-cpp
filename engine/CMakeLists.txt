@@ -18,7 +18,6 @@ set(HEADERS
     include/public/kengine/util/MapUtils.hpp
     include/public/kengine/util/VecUtils.hpp
     include/public/kengine/util/MatUtils.hpp
-    include/public/kengine/util/ProfileUtils.hpp
 
     include/public/kengine/input/InputManager.hpp
     include/public/kengine/input/EventListener.hpp
@@ -35,6 +34,8 @@ set(HEADERS
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
 
+    include/public/kengine/Logger.hpp
+    include/public/kengine/Profiler.hpp
     include/public/kengine/DebugContext.hpp
     include/public/kengine/Math.hpp
     include/public/kengine/Window.hpp
@@ -217,8 +218,17 @@ set(SOURCES
     src/vulkan/renderpass/CascadeShadowMapRenderPass.cpp
 )
 
-# download imgui source
 include(FetchContent)
+
+# download spdlog source
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.14.1
+)
+FetchContent_MakeAvailable(spdlog)
+
+# download imgui source
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
@@ -300,6 +310,9 @@ target_include_directories(kengine_engine PRIVATE include/thirdparty)
 find_package(Threads REQUIRED)
 find_package(Vulkan 1.3 REQUIRED) # expected to also install VMA and GLM
 
+target_precompile_headers(kengine_engine PRIVATE <spdlog/spdlog.h>)
+
+target_link_libraries(kengine_engine PRIVATE spdlog::spdlog)
 target_link_libraries(kengine_engine PUBLIC Threads::Threads)
 target_link_libraries(kengine_engine PUBLIC Vulkan::Vulkan)
 target_link_libraries(kengine_engine PUBLIC glfw)
