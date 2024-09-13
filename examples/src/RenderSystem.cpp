@@ -20,6 +20,7 @@
 #include <kengine/util/Random.hpp>
 #include <kengine/game/BasicCameraController.hpp>
 #include <kengine/vulkan/SkeletonManager.hpp>
+#include <tracy/Tracy.hpp>
 
 void RenderSystem::init() {
     vulkanCtx = getService<VulkanContext>();
@@ -42,8 +43,8 @@ void RenderSystem::init() {
         );
 
 
-        for (size_t i = 0; i < 5; i++) {
-            for (size_t j = 0; j < 5; j++) {
+        for (size_t i = 0; i < 15; i++) {
+            for (size_t j = 0; j < 15; j++) {
                 auto entity = ecs->create();
                 auto& renderable = ecs->emplace<Component::Renderable>(entity);
                 ecs->emplace<Component::ModelComponent>(entity, modelConfig);
@@ -142,6 +143,8 @@ void RenderSystem::init() {
 }
 
 void RenderSystem::processSystem(float delta) {
+    ZoneScopedN("RenderSystem_process");
+
     auto ctx = vulkanCtx->createNextFrameContext();
     renderCtx->begin(*ctx, sceneTime->getSceneTime(), delta);
     {
@@ -153,6 +156,8 @@ void RenderSystem::processSystem(float delta) {
 
 void RenderSystem::integrate(Component::Renderable& renderable, Component::Spatials& spatials,
     Transform& curTranform, uint32_t meshIdx, float delta, glm::mat4& dest) {
+
+    ZoneScopedN("drawEntities_single_integrate");
     if (!renderable.integrateRendering) {
         dest = curTranform.getTransMatrix();
         return;
@@ -171,6 +176,7 @@ void RenderSystem::integrate(Component::Renderable& renderable, Component::Spati
 }
 
 void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
+    ZoneScopedN("RenderSystem::drawEntities");
     //auto view = getEcs().view<Component::Renderable, Component::Spatials, Component::ModelComponent, Component::Material>();
 
     auto& ecs = getEcs();
@@ -184,6 +190,7 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
     debugCtx->storeIntValue("spatialGridVisibleEntities", entities.size());
 
     for (auto& e : entities) {
+        ZoneScopedN("RenderSystem::drawEntities_single");
         auto& modelComponent = ecs.get<Component::ModelComponent>(e);
         auto modelTask = modelCache->getAsync(modelComponent.config);
 

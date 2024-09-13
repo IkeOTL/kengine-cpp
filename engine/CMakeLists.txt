@@ -3,7 +3,9 @@ add_library(kengine_engine STATIC)
 target_compile_definitions(kengine_engine PUBLIC 
     GLM_FORCE_DEPTH_ZERO_TO_ONE
     TINYGLTF_NO_STB_IMAGE
-    TINYGLTF_NO_STB_IMAGE_WRITE)
+    TINYGLTF_NO_STB_IMAGE_WRITE
+    TRACY_ENABLE # need to be conditional
+)
 
 #include(CheckCXXCompilerFlag)
 #check_cxx_compiler_flag(-fsanitize=address HAS_ASAN)
@@ -230,16 +232,21 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(spdlog)
 
+# download tracy source
+FetchContent_Declare(
+    tracy
+    GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+    GIT_TAG v0.11.1
+)
+FetchContent_MakeAvailable(tracy)
+
 # download imgui source
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
     GIT_TAG v1.91.1
 )
-FetchContent_GetProperties(imgui)
-if(NOT imgui_POPULATED)
-    FetchContent_Populate(imgui)
-endif()
+FetchContent_MakeAvailable(imgui)
 
 set(IMGUI
     ${imgui_SOURCE_DIR}/imgui.cpp
@@ -315,6 +322,7 @@ find_package(Vulkan 1.3 REQUIRED) # expected to also install VMA and GLM
 target_precompile_headers(kengine_engine PRIVATE <spdlog/spdlog.h>)
 
 target_link_libraries(kengine_engine PUBLIC spdlog::spdlog)
+target_link_libraries(kengine_engine PUBLIC TracyClient)
 target_link_libraries(kengine_engine PUBLIC Threads::Threads)
 target_link_libraries(kengine_engine PUBLIC Vulkan::Vulkan)
 target_link_libraries(kengine_engine PUBLIC glfw)

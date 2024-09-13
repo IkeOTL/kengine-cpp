@@ -17,6 +17,7 @@
 #include <kengine/vulkan/mesh/Mesh.hpp>
 #include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
+#include <tracy/Tracy.hpp>
 
 void RenderContext::init() {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
@@ -288,6 +289,7 @@ void RenderContext::addStaticInstance(const Mesh& mesh, const Material& material
 }
 
 int RenderContext::draw(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere) {
+    ZoneScopedN("RenderContext::draw");
     auto frameIdx = frameCxt->frameIndex;
     uint32_t instanceIdx = staticInstances + dynamicInstances++;
 

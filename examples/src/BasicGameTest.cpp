@@ -20,6 +20,7 @@
 #include <kengine/game/Game.hpp>
 #include <kengine/Math.hpp>
 
+#include <tracy/Tracy.hpp>
 #include <GLFW/glfw3.h>
 #include <utility>
 
@@ -39,6 +40,8 @@ void BasicGameTest::run() {
     auto lastFrame = high_resolution_clock::now();
 
     while (!glfwWindowShouldClose(this->window->getWindow())) {
+        FrameMark;
+
         auto newTime = high_resolution_clock::now();
         delta = duration_cast<nanoseconds>(newTime - lastFrame).count() * .000000001f;
         lastFrame = newTime;

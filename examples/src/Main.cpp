@@ -12,10 +12,12 @@
 #include <kengine/game/BasicGameTest.hpp>
 #include <kengine/Logger.hpp>
 #define KE_ACTIVE_LOG_LEVEL kengine::LOG_LEVEL_INFO
+
 int main() {
     KE_LOG_INFO("Example started.");
 
     BasicGameTest game;
     game.run();
+
     return 0;
 }
