@@ -9,6 +9,7 @@
 #include <vector>
 #include <algorithm>
 #include <mutex>
+#include <kengine/Logger.hpp>
 
 VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
     : renderPassCreator(std::move(renderPassCreator)), pipelineCacheCreator(std::move(pipelineCacheCreator)),
@@ -291,9 +292,8 @@ void VulkanContext::createVkInstance(bool validationOn) {
         }
     }
 
-    for (const auto& layerProperties : layersToEnable) {
-        std::cout << "Enabled layer: " << layerProperties;
-    }
+    for (const auto& layerProperties : layersToEnable)
+        KE_LOG_INFO(std::format("Enabled Layer: {}", layerProperties));
 
     if (layersToEnable.size()) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(layersToEnable.size());
@@ -320,7 +320,7 @@ void VulkanContext::setupDebugging() {
         const char* msg,
         void* userData) -> VkBool32
         {
-            std::cerr << "Validation Layer: " << msg << std::endl;
+            KE_LOG_ERROR(std::format("Validation Layer: {}", msg));
             return VK_FALSE;
         };
 

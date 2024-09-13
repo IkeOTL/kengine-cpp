@@ -20,8 +20,8 @@ public:
     }
 
     const std::string& GetName() const { return name; }
-    long long GetTotalTime() const { return totalTime; }
-    int GetCallCount() const { return callCount; }
+    int64_t GetTotalTime() const { return totalTime; }
+    int32_t GetCallCount() const { return callCount; }
 
     void Reset() {
         totalTime = 0;
@@ -31,8 +31,8 @@ public:
 private:
     std::string name;
     std::chrono::high_resolution_clock::time_point startTime;
-    long long totalTime;  // in microseconds
-    int callCount;
+    int64_t totalTime;  // in microseconds
+    int32_t callCount;
 };
 
 class ProfileManager {
@@ -52,11 +52,11 @@ public:
     void PrintResults() {
         auto& logger = kengine::LogManager::getLogger();
 
-        logger.logInfo("=== Profiling Results ===");
+        logger.info("=== Profiling Results ===");
         for (const auto& pair : profileNodes) {
             const ProfileNode& node = pair.second;
 
-            logger.logInfo(std::format("{}: {} microseconds over {} calls.",
+            logger.info(std::format("{}: {} microseconds over {} calls.",
                 node.GetName(),
                 node.GetTotalTime(),
                 node.GetCallCount()));

@@ -1,8 +1,9 @@
 add_library(kengine_engine STATIC)
 
-add_definitions(-DGLM_FORCE_DEPTH_ZERO_TO_ONE)
-add_definitions(-DTINYGLTF_NO_STB_IMAGE)
-add_definitions(-DTINYGLTF_NO_STB_IMAGE_WRITE)
+target_compile_definitions(kengine_engine PUBLIC 
+    GLM_FORCE_DEPTH_ZERO_TO_ONE
+    TINYGLTF_NO_STB_IMAGE
+    TINYGLTF_NO_STB_IMAGE_WRITE)
 
 #include(CheckCXXCompilerFlag)
 #check_cxx_compiler_flag(-fsanitize=address HAS_ASAN)
@@ -221,6 +222,7 @@ set(SOURCES
 include(FetchContent)
 
 # download spdlog source
+set(SPDLOG_ENABLE_PCH ON CACHE BOOL "Enable precompiled headers for spdlog" FORCE)
 FetchContent_Declare(
     spdlog
     GIT_REPOSITORY https://github.com/gabime/spdlog.git
@@ -312,7 +314,7 @@ find_package(Vulkan 1.3 REQUIRED) # expected to also install VMA and GLM
 
 target_precompile_headers(kengine_engine PRIVATE <spdlog/spdlog.h>)
 
-target_link_libraries(kengine_engine PRIVATE spdlog::spdlog)
+target_link_libraries(kengine_engine PUBLIC spdlog::spdlog)
 target_link_libraries(kengine_engine PUBLIC Threads::Threads)
 target_link_libraries(kengine_engine PUBLIC Vulkan::Vulkan)
 target_link_libraries(kengine_engine PUBLIC glfw)
