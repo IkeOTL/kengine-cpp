@@ -1,5 +1,7 @@
 add_library(kengine_engine STATIC)
 
+#set(BUILD_SHARED_LIBS ON CACHE BOOL "Toggle static or shared" FORCE)
+
 target_compile_definitions(kengine_engine PUBLIC 
     GLM_FORCE_DEPTH_ZERO_TO_ONE
     TINYGLTF_NO_STB_IMAGE
@@ -285,47 +287,14 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(JoltPhysics)
 include(${PHYSICS_REPO_ROOT}/Jolt/Jolt.cmake)
 
-# download zlib source
-set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "Disable examples")
-FetchContent_Declare(
-    zlib
-    GIT_REPOSITORY https://github.com/madler/zlib.git
-    GIT_TAG v1.3.1
-)
-FetchContent_MakeAvailable(zlib)
-# set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
-# set(ZLIB_LIBRARY zlibstatic)
-# set(ZLIB_FOUND TRUE)
-# list(APPEND CMAKE_PREFIX_PATH "${zlib_BINARY_DIR}")
+# Gave up. Going to use vcpkg for GameNetworkingSockets
+# # zlib needs to be installed on system for now. apparently its an issue in CMAKE due to maintainer: https://discourse.cmake.org/t/how-to-set-zlib-root/9765
+# # download zlib source
+# # download protobuf source depends on zib
+# # download GameNetworkingSockets source
 
-# download protobuf source
-set(protobuf_BUILD_TESTS OFF CACHE BOOL "no tests" FORCE)
-set(protobuf_BUILD_EXAMPLES OFF CACHE BOOL "no examples" FORCE)
-set(protobuf_BUILD_PROTOC_BINARIES OFF CACHE BOOL "no need" FORCE)
-set(protobuf_BUILD_LIBUPB OFF CACHE BOOL "no need maybe" FORCE)
-FetchContent_Declare(
-  protobuf
-  GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-  GIT_TAG v28.1
-)
-FetchContent_MakeAvailable(protobuf)
-set(Protobuf_INCLUDE_DIR ${protobuf_SOURCE_DIR}/src)
-set(Protobuf_LIBRARIES libprotobuf)
-set(Protobuf_FOUND TRUE)
-list(APPEND CMAKE_PREFIX_PATH "${protobuf_BINARY_DIR}")
-
-# download GameNetworkingSockets source
-set(USE_CRYPTO "BCrypt" CACHE STRING "Use BCrypt for crypto") # easier to target windows for now
-#set(OPENSSL_USE_STATIC_LIBS  ON CACHE BOOL "Static linking for OpenSSL")
-FetchContent_Declare(
-  GameNetworkingSockets
-  GIT_REPOSITORY https://github.com/ValveSoftware/GameNetworkingSockets.git
-  GIT_TAG v1.4.1
-)
-FetchContent_MakeAvailable(GameNetworkingSockets)
 
 ######### 
-
 
 target_sources(kengine_engine 
     PRIVATE
@@ -362,12 +331,7 @@ target_include_directories(kengine_engine PRIVATE include/thirdparty)
 # find packages tobe installed on system or through vcpkg
 find_package(Threads REQUIRED)
 find_package(Vulkan 1.3 REQUIRED) # expected to also install VMA and GLM
-# disabling vcpkg usage for now
-# find_package(spdlog REQUIRED)
-# find_package(glfw3 3.4 CONFIG REQUIRED)
-# find_package(GameNetworkingSockets CONFIG REQUIRED)
-# find_package(Jolt CONFIG REQUIRED)
-# find_package(Tracy CONFIG REQUIRED )
+find_package(GameNetworkingSockets CONFIG REQUIRED)
 
 # is this even needed?
 #target_precompile_headers(kengine_engine PRIVATE <spdlog/spdlog.h>)
@@ -378,10 +342,6 @@ target_link_libraries(kengine_engine PUBLIC
     Threads::Threads
     Vulkan::Vulkan
     glfw
-    #Jolt
-
-    # network lib
-    #zlib:ZLIB
-    protobuf::libprotobuf
+    #Jolt ## commented out to work on it when i need it, and ensure its linking correctly
     GameNetworkingSockets::shared
 )
