@@ -250,7 +250,7 @@ void RenderContext::initDescriptors() {
     }
 }
 
-void RenderContext::addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere, boolean hasShadow) {
+void RenderContext::addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere, bool hasShadow) {
     auto instanceIdx = staticInstances++;
 
     auto& draw = getStaticBatch(instanceIdx, mesh, material, hasShadow);
@@ -289,7 +289,7 @@ void RenderContext::addStaticInstance(const Mesh& mesh, const Material& material
 }
 
 int RenderContext::draw(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere) {
-    ZoneScopedN("RenderContext::draw");
+    ZoneScoped;
     auto frameIdx = frameCxt->frameIndex;
     uint32_t instanceIdx = staticInstances + dynamicInstances++;
 
@@ -494,7 +494,7 @@ void RenderContext::end() {
     started = false;
 }
 
-IndirectDrawBatch& RenderContext::getStaticBatch(int instanceIdx, const Mesh& mesh, const Material& material, boolean hasShadow) {
+IndirectDrawBatch& RenderContext::getStaticBatch(int instanceIdx, const Mesh& mesh, const Material& material, bool hasShadow) {
     if (staticBatches == 0) {
         auto batchIdx = staticBatches++;
 

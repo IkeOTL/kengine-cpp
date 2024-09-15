@@ -1,4 +1,5 @@
 #include <kengine/SceneGraph.hpp>
+#include <tracy/Tracy.hpp>
 
 std::shared_ptr<Spatial> SceneGraph::create(std::string name) {
     std::lock_guard<std::shared_mutex> lock(mtx);
@@ -23,6 +24,8 @@ uint32_t SceneGraph::add(std::shared_ptr<Spatial> s) {
 }
 
 std::shared_ptr<Spatial> SceneGraph::get(uint32_t id) {
+    ZoneScoped;
+
     std::shared_lock<std::shared_mutex> lock(mtx); // allow multiple thread reads
     return spatialCache[id];
 }

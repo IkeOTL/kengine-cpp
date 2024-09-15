@@ -27,8 +27,8 @@ public:
 
     const Pipeline& getPipeline() const;
 
-    boolean hasShadow() const;
-    boolean hasSkeleton() const;
+    bool hasShadow() const;
+    bool hasSkeleton() const;
 
     const MaterialBinding& getBinding(int descSetIdx, int bindingIdx) const;
     void addBinding(std::unique_ptr<MaterialBinding>&& binding);

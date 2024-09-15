@@ -1,5 +1,6 @@
 #include <kengine/Spatial.hpp>
 #include <stdexcept>
+#include <tracy/Tracy.hpp>
 
 int32_t Spatial::getSceneId() const {
     return sceneId;
@@ -148,6 +149,8 @@ void Spatial::updateWorldTransforms() {
 }
 
 void Spatial::checkDoTransformUpdate() {
+    ZoneScoped;
+
     if (!transformDirty)
         return;
 

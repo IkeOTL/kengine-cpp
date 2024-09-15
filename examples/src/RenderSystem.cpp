@@ -43,8 +43,8 @@ void RenderSystem::init() {
         );
 
 
-        for (size_t i = 0; i < 15; i++) {
-            for (size_t j = 0; j < 15; j++) {
+        for (size_t i = 0; i < 5; i++) {
+            for (size_t j = 0; j < 5; j++) {
                 auto entity = ecs->create();
                 auto& renderable = ecs->emplace<Component::Renderable>(entity);
                 ecs->emplace<Component::ModelComponent>(entity, modelConfig);
@@ -143,7 +143,7 @@ void RenderSystem::init() {
 }
 
 void RenderSystem::processSystem(float delta) {
-    ZoneScopedN("RenderSystem_process");
+    ZoneScoped;
 
     auto ctx = vulkanCtx->createNextFrameContext();
     renderCtx->begin(*ctx, sceneTime->getSceneTime(), delta);
@@ -156,8 +156,8 @@ void RenderSystem::processSystem(float delta) {
 
 void RenderSystem::integrate(Component::Renderable& renderable, Component::Spatials& spatials,
     Transform& curTranform, uint32_t meshIdx, float delta, glm::mat4& dest) {
+    ZoneScoped;
 
-    ZoneScopedN("drawEntities_single_integrate");
     if (!renderable.integrateRendering) {
         dest = curTranform.getTransMatrix();
         return;
@@ -176,7 +176,7 @@ void RenderSystem::integrate(Component::Renderable& renderable, Component::Spati
 }
 
 void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
-    ZoneScopedN("RenderSystem::drawEntities");
+    ZoneScoped;
     //auto view = getEcs().view<Component::Renderable, Component::Spatials, Component::ModelComponent, Component::Material>();
 
     auto& ecs = getEcs();
@@ -190,7 +190,7 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
     debugCtx->storeIntValue("spatialGridVisibleEntities", entities.size());
 
     for (auto& e : entities) {
-        ZoneScopedN("RenderSystem::drawEntities_single");
+        ZoneScopedN("draw_entity");
         auto& modelComponent = ecs.get<Component::ModelComponent>(e);
         auto modelTask = modelCache->getAsync(modelComponent.config);
 
@@ -218,6 +218,7 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
         auto curIdx = 0;
         for (const auto& mg : model->getMeshGroups()) {
             for (const auto& m : mg->getMeshes()) {
+                ZoneScopedN("draw_entity_mesh");
                 auto node = sceneGraph->get(spatialsComponent.meshSpatialsIds[curIdx]);
                 auto& curTranform = node->getWorldTransform();
                 integrate(renderableComponent, spatialsComponent, curTranform, curIdx, delta, blendMat);

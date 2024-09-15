@@ -5,6 +5,7 @@
 #include <functional>
 #include <shared_mutex>
 #include <optional>
+#include <tracy/Tracy.hpp>
 
 /// <summary>
 /// Makes checking futures are done easier, also optimizes not needing to create dummy futures when asset is already cached
@@ -133,6 +134,7 @@ public:
 
     // lets not use shared ptrs for keys? causes paradigm issues when using the keys in ECS components
     AsyncCacheTask<V*> getAsync(std::shared_ptr<K> keyObj) {
+        ZoneScoped;
         size_t key = keyObj->hashCode();
 
         // quick check with shared read lock

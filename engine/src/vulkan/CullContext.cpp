@@ -50,8 +50,7 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Descrip
         for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
             auto& descSetAllo = *descSetAllocators[i];
 
-            auto cullingDescSet = descSetAllo.getGlobalDescriptorSet(
-                "deferred-culling", DrawCullingPipeline::cullingLayout);
+            auto cullingDescSet = descSetAllo.getGlobalDescriptorSet("deferred-culling", DrawCullingPipeline::cullingLayout);
 
             std::vector<VkWriteDescriptorSet> setWrites(4);
             std::vector<VkDescriptorBufferInfo> bufferInfos(4);

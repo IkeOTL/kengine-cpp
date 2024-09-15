@@ -3,6 +3,7 @@ WIP
 C++ port of my Java engine (https://github.com/IkeOTL/simple-game)
 
 Requirements:
+- vcpkg potentially not sure if i want it yet
 - Windows (only tested for now)
 - C++ 20 capable dev environment
 - ensure submodules were pulled `git submodule update --init --recursive`
@@ -18,6 +19,7 @@ Requirements:
 
 
 Build:
+- `cmake -DCMAKE_TOOLCHAIN_FILE=D:/git/vcpkg/scripts/buildsystems/vcpkg.cmake . -A x64 -B build`
 - `cmake . -A x64 -B build`
   - if CMAKE cant find GLFW hint its install dir on your system `cmake -Dglfw3_DIR="C:/Program Files/GLFW/lib/cmake/glfw3" . -A x64 -B build`
 - Copy contents of `examples/res` into `build/examples/res` (Todo: need to automate this)

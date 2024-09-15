@@ -71,13 +71,13 @@ private:
     float alpha = 0;
     float sceneTime = 0;
 
-    boolean started = false;
+    bool started = false;
 
     void setViewportScissor(glm::uvec2 dim);
     void initBuffers();
     void initDescriptors();
 
-    IndirectDrawBatch& getStaticBatch(int instanceIdx, const Mesh& mesh, const Material& material, boolean hasShadow);
+    IndirectDrawBatch& getStaticBatch(int instanceIdx, const Mesh& mesh, const Material& material, bool hasShadow);
     void deferredPass(DescriptorSetAllocator& descSetAllocator);
     void compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d);
 
@@ -89,7 +89,7 @@ public:
 
     void init();
 
-    void addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere, boolean hasShadow);
+    void addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere, bool hasShadow);
     int draw(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere);
     void begin(RenderFrameContext& frameCxt, float sceneTime, float alpha);
     void end();

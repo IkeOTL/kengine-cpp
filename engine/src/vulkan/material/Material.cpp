@@ -8,11 +8,11 @@ const Pipeline& Material::getPipeline() const {
     return pipeline;
 }
 
-boolean Material::hasShadow() const {
+bool Material::hasShadow() const {
     return config->hasShadow();
 }
 
-boolean Material::hasSkeleton()  const {
+bool Material::hasSkeleton()  const {
     return config->hasSkeleton();
 }
 

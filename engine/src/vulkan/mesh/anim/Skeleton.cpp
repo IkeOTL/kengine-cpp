@@ -2,6 +2,7 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/Math.hpp>
+#include <tracy/Tracy.hpp>
 
 void Bone::setInverseBindWorldMatrix(const glm::mat4& boneOffset) {
     this->boneOffset = boneOffset;
@@ -60,6 +61,8 @@ void Skeleton::savePreviousTransforms() {
 }
 
 void Skeleton::upload(VulkanContext& vkCxt, const CachedGpuBuffer& vmaBuffer, int frameIdx, float alpha) {
+    ZoneScoped;
+
     auto boneCount = bones.size();
     glm::mat4 outMats[125]; // maybe more?
     {

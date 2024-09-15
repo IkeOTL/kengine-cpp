@@ -1,0 +1,26 @@
+{
+  "name": "kengine",
+  "version": "1.0.0",
+  "dependencies": [
+    {
+      "name": "gamenetworkingsockets",
+      "version>=": "1.4.1"
+    },
+    {
+      "name": "joltphysics",
+      "version>=": "5.1.0"
+    },
+    {
+      "name": "glfw3",
+      "version>=": "3.4"
+    },
+    {
+      "name": "tracy",
+      "version>=": "0.11.1"
+    },
+    {
+      "name": "spdlog",
+      "version>=": "1.14.1"
+    }
+  ]
+}
