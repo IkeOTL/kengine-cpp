@@ -13,6 +13,8 @@
 #include <steam/steamnetworkingsockets.h>
 #include <kengine/Logger.hpp>
 
+#include <msgpack.hpp>
+
 static void SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_t* pInfo)
 {
     KE_LOG_INFO("somethign happen??");

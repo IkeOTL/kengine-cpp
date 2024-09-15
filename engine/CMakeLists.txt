@@ -277,7 +277,7 @@ FetchContent_MakeAvailable(glfw)
 #set(JPH_DEBUG_RENDERER ON CACHE BOOL "Enable debug rendering")
 #set(JPH_DOUBLE_PRECISION OFF CACHE BOOL "Use double precision for large worlds")
 set(JPH_CROSS_PLATFORM_DETERMINISTIC ON CACHE BOOL "Make simulation deterministic across different platforms")
-set(PHYSICS_REPO_ROOT ${CMAKE_BINARY_DIR}/JoltPhysics)
+set(PHYSICS_REPO_ROOT ${CMAKE_BINARY_DIR}/_deps/joltphysics-src)
 FetchContent_Declare(
     JoltPhysics
     GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
@@ -286,6 +286,17 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(JoltPhysics)
 include(${PHYSICS_REPO_ROOT}/Jolt/Jolt.cmake)
+
+# download msgpack-c source
+set(MSGPACK_CXX20 ON CACHE BOOL "Enforce use C++20")
+set(MSGPACK_USE_BOOST OFF CACHE BOOL "Remove Boost dependency")
+set(MSGPACK_BUILD_DOCS OFF CACHE BOOL "Dont build docs")
+FetchContent_Declare(
+    msgpack
+    GIT_REPOSITORY https://github.com/msgpack/msgpack-c.git
+    GIT_TAG cpp-6.1.0
+)
+FetchContent_MakeAvailable(msgpack)
 
 # Gave up. Going to use vcpkg for GameNetworkingSockets
 # # zlib needs to be installed on system for now. apparently its an issue in CMAKE due to maintainer: https://discourse.cmake.org/t/how-to-set-zlib-root/9765
@@ -342,6 +353,7 @@ target_link_libraries(kengine_engine PUBLIC
     Threads::Threads
     Vulkan::Vulkan
     glfw
+    msgpack-cxx
     #Jolt ## commented out to work on it when i need it, and ensure its linking correctly
     GameNetworkingSockets::shared
 )
