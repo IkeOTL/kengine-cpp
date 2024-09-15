@@ -28,7 +28,7 @@ public:
         if (!result)
             throw std::runtime_error("Must either have a future, or a result.");
 
-        return result;
+        return !!result;
     }
 
     V get() {

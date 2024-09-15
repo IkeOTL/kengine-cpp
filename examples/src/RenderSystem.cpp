@@ -56,7 +56,7 @@ void RenderSystem::init() {
                 auto spatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), Component::Renderable::DYNAMIC_MODEL);
 
                 auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
-                rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - ((1.5f * 5.0f) * 0.5f), .1337f, (1.5f * j) - ((1.5f * 5.0f) * 0.5f)));
+                rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - ((1.5f * 5.0f) * 0.5f), .1337f, (1.5f * j) - ((1.5f * 5.0f) * 0.5f) - 15));
 
                 spatialPartitioning->getSpatialGrid()->setDirty(entity);
 
@@ -73,6 +73,33 @@ void RenderSystem::init() {
                 ecs->emplace<Component::Material>(entity, materialConfig);
             }
         }
+    }
+
+    // create markers
+    {
+        auto* ecs = getWorld().getService<entt::registry>();
+
+        auto cubeModelConfig = std::make_shared<ModelConfig>("res/gltf/smallcube.glb",
+            VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS | VertexAttribute::TANGENTS);
+
+        auto entity = ecs->create();
+        auto& renderable = ecs->emplace<Component::Renderable>(entity);
+        ecs->emplace<Component::ModelComponent>(entity, cubeModelConfig);
+
+
+        auto& model = modelCache->get(cubeModelConfig);
+        auto& spatials = ecs->emplace<Component::Spatials>(entity);
+        auto spatial = spatials.generate(*sceneGraph, model, "smallcube" + std::to_string(1), Component::Renderable::DYNAMIC_MODEL);
+
+        auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
+        //rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - ((1.5f * 5.0f) * 0.5f), .1337f, (1.5f * j) - ((1.5f * 5.0f) * 0.5f) - 15));
+        rootSpatial->setLocalPosition(glm::vec3(0, 3, 0));
+
+        spatialPartitioning->getSpatialGrid()->setDirty(entity);
+
+        auto materialConfig = std::make_shared<PbrMaterialConfig>();
+        materialConfig->setHasShadow(true);
+        ecs->emplace<Component::Material>(entity, materialConfig);
     }
 
     // test terrain
@@ -108,7 +135,7 @@ void RenderSystem::init() {
                 renderable.setStatic();
 
                 auto spatial = sceneGraph->create("terrain: x: " + std::to_string(x) + " z:" + std::to_string(z));
-                spatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
+                // spatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
                 auto& spatialsComp = ecs->emplace<Component::Spatials>(entity);
                 spatialsComp.rootSpatialId = spatial->getSceneId();
                 spatialsComp.meshSpatialsIds.push_back(spatialsComp.rootSpatialId);

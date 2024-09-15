@@ -23,10 +23,7 @@ public:
                     std::function<void()> task;
                     {
                         std::unique_lock<std::mutex> lock(this->queueMutex);
-                        this->condition.wait(lock,
-                            [this] {
-                                return this->stop || !this->tasks.empty();
-                            });
+                        this->condition.wait(lock, [this] { return this->stop || !this->tasks.empty(); });
 
                         if (this->stop && this->tasks.empty())
                             return;

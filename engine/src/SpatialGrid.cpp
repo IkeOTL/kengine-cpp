@@ -1,6 +1,7 @@
 #include <kengine/SpatialGrid.hpp>
 #include <kengine/util/MatUtils.hpp>
 #include <kengine/Math.hpp>
+#include <kengine/Logger.hpp>
 
 
 SpatialGrid::SpatialGrid(uint32_t worldWidth, uint32_t worldLength, uint32_t cellSize)
@@ -31,7 +32,7 @@ std::function<void()> SpatialGrid::createCb(const entt::entity eId) {
 glm::vec3 SpatialGrid::intersectPoint(const glm::vec3& start, const glm::vec3& end) {
     // ray never intersects with floor plane
     // lets default the intersection happening at the end of the ray
-    if ((start.y >= 0 && end.y >= 0) || (start.y <= 0 && end.y <= 0))
+    if ((start.y > 0 && end.y > 0) || (start.y < 0 && end.y < 0))
         return glm::vec3(end.x, 0, end.z);
 
     auto factor = start.y / (start.y - end.y);
@@ -108,6 +109,10 @@ void SpatialGrid::addEntity(entt::entity entityId, const glm::mat4& xform, const
     aabb.getMinMax(min, max);
     matutils::transformAab(xform, min, max, min, max);
 
+
+    KE_LOG_INFO(std::format("min.x: {}, min.y: {}, min.z: {}", min.x, min.y, min.z));
+    KE_LOG_INFO(std::format("max.x: {}, max.y: {}, max.z: {}", max.x, max.y, max.z));
+
     // Adjust for the world's offset and then compute the row and column
     auto startCellX = static_cast<int32_t>(std::floor(min.x - worldOffsetX) / cellSize);
     auto startCellZ = static_cast<int32_t>(std::floor(min.z - worldOffsetZ) / cellSize);
@@ -120,10 +125,12 @@ void SpatialGrid::addEntity(entt::entity entityId, const glm::mat4& xform, const
     endCellX = math::max(0, math::min(endCellX, cellCountX - 1));
     endCellZ = math::max(0, math::min(endCellZ, cellCountZ - 1));
 
+    KE_LOG_INFO(std::format("endCellX: {}, endCellZ: {}", endCellX, endCellZ));
+
     auto& index = entityIndex[entityId];
 
     // reset index list
-    index.fill(-1); 
+    index.fill(-1);
 
     auto curIdx = 0;
     for (auto z = startCellZ; z <= endCellZ && curIdx < MAX_CELLS_PER_ENTITY; z++) {
@@ -131,10 +138,12 @@ void SpatialGrid::addEntity(entt::entity entityId, const glm::mat4& xform, const
             if (curIdx == MAX_CELLS_PER_ENTITY)
                 break;
 
+
             // read/write lock
             std::lock_guard<std::shared_mutex> lock(this->lock);
 
             auto cellIndex = z * cellCountX + x;
+            KE_LOG_INFO(std::format("cellindex: {}", cellIndex));
             cells[cellIndex].push_back(entityId);
 
             // add to index for fast access in opposite direction            
@@ -144,6 +153,7 @@ void SpatialGrid::addEntity(entt::entity entityId, const glm::mat4& xform, const
         if (curIdx == MAX_CELLS_PER_ENTITY)
             break;
     }
+    KE_LOG_INFO("");
 }
 
 void SpatialGrid::removeEntity(entt::entity entityId) {

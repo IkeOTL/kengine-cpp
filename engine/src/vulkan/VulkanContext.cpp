@@ -16,15 +16,16 @@ VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, PipelineCach
     swapchainCreator(SwapchainCreator(std::move(onSwapchainCreate))) {}
 
 VulkanContext::~VulkanContext() {
-    if (vkInstance != VK_NULL_HANDLE) {
-        auto funcDestroyDebug = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
-        if (funcDestroyDebug)
-            funcDestroyDebug(vkInstance, debugCallbackHandle, nullptr);
+    if (vkInstance == VK_NULL_HANDLE)
+        return;
 
-        vmaDestroyAllocator(vmaAllocator);
+    auto funcDestroyDebug = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
+    if (funcDestroyDebug)
+        funcDestroyDebug(vkInstance, debugCallbackHandle, nullptr);
 
-        vkDestroyInstance(vkInstance, nullptr);
-    }
+    vmaDestroyAllocator(vmaAllocator);
+
+    vkDestroyInstance(vkInstance, nullptr);
 }
 
 void VulkanContext::init(Window& window, bool validationOn) {
@@ -320,7 +321,7 @@ void VulkanContext::setupDebugging() {
         const char* msg,
         void* userData) -> VkBool32
         {
-            KE_LOG_ERROR(std::format("Validation Layer: {}", msg));
+            KE_LOG_ERROR(std::format("vkDebug: {}", msg));
             return VK_FALSE;
         };
 
@@ -329,7 +330,6 @@ void VulkanContext::setupDebugging() {
     if (!func)
         throw std::runtime_error("Could not get address of vkCreateDebugReportCallbackEXT.");
 
-    VkDebugReportCallbackEXT debugCallbackHandle;
     if (func(vkInstance, &vkDebugCbCreateInfo, nullptr, &debugCallbackHandle) != VK_SUCCESS)
         throw std::runtime_error("Failed to set up debug callback.");
 }

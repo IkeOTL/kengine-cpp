@@ -13,31 +13,8 @@
 #include <steam/steamnetworkingsockets.h>
 #include <kengine/Logger.hpp>
 
-#include <msgpack.hpp>
-
-static void SteamNetConnectionStatusChangedCallback(SteamNetConnectionStatusChangedCallback_t* pInfo)
-{
-    KE_LOG_INFO("somethign happen??");
-}
-
 int main() {
     KE_LOG_INFO("Example started.");
-
-    SteamDatagramErrMsg errMsg;
-    if (!GameNetworkingSockets_Init(nullptr, errMsg))
-        KE_LOG_ERROR(errMsg);
-
-    auto m_pInterface = SteamNetworkingSockets();
-
-    SteamNetworkingIPAddr serverLocalAddr;
-    serverLocalAddr.Clear();
-    serverLocalAddr.m_port = 8008;
-    SteamNetworkingConfigValue_t opt;
-    opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)SteamNetConnectionStatusChangedCallback);
-    auto hListenSock = m_pInterface->CreateListenSocketIP(serverLocalAddr, 1, &opt);
-    if (hListenSock == k_HSteamListenSocket_Invalid)
-        KE_LOG_ERROR("k_HSteamListenSocket_Invalid");
-
 
     BasicGameTest game;
     game.run();

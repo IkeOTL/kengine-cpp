@@ -59,7 +59,7 @@ namespace matutils {
         }
 
         // normalize using only XYZ
-        auto invLength = 1 / std::sqrt(std::fma(dest.x, dest.x, std::fma(dest.y, dest.y, dest.z * dest.z)));
+        auto invLength = 1.0f / std::sqrt(std::fma(dest.x, dest.x, std::fma(dest.y, dest.y, dest.z * dest.z)));
         return dest *= invLength;
     }
 

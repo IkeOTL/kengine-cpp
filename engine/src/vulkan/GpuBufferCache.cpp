@@ -5,7 +5,7 @@ CachedGpuBuffer::CachedGpuBuffer(int id, std::unique_ptr<GpuBuffer>&& gpuBuffer,
     : id(id), gpuBuffer(std::move(gpuBuffer)), frameSize(frameSize), totalSize(totalSize) {}
 
 CachedGpuBuffer* GpuBufferCache::get(unsigned int cacheKey) {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::shared_lock<std::shared_mutex> lock(this->mtx);
     auto it = cache.find(cacheKey);
 
     if (it == cache.end())
@@ -42,7 +42,7 @@ CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, int frameCount, 
     auto buf = std::make_unique<CachedGpuBuffer>(newId, std::move(gpuBuf), frameSize, totalSize);
 
     {
-        std::lock_guard<std::mutex> lock(mtx);
+        std::unique_lock<std::shared_mutex> lock(this->mtx);
         cache[newId] = std::move(buf);
     }
 

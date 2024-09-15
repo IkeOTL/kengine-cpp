@@ -24,7 +24,7 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
     // load nodes and bones
     {
         std::vector<glm::mat4> inverseBindMatrices;
-        if (model.skins[0].inverseBindMatrices > -1) {
+        if ((config.getAttributes() & VertexAttribute::SKELETON) && model.skins[0].inverseBindMatrices > -1) {
             const auto& accessor = model.accessors[model.skins[0].inverseBindMatrices];
             const auto& bufferView = model.bufferViews[accessor.bufferView];
             const auto& buffer = model.buffers[bufferView.buffer];
@@ -37,19 +37,23 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
                 memcpy(&inverseBindMatrices[i], inverseBindMatricesData + (i * stride), sizeof(glm::mat4));
         }
 
-        // find all joint indices for first skin
-        auto& joints = model.skins[0].joints;
 
         // create node entries
         spatialNodes.reserve(model.nodes.size());
-        spatialBones.reserve(joints.size());
         parentIndices.resize(model.nodes.size(), -1);
 
         std::unordered_map<int, int> boneMap;
-        bonesNodeIndices.resize(joints.size());
-        for (auto i = 0; i < joints.size(); i++) {
-            bonesNodeIndices[i] = joints[i];
-            boneMap[joints[i]] = i;
+
+        if (config.getAttributes() & VertexAttribute::SKELETON) {
+            // find all joint indices for first skin
+            auto& joints = model.skins[0].joints;
+            spatialBones.reserve(joints.size());
+
+            bonesNodeIndices.resize(joints.size());
+            for (auto i = 0; i < joints.size(); i++) {
+                bonesNodeIndices[i] = joints[i];
+                boneMap[joints[i]] = i;
+            }
         }
 
         // load all nodes to keep it simple

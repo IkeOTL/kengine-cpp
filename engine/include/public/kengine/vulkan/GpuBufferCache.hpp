@@ -1,7 +1,7 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/GpuBuffer.hpp>
-#include <mutex>
+#include <shared_mutex>
 #include <unordered_map>
 
 class VulkanContext;
@@ -43,7 +43,7 @@ private:
     std::atomic<unsigned int> runningId;
     const VulkanContext& vkContext;
     std::unordered_map<unsigned int, std::unique_ptr<CachedGpuBuffer>> cache;
-    std::mutex mtx{};
+    std::shared_mutex mtx{};
 
 public:
     GpuBufferCache(const VulkanContext& vkContext)

@@ -2,7 +2,7 @@
 #include <kengine/Hashable.hpp>
 #include <kengine/vulkan/VulkanInclude.hpp>
 #include <functional>
-#include <mutex>
+#include <shared_mutex>
 
 class VulkanContext;
 
@@ -44,12 +44,12 @@ namespace std {
 }
 
 class SamplerCache {
-public:
+private:
     VulkanContext& vkCtx;
-    std::mutex lock{};
-
+    std::shared_mutex lock{};
     std::unordered_map<SamplerConfig, VkSampler> cache{};
 
+public:
     SamplerCache(VulkanContext& vkCtx) : vkCtx(vkCtx) {}
 
     VkSampler getSampler(SamplerConfig& config);

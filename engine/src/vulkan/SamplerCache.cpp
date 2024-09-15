@@ -3,37 +3,47 @@
 #include <bit>
 
 VkSampler SamplerCache::getSampler(SamplerConfig& config) {
-    std::lock_guard<std::mutex> lock(this->lock);
+    {
+        std::shared_lock<std::shared_mutex> lock(this->lock);
 
-    auto it = cache.find(config);
+        auto it = cache.find(config);
+        if (it != cache.end())
+            return it->second;
+    }
 
-    if (it != cache.end())
-        return it->second;
+    {
+        std::unique_lock<std::shared_mutex> lock(this->lock);
 
-    VkSamplerCreateInfo samplerInfo{};
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = config.magFilter;
-    samplerInfo.minFilter = config.minFilter;
-    samplerInfo.mipmapMode = config.mipmapMode;
-    samplerInfo.addressModeU = config.addressModeU;
-    samplerInfo.addressModeV = config.addressModeV;
-    samplerInfo.addressModeW = config.addressModeW;
-    samplerInfo.compareOp = config.compareOp;
-    samplerInfo.minLod = 0;
-    samplerInfo.maxLod = config.maxLod;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.borderColor = config.borderColor;
-    samplerInfo.maxAnisotropy = 1.0f;
+        // double check
+        auto it = cache.find(config);
+        if (it != cache.end())
+            return it->second;
 
-    // Note: If using anisotropic filtering, should also set samplerInfo.anisotropyEnable = VK_TRUE?
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = config.magFilter;
+        samplerInfo.minFilter = config.minFilter;
+        samplerInfo.mipmapMode = config.mipmapMode;
+        samplerInfo.addressModeU = config.addressModeU;
+        samplerInfo.addressModeV = config.addressModeV;
+        samplerInfo.addressModeW = config.addressModeW;
+        samplerInfo.compareOp = config.compareOp;
+        samplerInfo.minLod = 0;
+        samplerInfo.maxLod = config.maxLod;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.borderColor = config.borderColor;
+        samplerInfo.maxAnisotropy = 1.0f;
 
-    VkSampler sampler;
-    VKCHECK(vkCreateSampler(vkCtx.getVkDevice(), &samplerInfo, nullptr, &sampler),
-        "Failed to create sampler.");
+        // Note: If using anisotropic filtering, should also set samplerInfo.anisotropyEnable = VK_TRUE?
 
-    cache[config] = sampler;
+        VkSampler sampler;
+        VKCHECK(vkCreateSampler(vkCtx.getVkDevice(), &samplerInfo, nullptr, &sampler),
+            "Failed to create sampler.");
 
-    return sampler;
+        cache[config] = sampler;
+
+        return sampler;
+    }
 }
 
 size_t SamplerConfig::hashCode() const noexcept {
