@@ -41,10 +41,10 @@ private:
     SkeletonManager* skeletonManager;
 
     // remove
-    entt::entity topLeft{};
-    entt::entity bottomLeft{};
-    entt::entity bottomRight{};
-    entt::entity topRight{};
+    entt::entity topLeftE{};
+    entt::entity bottomLeftE{};
+    entt::entity bottomRightE{};
+    entt::entity topRightE{};
 
 public:
     RenderSystem() = default;

@@ -37,7 +37,6 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
                 memcpy(&inverseBindMatrices[i], inverseBindMatricesData + (i * stride), sizeof(glm::mat4));
         }
 
-
         // create node entries
         spatialNodes.reserve(model.nodes.size());
         parentIndices.resize(model.nodes.size(), -1);

@@ -21,6 +21,7 @@
 #include <kengine/game/BasicCameraController.hpp>
 #include <kengine/vulkan/SkeletonManager.hpp>
 #include <tracy/Tracy.hpp>
+#include <kengine/util/MatUtils.hpp>
 
 void RenderSystem::init() {
     vulkanCtx = getService<VulkanContext>();
@@ -75,31 +76,104 @@ void RenderSystem::init() {
         }
     }
 
-    // create markers
+    // REMOVE: create markers
     {
         auto* ecs = getWorld().getService<entt::registry>();
 
         auto cubeModelConfig = std::make_shared<ModelConfig>("res/gltf/smallcube.glb",
             VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS | VertexAttribute::TANGENTS);
 
-        auto entity = ecs->create();
-        auto& renderable = ecs->emplace<Component::Renderable>(entity);
-        ecs->emplace<Component::ModelComponent>(entity, cubeModelConfig);
+        {
+            auto entity = ecs->create();
+            auto& renderable = ecs->emplace<Component::Renderable>(entity);
+            ecs->emplace<Component::ModelComponent>(entity, cubeModelConfig);
 
 
-        auto& model = modelCache->get(cubeModelConfig);
-        auto& spatials = ecs->emplace<Component::Spatials>(entity);
-        auto spatial = spatials.generate(*sceneGraph, model, "smallcube" + std::to_string(1), Component::Renderable::DYNAMIC_MODEL);
+            auto& model = modelCache->get(cubeModelConfig);
+            auto& spatials = ecs->emplace<Component::Spatials>(entity);
+            auto spatial = spatials.generate(*sceneGraph, model, "smallcube topleft", Component::Renderable::DYNAMIC_MODEL);
 
-        auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
-        //rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - ((1.5f * 5.0f) * 0.5f), .1337f, (1.5f * j) - ((1.5f * 5.0f) * 0.5f) - 15));
-        rootSpatial->setLocalPosition(glm::vec3(0, 3, 0));
+            auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
+            //rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - ((1.5f * 5.0f) * 0.5f), .1337f, (1.5f * j) - ((1.5f * 5.0f) * 0.5f) - 15));
+            rootSpatial->setLocalPosition(glm::vec3(0, 3, 0));
+            rootSpatial->setLocalScale(glm::vec3(2));
 
-        spatialPartitioning->getSpatialGrid()->setDirty(entity);
+            spatialPartitioning->getSpatialGrid()->setDirty(entity);
 
-        auto materialConfig = std::make_shared<PbrMaterialConfig>();
-        materialConfig->setHasShadow(true);
-        ecs->emplace<Component::Material>(entity, materialConfig);
+            auto materialConfig = std::make_shared<PbrMaterialConfig>();
+            materialConfig->setHasShadow(true);
+            ecs->emplace<Component::Material>(entity, materialConfig);
+            topLeftE = entity;
+        }
+
+        {
+            auto entity = ecs->create();
+            auto& renderable = ecs->emplace<Component::Renderable>(entity);
+            ecs->emplace<Component::ModelComponent>(entity, cubeModelConfig);
+
+
+            auto& model = modelCache->get(cubeModelConfig);
+            auto& spatials = ecs->emplace<Component::Spatials>(entity);
+            auto spatial = spatials.generate(*sceneGraph, model, "smallcube bottomleft", Component::Renderable::DYNAMIC_MODEL);
+
+            auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
+            //rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - ((1.5f * 5.0f) * 0.5f), .1337f, (1.5f * j) - ((1.5f * 5.0f) * 0.5f) - 15));
+            rootSpatial->setLocalPosition(glm::vec3(0, 3, 0));
+            rootSpatial->setLocalScale(glm::vec3(2));
+
+            spatialPartitioning->getSpatialGrid()->setDirty(entity);
+
+            auto materialConfig = std::make_shared<PbrMaterialConfig>();
+            materialConfig->setHasShadow(true);
+            ecs->emplace<Component::Material>(entity, materialConfig);
+            bottomLeftE = entity;
+        }
+
+        {
+            auto entity = ecs->create();
+            auto& renderable = ecs->emplace<Component::Renderable>(entity);
+            ecs->emplace<Component::ModelComponent>(entity, cubeModelConfig);
+
+
+            auto& model = modelCache->get(cubeModelConfig);
+            auto& spatials = ecs->emplace<Component::Spatials>(entity);
+            auto spatial = spatials.generate(*sceneGraph, model, "smallcube bottomright", Component::Renderable::DYNAMIC_MODEL);
+
+            auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
+            //rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - ((1.5f * 5.0f) * 0.5f), .1337f, (1.5f * j) - ((1.5f * 5.0f) * 0.5f) - 15));
+            rootSpatial->setLocalPosition(glm::vec3(0, 3, 0));
+            rootSpatial->setLocalScale(glm::vec3(2));
+
+            spatialPartitioning->getSpatialGrid()->setDirty(entity);
+
+            auto materialConfig = std::make_shared<PbrMaterialConfig>();
+            materialConfig->setHasShadow(true);
+            ecs->emplace<Component::Material>(entity, materialConfig);
+            bottomRightE = entity;
+        }
+
+        {
+            auto entity = ecs->create();
+            auto& renderable = ecs->emplace<Component::Renderable>(entity);
+            ecs->emplace<Component::ModelComponent>(entity, cubeModelConfig);
+
+
+            auto& model = modelCache->get(cubeModelConfig);
+            auto& spatials = ecs->emplace<Component::Spatials>(entity);
+            auto spatial = spatials.generate(*sceneGraph, model, "smallcube topright", Component::Renderable::DYNAMIC_MODEL);
+
+            auto rootSpatial = sceneGraph->get(spatials.rootSpatialId);
+            //rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - ((1.5f * 5.0f) * 0.5f), .1337f, (1.5f * j) - ((1.5f * 5.0f) * 0.5f) - 15));
+            rootSpatial->setLocalPosition(glm::vec3(0, 3, 0));
+            rootSpatial->setLocalScale(glm::vec3(2));
+
+            spatialPartitioning->getSpatialGrid()->setDirty(entity);
+
+            auto materialConfig = std::make_shared<PbrMaterialConfig>();
+            materialConfig->setHasShadow(true);
+            ecs->emplace<Component::Material>(entity, materialConfig);
+            topRightE = entity;
+        }
     }
 
     // test terrain
@@ -135,7 +209,7 @@ void RenderSystem::init() {
                 renderable.setStatic();
 
                 auto spatial = sceneGraph->create("terrain: x: " + std::to_string(x) + " z:" + std::to_string(z));
-                // spatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
+                spatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
                 auto& spatialsComp = ecs->emplace<Component::Spatials>(entity);
                 spatialsComp.rootSpatialId = spatial->getSceneId();
                 spatialsComp.meshSpatialsIds.push_back(spatialsComp.rootSpatialId);
@@ -180,6 +254,16 @@ void RenderSystem::processSystem(float delta) {
     renderCtx->end();
 }
 
+static glm::vec3 intersectPoint(const glm::vec3& start, const glm::vec3& end) {
+    // ray never intersects with floor plane
+    // lets default the intersection happening at the end of the ray
+    if ((start.y > 0 && end.y > 0) || (start.y < 0 && end.y < 0))
+        return glm::vec3(end.x, 0, end.z);
+
+    auto factor = start.y / (start.y - end.y);
+
+    return glm::mix(start, end, factor);
+}
 
 void RenderSystem::integrate(Component::Renderable& renderable, Component::Spatials& spatials,
     Transform& curTranform, uint32_t meshIdx, float delta, glm::mat4& dest) {
@@ -206,6 +290,8 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
     ZoneScoped;
     //auto view = getEcs().view<Component::Renderable, Component::Spatials, Component::ModelComponent, Component::Material>();
 
+
+
     auto& ecs = getEcs();
 
     std::vector<entt::entity> entities;
@@ -213,6 +299,38 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
 
     auto* c = static_cast<FreeCameraController*>(cameraController);
     spatialPartitioning->getSpatialGrid()->getVisible(c->getCamera()->getPosition(), c->getFrustumCorners(), c->getFrustumTester(), entities);
+
+    // remove test frustum location
+    {
+        using namespace matutils;
+        auto& frustomPoints = c->getFrustumCorners();
+        auto topLeft = intersectPoint(frustomPoints[FrustumCorner::CORNER_NXPYNZ], frustomPoints[FrustumCorner::CORNER_NXPYPZ]);
+        auto bottomLeft = intersectPoint(frustomPoints[FrustumCorner::CORNER_NXNYNZ], frustomPoints[FrustumCorner::CORNER_NXNYPZ]);
+        auto bottomRight = intersectPoint(frustomPoints[FrustumCorner::CORNER_PXNYNZ], frustomPoints[FrustumCorner::CORNER_PXNYPZ]);
+        auto topRight = intersectPoint(frustomPoints[FrustumCorner::CORNER_PXPYNZ], frustomPoints[FrustumCorner::CORNER_PXPYPZ]);
+
+        {
+            auto& spatialsComponent = ecs.get<Component::Spatials>(topLeftE);
+            auto node = sceneGraph->get(spatialsComponent.rootSpatialId);
+            node->setLocalPosition(topLeft);
+        }
+        {
+            auto& spatialsComponent = ecs.get<Component::Spatials>(bottomLeftE);
+            auto node = sceneGraph->get(spatialsComponent.rootSpatialId);
+            node->setLocalPosition(bottomLeft);
+        }
+        {
+            auto& spatialsComponent = ecs.get<Component::Spatials>(bottomRightE);
+            auto node = sceneGraph->get(spatialsComponent.rootSpatialId);
+            node->setLocalPosition(bottomRight);
+        }
+        {
+            auto& spatialsComponent = ecs.get<Component::Spatials>(topRightE);
+            auto node = sceneGraph->get(spatialsComponent.rootSpatialId);
+            node->setLocalPosition(topRight);
+        }
+    }
+
 
     debugCtx->storeIntValue("spatialGridVisibleEntities", entities.size());
 
