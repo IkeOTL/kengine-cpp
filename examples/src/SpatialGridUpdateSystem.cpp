@@ -28,8 +28,6 @@ void SpatialGridUpdateSystem::processSystem(float delta) {
         auto spatial = sceneGraph->get(spatialComp.rootSpatialId);
         auto& current = spatial->getWorldTransform();
 
-        //KE_LOG_INFO(std::format("x: {}, y: {}, z: {}", current.getPosition().x, current.getPosition().y, current.getPosition().z));
-
         auto& modelComp = ecs.get<Component::ModelComponent>(e);
         // todo: try to async here, this means we have to keep the entity in the dirtyset in case of model not yet loaded
         auto& model = modelCache->get(modelComp.config);

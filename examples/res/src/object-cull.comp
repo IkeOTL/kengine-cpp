@@ -63,7 +63,8 @@ bool isVisible(uint objectId)
     visible = visible && center.z * pcs.frustum[3] - abs(center.y) * pcs.frustum[2] > -radius;
 
     // the near/far plane culling uses camera space Z directly
-    //visible = visible && center.z + radius > pcs.aux[2] && center.z - radius < pcs.aux[3];
+    // currently broken
+    //visible = visible && center.z + radius > pcs.zNear && center.z - radius < pcs.zFar;
 
     return visible;
 }

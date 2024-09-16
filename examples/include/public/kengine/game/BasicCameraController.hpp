@@ -5,7 +5,6 @@
 #include <glm/glm.hpp>
 #include <array>
 
-
 class BasicCameraController : public CameraController {
 private:
 
@@ -23,14 +22,12 @@ private:
     FrustumIntersection frustumTester{};
     glm::vec3 frustumMin{}, frustumMax{};
     std::array<glm::vec3, 8> frustumCorners{};
-    bool needsFrustumRecalc = false;
+    bool needsFrustumRecalc = true;
 
     void init();
 
 public:
-    FreeCameraController(InputManager& inputManager) : InputEventAdapter(inputManager) {
-        init();
-    }
+    FreeCameraController(InputManager& inputManager);
 
     void update(float delta) override;
 

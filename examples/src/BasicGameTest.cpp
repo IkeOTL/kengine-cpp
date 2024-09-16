@@ -66,9 +66,9 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         vulkanCxt->getCommandPool()->initThread(*vulkanCxt);
         }));
 
-    initCamera(*inputManager);
-
     debugContext = std::make_unique<DebugContext>();
+    initCamera(*inputManager, *debugContext);
+
     vulkanCxt->setDebugContext(debugContext.get());
 
     assetIo = std::make_unique<FileSystemAssetIO>();
@@ -183,7 +183,7 @@ void BasicGameTest::initVulkan() {
     vulkanCxt->init(*window, true);
 }
 
-void BasicGameTest::initCamera(InputManager& inputManager) {
+void BasicGameTest::initCamera(InputManager& inputManager, DebugContext& dbg) {
     auto fov = glm::radians(60.0f);
     auto aspectRatio = (float)window->getWidth() / window->getHeight();
     auto camera = std::make_unique<Camera>(fov, aspectRatio, Camera::NEAR_CLIP, Camera::FAR_CLIP);

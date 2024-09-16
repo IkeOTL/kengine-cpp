@@ -68,11 +68,12 @@ void SpatialGrid::getVisible(const glm::vec3& camPos, const std::array<glm::vec3
     std::unordered_set<entt::entity> set;
 
     for (auto z = startCellZ; z <= endCellZ; z++) {
+        int32_t minWorldZ = cellSize * z + worldOffsetZ;
+        int32_t maxWorldZ = minWorldZ + cellSize;
+
         for (auto x = startCellX; x <= endCellX; x++) {
             int32_t minWorldX = cellSize * x + worldOffsetX;
-            int32_t minWorldZ = cellSize * z + worldOffsetZ;
             int32_t maxWorldX = minWorldX + cellSize;
-            int32_t maxWorldZ = minWorldZ + cellSize;
 
             // maybe use entity heights here?
             auto hit = frustumTester.testAab(minWorldX, 0, minWorldZ, maxWorldX, 0, maxWorldZ);
@@ -109,10 +110,6 @@ void SpatialGrid::addEntity(entt::entity entityId, const glm::mat4& xform, const
     aabb.getMinMax(min, max);
     matutils::transformAab(xform, min, max, min, max);
 
-
-    KE_LOG_INFO(std::format("min.x: {}, min.y: {}, min.z: {}", min.x, min.y, min.z));
-    KE_LOG_INFO(std::format("max.x: {}, max.y: {}, max.z: {}", max.x, max.y, max.z));
-
     // Adjust for the world's offset and then compute the row and column
     auto startCellX = static_cast<int32_t>(std::floor(min.x - worldOffsetX) / cellSize);
     auto startCellZ = static_cast<int32_t>(std::floor(min.z - worldOffsetZ) / cellSize);
@@ -125,25 +122,21 @@ void SpatialGrid::addEntity(entt::entity entityId, const glm::mat4& xform, const
     endCellX = math::max(0, math::min(endCellX, cellCountX - 1));
     endCellZ = math::max(0, math::min(endCellZ, cellCountZ - 1));
 
-    KE_LOG_INFO(std::format("endCellX: {}, endCellZ: {}", endCellX, endCellZ));
-
     auto& index = entityIndex[entityId];
 
     // reset index list
     index.fill(-1);
 
     auto curIdx = 0;
-    for (auto z = startCellZ; z <= endCellZ && curIdx < MAX_CELLS_PER_ENTITY; z++) {
+    for (auto z = startCellZ; z <= endCellZ; z++) {
         for (auto x = startCellX; x <= endCellX; x++) {
             if (curIdx == MAX_CELLS_PER_ENTITY)
                 break;
-
 
             // read/write lock
             std::lock_guard<std::shared_mutex> lock(this->lock);
 
             auto cellIndex = z * cellCountX + x;
-            KE_LOG_INFO(std::format("cellindex: {}", cellIndex));
             cells[cellIndex].push_back(entityId);
 
             // add to index for fast access in opposite direction            
@@ -153,7 +146,6 @@ void SpatialGrid::addEntity(entt::entity entityId, const glm::mat4& xform, const
         if (curIdx == MAX_CELLS_PER_ENTITY)
             break;
     }
-    KE_LOG_INFO("");
 }
 
 void SpatialGrid::removeEntity(entt::entity entityId) {

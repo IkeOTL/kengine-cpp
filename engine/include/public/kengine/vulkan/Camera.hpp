@@ -6,10 +6,10 @@
 class Camera {
 
 private:
-    glm::vec3 prevPosition;
+    glm::vec3 prevPosition{};
     glm::quat prevRotation = glm::identity<glm::quat>();
 
-    glm::vec3 position;
+    glm::vec3 position{};
     glm::quat rotation = glm::identity<glm::quat>();
 
     glm::mat4 projection = glm::mat4(1.0f);

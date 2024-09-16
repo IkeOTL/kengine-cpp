@@ -5,12 +5,18 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <kengine/Logger.hpp>
 
 void BasicCameraController::update(float delta) {
     // update frustum stuffs
 }
 void BasicCameraController::setPosition(float x, float y, float z) {
     camera->setPosition(glm::vec3(x, y, z));
+}
+
+FreeCameraController::FreeCameraController(InputManager& inputManager)
+    : InputEventAdapter(inputManager) {
+    init();
 }
 
 void FreeCameraController::init() {

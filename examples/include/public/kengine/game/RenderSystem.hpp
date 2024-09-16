@@ -40,12 +40,6 @@ private:
     SpatialPartitioningManager* spatialPartitioning;
     SkeletonManager* skeletonManager;
 
-    // remove
-    entt::entity topLeftE{};
-    entt::entity bottomLeftE{};
-    entt::entity bottomRightE{};
-    entt::entity topRightE{};
-
 public:
     RenderSystem() = default;
 

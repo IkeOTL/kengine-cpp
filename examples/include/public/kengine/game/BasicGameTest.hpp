@@ -73,7 +73,7 @@ private:
 
     std::unique_ptr<State<Game>> init();
     void initVulkan();
-    void initCamera(InputManager& inputManager);
+    void initCamera(InputManager& inputManager, DebugContext& dbgCtx);
 
 public:
     BasicGameTest() : sm(*this, nullptr, nullptr, nullptr) {}
