@@ -574,6 +574,7 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
         // since guimanager isnt implemented yet we need to push to next subpass manually
         // we'll remove this line once the guimanager is working
         vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
+
         if (imGuiContext)
             imGuiContext->draw(*frameCxt);
     }
