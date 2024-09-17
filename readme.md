@@ -5,7 +5,6 @@ C++ port of my Java engine (https://github.com/IkeOTL/simple-game)
 Requirements:
 - Windows (only tested for now)
 - C++ 20 capable dev environment
-- ensure submodules were pulled `git submodule update --init --recursive`
 - CMAKE 3.30.3 (https://cmake.org/files/v3.25/cmake-3.25.2-windows-x86_64.msi)
 - Vulkan SDK 1.3 (make sure to include VMA headers and GLM headers on install) (https://vulkan.lunarg.com/sdk/home#windows)
 - vcpkg (https://learn.microsoft.com/en-us/vcpkg/get_started/get-started)

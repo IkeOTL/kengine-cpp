@@ -43,9 +43,11 @@ void RenderSystem::init() {
             | VertexAttribute::TANGENTS | VertexAttribute::SKELETON
         );
 
-
-        for (size_t i = 0; i < 10; i++) {
-            for (size_t j = 0; j < 1; j++) {
+        auto xCount = 5;
+        auto zCount = 2;
+        auto zOffset = -5;
+        for (size_t i = 0; i < xCount; i++) {
+            for (size_t j = 0; j < zCount; j++) {
                 auto entity = ecs->create();
                 auto& renderable = ecs->emplace<Component::Renderable>(entity);
                 //renderable.setStatic();
@@ -59,7 +61,7 @@ void RenderSystem::init() {
 
                 //rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
 
-                rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - (1.5 * 10 * 0.5f), .1337f, 12));
+                rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - (1.5 * xCount * 0.5f), .1337f, (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset));
 
                 spatialPartitioning->getSpatialGrid()->setDirty(entity);
 
