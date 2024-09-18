@@ -6,7 +6,14 @@ protected:
     void loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) override;
 
 public:
-    const static DescriptorSetLayoutConfig skinnedSingleTextureLayout;
+    inline static const DescriptorSetLayoutConfig skinnedSingleTextureLayout = {
+        DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },
+        DescriptorSetLayoutBindingConfig{ 1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT }
+    };
+
+    inline static const std::unique_ptr<Pipeline> create() {
+        return std::make_unique<SkinnedCascadeShadowMapPipeline>();
+    }
 
     VkPipelineLayout createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) override;
     VkPipeline createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2  extents) override;

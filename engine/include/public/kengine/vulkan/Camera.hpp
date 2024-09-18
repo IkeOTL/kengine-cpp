@@ -22,6 +22,10 @@ public:
 
     Camera(float fov, float aspectRatio, float zNear, float zFar);
 
+    static inline std::unique_ptr<Camera> create(float fov, float aspectRatio, float zNear, float zFar)) {
+        return std::make_unique<Camera>(fov, aspectRatio, zNear, zFar);
+    }
+
     void getViewMatrix(glm::mat4& dest);
     void savePreviousTransform();
     void getIntegratedViewMatrix(float alpha, glm::mat4& dest);

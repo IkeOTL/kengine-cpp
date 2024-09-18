@@ -2,6 +2,7 @@
 #include <kengine/input/EventListener.hpp>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include <memory>
 
 class InputManager {
 private:
@@ -17,6 +18,10 @@ private:
     CharacterEventListener* activeCharEventListener = nullptr;
 
 public:
+    static inline std::unique_ptr<InputManager> create() {
+        return std::make_unique<InputManager>();
+    }
+
     void onMoveEvent(GLFWwindow* window, double xpos, double ypos);
     void onButtonEvent(GLFWwindow* window, int button, int action, int mods);
     void onKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -67,6 +72,6 @@ public:
     }
 
     void unregisterMouseEventListener(MouseEventListener* listener) {
-    //    mouseEventListeners.remove(listener);
+        //    mouseEventListeners.remove(listener);
     }
 };

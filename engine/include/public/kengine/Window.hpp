@@ -23,6 +23,10 @@ public:
     Window(std::string title, unsigned int width, unsigned int height);
     ~Window();
 
+    static inline std::unique_ptr<Window> create(std::string title, unsigned int width, unsigned int height) {
+        return std::make_unique<Window>(title, width, height);
+    }
+
     void createSurface(VkInstance vkInstance, VkSurfaceKHR& surface);
     void registerResizeListener(WindowResizeListener* listener);
 

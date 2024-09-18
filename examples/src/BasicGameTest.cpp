@@ -57,11 +57,13 @@ void BasicGameTest::run() {
 }
 
 std::unique_ptr<State<Game>> BasicGameTest::init() {
-    window = std::make_unique<Window>("rawr", 1920, 1080);
-    inputManager = std::make_unique<InputManager>();
+    window = Window::create("rawr", 1920, 1080);
+    inputManager = InputManager::create();
     window->setInputManager(inputManager.get());
 
     initVulkan();
+
+    // review this usage
     threadPool.reset(new ExecutorService(4, [&]() {
         vulkanCxt->getCommandPool()->initThread(*vulkanCxt);
         }));
@@ -137,37 +139,37 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 }
 
 void BasicGameTest::initVulkan() {
-    vulkanCxt = std::make_unique<VulkanContext>(
+    vulkanCxt = VulkanContext::create(
         [](VkDevice vkDevice, ColorFormatAndSpace& cfs) {
             std::vector<std::unique_ptr<RenderPass>> passes;
-            passes.push_back(std::move(std::make_unique<DeferredPbrRenderPass>(vkDevice, cfs)));
-            passes.push_back(std::move(std::make_unique<CascadeShadowMapRenderPass>(vkDevice, cfs)));
+            passes.emplace_back(DeferredPbrRenderPass::create(vkDevice, cfs));
+            passes.emplace_back(CascadeShadowMapRenderPass::create(vkDevice, cfs));
             return passes;
         },
         [](VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp) {
-            auto pc = std::make_unique<PipelineCache>();
+            auto pc = PipelineCache::create();
 
-            auto pass0 = std::make_unique<DeferredOffscreenPbrPipeline>();
+            auto pass0 = DeferredOffscreenPbrPipeline::create();
             pass0->init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
             pc->addPipeline(std::move(pass0));
 
-            auto skinned = std::make_unique<SkinnedOffscreenPbrPipeline>();
+            auto skinned = SkinnedOffscreenPbrPipeline::create();
             skinned->init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
             pc->addPipeline(std::move(skinned));
 
-            auto pass1 = std::make_unique<DeferredCompositionPbrPipeline>();
+            auto pass1 = DeferredCompositionPbrPipeline::create();
             pass1->init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
             pc->addPipeline(std::move(pass1));
 
-            auto shadowPass = std::make_unique<CascadeShadowMapPipeline>();
+            auto shadowPass = CascadeShadowMapPipeline::create();
             shadowPass->init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
             pc->addPipeline(std::move(shadowPass));
 
-            auto skinnedShadowPass = std::make_unique<SkinnedCascadeShadowMapPipeline>();
+            auto skinnedShadowPass = SkinnedCascadeShadowMapPipeline::create();
             skinnedShadowPass->init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
             pc->addPipeline(std::move(skinnedShadowPass));
 
-            auto culling = std::make_unique<DrawCullingPipeline>();
+            auto culling = DrawCullingPipeline::create();
             culling->init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
             pc->addPipeline(std::move(culling));
 
@@ -186,7 +188,7 @@ void BasicGameTest::initVulkan() {
 void BasicGameTest::initCamera(InputManager& inputManager, DebugContext& dbg) {
     auto fov = glm::radians(60.0f);
     auto aspectRatio = (float)window->getWidth() / window->getHeight();
-    auto camera = std::make_unique<Camera>(fov, aspectRatio, Camera::NEAR_CLIP, Camera::FAR_CLIP);
+    auto camera = Camera::create(fov, aspectRatio, Camera::NEAR_CLIP, Camera::FAR_CLIP);
 
     camera->setPosition(glm::vec3(0, 0, 5));
 

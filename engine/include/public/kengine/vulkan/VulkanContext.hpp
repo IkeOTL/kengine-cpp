@@ -92,6 +92,10 @@ public:
     VulkanContext(RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate);
     ~VulkanContext();
 
+    static inline std::unique_ptr<VulkanContext> create(RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate) {
+        return std::make_unique<VulkanContext>(std::move(renderPassCreator), std::move(pipelineCacheCreator), std::move(onSwapchainCreate));
+    }
+
     VulkanContext(const VulkanContext&) = delete;
     VulkanContext& operator=(const VulkanContext&) = delete;
 
