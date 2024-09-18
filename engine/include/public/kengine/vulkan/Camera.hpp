@@ -2,6 +2,7 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <memory>
 
 class Camera {
 
@@ -22,7 +23,7 @@ public:
 
     Camera(float fov, float aspectRatio, float zNear, float zFar);
 
-    static inline std::unique_ptr<Camera> create(float fov, float aspectRatio, float zNear, float zFar)) {
+    static inline const std::unique_ptr<Camera> create(float fov, float aspectRatio, float zNear, float zFar) {
         return std::make_unique<Camera>(fov, aspectRatio, zNear, zFar);
     }
 

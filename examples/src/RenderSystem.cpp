@@ -38,13 +38,13 @@ void RenderSystem::init() {
     // test obj
     {
         auto* ecs = getWorld().getService<entt::registry>();
-        auto modelConfig = std::make_shared<ModelConfig>("res/gltf/char01.glb",
+        auto modelConfig = std::make_shared<ModelConfig>("res/gltf/smallcube.glb",
             VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
-            | VertexAttribute::TANGENTS | VertexAttribute::SKELETON
+            | VertexAttribute::TANGENTS
         );
 
-        auto xCount = 5;
-        auto zCount = 2;
+        auto xCount = 20;
+        auto zCount = 20;
         auto zOffset = -5;
         for (size_t i = 0; i < xCount; i++) {
             for (size_t j = 0; j < zCount; j++) {
@@ -53,28 +53,17 @@ void RenderSystem::init() {
                 //renderable.setStatic();
                 ecs->emplace<Component::ModelComponent>(entity, modelConfig);
 
-
-
                 auto& model = modelCache->get(modelConfig);
                 auto& spatials = ecs->emplace<Component::Spatials>(entity);
                 auto rootSpatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), renderable.type);
 
                 //rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
 
-                rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - (1.5 * xCount * 0.5f), .1337f, (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset));
+                rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - (1.5 * xCount * 0.5f), 3, (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset));
 
                 spatialPartitioning->getSpatialGrid()->setDirty(entity);
 
-                auto& skeletonComp = ecs->emplace<Component::SkeletonComp>(entity);
-                auto skeleton = skeletonComp.generate(*sceneGraph, model, spatials, "LOL SKELE");
-                auto skeletonId = sceneGraph->add(skeleton);
-                skeletonComp.skeletonId = skeletonId;
-                auto& buf = skeletonManager->createMappedBuf(*skeleton);
-                skeletonComp.bufId = buf.getId();
-                // review if parenting the skeleton thats made of already parented nodes is an issue
-                rootSpatial->addChild(skeleton);
-
-                auto materialConfig = std::make_shared<PbrMaterialConfig>(skeletonComp.bufId);
+                auto materialConfig = std::make_shared<PbrMaterialConfig>();
                 materialConfig->setHasShadow(true);
                 ecs->emplace<Component::Material>(entity, materialConfig);
             }
