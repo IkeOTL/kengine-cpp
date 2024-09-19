@@ -43,6 +43,9 @@ void RenderSystem::init() {
             | VertexAttribute::TANGENTS
         );
 
+        auto materialConfig = PbrMaterialConfig::create();
+        materialConfig->setHasShadow(true);
+
         auto xCount = 20;
         auto zCount = 20;
         auto zOffset = -5;
@@ -63,8 +66,6 @@ void RenderSystem::init() {
 
                 spatialPartitioning->getSpatialGrid()->setDirty(entity);
 
-                auto materialConfig = std::make_shared<PbrMaterialConfig>();
-                materialConfig->setHasShadow(true);
                 ecs->emplace<Component::Material>(entity, materialConfig);
             }
         }
@@ -86,7 +87,7 @@ void RenderSystem::init() {
         }
         tileTerrain->regenerate(*vulkanCtx, *modelCache);
 
-        auto matConfig = std::make_shared<PbrMaterialConfig>();
+        auto matConfig = PbrMaterialConfig::create();
         TextureConfig textureConfig("res/img/poke-tileset.png");
         matConfig->addAlbedoTexture(&textureConfig);
         matConfig->setMetallicFactor(0.0f);

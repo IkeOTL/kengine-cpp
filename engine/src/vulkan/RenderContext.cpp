@@ -422,6 +422,8 @@ void RenderContext::begin(RenderFrameContext& frameCxt, float sceneTime, float a
 }
 
 void RenderContext::end() {
+    ZoneScoped;
+
     if (!started)
         throw std::runtime_error("RenderContext was never started.");
 
@@ -434,6 +436,7 @@ void RenderContext::end() {
 
     // reset static obj draw cmd
     {
+        ZoneScopedN("RenderContext::end - Upload Static Draw Cmds");
         auto indCmdFrameOffset = static_cast<uint32_t>(indirectCmdBuf->getFrameOffset(frameIdx));
         auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
         auto buf = indirectCmdBuf->getGpuBuffer().data();
@@ -455,6 +458,8 @@ void RenderContext::end() {
 
     // upload batched dynamic draw cmds
     {
+        ZoneScopedN("RenderContext::end - Upload Dynamic Draw Cmds");
+
         auto indCmdFrameOffset = static_cast<uint32_t>(indirectCmdBuf->getFrameOffset(frameIdx));
         auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
         auto buf = indirectCmdBuf->getGpuBuffer().data();
@@ -476,8 +481,13 @@ void RenderContext::end() {
 
     // submit to GPU
     {
-        frameCxt->cullComputeSemaphore = cullContext->getSemaphore(frameIdx);
-        cullContext->dispatch(vkContext, *descSetAllocators[frameIdx], cameraController, frameIdx, staticInstances + dynamicInstances);
+        ZoneScopedN("RenderContext::end - Submit to GPU");
+
+        {
+            ZoneScopedN("RenderContext::end - Compute Culling Dispatch");
+            frameCxt->cullComputeSemaphore = cullContext->getSemaphore(frameIdx);
+            cullContext->dispatch(vkContext, *descSetAllocators[frameIdx], cameraController, frameIdx, staticInstances + dynamicInstances);
+        }
 
         vkContext.renderBegin(*frameCxt);
         {
@@ -543,6 +553,8 @@ IndirectDrawBatch& RenderContext::getStaticBatch(int instanceIdx, const Mesh& me
 }
 
 void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
+    ZoneScoped;
+
     auto frameIdx = frameCxt->frameIndex;
     auto vkCmd = frameCxt->cmd;
 
@@ -553,6 +565,8 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
 
         // subpass 1
         {
+            ZoneScopedN("RenderContext::deferredPass - Record Draw Cmds");
+
             for (int i = 0; i < staticBatches; i++) {
                 auto& batch = staticBatchCache[i];
                 batch.draw(vkContext, vkCmd, *indirectCmdBuf,

@@ -18,8 +18,11 @@ public:
         return std::make_unique<PipelineCache>();
     };
 
-    void addPipeline(std::unique_ptr<Pipeline>&& pipeline) {
-        pipelines[std::type_index(typeid(*pipeline))] = std::move(pipeline);
+    template <typename T>
+    T& createPipeline() {
+        auto pipeline = std::make_unique<T>();
+        auto& outPipeline = pipelines[std::type_index(typeid(T))] = std::move(pipeline);
+        return *static_cast<T*>(outPipeline.get());
     }
 
     template <typename T>

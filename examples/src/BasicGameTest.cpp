@@ -147,29 +147,23 @@ void BasicGameTest::initVulkan() {
         [](VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp) {
             auto pc = PipelineCache::create();
 
-            auto pass0 = DeferredOffscreenPbrPipeline::create();
-            pass0->init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
-            pc->addPipeline(std::move(pass0));
+            pc->createPipeline<DeferredOffscreenPbrPipeline>()
+                .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            auto skinned = SkinnedOffscreenPbrPipeline::create();
-            skinned->init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
-            pc->addPipeline(std::move(skinned));
+            pc->createPipeline<SkinnedOffscreenPbrPipeline>()
+                .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            auto pass1 = DeferredCompositionPbrPipeline::create();
-            pass1->init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
-            pc->addPipeline(std::move(pass1));
+            pc->createPipeline<DeferredCompositionPbrPipeline>()
+                .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            auto shadowPass = CascadeShadowMapPipeline::create();
-            shadowPass->init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
-            pc->addPipeline(std::move(shadowPass));
+            pc->createPipeline<CascadeShadowMapPipeline>()
+                .init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
 
-            auto skinnedShadowPass = SkinnedCascadeShadowMapPipeline::create();
-            skinnedShadowPass->init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
-            pc->addPipeline(std::move(skinnedShadowPass));
+            pc->createPipeline<SkinnedCascadeShadowMapPipeline>()
+                .init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
 
-            auto culling = DrawCullingPipeline::create();
-            culling->init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
-            pc->addPipeline(std::move(culling));
+            pc->createPipeline<DrawCullingPipeline>()
+                .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
             return pc;
         },
