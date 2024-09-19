@@ -2,6 +2,7 @@
 #include <kengine/vulkan/AsyncAssetCache.hpp>
 #include <kengine/vulkan/mesh/anim/Animation.hpp>
 #include <kengine/vulkan/mesh/anim/AnimationConfig.hpp>
+#include <memory>
 
 class Model;
 class AnimationFactory;
@@ -18,4 +19,7 @@ public:
     AsyncAnimationCache(AnimationFactory& factory, ExecutorService& workerPool)
         : AsyncAssetCache(workerPool), factory(factory) {}
 
+    inline static std::unique_ptr<AsyncAnimationCache> create(AnimationFactory& factory, ExecutorService& workerPool) {
+        return std::make_unique<AsyncAnimationCache>(factory, workerPool);
+    }
 };

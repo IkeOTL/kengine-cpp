@@ -29,7 +29,6 @@ public:
 private:
     VulkanContext& vkContext;
     ImGuiKEContext* imGuiContext;
-    GpuBufferCache& bufCache;
 
     std::unique_ptr<CullContext> cullContext;
     std::unique_ptr<ShadowContext> shadowContext;
@@ -82,10 +81,13 @@ private:
     void compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d);
 
 public:
-    RenderContext(VulkanContext& vkCtx, GpuBufferCache& bufCache,
-        LightsManager& lightsManager, CameraController& cameraController)
-        : vkContext(vkCtx), bufCache(bufCache), lightsManager(lightsManager),
+    RenderContext(VulkanContext& vkCtx, LightsManager& lightsManager, CameraController& cameraController)
+        : vkContext(vkCtx), lightsManager(lightsManager),
         cameraController(cameraController), bindManager(MaterialBindManager(vkCtx)) {}
+
+    inline static std::unique_ptr<RenderContext> create(VulkanContext& vkCtx, LightsManager& lightsManager, CameraController& cameraController) {
+        return std::make_unique<RenderContext>(vkCtx, lightsManager, cameraController);
+    }
 
     void init();
 

@@ -22,6 +22,10 @@ public:
 
 class FileSystemAssetIO : public AssetIO {
 public:
+    inline static std::unique_ptr<AssetIO> create() {
+        return std::make_unique<FileSystemAssetIO>();
+    }
+
     std::unique_ptr<std::istream> load(const std::string& key) override;
     std::unique_ptr<std::ostream> save(const std::string& key) override;
     std::unique_ptr<AssetData> loadBuffer(const std::string& key) override;

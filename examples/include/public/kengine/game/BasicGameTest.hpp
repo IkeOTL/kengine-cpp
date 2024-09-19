@@ -47,15 +47,13 @@ private:
     std::unique_ptr<VulkanContext> vulkanCxt;
     std::unique_ptr<ImGuiKEContext> imGuiContext;
     std::unique_ptr<RenderContext> renderContext;
-    std::unique_ptr<FileSystemAssetIO> assetIo;
+    std::unique_ptr<AssetIO> assetIo;
     std::unique_ptr<SceneGraph> sceneGraph;
     std::unique_ptr<LightsManager> lightsManager;
     std::unique_ptr<SkeletonManager> skeletonManager;
     std::unique_ptr<CameraController> cameraController;
     std::unique_ptr<SceneTime> sceneTime;
     std::unique_ptr<SpatialPartitioningManager> spatialPartitioningManager;
-
-    std::unique_ptr<GpuBufferCache> bufCache;
 
     std::unique_ptr<GltfModelFactory> modelFactory;
     std::unique_ptr<AsyncModelCache> modelCache;

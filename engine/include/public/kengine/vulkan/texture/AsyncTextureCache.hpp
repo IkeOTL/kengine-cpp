@@ -14,4 +14,8 @@ protected:
 public:
     AsyncTextureCache(TextureFactory& factory, ExecutorService& workerPool)
         : AsyncAssetCache(workerPool), factory(factory) {}
+
+    inline static std::unique_ptr<AsyncTextureCache> create(TextureFactory& factory, ExecutorService& workerPool) {
+        return std::make_unique<AsyncTextureCache>(factory, workerPool);
+    }
 };

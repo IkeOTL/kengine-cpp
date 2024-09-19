@@ -36,6 +36,7 @@ void RenderContext::init() {
         *drawObjectBuf, *drawInstanceBuffer);
     cullContext->init(vkContext, descSetAllocators);
 
+    auto& bufCache = vkContext.getGpuBufferCache();
     shadowContext = std::make_unique<ShadowContext>(bufCache, *indirectCmdBuf, cameraController, *sceneData);
     shadowContext->init(vkContext, descSetAllocators, lightDir, *drawObjectBuf, *drawInstanceBuffer);
 }
@@ -61,6 +62,7 @@ void RenderContext::initBuffers() {
         //| VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT
         | VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
+    auto& bufCache = vkContext.getGpuBufferCache();
     sceneBuf = &bufCache.createHostMapped(
         SceneData::size(),
         VulkanContext::FRAME_OVERLAP,

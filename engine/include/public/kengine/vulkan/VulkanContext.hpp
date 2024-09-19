@@ -209,6 +209,10 @@ public:
         return debugContext;
     }
 
+    GpuBufferCache& getGpuBufferCache() {
+        return *gpuBufferCache;
+    }
+
     void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);
 
 private:

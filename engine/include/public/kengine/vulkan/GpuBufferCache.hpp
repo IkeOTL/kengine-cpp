@@ -3,6 +3,7 @@
 #include <kengine/vulkan/GpuBuffer.hpp>
 #include <shared_mutex>
 #include <unordered_map>
+#include <memory>
 
 class VulkanContext;
 

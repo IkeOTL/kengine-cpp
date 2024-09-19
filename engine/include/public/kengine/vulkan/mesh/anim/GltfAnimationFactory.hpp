@@ -2,6 +2,7 @@
 #include <kengine/vulkan/mesh/anim/AnimationFactory.hpp>
 #include <thirdparty/tiny_gltf.h>
 #include <thread>
+#include <memory>
 
 class VulkanContext;
 class AssetIO;
@@ -18,6 +19,10 @@ private:
 public:
     GltfAnimationFactory(VulkanContext& vkContext, AssetIO& assetIo)
         : vkContext(vkContext), assetIo(assetIo) {}
+
+    inline static std::unique_ptr<GltfAnimationFactory> create(VulkanContext& vkContext, AssetIO& assetIo) {
+        return std::make_unique<GltfAnimationFactory>(vkContext, assetIo);
+    }
 
     std::unique_ptr<Animation> loadAnimation(const AnimationConfig& config) override;
 };

@@ -68,41 +68,41 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         vulkanCxt->getCommandPool()->initThread(*vulkanCxt);
         }));
 
-    debugContext = std::make_unique<DebugContext>();
+    debugContext = DebugContext::create();
     initCamera(*inputManager, *debugContext);
 
     vulkanCxt->setDebugContext(debugContext.get());
 
-    assetIo = std::make_unique<FileSystemAssetIO>();
-    bufCache = std::make_unique<GpuBufferCache>(*vulkanCxt);
-    lightsManager = std::make_unique<LightsManager>(*cameraController);
+    assetIo = FileSystemAssetIO::create();
+    lightsManager = LightsManager::create(*cameraController);
     sceneTime = std::make_unique<SceneTime>();
-    sceneGraph = std::make_unique<SceneGraph>();
-    spatialPartitioningManager = std::make_unique<SpatialPartitioningManager>();
-    skeletonManager = std::make_unique<SkeletonManager>(*vulkanCxt, *bufCache);
+    sceneGraph = SceneGraph::create();
+    spatialPartitioningManager = SpatialPartitioningManager::create();
+    skeletonManager = SkeletonManager::create(*vulkanCxt);
 
-    spatialPartitioningManager->setSpatialGrid(std::make_unique<SpatialGrid>(64, 64, 16));
+    spatialPartitioningManager->setSpatialGrid(SpatialGrid::create(64, 64, 16));
 
-    modelFactory = std::make_unique<GltfModelFactory>(*vulkanCxt, *assetIo);
-    modelCache = std::make_unique<AsyncModelCache>(*modelFactory, *threadPool);
-    animationFactory = std::make_unique<GltfAnimationFactory>(*vulkanCxt, *assetIo);
-    animationCache = std::make_unique<AsyncAnimationCache>(*animationFactory, *threadPool);
-    textureFactory = std::make_unique<TextureFactory>(*vulkanCxt, *assetIo);
-    textureCache = std::make_unique<AsyncTextureCache>(*textureFactory, *threadPool);
-    materialCache = std::make_unique<AsyncMaterialCache>(vulkanCxt->getPipelineCache(), *textureCache, *bufCache, *threadPool);
+    modelFactory = GltfModelFactory::create(*vulkanCxt, *assetIo);
+
+    modelCache = AsyncModelCache::create(*modelFactory, *threadPool);
+    animationFactory = GltfAnimationFactory::create(*vulkanCxt, *assetIo);
+    animationCache = AsyncAnimationCache::create(*animationFactory, *threadPool);
+    textureFactory = TextureFactory::create(*vulkanCxt, *assetIo);
+    textureCache = AsyncTextureCache::create(*textureFactory, *threadPool);
+    materialCache = AsyncMaterialCache::create(vulkanCxt->getPipelineCache(), *textureCache, vulkanCxt->getGpuBufferCache(), *threadPool);
 
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
     imGuiContext->init(*window);
 
-    renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
+    renderContext = RenderContext::create(*vulkanCxt, *lightsManager, *cameraController);
     renderContext->init();
     renderContext->setImGuiContext(imGuiContext.get());
 
-    auto config = std::make_shared<AnimationConfig>("res/gltf/char01.glb", "Run00");
+    auto config = AnimationConfig::create("res/gltf/char01.glb", "Run00");
     auto& lol = animationCache->get(config);
 
 
-    world = std::make_unique<World>(WorldConfig()
+    world = World::create(WorldConfig()
         // injectable objects. order doesnt matter
         .addService<entt::registry>(&ecs)
         .addService<DebugContext>(debugContext.get())
@@ -119,7 +119,6 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .addService<SkeletonManager>(skeletonManager.get())
         .addService<CameraController>(cameraController.get())
 
-        .addService<GpuBufferCache>(bufCache.get())
         .addService<GltfModelFactory>(modelFactory.get())
         .addService<AsyncModelCache>(modelCache.get())
         .addService<GltfAnimationFactory>(modelFactory.get())

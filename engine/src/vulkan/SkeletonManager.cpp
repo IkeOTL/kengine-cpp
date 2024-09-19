@@ -9,7 +9,7 @@ CachedGpuBuffer& SkeletonManager::createMappedBuf(Skeleton& skeleton) {
         //   | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT
         | VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-    auto& buf = bufCache.createHostMapped(
+    auto& buf = vkContext.getGpuBufferCache().createHostMapped(
         skeleton.size(),
         VulkanContext::FRAME_OVERLAP,
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
@@ -22,10 +22,10 @@ CachedGpuBuffer& SkeletonManager::createMappedBuf(Skeleton& skeleton) {
 void SkeletonManager::upload(Skeleton& skeleton, int bufId, int frameIdx, float alpha) {
     ZoneScoped;
 
-    const auto* buf = bufCache.get(bufId);
+    const auto* buf = vkContext.getGpuBufferCache().get(bufId);
 
     if (!buf)
         throw std::runtime_error("No buffer found for skeleton.");
 
-    skeleton.upload(vkCxt, *buf, frameIdx, alpha);
+    skeleton.upload(vkContext, *buf, frameIdx, alpha);
 }

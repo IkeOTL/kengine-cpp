@@ -11,6 +11,10 @@ private:
     std::shared_mutex mtx;
 
 public:
+    inline static std::unique_ptr<SceneGraph> create() {
+        return std::make_unique<SceneGraph>();
+    }
+
     std::shared_ptr<Spatial> create(std::string name);
     uint32_t add(std::shared_ptr<Spatial> spatial);
     std::shared_ptr<Spatial> get(uint32_t id);
