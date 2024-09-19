@@ -52,6 +52,9 @@ void ImGuiKEContext::init(Window& window) {
     init_info.Subpass = 3;
     //init_info.CheckVkResultFn = check_vk_result;
     ImGui_ImplVulkan_Init(&init_info);
+
+    // to allow imgui to stop event propagation
+    window.setImGuiIO(&ImGui::GetIO());
 }
 
 void ImGuiKEContext::draw(RenderFrameContext& rCtx) {

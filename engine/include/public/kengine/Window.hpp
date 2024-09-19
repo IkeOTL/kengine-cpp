@@ -6,6 +6,8 @@
 #include <vector>
 #include <functional>
 
+class ImGuiIO;
+
 class Window {
 public:
     using WindowResizeListener = std::function<void(GLFWwindow*, int, int)>;
@@ -16,6 +18,8 @@ private:
     uint64_t lastMouseMove = 0L;
 
     InputManager* inputManager = nullptr;
+
+    ImGuiIO* imGuiIO = nullptr;
 
     std::vector<WindowResizeListener*> resizeListeners;
 
@@ -34,6 +38,10 @@ public:
 
     GLFWwindow* getWindow() {
         return window;
+    }
+
+    void setImGuiIO(ImGuiIO* ptr) {
+        imGuiIO = ptr;
     }
 
     void setInputManager(InputManager* im) {

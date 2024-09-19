@@ -101,7 +101,6 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     auto config = AnimationConfig::create("res/gltf/char01.glb", "Run00");
     auto& lol = animationCache->get(config);
 
-
     world = World::create(WorldConfig()
         // injectable objects. order doesnt matter
         .addService<entt::registry>(&ecs)
