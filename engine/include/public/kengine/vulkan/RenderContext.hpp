@@ -71,6 +71,7 @@ private:
     float sceneTime = 0;
 
     bool started = false;
+    bool isDebugMode = false;
 
     void setViewportScissor(glm::uvec2 dim);
     void initBuffers();
@@ -78,6 +79,7 @@ private:
 
     IndirectDrawBatch& getStaticBatch(int instanceIdx, const Mesh& mesh, const Material& material, bool hasShadow);
     void deferredPass(DescriptorSetAllocator& descSetAllocator);
+    void debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d);
     void compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d);
 
 public:
@@ -89,7 +91,7 @@ public:
         return std::make_unique<RenderContext>(vkCtx, lightsManager, cameraController);
     }
 
-    void init();
+    void init(bool isDebugMode);
 
     void addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere, bool hasShadow);
     int draw(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere);

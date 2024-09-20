@@ -23,6 +23,6 @@ public:
     ImGuiKEContext(VulkanContext& vkCtx) : vkCtx(vkCtx) {}
     ~ImGuiKEContext();
 
-    void init(Window& window);
+    void init(Window& window, bool isDebugRendering);
     void draw(RenderFrameContext& rCtx);
 };

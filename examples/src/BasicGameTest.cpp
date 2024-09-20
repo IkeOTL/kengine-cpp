@@ -92,10 +92,10 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     materialCache = AsyncMaterialCache::create(vulkanCxt->getPipelineCache(), *textureCache, vulkanCxt->getGpuBufferCache(), *threadPool);
 
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
-    imGuiContext->init(*window);
+    imGuiContext->init(*window, isDebugRendering);
 
     renderContext = RenderContext::create(*vulkanCxt, *lightsManager, *cameraController);
-    renderContext->init();
+    renderContext->init(isDebugRendering);
     renderContext->setImGuiContext(imGuiContext.get());
 
     auto config = AnimationConfig::create("res/gltf/char01.glb", "Run00");
@@ -137,14 +137,15 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 }
 
 void BasicGameTest::initVulkan() {
+    auto isDebugRendering = this->isDebugRendering;
     vulkanCxt = VulkanContext::create(
-        [](VkDevice vkDevice, ColorFormatAndSpace& cfs) {
+        [isDebugRendering](VkDevice vkDevice, ColorFormatAndSpace& cfs) {
             std::vector<std::unique_ptr<RenderPass>> passes;
-            passes.emplace_back(DeferredPbrRenderPass::create(vkDevice, cfs));
+            passes.emplace_back(DeferredPbrRenderPass::create(vkDevice, cfs, isDebugRendering));
             passes.emplace_back(CascadeShadowMapRenderPass::create(vkDevice, cfs));
             return passes;
         },
-        [](VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp) {
+        [isDebugRendering](VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp) {
             auto pc = PipelineCache::create();
 
             pc->createPipeline<DeferredOffscreenPbrPipeline>()

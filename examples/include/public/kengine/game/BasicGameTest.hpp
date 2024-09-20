@@ -68,10 +68,12 @@ private:
     StateMachine<Game> sm;
 
     float delta = 0;
+    const bool isDebugRendering = true;
 
     std::unique_ptr<State<Game>> init();
     void initVulkan();
     void initCamera(InputManager& inputManager, DebugContext& dbgCtx);
+
 
 public:
     BasicGameTest() : sm(*this, nullptr, nullptr, nullptr) {}

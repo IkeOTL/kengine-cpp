@@ -32,7 +32,7 @@ VkDescriptorPool ImGuiKEContext::createDescriptorPool() {
     return descPool;
 }
 
-void ImGuiKEContext::init(Window& window) {
+void ImGuiKEContext::init(Window& window, bool isDebugRendering) {
     ImGui::CreateContext();
     // Setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForVulkan(window.getWindow(), true);
@@ -49,7 +49,7 @@ void ImGuiKEContext::init(Window& window) {
     init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     init_info.Allocator = nullptr;
     init_info.RenderPass = vkCtx.getRenderPass(0).getVkRenderPass();
-    init_info.Subpass = 3;
+    init_info.Subpass = isDebugRendering ? 4 : 3;
     //init_info.CheckVkResultFn = check_vk_result;
     ImGui_ImplVulkan_Init(&init_info);
 

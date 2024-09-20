@@ -177,7 +177,7 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
             VK_ATTACHMENT_LOAD_OP_DONT_CARE, // stencilLoadOp
             VK_ATTACHMENT_STORE_OP_DONT_CARE, // stencilStoreOp
             VK_IMAGE_LAYOUT_UNDEFINED, // initialLayout
-            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR // finalLayout
+            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR  // finalLayout
         },
         { // albedo
             0, // flags
@@ -252,9 +252,9 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
     };
 
     // Define subpasses
-    std::vector<VkSubpassDescription> subpasses(4);
+    std::vector<VkSubpassDescription> subpasses;
 
-    // subpass 1
+    // subpass 1 gbuffer pass
     std::vector<VkAttachmentReference> subpass1_colorReferences = {
         {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
         {1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
@@ -264,7 +264,7 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
         {5, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
     };
 
-    subpasses[0] = {
+    subpasses.emplace_back(VkSubpassDescription{
         0, // flags
         VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
         0, // inputAttachmentCount
@@ -275,9 +275,10 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
         &depthReference, // pDepthStencilAttachment
         0, // preserveAttachmentCount
         nullptr // pPreserveAttachments
-    };
+        });
 
-    // subpass 2    
+
+    // subpass 2 - composition pass
     std::vector<VkAttachmentReference> subpass2_colorReferences = {
         {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
     };
@@ -290,7 +291,7 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
         {5, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}
     };
 
-    subpasses[1] = {
+    subpasses.emplace_back(VkSubpassDescription{
         0, // flags
         VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
         static_cast<uint32_t>(subpass2_inputRefs.size()), // inputAttachmentCount
@@ -301,10 +302,10 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
         &depthReference, // pDepthStencilAttachment
         0, // preserveAttachmentCount
         nullptr // pPreserveAttachments
-    };
+        });
 
 
-    // subpass 3    
+    // subpass 3 - transparency pass   
     std::vector<VkAttachmentReference> subpass3_colorReferences = {
         {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
     };
@@ -313,7 +314,7 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
         {1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}
     };
 
-    subpasses[2] = {
+    subpasses.emplace_back(VkSubpassDescription{
         0, // flags
         VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
         static_cast<uint32_t>(subpass3_inputRefs.size()), // inputAttachmentCount
@@ -324,25 +325,44 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
         &depthReference, // pDepthStencilAttachment
         0, // preserveAttachmentCount
         nullptr // pPreserveAttachments
-    };
+        });
 
-    // subpass 4 GUI    
-    std::vector<VkAttachmentReference> subpass4_colorReferences = {
+    // optional subpass 4 - Debug rendering    
+    std::vector<VkAttachmentReference> subpassDebug_colorReferences = {
         {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
     };
 
-    subpasses[3] = {
+    if (isDebugMode)
+        subpasses.emplace_back(VkSubpassDescription{
         0, // flags
         VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
         0, // inputAttachmentCount
         nullptr, // pInputAttachments
-        static_cast<uint32_t>(subpass4_colorReferences.size()), // colorAttachmentCount
-        subpass4_colorReferences.data(), // pColorAttachments
+        static_cast<uint32_t>(subpassDebug_colorReferences.size()), // colorAttachmentCount
+        subpassDebug_colorReferences.data(), // pColorAttachments
+        nullptr, // pResolveAttachments
+        &depthReference, // pDepthStencilAttachment
+        0, // preserveAttachmentCount
+        nullptr // pPreserveAttachments
+            });
+
+    // subpass 4 or 5 - GUI    
+    std::vector<VkAttachmentReference> subpassGui_colorReferences = {
+        {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
+    };
+
+    subpasses.emplace_back(VkSubpassDescription{
+        0, // flags
+        VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+        0, // inputAttachmentCount
+        nullptr, // pInputAttachments
+        static_cast<uint32_t>(subpassGui_colorReferences.size()), // colorAttachmentCount
+        subpassGui_colorReferences.data(), // pColorAttachments
         nullptr, // pResolveAttachments
         nullptr, // pDepthStencilAttachment
         0, // preserveAttachmentCount
         nullptr // pPreserveAttachments
-    };
+        });
 
     // Subpass dependencies 
     std::vector<VkSubpassDependency> dependencies = {
@@ -390,17 +410,30 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
             VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // srcAccessMask
             VK_ACCESS_SHADER_READ_BIT, // dstAccessMask
             VK_DEPENDENCY_BY_REGION_BIT // dependencyFlags
-        },
-        {
-            3, // srcSubpass
+        }
+    };
+
+    if (isDebugMode)
+        dependencies.emplace_back(VkSubpassDependency{
+                  3, // srcSubpass
+                  4, // dstSubpass
+                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // srcStageMask
+                  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, // dstStageMask
+                  VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // srcAccessMask
+                  VK_ACCESS_SHADER_READ_BIT, // dstAccessMask
+                  VK_DEPENDENCY_BY_REGION_BIT // dependencyFlags
+            });
+
+    // final dep
+    dependencies.emplace_back(VkSubpassDependency{
+            static_cast<uint32_t>(subpasses.size()) - 1, // srcSubpass
             VK_SUBPASS_EXTERNAL, // dstSubpass
             VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // srcStageMask
             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, // dstStageMask
             VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // srcAccessMask
             VK_ACCESS_MEMORY_READ_BIT, // dstAccessMask
             VK_DEPENDENCY_BY_REGION_BIT // dependencyFlags
-        }
-    };
+        });
 
     // Create the render pass
     VkRenderPassCreateInfo renderPassInfo = {

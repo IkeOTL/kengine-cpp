@@ -19,7 +19,9 @@
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
 #include <tracy/Tracy.hpp>
 
-void RenderContext::init() {
+void RenderContext::init(bool isDebugRendering) {
+    this->isDebugMode = isDebugRendering;
+
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto ptr = std::make_unique<DescriptorSetAllocator>(vkContext.getVkDevice(), vkContext.getDescSetLayoutCache());
         ptr->init();
@@ -559,6 +561,7 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
     auto vkCmd = frameCxt->cmd;
 
     auto rpCxt = RenderPassContext{ 0, frameIdx, vkCmd, frameCxt->swapchainExtents };
+
     vkContext.beginRenderPass(rpCxt);
     {
         setViewportScissor(rpCxt.extents);
@@ -586,6 +589,11 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
         // subpass 3 forward transparency pass, TODO
         vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
 
+        //subpass 4 debug
+        debugSubpass(pCxt, descSetAllocator);
+
+
+        //subpass 4 or 5 GUI (depends on is debug rendering is enabled)
         //guiManager.subpass(vkContext, rpCxt, frameCxt, descSetAllocator);
         // since guimanager isnt implemented yet we need to push to next subpass manually
         // we'll remove this line once the guimanager is working
@@ -595,6 +603,14 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
             imGuiContext->draw(*frameCxt);
     }
     vkContext.endRenderPass(rpCxt);
+}
+
+
+void RenderContext::debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d) {
+    auto frameIdx = frameCxt->frameIndex;
+    auto vkCmd = frameCxt->cmd;
+
+    vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void RenderContext::compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d) {
