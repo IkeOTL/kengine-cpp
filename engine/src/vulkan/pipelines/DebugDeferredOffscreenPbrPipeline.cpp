@@ -14,15 +14,14 @@ void DebugDeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSet
 
     VkDescriptorSet descriptorSets[] = {
        descSetAllocator.getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
-       descSetAllocator.getGlobalDescriptorSet("deferred-gbuffer", DebugDeferredOffscreenPbrPipeline::objectLayout)
+       descSetAllocator.getGlobalDescriptorSet("deferred-debug", DebugDeferredOffscreenPbrPipeline::objectLayout)
     };
 
     // TODO: check alignments
     uint32_t dynamicOffsets[] = {
         frameIndex * SceneData::alignedFrameSize(vkCxt),
         frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
-        frameIndex * RenderContext::MAX_INSTANCES * sizeof(uint32_t),
-        frameIndex * MaterialsBuffer::alignedFrameSize(vkCxt)
+        frameIndex * RenderContext::MAX_INSTANCES * sizeof(uint32_t)
     };
 
     // Single vkCmdBindDescriptorSets call
@@ -32,12 +31,13 @@ void DebugDeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSet
         getVkPipelineLayout(),
         0,
         2, descriptorSets,
-        4, dynamicOffsets
+        3, dynamicOffsets
     );
 }
 
 void DebugDeferredOffscreenPbrPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
-    dst.push_back(nope);
+    dst.push_back(PipelineCache::globalLayout);
+    dst.push_back(DebugDeferredOffscreenPbrPipeline::objectLayout);
 }
 
 VkPipelineLayout DebugDeferredOffscreenPbrPipeline::createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) {
@@ -66,29 +66,8 @@ VkPipelineLayout DebugDeferredOffscreenPbrPipeline::createPipelineLayout(VulkanC
 
 VkPipeline DebugDeferredOffscreenPbrPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
-    loadShader(device, "res/src/gbuffer.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
-    loadShader(device, "res/src/gbuffer.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
-
-    // Specialization map entries
-    std::array<VkSpecializationMapEntry, 2> specializationEntries{};
-    specializationEntries[0].constantID = 0;
-    specializationEntries[0].offset = 0;
-    specializationEntries[0].size = sizeof(float);
-    specializationEntries[1].constantID = 1;
-    specializationEntries[1].offset = sizeof(float);
-    specializationEntries[1].size = sizeof(float);
-
-    // Specialization data
-    float specializationData[] = { Camera::NEAR_CLIP, Camera::FAR_CLIP };
-
-    VkSpecializationInfo specializationInfo{};
-    specializationInfo.mapEntryCount = static_cast<uint32_t>(specializationEntries.size());
-    specializationInfo.pMapEntries = specializationEntries.data();
-    specializationInfo.dataSize = sizeof(specializationData);
-    specializationInfo.pData = specializationData;
-
-    // Assuming shaderStages is a previously prepared array of VkPipelineShaderStageCreateInfo
-    shaderStagesCreateInfo[1].pSpecializationInfo = &specializationInfo;
+    loadShader(device, "res/src/debug-geom.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
+    loadShader(device, "res/src/debug-geom.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
 
     // Viewport state
     VkPipelineViewportStateCreateInfo viewportState{};
@@ -97,19 +76,16 @@ VkPipeline DebugDeferredOffscreenPbrPipeline::createPipeline(VkDevice device, Re
     viewportState.scissorCount = 1;
 
     // vertex input info
-    auto texturedVertexFormat = VertexFormatDescriptor{
-        sizeof(TexturedVertex),
+    auto debugVertexFormat = VertexFormatDescriptor{
+        sizeof(DebugVertex),
         {
-            {0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(TexturedVertex, position)},
-            {1, VK_FORMAT_R32G32_SFLOAT, offsetof(TexturedVertex, texCoords)},
-            {2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(TexturedVertex, normal)},
-            {3, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(TexturedVertex, tangent)}
+            {0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(DebugVertex, position)},
         }
     };
 
     VkVertexInputBindingDescription bindingDescription;
     std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-    createVertexInputDescriptions(texturedVertexFormat, bindingDescription, attributeDescriptions);
+    createVertexInputDescriptions(debugVertexFormat, bindingDescription, attributeDescriptions);
 
     VkPipelineVertexInputStateCreateInfo vi{};
     vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -127,7 +103,7 @@ VkPipeline DebugDeferredOffscreenPbrPipeline::createPipeline(VkDevice device, Re
     // Rasterization state
     VkPipelineRasterizationStateCreateInfo rasterizationState{};
     rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizationState.polygonMode = VK_POLYGON_MODE_LINE;
     rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizationState.lineWidth = 1.0f;
@@ -138,20 +114,25 @@ VkPipeline DebugDeferredOffscreenPbrPipeline::createPipeline(VkDevice device, Re
     multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
     // Color blend attachment states
-    std::array<VkPipelineColorBlendAttachmentState, 6> colorBlendAttachments{};
-    for (auto& attachment : colorBlendAttachments) {
-        attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-            VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        attachment.blendEnable = VK_FALSE;
-    }
+    VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    colorBlendAttachment.blendEnable = VK_TRUE;
+    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+
 
     // Color blending state
     VkPipelineColorBlendStateCreateInfo colorBlending{};
     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     colorBlending.logicOpEnable = VK_FALSE;
     colorBlending.logicOp = VK_LOGIC_OP_COPY;
-    colorBlending.attachmentCount = static_cast<uint32_t>(colorBlendAttachments.size());
-    colorBlending.pAttachments = colorBlendAttachments.data();
+    colorBlending.attachmentCount = 1;
+    colorBlending.pAttachments = &colorBlendAttachment;
 
     // Depth stencil state
     VkPipelineDepthStencilStateCreateInfo depthStencilState{};
@@ -186,7 +167,7 @@ VkPipeline DebugDeferredOffscreenPbrPipeline::createPipeline(VkDevice device, Re
     pipelineInfo.pDepthStencilState = &depthStencilState;
     pipelineInfo.pDynamicState = &dynamicState;
     pipelineInfo.renderPass = renderPass->getVkRenderPass();
-    pipelineInfo.subpass = 0;
+    pipelineInfo.subpass = 3;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
     VkPipeline newPipeline;

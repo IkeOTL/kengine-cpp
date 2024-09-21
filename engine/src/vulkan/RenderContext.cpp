@@ -18,6 +18,7 @@
 #include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
 #include <tracy/Tracy.hpp>
+#include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
 
 void RenderContext::init(bool isDebugRendering) {
     this->isDebugMode = isDebugRendering;
@@ -111,143 +112,154 @@ void RenderContext::initBuffers() {
         VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT);
 }
 
+// simplify this further
 void RenderContext::initDescriptors() {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto& descSetAllocator = descSetAllocators[i];
 
-        std::vector<VkWriteDescriptorSet> setWrites(7);
-        std::vector<VkDescriptorBufferInfo> bufferInfos(6);
-        VkDescriptorImageInfo imageInfo{};
+        std::vector<VkWriteDescriptorSet> setWrites;
+        std::vector<VkDescriptorBufferInfo> bufferInfos;
+        std::vector<VkDescriptorImageInfo> imageInfos;
+
+        // so they dont resize
+        setWrites.reserve(9);
+        bufferInfos.reserve(8);
+        imageInfos.reserve(1);
+
+        auto pushBuf = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, CachedGpuBuffer* gpuBuf) -> void {
+            auto& buf = bufferInfos.emplace_back(VkDescriptorBufferInfo{
+                    gpuBuf->getGpuBuffer().vkBuffer,
+                    0,
+                    gpuBuf->getFrameSize()
+                });
+
+            setWrites.emplace_back(VkWriteDescriptorSet{
+                    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    nullptr,
+                    vkDescSet,
+                    bindingCfg.bindingIndex,
+                    0,
+                    bindingCfg.descriptorCount,
+                    bindingCfg.descriptorType,
+                    nullptr,
+                    &buf,
+                    nullptr
+                });
+            };
+
+        auto pushImg = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, const GpuImageView& gpuImg, VkSampler sampler) -> void {
+            auto& img = imageInfos.emplace_back(VkDescriptorImageInfo{
+                    sampler,
+                    gpuImg.imageView,
+                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
+                });
+
+            setWrites.emplace_back(VkWriteDescriptorSet{
+                    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    nullptr,
+                    vkDescSet,
+                    bindingCfg.bindingIndex,
+                    0,
+                    bindingCfg.descriptorCount,
+                    bindingCfg.descriptorType,
+                    &img,
+                    nullptr,
+                    nullptr
+                });
+            };
 
         // Scene data
-        {
-            auto globalDescriptorSet = descSetAllocator->getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout);
-            auto& sceneDataBinding = PipelineCache::globalLayout.getBinding(0);
-
-            bufferInfos[0].buffer = sceneBuf->getGpuBuffer().vkBuffer;
-            bufferInfos[0].offset = 0;
-            bufferInfos[0].range = sceneBuf->getFrameSize();
-
-            setWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            setWrites[0].dstSet = globalDescriptorSet;
-            setWrites[0].dstBinding = sceneDataBinding.bindingIndex;
-            setWrites[0].descriptorCount = sceneDataBinding.descriptorCount;
-            setWrites[0].descriptorType = sceneDataBinding.descriptorType;
-            setWrites[0].pBufferInfo = &bufferInfos[0];
-        }
+        pushBuf(
+            descSetAllocator->getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
+            PipelineCache::globalLayout.getBinding(0),
+            sceneBuf
+        );
 
         // model data
         {
             auto modelMatDescriptorSet = descSetAllocator->getGlobalDescriptorSet("deferred-gbuffer", DeferredOffscreenPbrPipeline::objectLayout);
 
-            {
-                auto& modelBufBinding = DeferredOffscreenPbrPipeline::objectLayout.getBinding(0);
-
-                bufferInfos[1].buffer = drawObjectBuf->getGpuBuffer().vkBuffer;
-                bufferInfos[1].offset = 0;
-                bufferInfos[1].range = drawObjectBuf->getFrameSize();
-
-                setWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                setWrites[1].dstSet = modelMatDescriptorSet;
-                setWrites[1].dstBinding = modelBufBinding.bindingIndex;
-                setWrites[1].descriptorCount = modelBufBinding.descriptorCount;
-                setWrites[1].descriptorType = modelBufBinding.descriptorType;
-                setWrites[1].pBufferInfo = &bufferInfos[1];
-            }
-
-            {
-                auto& drawInstanceBinding = DeferredOffscreenPbrPipeline::objectLayout.getBinding(1);
-
-                bufferInfos[2].buffer = drawInstanceBuffer->getGpuBuffer().vkBuffer;
-                bufferInfos[2].offset = 0;
-                bufferInfos[2].range = drawInstanceBuffer->getFrameSize();
-
-                setWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                setWrites[2].dstSet = modelMatDescriptorSet;
-                setWrites[2].dstBinding = drawInstanceBinding.bindingIndex;
-                setWrites[2].descriptorCount = drawInstanceBinding.descriptorCount;
-                setWrites[2].descriptorType = drawInstanceBinding.descriptorType;
-                setWrites[2].pBufferInfo = &bufferInfos[2];
-            }
-
-            {
-                auto& materialsBinding = DeferredOffscreenPbrPipeline::objectLayout.getBinding(2);
-                bufferInfos[3].buffer = materialsBuf->getGpuBuffer().vkBuffer;
-                bufferInfos[3].offset = 0;
-                bufferInfos[3].range = materialsBuf->getFrameSize();
-
-                setWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                setWrites[3].dstSet = modelMatDescriptorSet;
-                setWrites[3].dstBinding = materialsBinding.bindingIndex;
-                setWrites[3].descriptorCount = materialsBinding.descriptorCount;
-                setWrites[3].descriptorType = materialsBinding.descriptorType;
-                setWrites[3].pBufferInfo = &bufferInfos[3];
-            }
-        }
-
-        auto compositionDescriptorSet = descSetAllocator->getGlobalDescriptorSet("deferred-composition", DeferredCompositionPbrPipeline::compositionLayout);
-        // dynamic lights buf
-        {
-            auto& lightsUboBinding = DeferredCompositionPbrPipeline::compositionLayout.getBinding(5);
-            bufferInfos[4].buffer = lightBuf->getGpuBuffer().vkBuffer;
-            bufferInfos[4].offset = 0;
-            bufferInfos[4].range = lightBuf->getFrameSize();
-
-            setWrites[4].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            setWrites[4].dstSet = compositionDescriptorSet;
-            setWrites[4].dstBinding = lightsUboBinding.bindingIndex;
-            setWrites[4].descriptorCount = lightsUboBinding.descriptorCount;
-            setWrites[4].descriptorType = lightsUboBinding.descriptorType;
-            setWrites[4].pBufferInfo = &bufferInfos[4];
-        }
-
-        // shadows
-        {
-            auto samplerConfig = SamplerConfig(
-                VK_SAMPLER_MIPMAP_MODE_LINEAR,
-                VK_FILTER_LINEAR,
-                VK_FILTER_LINEAR,
-                VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                VK_COMPARE_OP_NEVER,
-                VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
-                0,
-                1,
-                0,
-                1.0f
+            pushBuf(
+                modelMatDescriptorSet,
+                DeferredOffscreenPbrPipeline::objectLayout.getBinding(0),
+                drawObjectBuf
             );
-            auto shadowSampler = vkContext.getSamplerCache().getSampler(samplerConfig);
 
-            auto& rp = vkContext.getRenderPass<CascadeShadowMapRenderPass>(1);
-            auto& rt = rp.getRenderTarget<CascadeShadowMapRenderTarget>(i);
+            pushBuf(
+                modelMatDescriptorSet,
+                DeferredOffscreenPbrPipeline::objectLayout.getBinding(1),
+                drawInstanceBuffer
+            );
 
-            auto& binding = DeferredCompositionPbrPipeline::compositionLayout.getBinding(6);
-            imageInfo.sampler = shadowSampler;
-            imageInfo.imageView = rt.getShadowMapDepthImage().imageView;
-            imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-
-            setWrites[5].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            setWrites[5].dstSet = compositionDescriptorSet;
-            setWrites[5].dstBinding = binding.bindingIndex;
-            setWrites[5].descriptorCount = binding.descriptorCount;
-            setWrites[5].descriptorType = binding.descriptorType;
-            setWrites[5].pImageInfo = &imageInfo;
+            pushBuf(
+                modelMatDescriptorSet,
+                DeferredOffscreenPbrPipeline::objectLayout.getBinding(2),
+                materialsBuf
+            );
         }
 
-        // dynamic materials buf
         {
-            auto& binding = DeferredCompositionPbrPipeline::compositionLayout.getBinding(8);
-            bufferInfos[5].buffer = materialsBuf->getGpuBuffer().vkBuffer;
-            bufferInfos[5].offset = 0;
-            bufferInfos[5].range = materialsBuf->getFrameSize();
+            auto compositionDescriptorSet = descSetAllocator->getGlobalDescriptorSet("deferred-composition", DeferredCompositionPbrPipeline::compositionLayout);
 
-            setWrites[6].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            setWrites[6].dstSet = compositionDescriptorSet;
-            setWrites[6].dstBinding = binding.bindingIndex;
-            setWrites[6].descriptorCount = binding.descriptorCount;
-            setWrites[6].descriptorType = binding.descriptorType;
-            setWrites[6].pBufferInfo = &bufferInfos[5];
+            // dynamic lights buf
+            pushBuf(
+                compositionDescriptorSet,
+                DeferredCompositionPbrPipeline::compositionLayout.getBinding(5),
+                lightBuf
+            );
+
+            // dynamic materials buf
+            pushBuf(
+                compositionDescriptorSet,
+                DeferredCompositionPbrPipeline::compositionLayout.getBinding(8),
+                materialsBuf
+            );
+
+            // shadows
+            {
+                auto samplerConfig = SamplerConfig(
+                    VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                    VK_FILTER_LINEAR,
+                    VK_FILTER_LINEAR,
+                    VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    VK_COMPARE_OP_NEVER,
+                    VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+                    0,
+                    1,
+                    0,
+                    1.0f
+                );
+
+                auto shadowSampler = vkContext.getSamplerCache().getSampler(samplerConfig);
+
+                auto& rp = vkContext.getRenderPass<CascadeShadowMapRenderPass>(1);
+                auto& rt = rp.getRenderTarget<CascadeShadowMapRenderTarget>(i);
+
+                pushImg(
+                    compositionDescriptorSet,
+                    DeferredCompositionPbrPipeline::compositionLayout.getBinding(6),
+                    rt.getShadowMapDepthImage(),
+                    shadowSampler
+                );
+            }
+        }
+
+        if (isDebugMode) {
+            auto debugDescriptorSet = descSetAllocator->getGlobalDescriptorSet("deferred-debug", DebugDeferredOffscreenPbrPipeline::objectLayout);
+
+            pushBuf(
+                debugDescriptorSet,
+                DebugDeferredOffscreenPbrPipeline::objectLayout.getBinding(0),
+                drawObjectBuf
+            );
+
+            pushBuf(
+                debugDescriptorSet,
+                DebugDeferredOffscreenPbrPipeline::objectLayout.getBinding(1),
+                drawInstanceBuffer
+            );
         }
 
         vkUpdateDescriptorSets(vkContext.getVkDevice(), setWrites.size(), setWrites.data(), 0, nullptr);
@@ -590,7 +602,7 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
         vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
 
         //subpass 4 debug
-        debugSubpass(pCxt, descSetAllocator);
+        debugSubpass(rpCxt, descSetAllocator);
 
 
         //subpass 4 or 5 GUI (depends on is debug rendering is enabled)

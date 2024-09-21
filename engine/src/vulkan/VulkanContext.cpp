@@ -401,6 +401,15 @@ void VulkanContext::createDevice() {
          //   VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME
     };
 
+    VkPhysicalDeviceFeatures supportedFeatures;
+    vkGetPhysicalDeviceFeatures(vkPhysicalDevice, &supportedFeatures);
+
+    if (!supportedFeatures.fillModeNonSolid)
+        throw std::runtime_error("Feature not supprted: fillModeNonSolid");
+
+    VkPhysicalDeviceFeatures deviceFeatures{};
+    deviceFeatures.fillModeNonSolid = VK_TRUE;
+
     auto createDeviceInfo = VkDeviceCreateInfo{};
     createDeviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createDeviceInfo.pNext = &features11;
@@ -408,6 +417,7 @@ void VulkanContext::createDevice() {
     createDeviceInfo.pQueueCreateInfos = queueCreateInfos;
     createDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(desiredLayers.size());
     createDeviceInfo.ppEnabledExtensionNames = desiredLayers.data();
+    createDeviceInfo.pEnabledFeatures = &deviceFeatures;
 
     vkCreateDevice(vkPhysicalDevice, &createDeviceInfo, nullptr, &vkDevice);
 }

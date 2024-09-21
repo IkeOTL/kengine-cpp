@@ -23,6 +23,7 @@
 #include <tracy/Tracy.hpp>
 #include <GLFW/glfw3.h>
 #include <utility>
+#include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -165,6 +166,10 @@ void BasicGameTest::initVulkan() {
 
             pc->createPipeline<DrawCullingPipeline>()
                 .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
+
+            if (isDebugRendering)
+                pc->createPipeline<DebugDeferredOffscreenPbrPipeline>()
+                .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
             return pc;
         },

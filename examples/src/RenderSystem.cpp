@@ -53,7 +53,7 @@ void RenderSystem::init() {
             for (size_t j = 0; j < zCount; j++) {
                 auto entity = ecs->create();
                 auto& renderable = ecs->emplace<Component::Renderable>(entity);
-                //renderable.setStatic();
+                renderable.setStatic();
                 ecs->emplace<Component::ModelComponent>(entity, modelConfig);
 
                 auto& model = modelCache->get(modelConfig);
