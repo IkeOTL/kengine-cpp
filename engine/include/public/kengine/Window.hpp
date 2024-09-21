@@ -6,6 +6,8 @@
 #include <vector>
 #include <functional>
 
+class ImGuiIO;
+
 class Window {
 public:
     using WindowResizeListener = std::function<void(GLFWwindow*, int, int)>;
@@ -17,11 +19,17 @@ private:
 
     InputManager* inputManager = nullptr;
 
+    ImGuiIO* imGuiIO = nullptr;
+
     std::vector<WindowResizeListener*> resizeListeners;
 
 public:
     Window(std::string title, unsigned int width, unsigned int height);
     ~Window();
+
+    static inline std::unique_ptr<Window> create(std::string title, unsigned int width, unsigned int height) {
+        return std::make_unique<Window>(title, width, height);
+    }
 
     void createSurface(VkInstance vkInstance, VkSurfaceKHR& surface);
     void registerResizeListener(WindowResizeListener* listener);
@@ -30,6 +38,10 @@ public:
 
     GLFWwindow* getWindow() {
         return window;
+    }
+
+    void setImGuiIO(ImGuiIO* ptr) {
+        imGuiIO = ptr;
     }
 
     void setInputManager(InputManager* im) {

@@ -1,6 +1,7 @@
 #pragma once
 #include <kengine/Hashable.hpp>
 #include <string>
+#include <memory>
 
 class AnimationConfig : Hashable {
 private:
@@ -10,6 +11,10 @@ private:
 public:
     AnimationConfig(std::string animationSet, std::string animationName) :
         animationSet(animationSet), animationName(animationName) {}
+
+    inline static std::shared_ptr<AnimationConfig> create(std::string animationSet, std::string animationName) {
+        return std::make_shared<AnimationConfig>(animationSet, animationName);
+    }
 
     std::string getAnimationSet() const {
         return animationSet;

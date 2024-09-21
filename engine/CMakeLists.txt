@@ -122,6 +122,7 @@ set(HEADERS
     include/public/kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp
     include/public/kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp
     include/public/kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp
+    include/public/kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp
 
     include/public/kengine/vulkan/descriptor/DescriptorSetLayout.hpp
     include/public/kengine/vulkan/descriptor/DescriptorSetPool.hpp
@@ -213,6 +214,7 @@ set(SOURCES
     src/vulkan/pipelines/CascadeShadowMapPipeline.cpp
     src/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.cpp
     src/vulkan/pipelines/DeferredCompositionPbrPipeline.cpp
+    src/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.cpp
 
     src/vulkan/descriptor/DescriptorSetLayout.cpp
     src/vulkan/descriptor/DescriptorSetPool.cpp

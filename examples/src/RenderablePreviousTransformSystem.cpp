@@ -17,6 +17,7 @@ void RenderablePreviousTransformSystem::init() {
 }
 
 void RenderablePreviousTransformSystem::processSystem(float delta) {
+    ZoneScoped;
 
     cameraController->getCamera()->savePreviousTransform();
 

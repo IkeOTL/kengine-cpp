@@ -6,6 +6,8 @@ void MaterialBindManager::reset() {
 }
 
 void MaterialBindManager::bind(const Material& mat, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, size_t frameIndex) {
+    ZoneScoped;
+
     bindPipeline(mat, descSetAllocator, cmd, frameIndex);
     bindMaterial(mat, descSetAllocator, cmd, frameIndex);
 }

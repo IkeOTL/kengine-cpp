@@ -6,24 +6,24 @@ layout (location = 2) in vec3 inNormal;
 layout (location = 3) in vec4 inTangent;
 
 layout(set = 0, binding = 0) uniform SceneBuffer {
-	mat4 proj;
-	mat4 view;
-	vec4 lightDir;
+    mat4 proj;
+    mat4 view;
+    vec4 lightDir;
 } sceneBuffer;
 
 struct DrawObject {
-	mat4 transform;
+    mat4 transform;
     vec4 boundingSphere;
     int materialId;
     int padding[3]; // Padding to align to 16 bytes
 };
 
 layout(std430, set = 1, binding = 0) readonly buffer DrawObjectBuffer {
-	DrawObject objects[];
+    DrawObject objects[];
 } drawObjectBuffer;
 
 layout(std430, set = 1, binding = 1) readonly buffer DrawInstanceBuffer {
-	uint instanceIds[];
+    uint instanceIds[];
 } drawInstanceBuffer;
 
 layout (location = 0) out vec3 outWorldPos;
@@ -34,7 +34,7 @@ layout (location = 6) flat out uint materialId;
 
 out gl_PerVertex
 {
-	vec4 gl_Position;
+    vec4 gl_Position;
 };
 
 mat3 calculateTbn(mat3 invXposeModelMat, vec3 normal)

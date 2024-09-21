@@ -24,6 +24,14 @@ struct Vertex {
     }
 };
 
+struct DebugVertex : Vertex {
+    //glm::vec3 normal;
+
+    static size_t sizeOf() {
+        return sizeof(DebugVertex);
+    }
+};
+
 struct SimpleTexturedVertex : Vertex {
     glm::vec2 texCoords;
 

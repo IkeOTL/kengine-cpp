@@ -1,9 +1,9 @@
 #pragma once
+#include <kengine/vulkan/CameraController.hpp>
 #include <memory>
 #include <functional>
 
 class VulkanContext;
-class CameraController;
 class CachedGpuBuffer;
 
 class Light {
@@ -19,6 +19,10 @@ public:
     inline static const size_t MAX_LIGHTS = 64;
 
     LightsManager(CameraController& cameraController) : cameraController(cameraController) {}
+
+    inline static std::unique_ptr<LightsManager> create(CameraController& cameraController) {
+        return std::make_unique<LightsManager>(cameraController);
+    }
 
     void upload(VulkanContext& vkCxt, CachedGpuBuffer& buffer, float alpha, int frameIndex);
 

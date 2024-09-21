@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <mutex>
 #include <kengine/Logger.hpp>
+#include <tracy/Tracy.hpp>
 
 VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
     : renderPassCreator(std::move(renderPassCreator)), pipelineCacheCreator(std::move(pipelineCacheCreator)),
@@ -122,6 +123,8 @@ std::unique_ptr<RenderFrameContext> VulkanContext::createNextFrameContext() {
 }
 
 void VulkanContext::renderBegin(RenderFrameContext& cxt) {
+    ZoneScoped;
+
     VkCommandBufferBeginInfo cmdBeginInfo{};
     cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     cmdBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -137,6 +140,7 @@ void VulkanContext::renderBegin(RenderFrameContext& cxt) {
 }
 
 void VulkanContext::renderEnd(RenderFrameContext& cxt) {
+    ZoneScoped;
 
     vkEndCommandBuffer(cxt.cmd);
 
@@ -397,6 +401,15 @@ void VulkanContext::createDevice() {
          //   VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME
     };
 
+    VkPhysicalDeviceFeatures supportedFeatures;
+    vkGetPhysicalDeviceFeatures(vkPhysicalDevice, &supportedFeatures);
+
+    if (!supportedFeatures.fillModeNonSolid)
+        throw std::runtime_error("Feature not supprted: fillModeNonSolid");
+
+    VkPhysicalDeviceFeatures deviceFeatures{};
+    deviceFeatures.fillModeNonSolid = VK_TRUE;
+
     auto createDeviceInfo = VkDeviceCreateInfo{};
     createDeviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createDeviceInfo.pNext = &features11;
@@ -404,6 +417,7 @@ void VulkanContext::createDevice() {
     createDeviceInfo.pQueueCreateInfos = queueCreateInfos;
     createDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(desiredLayers.size());
     createDeviceInfo.ppEnabledExtensionNames = desiredLayers.data();
+    createDeviceInfo.pEnabledFeatures = &deviceFeatures;
 
     vkCreateDevice(vkPhysicalDevice, &createDeviceInfo, nullptr, &vkDevice);
 }

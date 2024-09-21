@@ -32,6 +32,10 @@ private:
 public:
     SpatialGrid(uint32_t worldWidth, uint32_t worldLength, uint32_t cellSize);
 
+    inline static std::unique_ptr<SpatialGrid> create(uint32_t worldWidth, uint32_t worldLength, uint32_t cellSize) {
+        return std::make_unique<SpatialGrid>(worldWidth, worldLength, cellSize);
+    }
+
     void setDirty(const entt::entity entity);
     std::function<void()> createCb(const entt::entity eId);
 

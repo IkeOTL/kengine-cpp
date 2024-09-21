@@ -2,6 +2,7 @@
 #include <kengine/Window.hpp>
 #include <iostream>
 #include <chrono>
+#include <imgui.h>
 
 Window::Window(std::string title, unsigned int width, unsigned int height)
     : width(width), height(height) {
@@ -59,7 +60,12 @@ Window::Window(std::string title, unsigned int width, unsigned int height)
     glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods)
         {
             auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
             if (!myWindow->inputManager)
+                return;
+
+            auto* imGuiIo = myWindow->imGuiIO;
+            if (imGuiIo && (imGuiIo->WantCaptureMouse))
                 return;
 
             myWindow->inputManager->onButtonEvent(window, button, action, mods);
@@ -70,6 +76,10 @@ Window::Window(std::string title, unsigned int width, unsigned int height)
             auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
             if (!myWindow->inputManager)
+                return;
+
+            auto* imGuiIo = myWindow->imGuiIO;
+            if (imGuiIo && (imGuiIo->WantCaptureKeyboard))
                 return;
 
             if (action == GLFW_REPEAT)
@@ -83,6 +93,10 @@ Window::Window(std::string title, unsigned int width, unsigned int height)
             auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
             if (!myWindow->inputManager)
+                return;
+
+            auto* imGuiIo = myWindow->imGuiIO;
+            if (imGuiIo && (imGuiIo->WantCaptureKeyboard))
                 return;
 
             myWindow->inputManager->onCharEvent(window, codepoint);

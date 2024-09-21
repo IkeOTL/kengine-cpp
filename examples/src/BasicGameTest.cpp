@@ -23,6 +23,7 @@
 #include <tracy/Tracy.hpp>
 #include <GLFW/glfw3.h>
 #include <utility>
+#include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -57,50 +58,51 @@ void BasicGameTest::run() {
 }
 
 std::unique_ptr<State<Game>> BasicGameTest::init() {
-    window = std::make_unique<Window>("rawr", 1920, 1080);
-    inputManager = std::make_unique<InputManager>();
+    window = Window::create("rawr", 1920, 1080);
+    inputManager = InputManager::create();
     window->setInputManager(inputManager.get());
 
     initVulkan();
+
+    // review this usage
     threadPool.reset(new ExecutorService(4, [&]() {
         vulkanCxt->getCommandPool()->initThread(*vulkanCxt);
         }));
 
-    debugContext = std::make_unique<DebugContext>();
+    debugContext = DebugContext::create();
     initCamera(*inputManager, *debugContext);
 
     vulkanCxt->setDebugContext(debugContext.get());
 
-    assetIo = std::make_unique<FileSystemAssetIO>();
-    bufCache = std::make_unique<GpuBufferCache>(*vulkanCxt);
-    lightsManager = std::make_unique<LightsManager>(*cameraController);
+    assetIo = FileSystemAssetIO::create();
+    lightsManager = LightsManager::create(*cameraController);
     sceneTime = std::make_unique<SceneTime>();
-    sceneGraph = std::make_unique<SceneGraph>();
-    spatialPartitioningManager = std::make_unique<SpatialPartitioningManager>();
-    skeletonManager = std::make_unique<SkeletonManager>(*vulkanCxt, *bufCache);
+    sceneGraph = SceneGraph::create();
+    spatialPartitioningManager = SpatialPartitioningManager::create();
+    skeletonManager = SkeletonManager::create(*vulkanCxt);
 
-    spatialPartitioningManager->setSpatialGrid(std::make_unique<SpatialGrid>(64, 64, 16));
+    spatialPartitioningManager->setSpatialGrid(SpatialGrid::create(64, 64, 16));
 
-    modelFactory = std::make_unique<GltfModelFactory>(*vulkanCxt, *assetIo);
-    modelCache = std::make_unique<AsyncModelCache>(*modelFactory, *threadPool);
-    animationFactory = std::make_unique<GltfAnimationFactory>(*vulkanCxt, *assetIo);
-    animationCache = std::make_unique<AsyncAnimationCache>(*animationFactory, *threadPool);
-    textureFactory = std::make_unique<TextureFactory>(*vulkanCxt, *assetIo);
-    textureCache = std::make_unique<AsyncTextureCache>(*textureFactory, *threadPool);
-    materialCache = std::make_unique<AsyncMaterialCache>(vulkanCxt->getPipelineCache(), *textureCache, *bufCache, *threadPool);
+    modelFactory = GltfModelFactory::create(*vulkanCxt, *assetIo);
+
+    modelCache = AsyncModelCache::create(*modelFactory, *threadPool);
+    animationFactory = GltfAnimationFactory::create(*vulkanCxt, *assetIo);
+    animationCache = AsyncAnimationCache::create(*animationFactory, *threadPool);
+    textureFactory = TextureFactory::create(*vulkanCxt, *assetIo);
+    textureCache = AsyncTextureCache::create(*textureFactory, *threadPool);
+    materialCache = AsyncMaterialCache::create(vulkanCxt->getPipelineCache(), *textureCache, vulkanCxt->getGpuBufferCache(), *threadPool);
 
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
-    imGuiContext->init(*window);
+    imGuiContext->init(*window, isDebugRendering);
 
-    renderContext = std::make_unique<RenderContext>(*vulkanCxt, *bufCache, *lightsManager, *cameraController);
-    renderContext->init();
+    renderContext = RenderContext::create(*vulkanCxt, *lightsManager, *cameraController);
+    renderContext->init(isDebugRendering);
     renderContext->setImGuiContext(imGuiContext.get());
 
-    auto config = std::make_shared<AnimationConfig>("res/gltf/char01.glb", "Run00");
+    auto config = AnimationConfig::create("res/gltf/char01.glb", "Run00");
     auto& lol = animationCache->get(config);
 
-
-    world = std::make_unique<World>(WorldConfig()
+    world = World::create(WorldConfig()
         // injectable objects. order doesnt matter
         .addService<entt::registry>(&ecs)
         .addService<DebugContext>(debugContext.get())
@@ -117,7 +119,6 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .addService<SkeletonManager>(skeletonManager.get())
         .addService<CameraController>(cameraController.get())
 
-        .addService<GpuBufferCache>(bufCache.get())
         .addService<GltfModelFactory>(modelFactory.get())
         .addService<AsyncModelCache>(modelCache.get())
         .addService<GltfAnimationFactory>(modelFactory.get())
@@ -137,39 +138,38 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 }
 
 void BasicGameTest::initVulkan() {
-    vulkanCxt = std::make_unique<VulkanContext>(
-        [](VkDevice vkDevice, ColorFormatAndSpace& cfs) {
+    auto isDebugRendering = this->isDebugRendering;
+    vulkanCxt = VulkanContext::create(
+        [isDebugRendering](VkDevice vkDevice, ColorFormatAndSpace& cfs) {
             std::vector<std::unique_ptr<RenderPass>> passes;
-            passes.push_back(std::move(std::make_unique<DeferredPbrRenderPass>(vkDevice, cfs)));
-            passes.push_back(std::move(std::make_unique<CascadeShadowMapRenderPass>(vkDevice, cfs)));
+            passes.emplace_back(DeferredPbrRenderPass::create(vkDevice, cfs, isDebugRendering));
+            passes.emplace_back(CascadeShadowMapRenderPass::create(vkDevice, cfs));
             return passes;
         },
-        [](VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp) {
-            auto pc = std::make_unique<PipelineCache>();
+        [isDebugRendering](VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp) {
+            auto pc = PipelineCache::create();
 
-            auto pass0 = std::make_unique<DeferredOffscreenPbrPipeline>();
-            pass0->init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
-            pc->addPipeline(std::move(pass0));
+            pc->createPipeline<DeferredOffscreenPbrPipeline>()
+                .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            auto skinned = std::make_unique<SkinnedOffscreenPbrPipeline>();
-            skinned->init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
-            pc->addPipeline(std::move(skinned));
+            pc->createPipeline<SkinnedOffscreenPbrPipeline>()
+                .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            auto pass1 = std::make_unique<DeferredCompositionPbrPipeline>();
-            pass1->init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
-            pc->addPipeline(std::move(pass1));
+            pc->createPipeline<DeferredCompositionPbrPipeline>()
+                .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            auto shadowPass = std::make_unique<CascadeShadowMapPipeline>();
-            shadowPass->init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
-            pc->addPipeline(std::move(shadowPass));
+            pc->createPipeline<CascadeShadowMapPipeline>()
+                .init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
 
-            auto skinnedShadowPass = std::make_unique<SkinnedCascadeShadowMapPipeline>();
-            skinnedShadowPass->init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
-            pc->addPipeline(std::move(skinnedShadowPass));
+            pc->createPipeline<SkinnedCascadeShadowMapPipeline>()
+                .init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
 
-            auto culling = std::make_unique<DrawCullingPipeline>();
-            culling->init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
-            pc->addPipeline(std::move(culling));
+            pc->createPipeline<DrawCullingPipeline>()
+                .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
+
+            if (isDebugRendering)
+                pc->createPipeline<DebugDeferredOffscreenPbrPipeline>()
+                .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
             return pc;
         },
@@ -186,7 +186,7 @@ void BasicGameTest::initVulkan() {
 void BasicGameTest::initCamera(InputManager& inputManager, DebugContext& dbg) {
     auto fov = glm::radians(60.0f);
     auto aspectRatio = (float)window->getWidth() / window->getHeight();
-    auto camera = std::make_unique<Camera>(fov, aspectRatio, Camera::NEAR_CLIP, Camera::FAR_CLIP);
+    auto camera = Camera::create(fov, aspectRatio, Camera::NEAR_CLIP, Camera::FAR_CLIP);
 
     camera->setPosition(glm::vec3(0, 0, 5));
 

@@ -31,4 +31,7 @@ public:
     AsyncMaterialCache(PipelineCache& pipelineCache, AsyncTextureCache& textureCache, GpuBufferCache& bufferCache, ExecutorService& workerPool)
         : pipelineCache(pipelineCache), textureCache(textureCache), bufferCache(bufferCache), AsyncAssetCache(workerPool) {}
 
+    inline static std::unique_ptr<AsyncMaterialCache> create(PipelineCache& pipelineCache, AsyncTextureCache& textureCache, GpuBufferCache& bufferCache, ExecutorService& workerPool) {
+        return std::make_unique<AsyncMaterialCache>(pipelineCache, textureCache, bufferCache, workerPool);
+    }
 };

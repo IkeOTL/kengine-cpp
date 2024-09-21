@@ -14,8 +14,15 @@ public:
         DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT }
     };
 
-    void addPipeline(std::unique_ptr<Pipeline>&& pipeline) {
-        pipelines[std::type_index(typeid(*pipeline))] = std::move(pipeline);
+    inline static const std::unique_ptr<PipelineCache> create() {
+        return std::make_unique<PipelineCache>();
+    };
+
+    template <typename T>
+    T& createPipeline() {
+        auto pipeline = std::make_unique<T>();
+        auto& outPipeline = pipelines[std::type_index(typeid(T))] = std::move(pipeline);
+        return *static_cast<T*>(outPipeline.get());
     }
 
     template <typename T>

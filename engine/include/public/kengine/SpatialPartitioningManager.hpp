@@ -7,6 +7,10 @@ private:
     std::unique_ptr<SpatialGrid> spatialGrid;
 
 public:
+    inline static std::unique_ptr<SpatialPartitioningManager> create() {
+        return std::make_unique<SpatialPartitioningManager>();
+    }
+
     SpatialGrid* getSpatialGrid() {
         return spatialGrid.get();
     }

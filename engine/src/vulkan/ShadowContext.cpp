@@ -117,6 +117,8 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<std::unique_ptr<D
 void ShadowContext::execute(VulkanContext& vkContext, RenderFrameContext& cxt, DescriptorSetAllocator& dAllocator,
     IndirectDrawBatch* nonSkinnedBatches, size_t nonSkinnedBatchesSize,
     IndirectDrawBatch* skinnedBatches, size_t skinnedBatchesSize) {
+    ZoneScoped;
+
     const auto SHADOWDIM = 4096;
 
     auto camera = cameraController.getCamera();
@@ -171,6 +173,8 @@ void ShadowContext::execute(VulkanContext& vkContext, RenderFrameContext& cxt, D
 void ShadowContext::execShadowPass(VulkanContext& vkContext, RenderFrameContext& cxt,
     Pipeline& p1, DescriptorSetAllocator& dAllocator, size_t cascadeIdx,
     IndirectDrawBatch* batches, size_t batchesSize, bool skinned) {
+    ZoneScoped;
+
     if (batchesSize == 0)
         return;
 

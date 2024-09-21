@@ -43,6 +43,10 @@ public:
         }
     }
 
+    inline static std::unique_ptr<World> create(WorldConfig& wc) {
+        return std::make_unique<World>(wc);
+    }
+
     void process(float delta) {
         for (auto& sys : systems)
             sys.second->process(delta);

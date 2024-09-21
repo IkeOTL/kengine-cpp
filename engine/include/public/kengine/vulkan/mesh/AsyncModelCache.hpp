@@ -2,6 +2,7 @@
 #include <kengine/vulkan/AsyncAssetCache.hpp>
 #include <kengine/vulkan/mesh/ModelConfig.hpp>
 #include <kengine/vulkan/mesh/ModelFactory.hpp>
+#include <memory>
 
 class Model;
 
@@ -16,4 +17,7 @@ public:
     AsyncModelCache(ModelFactory& factory, ExecutorService& workerPool)
         : AsyncAssetCache(workerPool), factory(factory) {}
 
+    inline static std::unique_ptr<AsyncModelCache> create(ModelFactory& factory, ExecutorService& workerPool) {
+        return std::make_unique<AsyncModelCache>(factory, workerPool);
+    }
 };

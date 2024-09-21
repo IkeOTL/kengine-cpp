@@ -21,6 +21,10 @@ public:
     GltfModelFactory(VulkanContext& vkContext, AssetIO& assetIo)
         : vkContext(vkContext), assetIo(assetIo) {}
 
+    inline static std::unique_ptr<GltfModelFactory> create(VulkanContext& vkContext, AssetIO& assetIo) {
+        return std::make_unique<GltfModelFactory>(vkContext, assetIo);
+    }
+
     std::unique_ptr<Model> loadModel(const ModelConfig& config) override;
 
 private:

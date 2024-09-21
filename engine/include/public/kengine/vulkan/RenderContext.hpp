@@ -29,7 +29,6 @@ public:
 private:
     VulkanContext& vkContext;
     ImGuiKEContext* imGuiContext;
-    GpuBufferCache& bufCache;
 
     std::unique_ptr<CullContext> cullContext;
     std::unique_ptr<ShadowContext> shadowContext;
@@ -72,6 +71,7 @@ private:
     float sceneTime = 0;
 
     bool started = false;
+    bool isDebugMode = false;
 
     void setViewportScissor(glm::uvec2 dim);
     void initBuffers();
@@ -79,15 +79,19 @@ private:
 
     IndirectDrawBatch& getStaticBatch(int instanceIdx, const Mesh& mesh, const Material& material, bool hasShadow);
     void deferredPass(DescriptorSetAllocator& descSetAllocator);
+    void debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d);
     void compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d);
 
 public:
-    RenderContext(VulkanContext& vkCtx, GpuBufferCache& bufCache,
-        LightsManager& lightsManager, CameraController& cameraController)
-        : vkContext(vkCtx), bufCache(bufCache), lightsManager(lightsManager),
+    RenderContext(VulkanContext& vkCtx, LightsManager& lightsManager, CameraController& cameraController)
+        : vkContext(vkCtx), lightsManager(lightsManager),
         cameraController(cameraController), bindManager(MaterialBindManager(vkCtx)) {}
 
-    void init();
+    inline static std::unique_ptr<RenderContext> create(VulkanContext& vkCtx, LightsManager& lightsManager, CameraController& cameraController) {
+        return std::make_unique<RenderContext>(vkCtx, lightsManager, cameraController);
+    }
+
+    void init(bool isDebugMode);
 
     void addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere, bool hasShadow);
     int draw(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere);

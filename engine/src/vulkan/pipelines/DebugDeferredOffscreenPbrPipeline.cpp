@@ -1,25 +1,27 @@
-#include <kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp>
+#include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
-#include <kengine/vulkan/mesh/Vertex.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
+#include <kengine/vulkan/mesh/Vertex.hpp>
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
+#include <kengine/vulkan/material/PbrMaterialConfig.hpp>
+#include <kengine/vulkan/Camera.hpp>
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
-#include <kengine/vulkan/ShadowCascade.hpp>
+#include <kengine/vulkan/SceneData.hpp>
 
-void CascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) {
+void DebugDeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) {
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
 
     VkDescriptorSet descriptorSets[] = {
-        descSetAllocator.getGlobalDescriptorSet("cascade", cascadeViewProjLayout),
-        descSetAllocator.getGlobalDescriptorSet("shadow-pass0", shadowPassLayout)
+       descSetAllocator.getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
+       descSetAllocator.getGlobalDescriptorSet("deferred-debug", DebugDeferredOffscreenPbrPipeline::objectLayout)
     };
 
     // TODO: check alignments
     uint32_t dynamicOffsets[] = {
-        frameIndex * ShadowCascadeData::SHADOW_CASCADE_COUNT * 16 * sizeof(float),
+        frameIndex * SceneData::alignedFrameSize(vkCxt),
         frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
-        frameIndex * RenderContext::MAX_INSTANCES * sizeof(int)
+        frameIndex * RenderContext::MAX_INSTANCES * sizeof(uint32_t)
     };
 
     // Single vkCmdBindDescriptorSets call
@@ -33,13 +35,12 @@ void CascadeShadowMapPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator
     );
 }
 
-void CascadeShadowMapPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
-    dst.push_back(cascadeViewProjLayout);
-    dst.push_back(shadowPassLayout);
-    dst.push_back(textureLayout);
+void DebugDeferredOffscreenPbrPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
+    dst.push_back(PipelineCache::globalLayout);
+    dst.push_back(DebugDeferredOffscreenPbrPipeline::objectLayout);
 }
 
-VkPipelineLayout CascadeShadowMapPipeline::createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) {
+VkPipelineLayout DebugDeferredOffscreenPbrPipeline::createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) {
     std::vector<VkDescriptorSetLayout> setLayouts;
     for (const auto& config : descSetLayoutConfigs)
         setLayouts.push_back(layoutCache.getLayout(config));
@@ -47,7 +48,7 @@ VkPipelineLayout CascadeShadowMapPipeline::createPipelineLayout(VulkanContext& v
     VkPushConstantRange pushConstantRange{};
     pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     pushConstantRange.offset = 0;
-    pushConstantRange.size = sizeof(CascadeShadowMapPipeline::PushConstant);
+    pushConstantRange.size = sizeof(DebugDeferredOffscreenPbrPipeline::PushConstant);
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -63,44 +64,28 @@ VkPipelineLayout CascadeShadowMapPipeline::createPipelineLayout(VulkanContext& v
     return pipelineLayout;
 }
 
-VkPipeline CascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
+VkPipeline DebugDeferredOffscreenPbrPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
-    loadShader(device, "res/src/cascade-shadow.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
-    loadShader(device, "res/src/cascade-shadow.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
+    loadShader(device, "res/src/debug-geom.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
+    loadShader(device, "res/src/debug-geom.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
 
-    VkViewport viewport = {};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = static_cast<float>(extents.x);
-    viewport.height = static_cast<float>(extents.y);
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-
-    VkRect2D scissor = {};
-    scissor.offset = { 0, 0 };
-    scissor.extent = { extents.x, extents.y };
-
-    VkPipelineViewportStateCreateInfo viewportState = {};
+    // Viewport state
+    VkPipelineViewportStateCreateInfo viewportState{};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportState.viewportCount = 1;
-    viewportState.pViewports = &viewport;
     viewportState.scissorCount = 1;
-    viewportState.pScissors = &scissor;
 
     // vertex input info
-    auto texturedVertexFormat = VertexFormatDescriptor{
-        sizeof(TexturedVertex),
+    auto debugVertexFormat = VertexFormatDescriptor{
+        sizeof(DebugVertex),
         {
-            {0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(TexturedVertex, position)},
-            {1, VK_FORMAT_R32G32_SFLOAT, offsetof(TexturedVertex, texCoords)},
-            {2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(TexturedVertex, normal)},
-            {3, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(TexturedVertex, tangent)}
+            {0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(DebugVertex, position)},
         }
     };
 
     VkVertexInputBindingDescription bindingDescription;
     std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-    createVertexInputDescriptions(texturedVertexFormat, bindingDescription, attributeDescriptions);
+    createVertexInputDescriptions(debugVertexFormat, bindingDescription, attributeDescriptions);
 
     VkPipelineVertexInputStateCreateInfo vi{};
     vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -110,26 +95,46 @@ VkPipeline CascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass*
     vi.pVertexAttributeDescriptions = attributeDescriptions.data();
     //
 
+    // Input assembly state
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyState{};
     inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
+    // Rasterization state
     VkPipelineRasterizationStateCreateInfo rasterizationState{};
     rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizationState.cullMode = VK_CULL_MODE_FRONT_BIT;
-    rasterizationState.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizationState.polygonMode = VK_POLYGON_MODE_LINE;
+    rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizationState.lineWidth = 1.0f;
 
+    // Multisample state
     VkPipelineMultisampleStateCreateInfo multisampleState{};
     multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
+    // Color blend attachment states
+    VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    colorBlendAttachment.blendEnable = VK_TRUE;
+    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+
+
+    // Color blending state
     VkPipelineColorBlendStateCreateInfo colorBlending{};
     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     colorBlending.logicOpEnable = VK_FALSE;
     colorBlending.logicOp = VK_LOGIC_OP_COPY;
+    colorBlending.attachmentCount = 1;
+    colorBlending.pAttachments = &colorBlendAttachment;
 
+    // Depth stencil state
     VkPipelineDepthStencilStateCreateInfo depthStencilState{};
     depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depthStencilState.depthTestEnable = VK_TRUE;
@@ -140,6 +145,14 @@ VkPipeline CascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass*
     depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
     depthStencilState.front = depthStencilState.back;
 
+    // Dynamic state
+    std::array<VkDynamicState, 2> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+    VkPipelineDynamicStateCreateInfo dynamicState{};
+    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
+
+    // Graphics pipeline creation
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.layout = pipelineLayout;
@@ -152,8 +165,9 @@ VkPipeline CascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass*
     pipelineInfo.pMultisampleState = &multisampleState;
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDepthStencilState = &depthStencilState;
+    pipelineInfo.pDynamicState = &dynamicState;
     pipelineInfo.renderPass = renderPass->getVkRenderPass();
-    pipelineInfo.subpass = 0;
+    pipelineInfo.subpass = 3;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
     VkPipeline newPipeline;

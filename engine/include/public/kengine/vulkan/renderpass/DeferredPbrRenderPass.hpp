@@ -32,8 +32,12 @@ public:
 
 class DeferredPbrRenderPass : public RenderPass {
 public:
-    DeferredPbrRenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
-        : RenderPass(vkDevice, colorFormatAndSpace) { }
+    DeferredPbrRenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace, bool debugMode)
+        : RenderPass(vkDevice, colorFormatAndSpace), isDebugMode(debugMode){ }
+
+    static inline std::unique_ptr<RenderPass> create(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace, bool debugMode) {
+        return std::make_unique<DeferredPbrRenderPass>(vkDevice, colorFormatAndSpace, debugMode);
+    }
 
     void begin(RenderPassContext& cxt) override;
     void end(RenderPassContext& cxt) override;
@@ -45,6 +49,8 @@ public:
     DeferredPbrRenderPass& operator=(DeferredPbrRenderPass&&) = default;
 
 protected:
+    bool isDebugMode;
+
     VkRenderPass createVkRenderPass() override;
     std::unique_ptr<GpuImageView> createDepthStencil(VmaAllocator vmaAllocator, const glm::uvec2 extents) override;
     void createRenderTargets(VmaAllocator vmaAllocator, const std::vector<VkImageView> sharedImageViews, const glm::uvec2 extents) override;

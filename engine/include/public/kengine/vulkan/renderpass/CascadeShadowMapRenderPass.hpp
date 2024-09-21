@@ -32,6 +32,10 @@ public:
     CascadeShadowMapRenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
         : RenderPass(vkDevice, colorFormatAndSpace) { }
 
+    static inline std::unique_ptr<RenderPass> create(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace) {
+        return std::make_unique<CascadeShadowMapRenderPass>(vkDevice, colorFormatAndSpace);
+    }
+
     void begin(RenderPassContext& cxt) override;
     void end(RenderPassContext& cxt) override;
 

@@ -1,4 +1,6 @@
 #pragma once
+#include<memory>
+
 
 class VulkanContext;
 class GpuBufferCache;
@@ -7,12 +9,15 @@ class Skeleton;
 
 class SkeletonManager {
 private:
-    VulkanContext& vkCxt;
-    GpuBufferCache& bufCache;
+    VulkanContext& vkContext;
 
 public:
-    SkeletonManager(VulkanContext& vkCxt, GpuBufferCache& bufCache)
-        : vkCxt(vkCxt), bufCache(bufCache) {}
+    SkeletonManager(VulkanContext& vkCxt)
+        : vkContext(vkCxt) {}
+
+    inline static std::unique_ptr<SkeletonManager> create(VulkanContext& vkCxt) {
+        return std::make_unique<SkeletonManager>(vkCxt);
+    }
 
     CachedGpuBuffer& createMappedBuf(Skeleton& skeleton);
     void upload(Skeleton& skeleton, int bufId, int frameIdx, float alpha);

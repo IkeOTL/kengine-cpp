@@ -1,4 +1,5 @@
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
+#include <tracy/Tracy.hpp>
 
 void DescriptorSetAllocator::init() {
     globalPool.init();
@@ -47,6 +48,8 @@ DescriptorSetPool& DescriptorSetAllocator::getPool() {
 }
 
 void DescriptorSetAllocator::reset() {
+    ZoneScoped;
+
     // move from unavail to avail
     while (!unavailablePools.empty()) {
         availablePools.push_back(std::move(unavailablePools.back()));
