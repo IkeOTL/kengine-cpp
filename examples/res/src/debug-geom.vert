@@ -8,22 +8,8 @@ layout(set = 0, binding = 0) uniform SceneBuffer {
 	vec4 lightDir; // not used here ... yet?
 } sceneBuffer;
 
-struct DrawObject {
-    mat4 transform;
-    vec4 boundingSphere;
-    int materialId;
-    int padding[3]; // Padding to align to 16 bytes
-};
-
-layout(std430, set = 1, binding = 0) readonly buffer DrawObjectBuffer {
-    DrawObject objects[];
-} drawObjectBuffer;
-
-layout(std430, set = 1, binding = 1) readonly buffer DrawInstanceBuffer {
-    uint instanceIds[];
-} drawInstanceBuffer;
-
 layout(push_constant) uniform PushConsts {
+    mat4 transform;
     vec4 color;
 } pushConsts;
 
@@ -35,8 +21,6 @@ out gl_PerVertex
 };
 
 void main() {
-    DrawObject obj = drawObjectBuffer.objects[drawInstanceBuffer.instanceIds[gl_InstanceIndex]];
-    mat4 modelMatrix = obj.transform;
-    gl_Position = sceneBuffer.proj * sceneBuffer.view * modelMatrix * vec4(inPos, 1);
+    gl_Position = sceneBuffer.proj * sceneBuffer.view * pushConsts.transform * vec4(inPos, 1);
     outColor = pushConsts.color;
 }

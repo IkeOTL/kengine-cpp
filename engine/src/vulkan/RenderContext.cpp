@@ -122,8 +122,8 @@ void RenderContext::initDescriptors() {
         std::vector<VkDescriptorImageInfo> imageInfos;
 
         // so they dont resize
-        setWrites.reserve(9);
-        bufferInfos.reserve(8);
+        setWrites.reserve(7);
+        bufferInfos.reserve(6);
         imageInfos.reserve(1);
 
         auto pushBuf = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, CachedGpuBuffer* gpuBuf) -> void {
@@ -244,22 +244,6 @@ void RenderContext::initDescriptors() {
                     shadowSampler
                 );
             }
-        }
-
-        if (isDebugMode) {
-            auto debugDescriptorSet = descSetAllocator->getGlobalDescriptorSet("deferred-debug", DebugDeferredOffscreenPbrPipeline::objectLayout);
-
-            pushBuf(
-                debugDescriptorSet,
-                DebugDeferredOffscreenPbrPipeline::objectLayout.getBinding(0),
-                drawObjectBuf
-            );
-
-            pushBuf(
-                debugDescriptorSet,
-                DebugDeferredOffscreenPbrPipeline::objectLayout.getBinding(1),
-                drawInstanceBuffer
-            );
         }
 
         vkUpdateDescriptorSets(vkContext.getVkDevice(), setWrites.size(), setWrites.data(), 0, nullptr);

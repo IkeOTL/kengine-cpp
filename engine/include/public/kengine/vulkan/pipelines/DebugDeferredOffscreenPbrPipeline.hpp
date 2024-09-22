@@ -8,12 +8,8 @@ protected:
     void loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) override;
 
 public:
-    inline static const DescriptorSetLayoutConfig objectLayout = {
-        DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT },
-        DescriptorSetLayoutBindingConfig{ 1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT }
-    };
-
     struct PushConstant {
+        glm::mat4 transform;
         glm::vec4 color;
     };
 
