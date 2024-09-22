@@ -1,4 +1,5 @@
-#include <kengine/game/BasicCameraController.hpp>
+#include "BasicCameraController.hpp"
+
 #include <kengine/util/VecUtils.hpp>
 #include <kengine/util/MatUtils.hpp>
 #include <glm/glm.hpp>

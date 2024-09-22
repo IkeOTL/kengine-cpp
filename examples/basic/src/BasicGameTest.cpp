@@ -1,7 +1,3 @@
-#define NOMINMAX
-
-#include <kengine/game/BasicGameTest.hpp>
-#include <kengine/game/BasicCameraController.hpp>
 #include <kengine/vulkan/ColorFormatAndSpace.hpp>
 #include <kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp>
 #include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
@@ -11,19 +7,22 @@
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/DrawCullingPipeline.hpp>
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
-#include <kengine/game/RenderablePreviousTransformSystem.hpp>
-#include <kengine/game/SpatialGridUpdateSystem.hpp>
-#include <kengine/game/RenderSystem.hpp>
-#include <kengine/game/CameraSystem.hpp>
-
-#include <kengine/game/MainGameState.hpp>
-#include <kengine/game/Game.hpp>
 #include <kengine/Math.hpp>
 
 #include <tracy/Tracy.hpp>
 #include <GLFW/glfw3.h>
 #include <utility>
 #include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
+
+#include "RenderablePreviousTransformSystem.hpp"
+#include "SpatialGridUpdateSystem.hpp"
+#include "RenderSystem.hpp"
+#include "BasicGameTest.hpp"
+#include "CameraSystem.hpp"
+
+#include "MainGameState.hpp"
+#include "Game.hpp"
+#include "BasicCameraController.hpp"
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -99,7 +98,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     renderContext->init();
     renderContext->setImGuiContext(imGuiContext.get());
 
-    auto config = AnimationConfig::create("res/gltf/char01.glb", "Run00");
+    auto config = AnimationConfig::create("gltf/char01.glb", "Run00");
     auto& lol = animationCache->get(config);
 
     world = World::create(WorldConfig()

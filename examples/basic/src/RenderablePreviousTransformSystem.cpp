@@ -1,11 +1,12 @@
 
-#include <kengine/game/RenderablePreviousTransformSystem.hpp>
+#include "RenderablePreviousTransformSystem.hpp"
+#include "components/Material.hpp"
+#include "components/Components.hpp"
+
 #include <kengine/vulkan/mesh/anim/Skeleton.hpp>
 #include <kengine/ExecutorService.hpp>
 #include <kengine/vulkan/CameraController.hpp>
 #include <kengine/SceneGraph.hpp>
-#include <kengine/game/components/Material.hpp>
-#include <kengine/game/components/Components.hpp>
 #include <kengine/ecs/World.hpp>
 #include <thirdparty/entt.hpp>
 #include <future>

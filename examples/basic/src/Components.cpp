@@ -1,5 +1,6 @@
 
-#include <kengine/game/components/Components.hpp>
+#include "components/Components.hpp"
+
 #include <kengine/SceneGraph.hpp>
 #include <kengine/vulkan/mesh/Model.hpp>
 #include <memory>

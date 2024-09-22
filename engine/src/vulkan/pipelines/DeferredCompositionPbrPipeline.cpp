@@ -55,8 +55,8 @@ VkPipelineLayout DeferredCompositionPbrPipeline::createPipelineLayout(VulkanCont
 
 VkPipeline DeferredCompositionPbrPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
-    loadShader(device, "res/src/composition.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
-    loadShader(device, "res/src/composition.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
+    loadShader(device, "src/composition.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
+    loadShader(device, "src/composition.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
 
     // specialization
     VkSpecializationMapEntry specializationEntry{};

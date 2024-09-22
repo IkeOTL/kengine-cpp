@@ -15,8 +15,17 @@ public:
         debugRenderingEnabled = value;
     }
 
+    std::string getAssetRoot() const {
+        return assetRoot;
+    }
+
+    void setAssetRoot(std::string path) {
+        assetRoot = path;
+    }
+
 private:
     EngineConfig() = default;
 
+    std::string assetRoot = "res/";
     bool debugRenderingEnabled = false;
 };
