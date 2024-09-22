@@ -21,9 +21,7 @@
 #include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/mesh/MeshBuilder.hpp>
 
-void RenderContext::init(bool isDebugRendering) {
-    this->isDebugMode = isDebugRendering;
-
+void RenderContext::init() {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto ptr = std::make_unique<DescriptorSetAllocator>(vkContext.getVkDevice(), vkContext.getDescSetLayoutCache());
         ptr->init();
@@ -116,6 +114,8 @@ void RenderContext::initBuffers() {
 // simplify this further
 void RenderContext::initDescriptors() {
 
+    // move somewhere else
+#ifdef KE_DEBUG_RENDER
     {
         auto mb = MeshBuilder<DebugVertex>(VertexAttribute::POSITION);
 
@@ -247,6 +247,7 @@ void RenderContext::initDescriptors() {
 
         debugMesh = mb.build(&vkContext);
     }
+#endif
 
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto& descSetAllocator = descSetAllocators[i];
@@ -422,6 +423,18 @@ void RenderContext::addStaticInstance(const Mesh& mesh, const Material& material
     }
 }
 
+#ifdef KE_DEBUG_RENDER
+void RenderContext::drawDebug(const glm::mat4& transform, const glm::vec4& color) {
+    if (totalDebugObjects >= MAX_DEBUG_OBJECTS)
+        return;
+
+    debugObjects[totalDebugObjects++] = DebugObject{
+        transform,
+        color
+    };
+}
+#endif
+
 int RenderContext::draw(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere) {
     ZoneScoped;
     auto frameIdx = frameCxt->frameIndex;
@@ -430,16 +443,6 @@ int RenderContext::draw(const Mesh& mesh, const Material& material, const glm::m
     auto hasShadow = material.hasShadow();
     auto hasSkeleton = material.hasSkeleton();
 
-    if (totalDebugObjects < MAX_DEBUG_OBJECTS) {
-        glm::vec3 min, max;
-        mesh.getBounds().getAabb().getMinMax(min, max);
-        auto scale = max - min;
-
-        debugObjects[totalDebugObjects++] = DebugObject{
-            glm::scale(transform, scale),
-            glm::vec4{1.0f, 0.0f ,0.0f ,1.0f}
-        };
-    }
 
     // upload model specific details
     {
@@ -559,7 +562,9 @@ void RenderContext::begin(RenderFrameContext& frameCxt, float sceneTime, float a
     totalShadowSkinnedBatches = 0;
     totalShadowNonSkinnedBatches = 0;
 
+#ifdef KE_DEBUG_RENDER
     totalDebugObjects = 0;
+#endif
 
     bindManager.reset();
 
@@ -733,9 +738,10 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
         // subpass 3 forward transparency pass, TODO
         vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
 
+#ifdef KE_DEBUG_RENDER
         //subpass 4 debug
         debugSubpass(rpCxt, descSetAllocator);
-
+#endif
 
         //subpass 4 or 5 GUI (depends on is debug rendering is enabled)
         //guiManager.subpass(vkContext, rpCxt, frameCxt, descSetAllocator);
@@ -750,6 +756,7 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
 }
 
 
+#ifdef KE_DEBUG_RENDER
 void RenderContext::debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& descSetAllocator) {
     auto frameIdx = frameCxt->frameIndex;
     auto vkCmd = frameCxt->cmd;
@@ -775,6 +782,7 @@ void RenderContext::debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocato
         vkCmdDrawIndexed(vkCmd, indexCount, 1, 0, 0, 0);
     }
 }
+#endif
 
 void RenderContext::compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d) {
     {

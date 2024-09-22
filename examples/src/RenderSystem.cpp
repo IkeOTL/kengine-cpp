@@ -22,6 +22,7 @@
 #include <kengine/vulkan/SkeletonManager.hpp>
 #include <tracy/Tracy.hpp>
 #include <kengine/util/MatUtils.hpp>
+#include <kengine/EngineConfig.hpp>
 
 void RenderSystem::init() {
     vulkanCtx = getService<VulkanContext>();
@@ -240,6 +241,13 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
                 // need to calc in Model still
                 auto& bounds = m->getBounds();
                 renderCtx->draw(*m, *material, blendMat, bounds.getSphereBounds());
+
+                if (EngineConfig::getInstance().isDebugRenderingEnabled()) {
+                    glm::vec3 min, max;
+                    m->getBounds().getAabb().getMinMax(min, max);
+                    auto scale = max - min;
+                    renderCtx->drawDebug(glm::scale(blendMat, scale), glm::vec4{ 1, 0, 0, 1 });
+                }
 
                 curIdx++;
             }

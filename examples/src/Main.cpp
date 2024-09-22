@@ -1,4 +1,3 @@
-
 #include <glm/glm.hpp>
 #include <kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp>
 #include <kengine/math.hpp>
@@ -12,9 +11,12 @@
 #include <kengine/game/BasicGameTest.hpp>
 #include <steam/steamnetworkingsockets.h>
 #include <kengine/Logger.hpp>
+#include <kengine/EngineConfig.hpp>
 
 int main() {
     KE_LOG_INFO("Example started.");
+
+    //EngineConfig::getInstance().setDebugRenderingEnabled(true);
 
     BasicGameTest game;
     game.run();

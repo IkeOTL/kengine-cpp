@@ -2,7 +2,8 @@ add_library(kengine_engine STATIC)
 
 #set(BUILD_SHARED_LIBS ON CACHE BOOL "Toggle static or shared" FORCE)
 
-target_compile_definitions(kengine_engine PUBLIC 
+target_compile_definitions(kengine_engine PUBLIC
+    KE_DEBUG_RENDER # enable debug render code
     GLM_FORCE_DEPTH_ZERO_TO_ONE
     TINYGLTF_NO_STB_IMAGE
     TINYGLTF_NO_STB_IMAGE_WRITE
@@ -39,6 +40,7 @@ set(HEADERS
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
 
+    include/public/kengine/EngineConfig.hpp
     include/public/kengine/Logger.hpp
     include/public/kengine/Profiler.hpp
     include/public/kengine/DebugContext.hpp

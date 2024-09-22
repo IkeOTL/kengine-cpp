@@ -31,7 +31,6 @@ class RenderContext {
 public:
     const static uint32_t MAX_INSTANCES = 50000;
     const static uint32_t MAX_BATCHES = 10000;
-    const static uint32_t MAX_DEBUG_OBJECTS = 1000;
 
 private:
     VulkanContext& vkContext;
@@ -56,7 +55,6 @@ private:
     CachedGpuBuffer* objectInstanceBuf = nullptr; // all instances submitted before GPU culling
     CachedGpuBuffer* drawInstanceBuffer = nullptr; // all instances after GPU culling
 
-    std::unique_ptr<Mesh> debugMesh;
 
     uint32_t staticInstances = 0;
     uint32_t staticBatches = 0;
@@ -72,8 +70,13 @@ private:
     IndirectDrawBatch shadowSkinnedBatchCache[MAX_INSTANCES / 4];
     IndirectDrawBatch shadowNonSkinnedBatchCache[MAX_INSTANCES / 4];
 
+
+#ifdef KE_DEBUG_RENDER
+    const static uint32_t MAX_DEBUG_OBJECTS = 1000;
     uint32_t totalDebugObjects = 0;
     DebugObject debugObjects[MAX_DEBUG_OBJECTS];
+    std::unique_ptr<Mesh> debugMesh;
+#endif
 
     MaterialBindManager bindManager;
 
@@ -83,7 +86,6 @@ private:
     float sceneTime = 0;
 
     bool started = false;
-    bool isDebugMode = false;
 
     void setViewportScissor(glm::uvec2 dim);
     void initBuffers();
@@ -103,7 +105,11 @@ public:
         return std::make_unique<RenderContext>(vkCtx, lightsManager, cameraController);
     }
 
-    void init(bool isDebugMode);
+    void init();
+
+#ifdef KE_DEBUG_RENDER
+    void drawDebug(const glm::mat4& transform, const glm::vec4& color);
+#endif
 
     void addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere, bool hasShadow);
     int draw(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere);
