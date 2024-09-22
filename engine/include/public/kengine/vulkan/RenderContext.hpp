@@ -6,6 +6,7 @@
 #include <kengine/vulkan/IndirectDrawBatch.hpp>
 #include <kengine/vulkan/LightsManager.hpp>
 #include <kengine/vulkan/CullContext.hpp>
+#include <kengine/vulkan/mesh/Mesh.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
@@ -21,10 +22,16 @@ struct ObjectInstance {
     uint32_t instanceIdx;
 };
 
+struct DebugObject {
+    glm::mat4 transform;
+    glm::vec4 color;
+};
+
 class RenderContext {
 public:
-    const static uint32_t MAX_INSTANCES = 200000;
+    const static uint32_t MAX_INSTANCES = 50000;
     const static uint32_t MAX_BATCHES = 10000;
+    const static uint32_t MAX_DEBUG_OBJECTS = 1000;
 
 private:
     VulkanContext& vkContext;
@@ -49,6 +56,8 @@ private:
     CachedGpuBuffer* objectInstanceBuf = nullptr; // all instances submitted before GPU culling
     CachedGpuBuffer* drawInstanceBuffer = nullptr; // all instances after GPU culling
 
+    std::unique_ptr<Mesh> debugMesh;
+
     uint32_t staticInstances = 0;
     uint32_t staticBatches = 0;
     uint32_t staticShadowNonSkinnedBatches = 0;
@@ -62,6 +71,9 @@ private:
     uint32_t totalShadowNonSkinnedBatches = 0;
     IndirectDrawBatch shadowSkinnedBatchCache[MAX_INSTANCES / 4];
     IndirectDrawBatch shadowNonSkinnedBatchCache[MAX_INSTANCES / 4];
+
+    uint32_t totalDebugObjects = 0;
+    DebugObject debugObjects[MAX_DEBUG_OBJECTS];
 
     MaterialBindManager bindManager;
 

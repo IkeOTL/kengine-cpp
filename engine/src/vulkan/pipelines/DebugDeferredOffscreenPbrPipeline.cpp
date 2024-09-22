@@ -100,9 +100,9 @@ VkPipeline DebugDeferredOffscreenPbrPipeline::createPipeline(VkDevice device, Re
     VkPipelineRasterizationStateCreateInfo rasterizationState{};
     rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizationState.polygonMode = VK_POLYGON_MODE_LINE;
-    rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterizationState.cullMode = VK_CULL_MODE_NONE;
     rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    rasterizationState.lineWidth = 1.0f;
+    rasterizationState.lineWidth = 2.0f;
 
     // Multisample state
     VkPipelineMultisampleStateCreateInfo multisampleState{};

@@ -19,6 +19,7 @@
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
 #include <tracy/Tracy.hpp>
 #include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
+#include <kengine/vulkan/mesh/MeshBuilder.hpp>
 
 void RenderContext::init(bool isDebugRendering) {
     this->isDebugMode = isDebugRendering;
@@ -114,6 +115,139 @@ void RenderContext::initBuffers() {
 
 // simplify this further
 void RenderContext::initDescriptors() {
+
+    {
+        auto mb = MeshBuilder<DebugVertex>(VertexAttribute::POSITION);
+
+        //0
+        auto v0 = mb.createVertex();
+        v0.position = { -.5f, .5f, -.5f };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        auto v2 = mb.createVertex();
+        v2.position = { -.5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        auto v1 = mb.createVertex();
+        v1.position = { .5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        v0 = mb.createVertex();
+        v0.position = { .5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        //1
+        v0 = mb.createVertex();
+        v0.position = { .5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        v0 = mb.createVertex();
+        v0.position = { -.5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        //2
+        v0 = mb.createVertex();
+        v0.position = { -.5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        v0 = mb.createVertex();
+        v0.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { .5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        //3
+        v0 = mb.createVertex();
+        v0.position = { .5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { .5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        v0 = mb.createVertex();
+        v0.position = { .5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { .5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        //4
+        v0 = mb.createVertex();
+        v0.position = { .5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { -.5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        v0 = mb.createVertex();
+        v0.position = { .5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { .5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { -.5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        //5
+        v0 = mb.createVertex();
+        v0.position = { -.5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { -.5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        v0 = mb.createVertex();
+        v0.position = { -.5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        debugMesh = mb.build(&vkContext);
+    }
+
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto& descSetAllocator = descSetAllocators[i];
 
@@ -296,6 +430,17 @@ int RenderContext::draw(const Mesh& mesh, const Material& material, const glm::m
     auto hasShadow = material.hasShadow();
     auto hasSkeleton = material.hasSkeleton();
 
+    if (totalDebugObjects < MAX_DEBUG_OBJECTS) {
+        glm::vec3 min, max;
+        mesh.getBounds().getAabb().getMinMax(min, max);
+        auto scale = max - min;
+
+        debugObjects[totalDebugObjects++] = DebugObject{
+            glm::scale(transform, scale),
+            glm::vec4{1.0f, 0.0f ,0.0f ,1.0f}
+        };
+    }
+
     // upload model specific details
     {
         // material: todo: only upload once per material id
@@ -414,6 +559,8 @@ void RenderContext::begin(RenderFrameContext& frameCxt, float sceneTime, float a
     totalShadowSkinnedBatches = 0;
     totalShadowNonSkinnedBatches = 0;
 
+    totalDebugObjects = 0;
+
     bindManager.reset();
 
     started = true;
@@ -492,6 +639,7 @@ void RenderContext::end() {
             auto& dAllocator = descSetAllocators[frameIdx];
             dAllocator->reset();
 
+            // run this at same time?
             shadowContext->execute(vkContext, *frameCxt, *dAllocator,
                 shadowNonSkinnedBatchCache, staticShadowNonSkinnedBatches + totalShadowNonSkinnedBatches,
                 shadowSkinnedBatchCache, totalShadowSkinnedBatches);
@@ -602,11 +750,30 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
 }
 
 
-void RenderContext::debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d) {
+void RenderContext::debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& descSetAllocator) {
     auto frameIdx = frameCxt->frameIndex;
     auto vkCmd = frameCxt->cmd;
 
     vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
+
+    // submit debug draws
+
+    auto& p1 = vkContext.getPipelineCache().getPipeline<DebugDeferredOffscreenPbrPipeline>();
+    p1.bind(vkContext, descSetAllocator, vkCmd, frameIdx);
+
+    auto& indexBuf = debugMesh->getIndexBuf();
+    auto indexCount = debugMesh->getIndexCount();
+
+    VkDeviceSize offsets = 0;
+    vkCmdBindVertexBuffers(vkCmd, 0, 1, &debugMesh->getVertexBuf().vkBuffer, &offsets);
+    vkCmdBindIndexBuffer(vkCmd, indexBuf.vkBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+    // change to instancing
+    for (auto i = 0; i < totalDebugObjects; i++)
+    {
+        vkCmdPushConstants(vkCmd, p1.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(DebugObject), &debugObjects[i]);
+        vkCmdDrawIndexed(vkCmd, indexCount, 1, 0, 0, 0);
+    }
 }
 
 void RenderContext::compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d) {
