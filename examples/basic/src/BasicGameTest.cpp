@@ -23,6 +23,8 @@
 #include "MainGameState.hpp"
 #include "Game.hpp"
 #include "BasicCameraController.hpp"
+#include <kengine/Logger.hpp>
+#include <kengine/EngineConfig.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -201,5 +203,9 @@ void BasicGameTest::initCamera(InputManager& inputManager, DebugContext& dbg) {
 void TestGui::draw() {
     ImGui::Begin("Another Window");
     ImGui::Text(std::to_string(debugCtx.getIntValue("spatialGridVisibleEntities")).c_str());
+
+    if (ImGui::Button("Toggle Debug Geometry"))
+        EngineConfig::getInstance().setDebugRenderingEnabled(!EngineConfig::getInstance().isDebugRenderingEnabled());
+
     ImGui::End();
 }

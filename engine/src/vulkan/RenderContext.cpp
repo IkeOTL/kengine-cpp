@@ -144,22 +144,22 @@ void RenderContext::initDescriptors() {
         v0 = mb.createVertex();
         v0.position = { .5, -.5, -.5 };
         mb.pushIndex(mb.pushVertex(std::move(v0)));
-        v2 = mb.createVertex();
-        v2.position = { -.5, -.5, .5 };
-        mb.pushIndex(mb.pushVertex(std::move(v2)));
         v1 = mb.createVertex();
         v1.position = { .5, -.5, .5 };
         mb.pushIndex(mb.pushVertex(std::move(v1)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
 
         v0 = mb.createVertex();
         v0.position = { -.5, -.5, -.5 };
         mb.pushIndex(mb.pushVertex(std::move(v0)));
-        v2 = mb.createVertex();
-        v2.position = { -.5, -.5, .5 };
-        mb.pushIndex(mb.pushVertex(std::move(v2)));
         v1 = mb.createVertex();
         v1.position = { .5, -.5, -.5 };
         mb.pushIndex(mb.pushVertex(std::move(v1)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
 
         //2
         v0 = mb.createVertex();

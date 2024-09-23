@@ -96,7 +96,9 @@ void FreeCameraController::applyMovement(float delta) {
     if (!vecutils::isFinite(camMov))
         return;
 
-    camMov *= 3.0f * delta;
+    auto boost = inputManager.isMouseButtonDown(GLFW_MOUSE_BUTTON_1) && inputManager.isMouseButtonDown(GLFW_MOUSE_BUTTON_2) ? 3 : 1;
+
+    camMov *= 3.0f * delta * boost;
     camera->addPosition(camMov);
     needsFrustumRecalc = true;
 }

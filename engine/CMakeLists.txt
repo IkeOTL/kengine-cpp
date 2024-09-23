@@ -332,13 +332,12 @@ source_group(
 
 source_group(
     TREE ${CMAKE_CURRENT_SOURCE_DIR}
-    PREFIX "src"
     FILES ${SOURCES}
 )
 
 source_group(
     TREE ${CMAKE_SOURCE_DIR}
-    PREFIX "src/thirdparty"
+    PREFIX "thirdparty"
     FILES ${IMGUI}
 )
 

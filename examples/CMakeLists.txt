@@ -17,8 +17,10 @@ function(compile_shader SHADER_SRC SHADER_DST)
     )
 endfunction()
 
-set(SHADER_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res/src")
-set(SHADER_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/res/src")
+
+set(ASSETS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res")
+set(SHADER_SOURCE_DIR "${ASSETS_DIR}/src")
+set(SHADER_BINARY_DIR "${ASSETS_DIR}/src")
 
 file(MAKE_DIRECTORY ${SHADER_BINARY_DIR})
 
@@ -35,8 +37,27 @@ foreach(SHADER IN LISTS SHADERS)
     list(APPEND SPIRV_BINARY_FILES ${SHADER_SPIRV})
 endforeach()
 
-add_custom_target(kengine_shaders
+add_custom_target(kengine_assets
     ALL DEPENDS ${SPIRV_BINARY_FILES}
     SOURCES ${SHADERS}
 )
-add_dependencies(basic kengine_shaders)
+
+file(GLOB_RECURSE ASSETS "${ASSETS_DIR}/*")
+
+foreach(ASSET ${ASSETS})
+    get_filename_component(ASSET_RELATIVE_PATH ${ASSET} DIRECTORY)
+    file(RELATIVE_PATH ASSET_SUBDIR ${ASSETS_DIR} ${ASSET_RELATIVE_PATH})
+    
+    set(DESTINATION_PATH "${CMAKE_BINARY_DIR}/examples/res/${ASSET_SUBDIR}")
+
+    file(MAKE_DIRECTORY ${DESTINATION_PATH})
+
+    add_custom_command(
+        TARGET kengine_assets POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${ASSET}"
+        "${DESTINATION_PATH}/"
+    )
+endforeach()
+
+add_dependencies(basic kengine_assets)
