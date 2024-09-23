@@ -357,7 +357,7 @@ find_package(GameNetworkingSockets CONFIG REQUIRED)
 # is this even needed?
 #target_precompile_headers(kengine_engine PRIVATE <spdlog/spdlog.h>)
 
-target_link_libraries(kengine_engine PUBLIC 
+target_link_libraries(kengine_engine PUBLIC
     spdlog::spdlog
     Tracy::TracyClient
     Threads::Threads

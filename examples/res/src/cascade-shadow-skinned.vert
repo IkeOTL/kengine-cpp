@@ -2,6 +2,10 @@
 
 layout (location = 0) in vec3 inPos;
 layout (location = 1) in vec2 inUV;
+layout (location = 2) in vec3 inNormal;
+layout (location = 3) in vec4 inTangent;
+layout (location = 4) in uvec4 inJointIndices;
+layout (location = 5) in vec4 inJointWeights;
 
 // todo: pass via specialization constant
 #define SHADOW_MAP_CASCADE_COUNT 4
@@ -14,7 +18,7 @@ struct DrawObject {
 	mat4 transform;
     vec4 boundingSphere;
     int materialId;
-   // vec3 padding;
+    //vec3 padding;
 };
 
 layout(std430, set = 1, binding = 0) readonly buffer DrawObjectBuffer {
@@ -25,12 +29,15 @@ layout(std430, set = 1, binding = 1) readonly buffer DrawInstanceBuffer {
 	uint instanceIds[];
 } drawInstanceBuffer;
 
+layout(std430, set = 2, binding = 1) readonly buffer JointMatrices {
+    mat4 jointMatrices[];
+} jointMatrices;
+
 layout(push_constant) uniform PushConsts {
 	uint cascadeIndex;
 } pushConsts;
 
-layout (location = 0) out vec3 outWorldPos;
-layout (location = 1) out vec2 outUV;
+layout (location = 0) out vec2 outUV;
 
 out gl_PerVertex
 {
@@ -40,7 +47,12 @@ out gl_PerVertex
 void main() {
 	mat4 modelMatrix = drawObjectBuffer.objects[drawInstanceBuffer.instanceIds[gl_InstanceIndex]].transform;
 
+	mat4 skinMat =
+        inJointWeights.x * jointMatrices.jointMatrices[inJointIndices.x] +
+        inJointWeights.y * jointMatrices.jointMatrices[inJointIndices.y] +
+        inJointWeights.z * jointMatrices.jointMatrices[inJointIndices.z] +
+        inJointWeights.w * jointMatrices.jointMatrices[inJointIndices.w];
+
 	outUV = inUV;
-	vec3 pos = vec3(modelMatrix * vec4(inPos, 1));
-	gl_Position =  ubo.cascadeViewProjMat[pushConsts.cascadeIndex] * vec4(pos, 1.0);
+	gl_Position =  ubo.cascadeViewProjMat[pushConsts.cascadeIndex] * modelMatrix * skinMat * vec4(inPos, 1);
 }
