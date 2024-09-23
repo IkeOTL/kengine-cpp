@@ -1,12 +1,13 @@
-#include <kengine/game/MainGameState.hpp>
-#include <kengine/game/Game.hpp>
+#include "MainGameState.hpp"
+#include "Game.hpp"
+#include "RenderSystem.hpp"
+#include "RenderablePreviousTransformSystem.hpp"
+
 #include <kengine/vulkan/VulkanContext.hpp>
-#include <kengine/game/RenderablePreviousTransformSystem.hpp>
 #include <kengine/ExecutorService.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/Window.hpp>
 #include <kengine/ecs/World.hpp>
-#include <kengine/game/RenderSystem.hpp>
 #include <kengine/vulkan/mesh/ModelConfig.hpp>
 
 MainGameState::MainGameState(World& world) :

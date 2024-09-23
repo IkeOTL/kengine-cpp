@@ -1,7 +1,10 @@
 #include <kengine/vulkan/pipelines/Pipeline.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
+#include <kengine/EngineConfig.hpp>
+
 #include <fstream>
+#include <filesystem>
 
 const DescriptorSetLayoutConfig& Pipeline::getDescSetLayoutConfig(int i) const {
     return descSetLayoutConfigs[i];
@@ -33,8 +36,10 @@ void Pipeline::createVertexInputDescriptions(
     }
 }
 
-void Pipeline::loadShader(VkDevice device, std::string filePath, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest) {
-    std::ifstream file(filePath, std::ios::ate | std::ios::binary);
+void Pipeline::loadShader(VkDevice device, std::string shaderFile, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest) {
+    auto assetPath = std::filesystem::path(EngineConfig::getInstance().getAssetRoot()) / shaderFile;
+
+    std::ifstream file(assetPath.string(), std::ios::ate | std::ios::binary);
     if (!file.is_open())
         throw std::runtime_error("Failed to open shader file");
 

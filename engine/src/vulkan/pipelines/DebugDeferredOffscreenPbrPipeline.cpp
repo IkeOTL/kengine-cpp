@@ -14,14 +14,11 @@ void DebugDeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSet
 
     VkDescriptorSet descriptorSets[] = {
        descSetAllocator.getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
-       descSetAllocator.getGlobalDescriptorSet("deferred-debug", DebugDeferredOffscreenPbrPipeline::objectLayout)
     };
 
     // TODO: check alignments
     uint32_t dynamicOffsets[] = {
-        frameIndex * SceneData::alignedFrameSize(vkCxt),
-        frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
-        frameIndex * RenderContext::MAX_INSTANCES * sizeof(uint32_t)
+        frameIndex * SceneData::alignedFrameSize(vkCxt)
     };
 
     // Single vkCmdBindDescriptorSets call
@@ -30,14 +27,13 @@ void DebugDeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorSet
         VK_PIPELINE_BIND_POINT_GRAPHICS,
         getVkPipelineLayout(),
         0,
-        2, descriptorSets,
-        3, dynamicOffsets
+        1, descriptorSets,
+        1, dynamicOffsets
     );
 }
 
 void DebugDeferredOffscreenPbrPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
     dst.push_back(PipelineCache::globalLayout);
-    dst.push_back(DebugDeferredOffscreenPbrPipeline::objectLayout);
 }
 
 VkPipelineLayout DebugDeferredOffscreenPbrPipeline::createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) {
@@ -66,8 +62,8 @@ VkPipelineLayout DebugDeferredOffscreenPbrPipeline::createPipelineLayout(VulkanC
 
 VkPipeline DebugDeferredOffscreenPbrPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
-    loadShader(device, "res/src/debug-geom.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
-    loadShader(device, "res/src/debug-geom.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
+    loadShader(device, "src/debug-geom.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
+    loadShader(device, "src/debug-geom.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
 
     // Viewport state
     VkPipelineViewportStateCreateInfo viewportState{};

@@ -1,70 +1,4 @@
-add_executable(kengine_example)
-
-add_definitions(-DGLM_FORCE_DEPTH_ZERO_TO_ONE)
-add_definitions(-DTINYGLTF_NO_STB_IMAGE)
-add_definitions(-DTINYGLTF_NO_STB_IMAGE_WRITE)
-
-#include(CheckCXXCompilerFlag)
-#check_cxx_compiler_flag(-fsanitize=address HAS_ASAN)
-#if (HAS_ASAN)
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
-#    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
-#    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
-#    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fsanitize=address")
-#endif()
-
-set(HEADERS
-    include/public/kengine/game/Game.hpp
-    include/public/kengine/game/BasicGameTest.hpp
-    include/public/kengine/game/MainGameState.hpp
-    include/public/kengine/game/BasicCameraController.hpp
-
-# systems
-    include/public/kengine/game/RenderSystem.hpp
-    include/public/kengine/game/CameraSystem.hpp
-    include/public/kengine/game/RenderablePreviousTransformSystem.hpp
-    include/public/kengine/game/SpatialGridUpdateSystem.hpp
-    include/public/kengine/game/AnimationSystem.hpp
-
-# components
-    include/public/kengine/game/components/Components.hpp
-    include/public/kengine/game/components/Model.hpp
-    include/public/kengine/game/components/Material.hpp
-
-)
-
-set(SOURCES
-    src/Main.cpp
-    src/BasicGameTest.cpp
-    src/MainGameState.cpp
-    src/BasicCameraController.cpp
-
-# systems
-    src/RenderSystem.cpp
-    src/CameraSystem.cpp
-    src/RenderablePreviousTransformSystem.cpp
-    src/SpatialGridUpdateSystem.cpp
-    src/AnimationSystem.cpp
-
-    src/Components.cpp
-)
-
-target_sources(kengine_example 
-    PRIVATE
-        ${HEADERS}
-        ${SOURCES}
-)
-
-source_group(
-    TREE ${CMAKE_CURRENT_SOURCE_DIR}
-    FILES ${HEADERS} ${SOURCES}
-)
-
-target_include_directories(kengine_engine PUBLIC include/public)
-target_include_directories(kengine_engine PRIVATE include/private)
-target_include_directories(kengine_engine PRIVATE include/thirdparty)
-
-target_link_libraries(kengine_example PRIVATE kengine_engine)
+add_subdirectory(basic)
 
 
 # compile a shaders to SPIR-V
@@ -83,8 +17,10 @@ function(compile_shader SHADER_SRC SHADER_DST)
     )
 endfunction()
 
-set(SHADER_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res/src")
-set(SHADER_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/res/src")
+
+set(ASSETS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res")
+set(SHADER_SOURCE_DIR "${ASSETS_DIR}/src")
+set(SHADER_BINARY_DIR "${ASSETS_DIR}/src")
 
 file(MAKE_DIRECTORY ${SHADER_BINARY_DIR})
 
@@ -101,8 +37,27 @@ foreach(SHADER IN LISTS SHADERS)
     list(APPEND SPIRV_BINARY_FILES ${SHADER_SPIRV})
 endforeach()
 
-add_custom_target(kengine_shaders
+add_custom_target(kengine_assets
     ALL DEPENDS ${SPIRV_BINARY_FILES}
     SOURCES ${SHADERS}
 )
-add_dependencies(kengine_example kengine_shaders)
+
+file(GLOB_RECURSE ASSETS "${ASSETS_DIR}/*")
+
+foreach(ASSET ${ASSETS})
+    get_filename_component(ASSET_RELATIVE_PATH ${ASSET} DIRECTORY)
+    file(RELATIVE_PATH ASSET_SUBDIR ${ASSETS_DIR} ${ASSET_RELATIVE_PATH})
+    
+    set(DESTINATION_PATH "${CMAKE_BINARY_DIR}/examples/res/${ASSET_SUBDIR}")
+
+    file(MAKE_DIRECTORY ${DESTINATION_PATH})
+
+    add_custom_command(
+        TARGET kengine_assets POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${ASSET}"
+        "${DESTINATION_PATH}/"
+    )
+endforeach()
+
+add_dependencies(basic kengine_assets)

@@ -1,11 +1,12 @@
 
-#include <kengine/game/SpatialGridUpdateSystem.hpp>
+#include "SpatialGridUpdateSystem.hpp"
+#include "components/Components.hpp"
+#include "components/Model.hpp"
+
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>
 #include <kengine/ExecutorService.hpp>
 #include <kengine/SceneGraph.hpp>
 #include <kengine/ecs/World.hpp>
-#include <kengine/game/components/Components.hpp>
-#include <kengine/game/components/Model.hpp>
 #include <thirdparty/entt.hpp>
 #include <kengine/SpatialPartitioningManager.hpp>
 #include <kengine/Logger.hpp>

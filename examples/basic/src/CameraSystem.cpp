@@ -1,6 +1,6 @@
 
-#include <kengine/game/CameraSystem.hpp>
-#include <kengine/game/BasicCameraController.hpp>
+#include "CameraSystem.hpp"
+#include "BasicCameraController.hpp"
 
 void CameraSystem::init() {
     cameraController = getService<CameraController>();

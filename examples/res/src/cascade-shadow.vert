@@ -29,8 +29,7 @@ layout(push_constant) uniform PushConsts {
 	uint cascadeIndex;
 } pushConsts;
 
-layout (location = 0) out vec3 outWorldPos;
-layout (location = 1) out vec2 outUV;
+layout (location = 0) out vec2 outUV;
 
 out gl_PerVertex
 {

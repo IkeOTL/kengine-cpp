@@ -2,7 +2,9 @@ add_library(kengine_engine STATIC)
 
 #set(BUILD_SHARED_LIBS ON CACHE BOOL "Toggle static or shared" FORCE)
 
-target_compile_definitions(kengine_engine PUBLIC 
+target_compile_definitions(kengine_engine PUBLIC
+    NOMINMAX
+    KE_DEBUG_RENDER # enable debug render code
     GLM_FORCE_DEPTH_ZERO_TO_ONE
     TINYGLTF_NO_STB_IMAGE
     TINYGLTF_NO_STB_IMAGE_WRITE
@@ -39,6 +41,7 @@ set(HEADERS
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
 
+    include/public/kengine/EngineConfig.hpp
     include/public/kengine/Logger.hpp
     include/public/kengine/Profiler.hpp
     include/public/kengine/DebugContext.hpp
@@ -236,6 +239,7 @@ FetchContent_Declare(
     GIT_TAG v1.14.1
 )
 FetchContent_MakeAvailable(spdlog)
+set_target_properties(spdlog PROPERTIES FOLDER "thirdparty")
 
 # download tracy source
 FetchContent_Declare(
@@ -244,6 +248,7 @@ FetchContent_Declare(
     GIT_TAG v0.11.1
 )
 FetchContent_MakeAvailable(tracy)
+set_target_properties(TracyClient PROPERTIES FOLDER "thirdparty")
 
 # download imgui source
 FetchContent_Declare(
@@ -273,6 +278,8 @@ FetchContent_Declare(
     GIT_TAG 3.4
 )
 FetchContent_MakeAvailable(glfw)
+set_target_properties(glfw PROPERTIES FOLDER "thirdparty/GLFW3")
+set_target_properties(update_mappings PROPERTIES FOLDER "thirdparty/GLFW3")
 
 # download JoltPhysics source
 #set(JPH_PROFILE_ENABLED ON CACHE BOOL "Enable internal profiling")
@@ -288,6 +295,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(JoltPhysics)
 include(${PHYSICS_REPO_ROOT}/Jolt/Jolt.cmake)
+set_target_properties(Jolt PROPERTIES FOLDER "thirdparty")
 
 # download msgpack-c source
 set(MSGPACK_CXX20 ON CACHE BOOL "Enforce use C++20")
@@ -324,13 +332,12 @@ source_group(
 
 source_group(
     TREE ${CMAKE_CURRENT_SOURCE_DIR}
-    PREFIX "src"
     FILES ${SOURCES}
 )
 
 source_group(
     TREE ${CMAKE_SOURCE_DIR}
-    PREFIX "src/thirdparty"
+    PREFIX "thirdparty"
     FILES ${IMGUI}
 )
 
@@ -349,7 +356,7 @@ find_package(GameNetworkingSockets CONFIG REQUIRED)
 # is this even needed?
 #target_precompile_headers(kengine_engine PRIVATE <spdlog/spdlog.h>)
 
-target_link_libraries(kengine_engine PUBLIC 
+target_link_libraries(kengine_engine PUBLIC
     spdlog::spdlog
     Tracy::TracyClient
     Threads::Threads

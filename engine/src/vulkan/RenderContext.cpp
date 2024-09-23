@@ -19,10 +19,9 @@
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
 #include <tracy/Tracy.hpp>
 #include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
+#include <kengine/vulkan/mesh/MeshBuilder.hpp>
 
-void RenderContext::init(bool isDebugRendering) {
-    this->isDebugMode = isDebugRendering;
-
+void RenderContext::init() {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto ptr = std::make_unique<DescriptorSetAllocator>(vkContext.getVkDevice(), vkContext.getDescSetLayoutCache());
         ptr->init();
@@ -114,6 +113,142 @@ void RenderContext::initBuffers() {
 
 // simplify this further
 void RenderContext::initDescriptors() {
+
+    // move somewhere else
+#ifdef KE_DEBUG_RENDER
+    {
+        auto mb = MeshBuilder<DebugVertex>(VertexAttribute::POSITION);
+
+        //0
+        auto v0 = mb.createVertex();
+        v0.position = { -.5f, .5f, -.5f };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        auto v2 = mb.createVertex();
+        v2.position = { -.5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        auto v1 = mb.createVertex();
+        v1.position = { .5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        v0 = mb.createVertex();
+        v0.position = { .5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        //1
+        v0 = mb.createVertex();
+        v0.position = { .5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v1 = mb.createVertex();
+        v1.position = { .5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+
+        v0 = mb.createVertex();
+        v0.position = { -.5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v1 = mb.createVertex();
+        v1.position = { .5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+
+        //2
+        v0 = mb.createVertex();
+        v0.position = { -.5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        v0 = mb.createVertex();
+        v0.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { .5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        //3
+        v0 = mb.createVertex();
+        v0.position = { .5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { .5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        v0 = mb.createVertex();
+        v0.position = { .5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { .5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { .5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        //4
+        v0 = mb.createVertex();
+        v0.position = { .5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { -.5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        v0 = mb.createVertex();
+        v0.position = { .5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { .5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { -.5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        //5
+        v0 = mb.createVertex();
+        v0.position = { -.5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, .5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { -.5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        v0 = mb.createVertex();
+        v0.position = { -.5, .5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v0)));
+        v2 = mb.createVertex();
+        v2.position = { -.5, -.5, -.5 };
+        mb.pushIndex(mb.pushVertex(std::move(v2)));
+        v1 = mb.createVertex();
+        v1.position = { -.5, -.5, .5 };
+        mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+        debugMesh = mb.build(&vkContext);
+    }
+#endif
+
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto& descSetAllocator = descSetAllocators[i];
 
@@ -122,8 +257,8 @@ void RenderContext::initDescriptors() {
         std::vector<VkDescriptorImageInfo> imageInfos;
 
         // so they dont resize
-        setWrites.reserve(9);
-        bufferInfos.reserve(8);
+        setWrites.reserve(7);
+        bufferInfos.reserve(6);
         imageInfos.reserve(1);
 
         auto pushBuf = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, CachedGpuBuffer* gpuBuf) -> void {
@@ -246,22 +381,6 @@ void RenderContext::initDescriptors() {
             }
         }
 
-        if (isDebugMode) {
-            auto debugDescriptorSet = descSetAllocator->getGlobalDescriptorSet("deferred-debug", DebugDeferredOffscreenPbrPipeline::objectLayout);
-
-            pushBuf(
-                debugDescriptorSet,
-                DebugDeferredOffscreenPbrPipeline::objectLayout.getBinding(0),
-                drawObjectBuf
-            );
-
-            pushBuf(
-                debugDescriptorSet,
-                DebugDeferredOffscreenPbrPipeline::objectLayout.getBinding(1),
-                drawInstanceBuffer
-            );
-        }
-
         vkUpdateDescriptorSets(vkContext.getVkDevice(), setWrites.size(), setWrites.data(), 0, nullptr);
     }
 }
@@ -304,6 +423,18 @@ void RenderContext::addStaticInstance(const Mesh& mesh, const Material& material
     }
 }
 
+#ifdef KE_DEBUG_RENDER
+void RenderContext::drawDebug(const glm::mat4& transform, const glm::vec4& color) {
+    if (totalDebugObjects >= MAX_DEBUG_OBJECTS)
+        return;
+
+    debugObjects[totalDebugObjects++] = DebugObject{
+        transform,
+        color
+    };
+}
+#endif
+
 int RenderContext::draw(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere) {
     ZoneScoped;
     auto frameIdx = frameCxt->frameIndex;
@@ -311,6 +442,7 @@ int RenderContext::draw(const Mesh& mesh, const Material& material, const glm::m
 
     auto hasShadow = material.hasShadow();
     auto hasSkeleton = material.hasSkeleton();
+
 
     // upload model specific details
     {
@@ -430,6 +562,10 @@ void RenderContext::begin(RenderFrameContext& frameCxt, float sceneTime, float a
     totalShadowSkinnedBatches = 0;
     totalShadowNonSkinnedBatches = 0;
 
+#ifdef KE_DEBUG_RENDER
+    totalDebugObjects = 0;
+#endif
+
     bindManager.reset();
 
     started = true;
@@ -508,6 +644,7 @@ void RenderContext::end() {
             auto& dAllocator = descSetAllocators[frameIdx];
             dAllocator->reset();
 
+            // run this at same time?
             shadowContext->execute(vkContext, *frameCxt, *dAllocator,
                 shadowNonSkinnedBatchCache, staticShadowNonSkinnedBatches + totalShadowNonSkinnedBatches,
                 shadowSkinnedBatchCache, totalShadowSkinnedBatches);
@@ -601,9 +738,10 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
         // subpass 3 forward transparency pass, TODO
         vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
 
+#ifdef KE_DEBUG_RENDER
         //subpass 4 debug
         debugSubpass(rpCxt, descSetAllocator);
-
+#endif
 
         //subpass 4 or 5 GUI (depends on is debug rendering is enabled)
         //guiManager.subpass(vkContext, rpCxt, frameCxt, descSetAllocator);
@@ -618,12 +756,33 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
 }
 
 
-void RenderContext::debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d) {
+#ifdef KE_DEBUG_RENDER
+void RenderContext::debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& descSetAllocator) {
     auto frameIdx = frameCxt->frameIndex;
     auto vkCmd = frameCxt->cmd;
 
     vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
+
+    // submit debug draws
+
+    auto& p1 = vkContext.getPipelineCache().getPipeline<DebugDeferredOffscreenPbrPipeline>();
+    p1.bind(vkContext, descSetAllocator, vkCmd, frameIdx);
+
+    auto& indexBuf = debugMesh->getIndexBuf();
+    auto indexCount = debugMesh->getIndexCount();
+
+    VkDeviceSize offsets = 0;
+    vkCmdBindVertexBuffers(vkCmd, 0, 1, &debugMesh->getVertexBuf().vkBuffer, &offsets);
+    vkCmdBindIndexBuffer(vkCmd, indexBuf.vkBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+    // change to instancing
+    for (auto i = 0; i < totalDebugObjects; i++)
+    {
+        vkCmdPushConstants(vkCmd, p1.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(DebugObject), &debugObjects[i]);
+        vkCmdDrawIndexed(vkCmd, indexCount, 1, 0, 0, 0);
+    }
 }
+#endif
 
 void RenderContext::compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d) {
     {

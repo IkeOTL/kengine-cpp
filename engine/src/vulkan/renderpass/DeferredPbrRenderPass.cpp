@@ -265,16 +265,16 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
     };
 
     subpasses.emplace_back(VkSubpassDescription{
-        0, // flags
-        VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-        0, // inputAttachmentCount
-        nullptr, // pInputAttachments
-        static_cast<uint32_t>(subpass1_colorReferences.size()), // colorAttachmentCount
-        subpass1_colorReferences.data(), // pColorAttachments
-        nullptr, // pResolveAttachments
-        &depthReference, // pDepthStencilAttachment
-        0, // preserveAttachmentCount
-        nullptr // pPreserveAttachments
+            0, // flags
+            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+            0, // inputAttachmentCount
+            nullptr, // pInputAttachments
+            static_cast<uint32_t>(subpass1_colorReferences.size()), // colorAttachmentCount
+            subpass1_colorReferences.data(), // pColorAttachments
+            nullptr, // pResolveAttachments
+            &depthReference, // pDepthStencilAttachment
+            0, // preserveAttachmentCount
+            nullptr // pPreserveAttachments
         });
 
 
@@ -292,16 +292,16 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
     };
 
     subpasses.emplace_back(VkSubpassDescription{
-        0, // flags
-        VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-        static_cast<uint32_t>(subpass2_inputRefs.size()), // inputAttachmentCount
-        subpass2_inputRefs.data(), // pInputAttachments
-        static_cast<uint32_t>(subpass2_colorReferences.size()), // colorAttachmentCount
-        subpass2_colorReferences.data(), // pColorAttachments
-        nullptr, // pResolveAttachments
-        &depthReference, // pDepthStencilAttachment
-        0, // preserveAttachmentCount
-        nullptr // pPreserveAttachments
+            0, // flags
+            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+            static_cast<uint32_t>(subpass2_inputRefs.size()), // inputAttachmentCount
+            subpass2_inputRefs.data(), // pInputAttachments
+            static_cast<uint32_t>(subpass2_colorReferences.size()), // colorAttachmentCount
+            subpass2_colorReferences.data(), // pColorAttachments
+            nullptr, // pResolveAttachments
+            &depthReference, // pDepthStencilAttachment
+            0, // preserveAttachmentCount
+            nullptr // pPreserveAttachments
         });
 
 
@@ -315,16 +315,16 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
     };
 
     subpasses.emplace_back(VkSubpassDescription{
-        0, // flags
-        VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-        static_cast<uint32_t>(subpass3_inputRefs.size()), // inputAttachmentCount
-        subpass3_inputRefs.data(), // pInputAttachments
-        static_cast<uint32_t>(subpass3_colorReferences.size()), // colorAttachmentCount
-        subpass3_colorReferences.data(), // pColorAttachments
-        nullptr, // pResolveAttachments
-        &depthReference, // pDepthStencilAttachment
-        0, // preserveAttachmentCount
-        nullptr // pPreserveAttachments
+            0, // flags
+            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+            static_cast<uint32_t>(subpass3_inputRefs.size()), // inputAttachmentCount
+            subpass3_inputRefs.data(), // pInputAttachments
+            static_cast<uint32_t>(subpass3_colorReferences.size()), // colorAttachmentCount
+            subpass3_colorReferences.data(), // pColorAttachments
+            nullptr, // pResolveAttachments
+            &depthReference, // pDepthStencilAttachment
+            0, // preserveAttachmentCount
+            nullptr // pPreserveAttachments
         });
 
     // optional subpass 4 - Debug rendering    
@@ -332,19 +332,20 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
         {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}
     };
 
-    if (isDebugMode)
-        subpasses.emplace_back(VkSubpassDescription{
-        0, // flags
-        VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-        0, // inputAttachmentCount
-        nullptr, // pInputAttachments
-        static_cast<uint32_t>(subpassDebug_colorReferences.size()), // colorAttachmentCount
-        subpassDebug_colorReferences.data(), // pColorAttachments
-        nullptr, // pResolveAttachments
-        &depthReference, // pDepthStencilAttachment
-        0, // preserveAttachmentCount
-        nullptr // pPreserveAttachments
-            });
+#ifdef KE_DEBUG_RENDER
+    subpasses.emplace_back(VkSubpassDescription{
+            0, // flags
+            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+            0, // inputAttachmentCount
+            nullptr, // pInputAttachments
+            static_cast<uint32_t>(subpassDebug_colorReferences.size()), // colorAttachmentCount
+            subpassDebug_colorReferences.data(), // pColorAttachments
+            nullptr, // pResolveAttachments
+            nullptr/*& depthReference*/, // pDepthStencilAttachment
+            0, // preserveAttachmentCount
+            nullptr // pPreserveAttachments
+        });
+#endif
 
     // subpass 4 or 5 - GUI    
     std::vector<VkAttachmentReference> subpassGui_colorReferences = {
@@ -352,16 +353,16 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
     };
 
     subpasses.emplace_back(VkSubpassDescription{
-        0, // flags
-        VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
-        0, // inputAttachmentCount
-        nullptr, // pInputAttachments
-        static_cast<uint32_t>(subpassGui_colorReferences.size()), // colorAttachmentCount
-        subpassGui_colorReferences.data(), // pColorAttachments
-        nullptr, // pResolveAttachments
-        nullptr, // pDepthStencilAttachment
-        0, // preserveAttachmentCount
-        nullptr // pPreserveAttachments
+            0, // flags
+            VK_PIPELINE_BIND_POINT_GRAPHICS, // pipelineBindPoint
+            0, // inputAttachmentCount
+            nullptr, // pInputAttachments
+            static_cast<uint32_t>(subpassGui_colorReferences.size()), // colorAttachmentCount
+            subpassGui_colorReferences.data(), // pColorAttachments
+            nullptr, // pResolveAttachments
+            nullptr, // pDepthStencilAttachment
+            0, // preserveAttachmentCount
+            nullptr // pPreserveAttachments
         });
 
     // Subpass dependencies 
@@ -413,16 +414,17 @@ VkRenderPass DeferredPbrRenderPass::createVkRenderPass() {
         }
     };
 
-    if (isDebugMode)
-        dependencies.emplace_back(VkSubpassDependency{
-                  3, // srcSubpass
-                  4, // dstSubpass
-                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // srcStageMask
-                  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, // dstStageMask
-                  VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // srcAccessMask
-                  VK_ACCESS_SHADER_READ_BIT, // dstAccessMask
-                  VK_DEPENDENCY_BY_REGION_BIT // dependencyFlags
-            });
+#ifdef KE_DEBUG_RENDER
+    dependencies.emplace_back(VkSubpassDependency{
+              3, // srcSubpass
+              4, // dstSubpass
+              VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, // srcStageMask
+              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, // dstStageMask
+              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, // srcAccessMask
+              VK_ACCESS_SHADER_READ_BIT, // dstAccessMask
+              VK_DEPENDENCY_BY_REGION_BIT // dependencyFlags
+        });
+#endif
 
     // final dep
     dependencies.emplace_back(VkSubpassDependency{

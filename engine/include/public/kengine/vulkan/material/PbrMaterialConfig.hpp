@@ -46,7 +46,7 @@ private:
     float roughnessFactor = 0;
 
 public:
-    inline static const TextureConfig EMPTY_CONFIG = TextureConfig("res/img/empty.png");
+    inline static const TextureConfig EMPTY_CONFIG = TextureConfig("img/empty.png");
 
     PbrMaterialConfig();
     PbrMaterialConfig(std::type_index type);

@@ -1,5 +1,11 @@
 
-#include <kengine/game/RenderSystem.hpp>
+#include "RenderSystem.hpp"
+#include "Game.hpp"
+#include "components/Material.hpp"
+#include "components/Model.hpp"
+#include "components/Components.hpp"
+#include "BasicCameraController.hpp"
+
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>
@@ -8,20 +14,16 @@
 #include <kengine/DebugContext.hpp>
 #include <kengine/vulkan/mesh/Model.hpp>
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
-#include <kengine/game/Game.hpp>
-#include <kengine/game/components/Material.hpp>
-#include <kengine/game/components/Model.hpp>
-#include <kengine/game/components/Components.hpp>
 #include <kengine/vulkan/material/AsyncMaterialCache.hpp>
 #include <kengine/SpatialPartitioningManager.hpp>
 #include <kengine/terrain/TileTerrain.hpp>
 #include <kengine/ecs/World.hpp>
 #include <thirdparty/entt.hpp>
 #include <kengine/util/Random.hpp>
-#include <kengine/game/BasicCameraController.hpp>
 #include <kengine/vulkan/SkeletonManager.hpp>
 #include <tracy/Tracy.hpp>
 #include <kengine/util/MatUtils.hpp>
+#include <kengine/EngineConfig.hpp>
 
 void RenderSystem::init() {
     vulkanCtx = getService<VulkanContext>();
@@ -38,7 +40,7 @@ void RenderSystem::init() {
     // test obj
     {
         auto* ecs = getWorld().getService<entt::registry>();
-        auto modelConfig = std::make_shared<ModelConfig>("res/gltf/smallcube.glb",
+        auto modelConfig = std::make_shared<ModelConfig>("gltf/smallcube.glb",
             VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
             | VertexAttribute::TANGENTS
         );
@@ -88,7 +90,7 @@ void RenderSystem::init() {
         tileTerrain->regenerate(*vulkanCtx, *modelCache);
 
         auto matConfig = PbrMaterialConfig::create();
-        TextureConfig textureConfig("res/img/poke-tileset.png");
+        TextureConfig textureConfig("img/poke-tileset.png");
         matConfig->addAlbedoTexture(&textureConfig);
         matConfig->setMetallicFactor(0.0f);
         matConfig->setRoughnessFactor(0.5f);
@@ -240,6 +242,13 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
                 // need to calc in Model still
                 auto& bounds = m->getBounds();
                 renderCtx->draw(*m, *material, blendMat, bounds.getSphereBounds());
+
+                if (EngineConfig::getInstance().isDebugRenderingEnabled()) {
+                    glm::vec3 min, max;
+                    m->getBounds().getAabb().getMinMax(min, max);
+                    auto scale = max - min;
+                    renderCtx->drawDebug(glm::scale(blendMat, scale), glm::vec4{ 1, 0, 0, 1 });
+                }
 
                 curIdx++;
             }

@@ -1,11 +1,9 @@
 #pragma once
-#include <kengine/game/Game.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/GltfModelFactory.hpp>
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>
 #include <kengine/SpatialPartitioningManager.hpp>
 #include <kengine/DebugContext.hpp>
-#include <kengine/game/MainGameState.hpp>
 #include <kengine/StateMachine.hpp>
 #include <kengine/vulkan/CameraController.hpp>
 #include <kengine/vulkan/RenderContext.hpp>
@@ -23,6 +21,7 @@
 #include <thirdparty/entt.hpp>
 
 #include <memory>
+#include "Game.hpp"
 
 class TestGui : public ImGuiKEContext {
 private:

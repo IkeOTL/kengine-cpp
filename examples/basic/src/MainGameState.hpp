@@ -1,6 +1,6 @@
 #pragma once
+#include "Game.hpp"
 #include <kengine/StateMachine.hpp>
-#include <kengine/game/Game.hpp>
 
 class ExecutorService;
 class VulkanContext;

@@ -1,7 +1,3 @@
-#define NOMINMAX
-
-#include <kengine/game/BasicGameTest.hpp>
-#include <kengine/game/BasicCameraController.hpp>
 #include <kengine/vulkan/ColorFormatAndSpace.hpp>
 #include <kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp>
 #include <kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp>
@@ -11,19 +7,24 @@
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/DrawCullingPipeline.hpp>
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
-#include <kengine/game/RenderablePreviousTransformSystem.hpp>
-#include <kengine/game/SpatialGridUpdateSystem.hpp>
-#include <kengine/game/RenderSystem.hpp>
-#include <kengine/game/CameraSystem.hpp>
-
-#include <kengine/game/MainGameState.hpp>
-#include <kengine/game/Game.hpp>
 #include <kengine/Math.hpp>
 
 #include <tracy/Tracy.hpp>
 #include <GLFW/glfw3.h>
 #include <utility>
 #include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
+
+#include "RenderablePreviousTransformSystem.hpp"
+#include "SpatialGridUpdateSystem.hpp"
+#include "RenderSystem.hpp"
+#include "BasicGameTest.hpp"
+#include "CameraSystem.hpp"
+
+#include "MainGameState.hpp"
+#include "Game.hpp"
+#include "BasicCameraController.hpp"
+#include <kengine/Logger.hpp>
+#include <kengine/EngineConfig.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -93,13 +94,13 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     materialCache = AsyncMaterialCache::create(vulkanCxt->getPipelineCache(), *textureCache, vulkanCxt->getGpuBufferCache(), *threadPool);
 
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
-    imGuiContext->init(*window, isDebugRendering);
+    imGuiContext->init(*window);
 
     renderContext = RenderContext::create(*vulkanCxt, *lightsManager, *cameraController);
-    renderContext->init(isDebugRendering);
+    renderContext->init();
     renderContext->setImGuiContext(imGuiContext.get());
 
-    auto config = AnimationConfig::create("res/gltf/char01.glb", "Run00");
+    auto config = AnimationConfig::create("gltf/char01.glb", "Run00");
     auto& lol = animationCache->get(config);
 
     world = World::create(WorldConfig()
@@ -138,15 +139,14 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 }
 
 void BasicGameTest::initVulkan() {
-    auto isDebugRendering = this->isDebugRendering;
     vulkanCxt = VulkanContext::create(
-        [isDebugRendering](VkDevice vkDevice, ColorFormatAndSpace& cfs) {
+        [](VkDevice vkDevice, ColorFormatAndSpace& cfs) {
             std::vector<std::unique_ptr<RenderPass>> passes;
-            passes.emplace_back(DeferredPbrRenderPass::create(vkDevice, cfs, isDebugRendering));
+            passes.emplace_back(DeferredPbrRenderPass::create(vkDevice, cfs));
             passes.emplace_back(CascadeShadowMapRenderPass::create(vkDevice, cfs));
             return passes;
         },
-        [isDebugRendering](VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp) {
+        [](VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp) {
             auto pc = PipelineCache::create();
 
             pc->createPipeline<DeferredOffscreenPbrPipeline>()
@@ -167,9 +167,10 @@ void BasicGameTest::initVulkan() {
             pc->createPipeline<DrawCullingPipeline>()
                 .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            if (isDebugRendering)
-                pc->createPipeline<DebugDeferredOffscreenPbrPipeline>()
+#ifdef KE_DEBUG_RENDER
+            pc->createPipeline<DebugDeferredOffscreenPbrPipeline>()
                 .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
+#endif
 
             return pc;
         },
@@ -202,5 +203,9 @@ void BasicGameTest::initCamera(InputManager& inputManager, DebugContext& dbg) {
 void TestGui::draw() {
     ImGui::Begin("Another Window");
     ImGui::Text(std::to_string(debugCtx.getIntValue("spatialGridVisibleEntities")).c_str());
+
+    if (ImGui::Button("Toggle Debug Geometry"))
+        EngineConfig::getInstance().setDebugRenderingEnabled(!EngineConfig::getInstance().isDebugRenderingEnabled());
+
     ImGui::End();
 }
