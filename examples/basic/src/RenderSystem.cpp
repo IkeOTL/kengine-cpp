@@ -219,6 +219,14 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
 
         auto& spatialsComponent = ecs.get<Component::Spatials>(e);
 
+        // TODO: need to make skeleton only up laod once, this might be uploading multiple times if meshes share a skeleton
+        // TODO: do this somewhere else, multithread it, and await finish before submitting frame
+        if (materialComponent.config->hasSkeleton()) {
+            auto& skeleComp = ecs.get<Component::SkeletonComp>(e);
+            auto skeleton = std::static_pointer_cast<Skeleton>(sceneGraph->get(skeleComp.skeletonId));
+            skeletonManager->upload(*skeleton, skeleComp.bufId, ctx.frameIndex, delta);
+        }
+
         auto model = modelTask.get();
         auto material = materialTask.get();
 
@@ -231,23 +239,19 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
                 auto& curTranform = node->getWorldTransform();
                 integrate(renderableComponent, spatialsComponent, curTranform, curIdx, delta, blendMat);
 
-                // TODO: need to make skeleton only up laod once, this might be uploading multiple times if meshes share a skeleton
-                // TODO: do this somewhere else, multithread it, and await finish before submitting frame
-                if (materialComponent.config->hasSkeleton()) {
-                    auto& skeleComp = ecs.get<Component::SkeletonComp>(e);
-                    auto skeleton = std::static_pointer_cast<Skeleton>(sceneGraph->get(skeleComp.skeletonId));
-                    skeletonManager->upload(*skeleton, skeleComp.bufId, ctx.frameIndex, delta);
-                }
-
                 // need to calc in Model still
                 auto& bounds = m->getBounds();
                 renderCtx->draw(*m, *material, blendMat, bounds.getSphereBounds());
 
                 if (EngineConfig::getInstance().isDebugRenderingEnabled()) {
+                    auto& aabb = m->getBounds().getAabb();
                     glm::vec3 min, max;
-                    m->getBounds().getAabb().getMinMax(min, max);
+                    aabb.getMinMax(min, max);
+
+                    auto debugMat4 = glm::translate(blendMat, aabb.pos);
+
                     auto scale = max - min;
-                    renderCtx->drawDebug(glm::scale(blendMat, scale), glm::vec4{ 1, 0, 0, 1 });
+                    renderCtx->drawDebug(glm::scale(debugMat4, scale), glm::vec4{ 1, 0, 0, 1 });
                 }
 
                 curIdx++;
