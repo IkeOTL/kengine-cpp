@@ -101,7 +101,7 @@ void RenderSystem::init() {
             for (int x = 0; x < tileTerrain->getChunkCountX(); x++) {
                 auto& chunk = tileTerrain->getChunk(x, z);
 
-                auto entity = ecs->create();
+                /*auto entity = ecs->create();
                 auto& renderable = ecs->emplace<Component::Renderable>(entity);
                 renderable.setStatic();
 
@@ -116,25 +116,28 @@ void RenderSystem::init() {
 
                 auto& material = ecs->emplace<Component::Material>(entity, matConfig);
                 auto& model = ecs->emplace<Component::ModelComponent>(entity);
-                model.config = chunk.getModelConfig();
+                model.config = chunk.getModelConfig();*/
 
                 // need to profile if static batches are even worth it.
                 // since the drawcmd is always sent for them. the ebefit is that
                 // the mat and other details dont have to be uploaded again
-                //{
-                //    auto modelTask = modelCache->getAsync(model.config);
-                //    auto materialTask = materialCache->getAsync(material.config);
+                {
+                    auto modelTask = modelCache->getAsync(chunk.getModelConfig());
+                    auto materialTask = materialCache->getAsync(matConfig);
 
-                //    auto model = modelTask.get();
-                //    auto material = materialTask.get();
-                //    renderCtx->addStaticInstance(
-                //        model->getMeshGroups()[0]->getMesh(0),
-                //        *material,
-                //        spatial->getWorldTransform().getTransMatrix(),
-                //        glm::vec4(0, 0, 0, 2),
-                //        false
-                //    );
-                //}
+                    auto model = modelTask.get();
+                    auto material = materialTask.get();
+
+                    auto offset = chunk.getWorldOffset();
+
+                    renderCtx->addStaticInstance(
+                        model->getMeshGroups()[0]->getMesh(0),
+                        *material,
+                        glm::translate(glm::mat4(1.0f), glm::vec3(offset.x, 0, offset.y)),
+                        model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds(),
+                        false
+                    );
+                }
             }
         }
     }

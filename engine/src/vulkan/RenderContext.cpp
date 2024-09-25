@@ -584,27 +584,24 @@ void RenderContext::end() {
 
     static constexpr float invIndCmdSize = 1.0f / sizeof(VkDrawIndexedIndirectCommand);
 
-    // reset static obj draw cmd
-    {
-        ZoneScopedN("RenderContext::end - Upload Static Draw Cmds");
-        auto indCmdFrameOffset = static_cast<uint32_t>(indirectCmdBuf->getFrameOffset(frameIdx));
-        auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
-        auto buf = indirectCmdBuf->getGpuBuffer().data();
-        auto commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
-        for (auto i = 0; i < staticBatches; i++) {
-            auto& indirectBatch = staticBatchCache[i];
-            // must review this!!!
-            // could be the cause of rendering issues
-            // havent tested yet
-            auto cmdIdx = indCmdFrameIdx + indirectBatch.getCmdId();
-            auto& indirectCmd = commands[cmdIdx];
+    //// reset static obj draw cmd
+    //{
+    //    ZoneScopedN("RenderContext::end - Upload Static Draw Cmds");
+    //    auto indCmdFrameOffset = static_cast<uint32_t>(indirectCmdBuf->getFrameOffset(frameIdx));
+    //    auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
+    //    auto buf = indirectCmdBuf->getGpuBuffer().data();
+    //    auto commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
+    //    for (auto i = 0; i < staticBatches; i++) {
+    //        auto& indirectBatch = staticBatchCache[i];
+    //        auto cmdIdx = indCmdFrameIdx + indirectBatch.getCmdId();
+    //        auto& indirectCmd = commands[cmdIdx];
 
-            indirectCmd.firstInstance = indirectBatch.getFirstInstanceIdx();
-            indirectCmd.instanceCount = 0;
-            indirectCmd.firstIndex = 0;
-            indirectCmd.indexCount = indirectBatch.getMesh()->getIndexCount();
-        }
-    }
+    //        indirectCmd.firstInstance = indirectBatch.getFirstInstanceIdx();
+    //        indirectCmd.instanceCount = 0;
+    //        indirectCmd.firstIndex = 0;
+    //        indirectCmd.indexCount = indirectBatch.getMesh()->getIndexCount();
+    //    }
+    //}
 
     // upload batched dynamic draw cmds
     {
@@ -616,9 +613,6 @@ void RenderContext::end() {
         auto commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
         for (auto i = 0; i < dynamicBatches; i++) {
             auto& indirectBatch = dynamicBatchCache[i];
-            // must review this!!!
-            // could be the cause of rendering issues
-            // havent tested yet
             auto cmdIdx = indCmdFrameIdx + indirectBatch.getCmdId();
             auto& indirectCmd = commands[cmdIdx];
 

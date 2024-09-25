@@ -121,6 +121,7 @@ set(HEADERS
     include/public/kengine/vulkan/pipelines/PipelineCache.hpp
     include/public/kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp
     include/public/kengine/vulkan/pipelines/SkinnedOffscreenPbrPipeline.hpp
+    include/public/kengine/vulkan/pipelines/PreDrawCullingPipeline.hpp
     include/public/kengine/vulkan/pipelines/DrawCullingPipeline.hpp
     include/public/kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp
     include/public/kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp
@@ -213,6 +214,7 @@ set(SOURCES
     src/vulkan/pipelines/PipelineCache.cpp
     src/vulkan/pipelines/DeferredOffscreenPbrPipeline.cpp
     src/vulkan/pipelines/SkinnedOffscreenPbrPipeline.cpp
+    src/vulkan/pipelines/PreDrawCullingPipeline.cpp
     src/vulkan/pipelines/DrawCullingPipeline.cpp
     src/vulkan/pipelines/CascadeShadowMapPipeline.cpp
     src/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.cpp

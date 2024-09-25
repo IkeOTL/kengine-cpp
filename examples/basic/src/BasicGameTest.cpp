@@ -25,6 +25,7 @@
 #include "BasicCameraController.hpp"
 #include <kengine/Logger.hpp>
 #include <kengine/EngineConfig.hpp>
+#include <kengine/vulkan/pipelines/PreDrawCullingPipeline.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -163,6 +164,9 @@ void BasicGameTest::initVulkan() {
 
             pc->createPipeline<SkinnedCascadeShadowMapPipeline>()
                 .init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
+
+            pc->createPipeline<PreDrawCullingPipeline>()
+                .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
             pc->createPipeline<DrawCullingPipeline>()
                 .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});

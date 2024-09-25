@@ -67,6 +67,28 @@ void SpatialGrid::getVisible(const glm::vec3& camPos, const std::array<glm::vec3
 
     std::unordered_set<entt::entity> set;
 
+    // disabled grid culling
+    //for (auto z = 0; z <= cellCountZ - 1; z++) {
+    //    int32_t minWorldZ = cellSize * z + worldOffsetZ;
+    //    int32_t maxWorldZ = minWorldZ + cellSize;
+
+    //    for (auto x = 0; x <= cellCountX - 1; x++) {
+    //        int32_t minWorldX = cellSize * x + worldOffsetX;
+    //        int32_t maxWorldX = minWorldX + cellSize;
+
+    //        {
+    //            // read lock
+    //            std::shared_lock<std::shared_mutex> lock(this->lock);
+
+    //            auto cellIndex = z * cellCountX + x;
+    //            auto& cell = cells[cellIndex];
+
+    //            for (int i = 0; i < cell.size(); i++)
+    //                set.insert(cell[i]);
+    //        }
+    //    }
+    //}
+
     for (auto z = startCellZ; z <= endCellZ; z++) {
         int32_t minWorldZ = cellSize * z + worldOffsetZ;
         int32_t maxWorldZ = minWorldZ + cellSize;

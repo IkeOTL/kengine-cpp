@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <array>
 #include <kengine/util/MatUtils.hpp>
+#include <kengine/vulkan/pipelines/PreDrawCullingPipeline.hpp>
 
 VkSemaphore CullContext::getSemaphore(size_t frameIdx) {
     return semaphores[frameIdx];
@@ -63,6 +64,38 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Descrip
             vkUpdateDescriptorSets(vkCxt.getVkDevice(), setWrites.size(), setWrites.data(), 0, VK_NULL_HANDLE);
         }
     }
+
+    {
+        auto descSetInit = [](size_t idx, VkDescriptorSet descSet, CachedGpuBuffer& buf,
+            std::vector<VkWriteDescriptorSet>& setWrites, std::vector<VkDescriptorBufferInfo>& bufferInfos) {
+                auto& binding = PreDrawCullingPipeline::preCullingLayout.bindings[idx];
+                auto& write = setWrites[idx];
+                write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                write.dstSet = descSet;
+                write.dstBinding = binding.bindingIndex;
+                write.descriptorCount = binding.descriptorCount;
+                write.descriptorType = binding.descriptorType;
+
+                auto& bufferInfo = bufferInfos[idx];
+                bufferInfo.buffer = buf.getGpuBuffer().getVkBuffer();
+                bufferInfo.offset = 0;
+                bufferInfo.range = buf.getFrameSize();
+                write.pBufferInfo = &bufferInfo;
+            };
+
+        for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+            auto& descSetAllo = *descSetAllocators[i];
+
+            auto cullingDescSet = descSetAllo.getGlobalDescriptorSet("pre-deferred-culling", DrawCullingPipeline::cullingLayout);
+
+            std::vector<VkWriteDescriptorSet> setWrites(1);
+            std::vector<VkDescriptorBufferInfo> bufferInfos(1);
+
+            descSetInit(0, cullingDescSet, indirectBuf, setWrites, bufferInfos);
+
+            vkUpdateDescriptorSets(vkCxt.getVkDevice(), setWrites.size(), setWrites.data(), 0, VK_NULL_HANDLE);
+        }
+    }
 }
 
 void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, CameraController& cc, int frameIdx, int objectCount) {
@@ -72,6 +105,43 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
     cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     vkBeginCommandBuffer(cmdBuf, &cmdBeginInfo);
     {
+        auto localSizeX = 32; // must match compute shader
+        auto localSizeY = 32; // must match compute shader
+        auto workGroupCountX = static_cast<uint32_t>((objectCount + (localSizeX * localSizeY) - 1) / (localSizeX * localSizeY));
+        auto dispatchSizeX = static_cast<uint32_t>(ceil(sqrt(workGroupCountX)));
+        auto dispatchSizeY = static_cast<uint32_t>(ceil((float)workGroupCountX / dispatchSizeX));
+
+        // pre cull pass. reset the draw cmds to 0 instanceCount instead of doign it on the CPU
+        {
+            auto pc = PreDrawCullingPipeline::PushConstant{};
+            pc.totalInstances = objectCount;
+
+            auto& pl = vkCxt.getPipelineCache().getPipeline<PreDrawCullingPipeline>();
+            pl.bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
+            vkCmdPushConstants(cmdBuf, pl.getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PreDrawCullingPipeline::PushConstant), &pc);
+            vkCmdDispatch(cmdBuf, dispatchSizeX, dispatchSizeY, 1);
+
+            VkBufferMemoryBarrier2 bufferBarrier{};
+            bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+            bufferBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+            bufferBarrier.srcAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
+            bufferBarrier.dstStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+            bufferBarrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
+            bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            bufferBarrier.buffer = indirectBuf.getGpuBuffer().getVkBuffer();
+            bufferBarrier.offset = 0;
+            bufferBarrier.size = indirectBuf.getFrameSize();
+
+            VkDependencyInfo depInfo{};
+            depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+            depInfo.bufferMemoryBarrierCount = 1;
+            depInfo.pBufferMemoryBarriers = &bufferBarrier;
+
+            vkCmdPipelineBarrier2(cmdBuf, &depInfo);
+        }
+
+
         auto camera = cc.getCamera();
         auto& proj = camera->getProjectionMatrix();
         auto frustumX = matutils::frustumPlane(proj, matutils::PLANE_NX);
@@ -95,7 +165,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
         pl.bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
         vkCmdPushConstants(cmdBuf, pl.getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(DrawCullingPipeline::PushConstant), &pc);
 
-        vkCmdDispatch(cmdBuf, (objectCount / 256) + 1, 1, 1);
+        vkCmdDispatch(cmdBuf, dispatchSizeX, dispatchSizeY, 1);
 
         // insert barrier
         {
@@ -108,6 +178,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 
             VkDependencyInfo depInfo{};
             depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+            depInfo.memoryBarrierCount = 1;
             depInfo.pMemoryBarriers = &barrier;
 
             vkCmdPipelineBarrier2(cmdBuf, &depInfo);
