@@ -24,7 +24,6 @@ void main() {
     uint gIdY = gl_GlobalInvocationID.y;
 
     uint gId = gIdY * gl_NumWorkGroups.x * gl_WorkGroupSize.x + gIdX;
-    //uint gId = gl_GlobalInvocationID.x;
 
     if (gId >= pcs.totalDrawCalls)
         return;
