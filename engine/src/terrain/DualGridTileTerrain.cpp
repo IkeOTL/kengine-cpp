@@ -8,7 +8,7 @@ DualGridTileTerrain::DualGridTileTerrain(uint32_t terrainTilesWidth, uint32_t te
     : terrainTilesWidth(terrainTilesWidth), terrainTilesLength(terrainTilesLength),
     chunkWidth(chunkWidth), chunkLength(chunkLength),
     terrainHeightsWidth(terrainTilesWidth + 2), terrainHeightsLength(terrainTilesLength + 2),
-    worldOffsetX(-static_cast<float>(terrainTilesWidth) / 2.0f - .5f), worldOffsetZ(-static_cast<float>(terrainTilesLength) / 2.0f - .5f), // dual grid terrain: https://www.youtube.com/watch?v=Uxeo9c-PX-w&t=308s
+    worldOffsetX((-static_cast<float>(terrainTilesWidth) / 2.0f) - .5f), worldOffsetZ((-static_cast<float>(terrainTilesLength) / 2.0f) - .5f), // dual grid terrain: https://www.youtube.com/watch?v=Uxeo9c-PX-w&t=308s
     chunkCountX(terrainTilesWidth / chunkWidth), chunkCountZ(terrainTilesLength / chunkLength)
 {
     if (terrainTilesWidth % 2 != 0 || terrainTilesLength % 2 != 0

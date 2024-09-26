@@ -1,0 +1,32 @@
+#version 450
+
+layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+
+struct DrawCommand
+{
+	uint indexCount;
+	uint instanceCount;
+	uint firstIndex;
+	uint vertexOffset;
+	uint firstInstance;
+};
+
+layout(std430, set = 0, binding = 0) buffer DrawCommandBuffer {
+    DrawCommand cmds[];
+} drawCommandBuffer;
+
+layout(push_constant) uniform PushConstants {
+    uint totalDrawCalls;
+} pcs;
+
+void main() {
+    uint gIdX = gl_GlobalInvocationID.x;
+    uint gIdY = gl_GlobalInvocationID.y;
+
+    uint gId = gIdY * gl_NumWorkGroups.x * gl_WorkGroupSize.x + gIdX;
+
+    if (gId >= pcs.totalDrawCalls)
+        return;
+
+   drawCommandBuffer.cmds[gId].instanceCount = 0;
+}

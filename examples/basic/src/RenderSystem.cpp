@@ -48,29 +48,47 @@ void RenderSystem::init() {
         auto materialConfig = PbrMaterialConfig::create();
         materialConfig->setHasShadow(true);
 
+
+        auto modelTask = modelCache->getAsync(modelConfig);
+        auto materialTask = materialCache->getAsync(materialConfig);
+
+        auto model = modelTask.get();
+        auto material = materialTask.get();
+
         auto xCount = 20;
         auto zCount = 20;
         auto zOffset = -5;
-        for (size_t i = 0; i < xCount; i++) {
-            for (size_t j = 0; j < zCount; j++) {
-                auto entity = ecs->create();
-                auto& renderable = ecs->emplace<Component::Renderable>(entity);
-                renderable.setStatic();
-                ecs->emplace<Component::ModelComponent>(entity, modelConfig);
+        auto sIdx = renderCtx->startStaticBatch();
+        {
+            for (size_t i = 0; i < xCount; i++) {
+                for (size_t j = 0; j < zCount; j++) {
+                    //auto entity = ecs->create();
+                    //auto& renderable = ecs->emplace<Component::Renderable>(entity);
+                    //renderable.setStatic();
+                    //ecs->emplace<Component::ModelComponent>(entity, modelConfig);
 
-                auto& model = modelCache->get(modelConfig);
-                auto& spatials = ecs->emplace<Component::Spatials>(entity);
-                auto rootSpatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), renderable.type);
+                    //auto& model = modelCache->get(modelConfig);
+                    //auto& spatials = ecs->emplace<Component::Spatials>(entity);
+                    //auto rootSpatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), renderable.type);
 
-                //rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
+                    ////rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
 
-                rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - (1.5 * xCount * 0.5f), 3, (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset));
+                    //rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - (1.5 * xCount * 0.5f), 3, (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset));
 
-                spatialPartitioning->getSpatialGrid()->setDirty(entity);
+                    //spatialPartitioning->getSpatialGrid()->setDirty(entity);
 
-                ecs->emplace<Component::Material>(entity, materialConfig);
+                    //ecs->emplace<Component::Material>(entity, materialConfig);
+
+                    renderCtx->addStaticInstance(
+                        model->getMeshGroups()[0]->getMesh(0),
+                        *material,
+                        glm::translate(glm::mat4(1.0f), glm::vec3((1.5f * i) - (1.5 * xCount * 0.5f), 3, (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset)),
+                        model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
+                    );
+                }
             }
         }
+        renderCtx->endStaticBatch(sIdx);
     }
 
     // test terrain
@@ -91,6 +109,7 @@ void RenderSystem::init() {
 
         auto matConfig = PbrMaterialConfig::create();
         TextureConfig textureConfig("img/poke-tileset.png");
+        matConfig->setHasShadow(false);
         matConfig->addAlbedoTexture(&textureConfig);
         matConfig->setMetallicFactor(0.0f);
         matConfig->setRoughnessFactor(0.5f);
@@ -101,7 +120,7 @@ void RenderSystem::init() {
             for (int x = 0; x < tileTerrain->getChunkCountX(); x++) {
                 auto& chunk = tileTerrain->getChunk(x, z);
 
-                auto entity = ecs->create();
+                /*auto entity = ecs->create();
                 auto& renderable = ecs->emplace<Component::Renderable>(entity);
                 renderable.setStatic();
 
@@ -116,25 +135,29 @@ void RenderSystem::init() {
 
                 auto& material = ecs->emplace<Component::Material>(entity, matConfig);
                 auto& model = ecs->emplace<Component::ModelComponent>(entity);
-                model.config = chunk.getModelConfig();
+                model.config = chunk.getModelConfig();*/
 
                 // need to profile if static batches are even worth it.
                 // since the drawcmd is always sent for them. the ebefit is that
                 // the mat and other details dont have to be uploaded again
-                //{
-                //    auto modelTask = modelCache->getAsync(model.config);
-                //    auto materialTask = materialCache->getAsync(material.config);
+                auto sIdx = renderCtx->startStaticBatch();
+                {
+                    auto modelTask = modelCache->getAsync(chunk.getModelConfig());
+                    auto materialTask = materialCache->getAsync(matConfig);
 
-                //    auto model = modelTask.get();
-                //    auto material = materialTask.get();
-                //    renderCtx->addStaticInstance(
-                //        model->getMeshGroups()[0]->getMesh(0),
-                //        *material,
-                //        spatial->getWorldTransform().getTransMatrix(),
-                //        glm::vec4(0, 0, 0, 2),
-                //        false
-                //    );
-                //}
+                    auto model = modelTask.get();
+                    auto material = materialTask.get();
+
+                    auto offset = chunk.getWorldOffset();
+
+                    renderCtx->addStaticInstance(
+                        model->getMeshGroups()[0]->getMesh(0),
+                        *material,
+                        glm::translate(glm::mat4(1.0f), glm::vec3(offset.x, 0, offset.y)),
+                        model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
+                    );
+                }
+                renderCtx->endStaticBatch(sIdx);
             }
         }
     }
@@ -219,6 +242,14 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
 
         auto& spatialsComponent = ecs.get<Component::Spatials>(e);
 
+        // TODO: need to make skeleton only up laod once, this might be uploading multiple times if meshes share a skeleton
+        // TODO: do this somewhere else, multithread it, and await finish before submitting frame
+        if (materialComponent.config->hasSkeleton()) {
+            auto& skeleComp = ecs.get<Component::SkeletonComp>(e);
+            auto skeleton = std::static_pointer_cast<Skeleton>(sceneGraph->get(skeleComp.skeletonId));
+            skeletonManager->upload(*skeleton, skeleComp.bufId, ctx.frameIndex, delta);
+        }
+
         auto model = modelTask.get();
         auto material = materialTask.get();
 
@@ -231,23 +262,19 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
                 auto& curTranform = node->getWorldTransform();
                 integrate(renderableComponent, spatialsComponent, curTranform, curIdx, delta, blendMat);
 
-                // TODO: need to make skeleton only up laod once, this might be uploading multiple times if meshes share a skeleton
-                // TODO: do this somewhere else, multithread it, and await finish before submitting frame
-                if (materialComponent.config->hasSkeleton()) {
-                    auto& skeleComp = ecs.get<Component::SkeletonComp>(e);
-                    auto skeleton = std::static_pointer_cast<Skeleton>(sceneGraph->get(skeleComp.skeletonId));
-                    skeletonManager->upload(*skeleton, skeleComp.bufId, ctx.frameIndex, delta);
-                }
-
                 // need to calc in Model still
                 auto& bounds = m->getBounds();
                 renderCtx->draw(*m, *material, blendMat, bounds.getSphereBounds());
 
                 if (EngineConfig::getInstance().isDebugRenderingEnabled()) {
+                    auto& aabb = m->getBounds().getAabb();
                     glm::vec3 min, max;
-                    m->getBounds().getAabb().getMinMax(min, max);
+                    aabb.getMinMax(min, max);
+
+                    auto debugMat4 = glm::translate(blendMat, aabb.pos);
+
                     auto scale = max - min;
-                    renderCtx->drawDebug(glm::scale(blendMat, scale), glm::vec4{ 1, 0, 0, 1 });
+                    renderCtx->drawDebug(glm::scale(debugMat4, scale), glm::vec4{ 1, 0, 0, 1 });
                 }
 
                 curIdx++;

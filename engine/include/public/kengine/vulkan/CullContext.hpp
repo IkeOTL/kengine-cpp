@@ -27,5 +27,5 @@ public:
         : indirectBuf(indirectBuf), objectInstanceBuf(objectInstanceBuf), drawObjectBuf(drawObjectBuf), drawInstanceBuffer(drawInstanceBuffer) {}
 
     void init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators);
-    void dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, CameraController& cc, int frameIdx, int objectCount);
+    void dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, CameraController& cc, int frameIdx, int drawCallCount, int objectCount);
 };
