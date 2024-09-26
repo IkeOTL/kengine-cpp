@@ -16,7 +16,7 @@ layout(std430, set = 0, binding = 0) buffer DrawCommandBuffer {
 } drawCommandBuffer;
 
 layout(push_constant) uniform PushConstants {
-    uint totalInstances;
+    uint totalDrawCalls;
 } pcs;
 
 void main() {
@@ -26,7 +26,7 @@ void main() {
     uint gId = gIdY * gl_NumWorkGroups.x * gl_WorkGroupSize.x + gIdX;
     //uint gId = gl_GlobalInvocationID.x;
 
-    if (gId >= pcs.totalInstances)
+    if (gId >= pcs.totalDrawCalls)
         return;
 
    drawCommandBuffer.cmds[gId].instanceCount = 0;

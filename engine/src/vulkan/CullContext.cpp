@@ -86,7 +86,7 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Descrip
         for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
             auto& descSetAllo = *descSetAllocators[i];
 
-            auto cullingDescSet = descSetAllo.getGlobalDescriptorSet("pre-deferred-culling", DrawCullingPipeline::cullingLayout);
+            auto cullingDescSet = descSetAllo.getGlobalDescriptorSet("pre-deferred-culling", PreDrawCullingPipeline::preCullingLayout);
 
             std::vector<VkWriteDescriptorSet> setWrites(1);
             std::vector<VkDescriptorBufferInfo> bufferInfos(1);
@@ -98,7 +98,7 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Descrip
     }
 }
 
-void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, CameraController& cc, int frameIdx, int objectCount) {
+void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, CameraController& cc, int frameIdx, int drawCallCount, int objectCount) {
     auto cmdBuf = computeCmdBufs[frameIdx]->vkCmdBuf;
 
     VkCommandBufferBeginInfo cmdBeginInfo{};
@@ -114,33 +114,33 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
         // pre cull pass. reset the draw cmds to 0 instanceCount instead of doign it on the CPU
         {
             auto pc = PreDrawCullingPipeline::PushConstant{};
-            pc.totalInstances = objectCount;
+            pc.totalDrawCalls = drawCallCount;
 
             auto& pl = vkCxt.getPipelineCache().getPipeline<PreDrawCullingPipeline>();
             pl.bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
             vkCmdPushConstants(cmdBuf, pl.getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PreDrawCullingPipeline::PushConstant), &pc);
             vkCmdDispatch(cmdBuf, dispatchSizeX, dispatchSizeY, 1);
 
-            VkBufferMemoryBarrier2 bufferBarrier{};
-            bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-            bufferBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-            bufferBarrier.srcAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
-            bufferBarrier.dstStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-            bufferBarrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
-            bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            bufferBarrier.buffer = indirectBuf.getGpuBuffer().getVkBuffer();
-            bufferBarrier.offset = 0;
-            bufferBarrier.size = indirectBuf.getFrameSize();
+            // Create a VkMemoryBarrier2 for synchronization between the two dispatches
+             VkBufferMemoryBarrier2 bufferBarrier{};
+             bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+             bufferBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+             bufferBarrier.srcAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
+             bufferBarrier.dstStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+             bufferBarrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
+             bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+             bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+             bufferBarrier.buffer = indirectBuf.getGpuBuffer().getVkBuffer();
+             bufferBarrier.offset = indirectBuf.getFrameOffset(frameIdx);
+             bufferBarrier.size = indirectBuf.getFrameSize();
 
-            VkDependencyInfo depInfo{};
-            depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-            depInfo.bufferMemoryBarrierCount = 1;
-            depInfo.pBufferMemoryBarriers = &bufferBarrier;
+             VkDependencyInfo depInfo{};
+             depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+             depInfo.bufferMemoryBarrierCount = 1;
+             depInfo.pBufferMemoryBarriers = &bufferBarrier;
 
-            vkCmdPipelineBarrier2(cmdBuf, &depInfo);
+             vkCmdPipelineBarrier2(cmdBuf, &depInfo);
         }
-
 
         auto camera = cc.getCamera();
         auto& proj = camera->getProjectionMatrix();

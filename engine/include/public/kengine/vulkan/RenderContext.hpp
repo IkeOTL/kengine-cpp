@@ -70,6 +70,7 @@ private:
     IndirectDrawBatch shadowSkinnedBatchCache[MAX_INSTANCES / 4];
     IndirectDrawBatch shadowNonSkinnedBatchCache[MAX_INSTANCES / 4];
 
+    static constexpr float invIndCmdSize = 1.0f / sizeof(VkDrawIndexedIndirectCommand);
 
 #ifdef KE_DEBUG_RENDER
     const static uint32_t MAX_DEBUG_OBJECTS = 1000;
@@ -91,7 +92,7 @@ private:
     void initBuffers();
     void initDescriptors();
 
-    IndirectDrawBatch& getStaticBatch(int instanceIdx, const Mesh& mesh, const Material& material, bool hasShadow);
+    IndirectDrawBatch& getStaticBatch(int instanceIdx, const Mesh& mesh, const Material& material);
     void deferredPass(DescriptorSetAllocator& descSetAllocator);
     void debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d);
     void compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d);
@@ -111,7 +112,9 @@ public:
     void drawDebug(const glm::mat4& transform, const glm::vec4& color);
 #endif
 
-    void addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere, bool hasShadow);
+    uint32_t startStaticBatch() const;
+    void endStaticBatch(uint32_t startBatchIndex);
+    void addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere);
     int draw(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere);
     void begin(RenderFrameContext& frameCxt, float sceneTime, float alpha);
     void end();

@@ -9,7 +9,7 @@ protected:
 
 public:
     struct PushConstant {
-        uint32_t totalInstances;
+        uint32_t totalDrawCalls;
     };
 
     inline static const DescriptorSetLayoutConfig preCullingLayout = {

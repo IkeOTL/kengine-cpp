@@ -48,29 +48,47 @@ void RenderSystem::init() {
         auto materialConfig = PbrMaterialConfig::create();
         materialConfig->setHasShadow(true);
 
+
+        auto modelTask = modelCache->getAsync(modelConfig);
+        auto materialTask = materialCache->getAsync(materialConfig);
+
+        auto model = modelTask.get();
+        auto material = materialTask.get();
+
         auto xCount = 20;
         auto zCount = 20;
         auto zOffset = -5;
-        for (size_t i = 0; i < xCount; i++) {
-            for (size_t j = 0; j < zCount; j++) {
-                auto entity = ecs->create();
-                auto& renderable = ecs->emplace<Component::Renderable>(entity);
-                renderable.setStatic();
-                ecs->emplace<Component::ModelComponent>(entity, modelConfig);
+        auto sIdx = renderCtx->startStaticBatch();
+        {
+            for (size_t i = 0; i < xCount; i++) {
+                for (size_t j = 0; j < zCount; j++) {
+                    //auto entity = ecs->create();
+                    //auto& renderable = ecs->emplace<Component::Renderable>(entity);
+                    //renderable.setStatic();
+                    //ecs->emplace<Component::ModelComponent>(entity, modelConfig);
 
-                auto& model = modelCache->get(modelConfig);
-                auto& spatials = ecs->emplace<Component::Spatials>(entity);
-                auto rootSpatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), renderable.type);
+                    //auto& model = modelCache->get(modelConfig);
+                    //auto& spatials = ecs->emplace<Component::Spatials>(entity);
+                    //auto rootSpatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), renderable.type);
 
-                //rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
+                    ////rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
 
-                rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - (1.5 * xCount * 0.5f), 3, (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset));
+                    //rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - (1.5 * xCount * 0.5f), 3, (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset));
 
-                spatialPartitioning->getSpatialGrid()->setDirty(entity);
+                    //spatialPartitioning->getSpatialGrid()->setDirty(entity);
 
-                ecs->emplace<Component::Material>(entity, materialConfig);
+                    //ecs->emplace<Component::Material>(entity, materialConfig);
+
+                    renderCtx->addStaticInstance(
+                        model->getMeshGroups()[0]->getMesh(0),
+                        *material,
+                        glm::translate(glm::mat4(1.0f), glm::vec3((1.5f * i) - (1.5 * xCount * 0.5f), 3, (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset)),
+                        model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
+                    );
+                }
             }
         }
+        renderCtx->endStaticBatch(sIdx);
     }
 
     // test terrain
@@ -91,6 +109,7 @@ void RenderSystem::init() {
 
         auto matConfig = PbrMaterialConfig::create();
         TextureConfig textureConfig("img/poke-tileset.png");
+        matConfig->setHasShadow(false);
         matConfig->addAlbedoTexture(&textureConfig);
         matConfig->setMetallicFactor(0.0f);
         matConfig->setRoughnessFactor(0.5f);
@@ -121,6 +140,7 @@ void RenderSystem::init() {
                 // need to profile if static batches are even worth it.
                 // since the drawcmd is always sent for them. the ebefit is that
                 // the mat and other details dont have to be uploaded again
+                auto sIdx = renderCtx->startStaticBatch();
                 {
                     auto modelTask = modelCache->getAsync(chunk.getModelConfig());
                     auto materialTask = materialCache->getAsync(matConfig);
@@ -134,10 +154,10 @@ void RenderSystem::init() {
                         model->getMeshGroups()[0]->getMesh(0),
                         *material,
                         glm::translate(glm::mat4(1.0f), glm::vec3(offset.x, 0, offset.y)),
-                        model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds(),
-                        false
+                        model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
                     );
                 }
+                renderCtx->endStaticBatch(sIdx);
             }
         }
     }

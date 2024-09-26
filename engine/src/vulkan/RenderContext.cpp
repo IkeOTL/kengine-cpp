@@ -385,10 +385,40 @@ void RenderContext::initDescriptors() {
     }
 }
 
-void RenderContext::addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere, bool hasShadow) {
+uint32_t RenderContext::startStaticBatch() const {
+    return staticBatches;
+}
+
+void RenderContext::endStaticBatch(uint32_t startBatchIndex) {
+    ZoneScopedN("RenderContext::end - Upload Static Draw Cmds");
+
+    if (startBatchIndex == staticBatches)
+        return;
+
+    for (auto fIdx = 0; fIdx < VulkanContext::FRAME_OVERLAP; fIdx++)
+    {
+        auto indCmdFrameOffset = static_cast<uint32_t>(indirectCmdBuf->getFrameOffset(fIdx));
+        auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
+        auto buf = indirectCmdBuf->getGpuBuffer().data();
+        auto commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
+        for (auto i = startBatchIndex; i < staticBatches; i++) {
+            auto& indirectBatch = staticBatchCache[i];
+            auto cmdIdx = indCmdFrameIdx + indirectBatch.getCmdId();
+            auto& indirectCmd = commands[cmdIdx];
+
+            indirectCmd.firstInstance = indirectBatch.getFirstInstanceIdx();
+            indirectCmd.instanceCount = 0;
+            indirectCmd.firstIndex = 0;
+            indirectCmd.indexCount = indirectBatch.getMesh()->getIndexCount();
+        }
+    }
+}
+
+
+void RenderContext::addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere) {
     auto instanceIdx = staticInstances++;
 
-    auto& draw = getStaticBatch(instanceIdx, mesh, material, hasShadow);
+    auto& draw = getStaticBatch(instanceIdx, mesh, material);
 
     for (auto frameIdx = 0; frameIdx < VulkanContext::FRAME_OVERLAP; frameIdx++) {
         // upload model specific details
@@ -582,27 +612,6 @@ void RenderContext::end() {
     sceneData->upload(vkContext, *sceneBuf, sceneTime, alpha, frameIdx);
     lightsManager.upload(vkContext, *lightBuf, alpha, frameIdx);
 
-    static constexpr float invIndCmdSize = 1.0f / sizeof(VkDrawIndexedIndirectCommand);
-
-    //// reset static obj draw cmd
-    //{
-    //    ZoneScopedN("RenderContext::end - Upload Static Draw Cmds");
-    //    auto indCmdFrameOffset = static_cast<uint32_t>(indirectCmdBuf->getFrameOffset(frameIdx));
-    //    auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
-    //    auto buf = indirectCmdBuf->getGpuBuffer().data();
-    //    auto commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
-    //    for (auto i = 0; i < staticBatches; i++) {
-    //        auto& indirectBatch = staticBatchCache[i];
-    //        auto cmdIdx = indCmdFrameIdx + indirectBatch.getCmdId();
-    //        auto& indirectCmd = commands[cmdIdx];
-
-    //        indirectCmd.firstInstance = indirectBatch.getFirstInstanceIdx();
-    //        indirectCmd.instanceCount = 0;
-    //        indirectCmd.firstIndex = 0;
-    //        indirectCmd.indexCount = indirectBatch.getMesh()->getIndexCount();
-    //    }
-    //}
-
     // upload batched dynamic draw cmds
     {
         ZoneScopedN("RenderContext::end - Upload Dynamic Draw Cmds");
@@ -630,7 +639,8 @@ void RenderContext::end() {
         {
             ZoneScopedN("RenderContext::end - Compute Culling Dispatch");
             frameCxt->cullComputeSemaphore = cullContext->getSemaphore(frameIdx);
-            cullContext->dispatch(vkContext, *descSetAllocators[frameIdx], cameraController, frameIdx, staticInstances + dynamicInstances);
+            // only up to static batches no need to reset dynamic draw cmds. we do that every frame already
+            cullContext->dispatch(vkContext, *descSetAllocators[frameIdx], cameraController, frameIdx, staticBatches, staticInstances + dynamicInstances);
         }
 
         vkContext.renderBegin(*frameCxt);
@@ -651,7 +661,7 @@ void RenderContext::end() {
     started = false;
 }
 
-IndirectDrawBatch& RenderContext::getStaticBatch(int instanceIdx, const Mesh& mesh, const Material& material, bool hasShadow) {
+IndirectDrawBatch& RenderContext::getStaticBatch(int instanceIdx, const Mesh& mesh, const Material& material) {
     if (staticBatches == 0) {
         auto batchIdx = staticBatches++;
 
@@ -663,7 +673,7 @@ IndirectDrawBatch& RenderContext::getStaticBatch(int instanceIdx, const Mesh& me
         newDraw.setCmdId(batchIdx);
         newDraw.setFirstInstanceIdx(instanceIdx);
 
-        if (hasShadow)
+        if (material.hasShadow())
             shadowNonSkinnedBatchCache[staticShadowNonSkinnedBatches++] = newDraw;
 
         return newDraw;
@@ -690,7 +700,7 @@ IndirectDrawBatch& RenderContext::getStaticBatch(int instanceIdx, const Mesh& me
         newDraw.setCmdId(batchIdx);
         newDraw.setFirstInstanceIdx(instanceIdx);
 
-        if (hasShadow)
+        if (material.hasShadow())
             shadowNonSkinnedBatchCache[staticShadowNonSkinnedBatches++] = newDraw;
 
         return newDraw;
@@ -779,6 +789,7 @@ void RenderContext::debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocato
 #endif
 
 void RenderContext::compositionSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& d) {
+    // do this only when swapchain images change
     {
         auto samplerConfig = SamplerConfig(
             VK_SAMPLER_MIPMAP_MODE_LINEAR,
