@@ -11,7 +11,6 @@ public:
     struct PushConstant {
         glm::mat4 viewMatrix;
         std::array<float, 4> frustum;
-        float p00, p11, zNear, zFar;
         uint32_t totalInstances;
     };
 

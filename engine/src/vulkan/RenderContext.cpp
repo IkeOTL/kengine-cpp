@@ -722,7 +722,8 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
         // subpass 1
         {
             ZoneScopedN("RenderContext::deferredPass - Record Draw Cmds");
-
+            
+            // move to secondary cmdbuf?
             for (int i = 0; i < staticBatches; i++) {
                 auto& batch = staticBatchCache[i];
                 batch.draw(vkContext, vkCmd, *indirectCmdBuf,

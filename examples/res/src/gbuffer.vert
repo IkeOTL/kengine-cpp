@@ -14,7 +14,7 @@ layout(set = 0, binding = 0) uniform SceneBuffer {
 struct DrawObject {
     mat4 transform;
     vec4 boundingSphere;
-    int materialId;
+    uint materialId;
     int padding[3]; // Padding to align to 16 bytes
 };
 

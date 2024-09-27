@@ -2,34 +2,21 @@
 
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
-struct DrawCommand
-{
-	uint indexCount;
-	uint instanceCount;
-	uint firstIndex;
-	uint vertexOffset;
-	uint firstInstance;
-};
-
 layout(std430, set = 0, binding = 0) buffer DrawCommandBuffer {
-    DrawCommand cmds[];
+    uint indexCount;
+    uint instanceCount;
+    uint firstIndex;
+    uint vertexOffset;
+    uint firstInstance;
 } drawCommandBuffer;
-
-struct ObjectInstance {
-    uint cmdId;
-    uint drawObjectId;
-};
 
 // contains all instances to be rendered BEFORE culling and their ids
 layout(std430, set = 0, binding = 1) readonly buffer ObjectInstanceBuffer {
-    ObjectInstance instanceIds[];
+    uint instanceIds[];
 } objectInstanceBuffer;
 
 struct DrawObject {
-    mat4 transform;
-    vec4 boundingSphere;
-    int materialId;
-   // vec3 padding;
+    uvec4 materialId;
 };
 
 // contains all objects for the frame
@@ -45,6 +32,8 @@ layout(std430, set = 0, binding = 3) buffer DrawInstanceBuffer {
 layout(push_constant) uniform PushConstants {
     mat4 view;
     vec4 frustum;
+    uvec2 chunkDimensions;
+    uvec2 chunkCount;
     uint totalInstances;
 } pcs;
 
@@ -52,9 +41,9 @@ bool isVisible(uint objectId)
 {
     DrawObject obj = drawObjectBuffer.objects[objectId];
 
-    vec4 sphereBounds = obj.boundingSphere;
+    vec4 sphereBounds;// = asdasd; // ned to calc based on chunkId/instanceId, should be in world pos of the chunk
 
-    vec3 center = (pcs.view * (obj.transform * vec4(sphereBounds.xyz, 1.0))).xyz;
+    vec3 center = (pcs.view * vec4(sphereBounds.xyz, 1.0)).xyz;
     float radius = sphereBounds.w;
 
     // update to full frustum cull
@@ -66,22 +55,18 @@ bool isVisible(uint objectId)
 }
 
 void main() {
-    uint gIdX = gl_GlobalInvocationID.x;
-    uint gIdY = gl_GlobalInvocationID.y;
-
-    uint gId = gIdY * gl_NumWorkGroups.x * gl_WorkGroupSize.x + gIdX;
+    uint gId = gl_GlobalInvocationID.y * gl_NumWorkGroups.x * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
 
     if (gId >= pcs.totalInstances)
         return;
 
-    uint objectId = objectInstanceBuffer.instanceIds[gId].drawObjectId;
+    uint chunkId = objectInstanceBuffer.instanceIds[gId];
 
-    if (!isVisible(objectId))
+    if (!isVisible(chunkId))
         return;
 
-    uint cmdId = objectInstanceBuffer.instanceIds[gId].cmdId;
-    uint relativeId = atomicAdd(drawCommandBuffer.cmds[cmdId].instanceCount, 1);
-    uint instanceIdx = drawCommandBuffer.cmds[cmdId].firstInstance + relativeId;
+    uint relativeId = atomicAdd(drawCommandBuffer.instanceCount, 1);
+    uint instanceIdx = drawCommandBuffer.firstInstance + relativeId;
 
-    drawInstanceBuffer.instanceIds[instanceIdx] = objectId;
+    drawInstanceBuffer.instanceIds[instanceIdx] = chunkId;
 }

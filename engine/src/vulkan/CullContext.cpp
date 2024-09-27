@@ -154,11 +154,6 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
         pc.frustum[2] = frustumY.x;
         pc.frustum[3] = frustumY.z;
 
-        pc.p00 = proj[0][0];
-        pc.p11 = proj[1][1];
-        pc.zNear = camera->getNearClip();
-        pc.zFar = camera->getFarClip();
-
         pc.totalInstances = objectCount;
 
         auto& pl = vkCxt.getPipelineCache().getPipeline<DrawCullingPipeline>();

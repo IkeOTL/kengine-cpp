@@ -16,3 +16,7 @@ Build:
 - execute `example` project
 
 ![alt text](https://github.com/IkeOTL/kengine-cpp/blob/master/examples/res/example00.jpg?raw=true)
+
+assets purhcased:
+https://ovanisound.com/
+https://syntystore.com/
