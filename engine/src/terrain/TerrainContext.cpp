@@ -2,6 +2,9 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/MeshBuilder.hpp>
 #include <kengine/vulkan/pipelines/TerrainDeferredOffscreenPbrPipeline.hpp>
+#include <kengine/vulkan/CameraController.hpp>
+#include <kengine/vulkan/renderpass/RenderPass.hpp>
+#include <kengine/vulkan/GpuBufferCache.hpp>
 
 
 void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators) {
@@ -133,4 +136,20 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 
         vkUpdateDescriptorSets(vkCxt.getVkDevice(), setWrites.size(), setWrites.data(), 0, nullptr);
     }
+}
+
+
+void TerrainContext::draw(RenderPassContext& rpCtx) {
+
+    // bind pipeline
+    // push constants
+
+    vkCmdBindIndexBuffer(rpCtx.cmd, chunkIndicesBuf->vkBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+    vkCmdDrawIndexedIndirect(
+        rpCtx.cmd,
+        drawIndirectCmdBuf->getGpuBuffer().getVkBuffer(),
+        0,
+        1,
+        sizeof(VkDrawIndexedIndirectCommand));
 }
