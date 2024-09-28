@@ -2,7 +2,7 @@
 
 #define NUM_MATERIALS 4
 
-layout (set = 2, binding = 0) uniform sampler2D colorMap;
+layout (set = 2, binding = 0) uniform sampler2D colorMap[NUM_MATERIALS];
 layout (set = 2, binding = 1) uniform sampler2D normalMap[NUM_MATERIALS];
 layout (set = 2, binding = 2) uniform sampler2D metallicRoughnessMap[NUM_MATERIALS];
 layout (set = 2, binding = 3) uniform sampler2D aoMap[NUM_MATERIALS];
@@ -45,20 +45,11 @@ float linearDepth(float depth)
     return (2.0f * NEAR_PLANE * FAR_PLANE) / (FAR_PLANE + NEAR_PLANE - z * (FAR_PLANE - NEAR_PLANE));	
 }
 
-vec2 signNotZero(vec2 v) {
-  return vec2((v.x >= 0.0) ? 1.0 : -1.0, (v.y >= 0.0) ? 1.0 : -1.0);
-}
-
-vec2 encodeNormal(vec3 v) {
-    vec2 p = v.xy * (1.0 / (abs(v.x) + abs(v.y) + abs(v.z)));
-    return (v.z <= 0.0) ? ((1.0 - abs(p.yx)) * signNotZero(p)) : p;
-}
-
 vec4 getAlbedo(Material mat) {
     vec4 albedo = mat.albedoFactor;
 
     if (mat.albedoTextureSet != -1)
-        albedo *= texture(colorMap, inUV) * vec4(1.0);
+        albedo *= texture(colorMap[materialId[1]], inUV) * vec4(1.0);
 
     return albedo;
 }

@@ -37,6 +37,7 @@ set(HEADERS
     include/public/kengine/terrain/TileTerrain.hpp
     include/public/kengine/terrain/TileTerrainChunk.hpp
     include/public/kengine/terrain/TileSheet.hpp
+    include/public/kengine/terrain/TerrainContext.hpp
 
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
@@ -121,8 +122,10 @@ set(HEADERS
     include/public/kengine/vulkan/pipelines/PipelineCache.hpp
     include/public/kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp
     include/public/kengine/vulkan/pipelines/SkinnedOffscreenPbrPipeline.hpp
+    include/public/kengine/vulkan/pipelines/TerrainDeferredOffscreenPbrPipeline.hpp
     include/public/kengine/vulkan/pipelines/PreDrawCullingPipeline.hpp
     include/public/kengine/vulkan/pipelines/DrawCullingPipeline.hpp
+    include/public/kengine/vulkan/pipelines/TerrainDrawCullingPipeline.hpp
     include/public/kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp
     include/public/kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp
     include/public/kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp
@@ -156,6 +159,7 @@ set(SOURCES
 
     src/terrain/DualGridTileTerrain.cpp
     src/terrain/TileTerrainChunk.cpp
+    src/terrain/TerrainContext.cpp
 
     src/ecs/World.cpp
     
@@ -214,8 +218,10 @@ set(SOURCES
     src/vulkan/pipelines/PipelineCache.cpp
     src/vulkan/pipelines/DeferredOffscreenPbrPipeline.cpp
     src/vulkan/pipelines/SkinnedOffscreenPbrPipeline.cpp
+    src/vulkan/pipelines/TerrainDeferredOffscreenPbrPipeline.cpp
     src/vulkan/pipelines/PreDrawCullingPipeline.cpp
     src/vulkan/pipelines/DrawCullingPipeline.cpp
+    src/vulkan/pipelines/TerrainDrawCullingPipeline.cpp
     src/vulkan/pipelines/CascadeShadowMapPipeline.cpp
     src/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.cpp
     src/vulkan/pipelines/DeferredCompositionPbrPipeline.cpp

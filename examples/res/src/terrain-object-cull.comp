@@ -10,41 +10,38 @@ layout(std430, set = 0, binding = 0) buffer DrawCommandBuffer {
     uint firstInstance;
 } drawCommandBuffer;
 
-// contains all instances to be rendered BEFORE culling and their ids
-layout(std430, set = 0, binding = 1) readonly buffer ObjectInstanceBuffer {
-    uint instanceIds[];
-} objectInstanceBuffer;
-
-struct DrawObject {
-    uvec4 materialId;
-};
-
-// contains all objects for the frame
-layout(std430, set = 0, binding = 2) readonly buffer DrawObjectBuffer {
-    DrawObject objects[];
-} drawObjectBuffer;
-
 // contains all instances to be rendered AFTER culling and their ids
-layout(std430, set = 0, binding = 3) buffer DrawInstanceBuffer {
+layout(std430, set = 0, binding = 1) buffer DrawInstanceBuffer {
     uint instanceIds[];
 } drawInstanceBuffer;
 
 layout(push_constant) uniform PushConstants {
     mat4 view;
     vec4 frustum;
+    vec4 sphereBounds;
     uvec2 chunkDimensions;
     uvec2 chunkCount;
-    uint totalInstances;
+    vec2 worldOffset; // could probably calculate this in the shader if we need the space here
 } pcs;
 
-bool isVisible(uint objectId)
+bool isVisible(uint chunkId)
 {
-    DrawObject obj = drawObjectBuffer.objects[objectId];
+    vec3 chunkLocalPos = vec3(
+        float(chunkId % pcs.chunkCount.x),
+        0.0,
+        float(chunkId / pcs.chunkCount.x)
+    );
+    
+    vec3 chunkWorldPos = vec3(
+        chunkLocalPos.x * pcs.chunkDimensions.x + pcs.worldOffset.x,
+        0.0,
+        chunkLocalPos.z * pcs.chunkDimensions.y + pcs.worldOffset.y
+    );
 
-    vec4 sphereBounds;// = asdasd; // ned to calc based on chunkId/instanceId, should be in world pos of the chunk
+    vec3 sphereBoundsPos = pcs.sphereBounds.xyz + chunkWorldPos;
 
-    vec3 center = (pcs.view * vec4(sphereBounds.xyz, 1.0)).xyz;
-    float radius = sphereBounds.w;
+    vec3 center = (pcs.view * vec4(sphereBoundsPos, 1.0)).xyz;
+    float radius = pcs.sphereBounds.w;
 
     // update to full frustum cull
     // cull between left/right frustum planes
@@ -55,12 +52,11 @@ bool isVisible(uint objectId)
 }
 
 void main() {
-    uint gId = gl_GlobalInvocationID.y * gl_NumWorkGroups.x * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
+    uint totalChunks = pcs.chunkCount.x * pcs.chunkCount.y;
+    uint chunkId = gl_GlobalInvocationID.y * gl_NumWorkGroups.x * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
 
-    if (gId >= pcs.totalInstances)
-        return;
-
-    uint chunkId = objectInstanceBuffer.instanceIds[gId];
+    if (chunkId >= totalChunks)
+        return;    
 
     if (!isVisible(chunkId))
         return;
