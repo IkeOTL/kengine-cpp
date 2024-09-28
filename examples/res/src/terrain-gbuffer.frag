@@ -75,7 +75,7 @@ vec2 getMr(Material mat) {
     return vec2(roughness, metallic);
 }
 
-vec4 getEmissive(Material mat) {    
+vec4 getEmissive(Material mat) {
     if (mat.emissiveTextureSet == -1)
         return vec4(0);
 

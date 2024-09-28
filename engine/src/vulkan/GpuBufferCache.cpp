@@ -1,10 +1,10 @@
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 
-CachedGpuBuffer::CachedGpuBuffer(int id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize)
+CachedGpuBuffer::CachedGpuBuffer(uint32_t id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize)
     : id(id), gpuBuffer(std::move(gpuBuffer)), frameSize(frameSize), totalSize(totalSize) {}
 
-CachedGpuBuffer* GpuBufferCache::get(unsigned int cacheKey) {
+CachedGpuBuffer* GpuBufferCache::get(uint32_t cacheKey) {
     std::shared_lock<std::shared_mutex> lock(this->mtx);
     auto it = cache.find(cacheKey);
 
@@ -18,7 +18,7 @@ CachedGpuBuffer& GpuBufferCache::createHostMapped(VkDeviceSize totalSize, VkBuff
     return createHostMapped(totalSize, 1, usageFlags, memoryUsage, allocFlags);
 }
 
-CachedGpuBuffer& GpuBufferCache::createHostMapped(VkDeviceSize frameSize, int frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
+CachedGpuBuffer& GpuBufferCache::createHostMapped(VkDeviceSize frameSize, uint32_t frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
     auto& buf = create(frameSize, frameCount, usageFlags, memoryUsage, allocFlags);
     buf.getGpuBuffer().map();
     return buf;
@@ -28,7 +28,7 @@ CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize totalSize, VkBufferUsageFla
     return create(totalSize, 1, usageFlags, memoryUsage, allocFlags);
 }
 
-CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, int frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
+CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, uint32_t frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
     if (usageFlags & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
         frameSize = vkContext.alignUboFrame(frameSize);
     else if (usageFlags & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
