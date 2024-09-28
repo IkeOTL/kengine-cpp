@@ -7,9 +7,11 @@
 
 class VulkanContext;
 
+using GpuBufferId = uint32_t;
+
 class CachedGpuBuffer {
 public:
-    CachedGpuBuffer(uint32_t id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize);
+    CachedGpuBuffer(GpuBufferId id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize);
 
     GpuBuffer& getGpuBuffer() const {
         return *(gpuBuffer.get());
@@ -27,12 +29,12 @@ public:
         return frameSize * frame;
     }
 
-    uint32_t getId() const {
+    GpuBufferId getId() const {
         return id;
     }
 
 private:
-    const uint32_t id;
+    const GpuBufferId id;
     std::unique_ptr<GpuBuffer> gpuBuffer;
     const VkDeviceSize frameSize;
     const VkDeviceSize totalSize;
@@ -43,14 +45,14 @@ class GpuBufferCache {
 private:
     std::atomic<uint32_t> runningId;
     const VulkanContext& vkContext;
-    std::unordered_map<uint32_t, std::unique_ptr<CachedGpuBuffer>> cache;
+    std::unordered_map<GpuBufferId, std::unique_ptr<CachedGpuBuffer>> cache;
     std::shared_mutex mtx{};
 
 public:
     GpuBufferCache(const VulkanContext& vkContext)
         : vkContext(vkContext), runningId(0) {}
 
-    CachedGpuBuffer* get(uint32_t cacheKey);
+    CachedGpuBuffer* get(GpuBufferId cacheKey);
     CachedGpuBuffer& createHostMapped(VkDeviceSize totalSize, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
     CachedGpuBuffer& createHostMapped(VkDeviceSize frameSize, uint32_t frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
     CachedGpuBuffer& create(VkDeviceSize totalSize, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);

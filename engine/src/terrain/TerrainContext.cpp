@@ -5,9 +5,17 @@
 #include <kengine/vulkan/CameraController.hpp>
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
+#include <kengine/vulkan/pipelines/TerrainDrawCullingPipeline.hpp>
 
 
 void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators) {
+    auto tilesWidth = 64;
+    auto tilesLength = 64;
+    // terrain
+
+    terrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
+
+
     auto& bufCache = vkCxt.getGpuBufferCache();
 
     auto xferFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
@@ -68,7 +76,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
     terrainDataBuf = &bufCache.createHostMapped(
         MAX_TILES * sizeof(uint32_t),
         VulkanContext::FRAME_OVERLAP,
-        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
         VMA_MEMORY_USAGE_AUTO,
         xferFlags);
 
@@ -88,8 +96,8 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
         std::vector<VkDescriptorImageInfo> imageInfos;
 
         // so they dont resize
-        setWrites.reserve(3);
-        bufferInfos.reserve(3);
+        setWrites.reserve(5);
+        bufferInfos.reserve(5);
 
         auto pushBuf = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, CachedGpuBuffer* gpuBuf) -> void {
             auto& buf = bufferInfos.emplace_back(VkDescriptorBufferInfo{
@@ -130,7 +138,23 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
             pushBuf(
                 deferredDescriptorSet,
                 TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(2),
-                materialsBuf
+                &materialsBuf
+            );
+        }
+
+        {
+            auto set0 = descSetAllocator->getGlobalDescriptorSet("terrain-deferred-culling", TerrainDrawCullingPipeline::cullingLayout);
+        
+            pushBuf(
+                set0,
+                TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(0),
+                drawIndirectCmdBuf
+            );
+
+            pushBuf(
+                set0,
+                TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(1),
+                drawInstanceBuf
             );
         }
 
@@ -138,6 +162,32 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
     }
 }
 
+void TerrainContext::resetDrawBuf() {
+    auto cmd = static_cast<VkDrawIndexedIndirectCommand*>(drawIndirectCmdBuf->getGpuBuffer().data());
+    cmd->instanceCount = 0;
+}
+
+// TODO: optimize this change to ref once we have it calced once
+//const glm::vec4& TerrainContext::getChunkBoundingSphere() {
+const glm::vec4 TerrainContext::getChunkBoundingSphere() {
+    glm::vec3 offset = glm::vec3{ terrain->getChunkWidth() * 0.5f, 0, terrain->getChunkLength() * 0.5f };
+    float radius = glm::length(offset);
+    return glm::vec4{ offset, radius };
+}
+
+// TODO: optimize this change to ref once we have it calced once
+// need to update tileterrain to return ref to vecs for dimensions and stuff
+const glm::uvec2 TerrainContext::getChunkCount() {
+    return glm::uvec2{ terrain->getChunkCountX() ,terrain->getChunkCountZ() };
+}
+
+const glm::uvec2 TerrainContext::getChunkDimensions() {
+    return glm::uvec2{ terrain->getChunkWidth() ,terrain->getChunkLength() };
+}
+
+const glm::vec2 TerrainContext::getWorldOffset() {
+    return glm::uvec2{ terrain->getWorldOffsetX() ,terrain->getWorldOffsetZ() };
+}
 
 void TerrainContext::draw(RenderPassContext& rpCtx) {
 

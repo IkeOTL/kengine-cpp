@@ -34,9 +34,17 @@ void RenderContext::init() {
     initBuffers();
     initDescriptors();
 
+    // TODO: MOVE
+    {
+        terrainContext = std::make_unique<TerrainContext>(*materialsBuf);
+        terrainContext->init(vkContext, descSetAllocators);
+    }
+
     cullContext = std::make_unique<CullContext>(*indirectCmdBuf, *objectInstanceBuf,
         *drawObjectBuf, *drawInstanceBuffer);
     cullContext->init(vkContext, descSetAllocators);
+    cullContext->setTerrainContext(terrainContext.get());
+
 
     auto& bufCache = vkContext.getGpuBufferCache();
     shadowContext = std::make_unique<ShadowContext>(bufCache, *indirectCmdBuf, cameraController, *sceneData);
@@ -96,6 +104,7 @@ void RenderContext::initBuffers() {
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
         VMA_MEMORY_USAGE_AUTO,
         xferFlags);
+
     drawObjectBuf = &bufCache.createHostMapped(
         DrawObjectBuffer::frameSize(),
         VulkanContext::FRAME_OVERLAP,

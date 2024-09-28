@@ -1,10 +1,10 @@
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 
-CachedGpuBuffer::CachedGpuBuffer(uint32_t id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize)
+CachedGpuBuffer::CachedGpuBuffer(GpuBufferId id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize)
     : id(id), gpuBuffer(std::move(gpuBuffer)), frameSize(frameSize), totalSize(totalSize) {}
 
-CachedGpuBuffer* GpuBufferCache::get(uint32_t cacheKey) {
+CachedGpuBuffer* GpuBufferCache::get(GpuBufferId cacheKey) {
     std::shared_lock<std::shared_mutex> lock(this->mtx);
     auto it = cache.find(cacheKey);
 

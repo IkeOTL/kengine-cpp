@@ -6,6 +6,7 @@
 #include <kengine/vulkan/IndirectDrawBatch.hpp>
 #include <kengine/vulkan/LightsManager.hpp>
 #include <kengine/vulkan/CullContext.hpp>
+#include <kengine/terrain/TerrainContext.hpp>
 #include <kengine/vulkan/mesh/Mesh.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
@@ -38,6 +39,7 @@ private:
 
     std::unique_ptr<CullContext> cullContext;
     std::unique_ptr<ShadowContext> shadowContext;
+    std::unique_ptr<TerrainContext> terrainContext;
     CameraController& cameraController;
     LightsManager& lightsManager;
 
