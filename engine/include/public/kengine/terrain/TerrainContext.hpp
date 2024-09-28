@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
+#include <kengine/vulkan/GpuBuffer.hpp>
 
 #include <vector>
 #include <memory>
@@ -9,9 +10,10 @@ class VulkanContext;
 class TerrainContext {
 private:
     std::unique_ptr<GpuBuffer> chunkIndicesBuf;
-    CachedGpuBuffer* drawIndirectCmdBuf;
-    CachedGpuBuffer* terrainDataBuf;
-    CachedGpuBuffer* drawInstanceBuf;
+    CachedGpuBuffer* drawIndirectCmdBuf = nullptr;
+    CachedGpuBuffer* terrainDataBuf = nullptr;
+    CachedGpuBuffer* drawInstanceBuf = nullptr;
+    CachedGpuBuffer* materialsBuf = nullptr;
 
 public:
     inline static const int MAX_TILES = 1024 * 1024;

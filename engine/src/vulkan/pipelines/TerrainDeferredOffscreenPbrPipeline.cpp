@@ -22,7 +22,7 @@ void TerrainDeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorS
     uint32_t dynamicOffsets[] = {
         frameIndex * SceneData::alignedFrameSize(vkCxt),
         frameIndex * TerrainContext::MAX_TILES * sizeof(uint32_t),
-        frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
+        frameIndex * TerrainContext::MAX_CHUNKS * sizeof(uint32_t),
         frameIndex * MaterialsBuffer::alignedFrameSize(vkCxt)
     };
 
