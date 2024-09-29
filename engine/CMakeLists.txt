@@ -117,6 +117,7 @@ set(HEADERS
     include/public/kengine/vulkan/material/MaterialBindingConfig.hpp
     include/public/kengine/vulkan/material/MaterialBinding.hpp
     include/public/kengine/vulkan/material/PbrMaterialConfig.hpp
+    include/public/kengine/vulkan/material/TerrainPbrMaterialConfig.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
     include/public/kengine/vulkan/pipelines/PipelineCache.hpp
@@ -213,6 +214,7 @@ set(SOURCES
     src/vulkan/material/MaterialBindingConfig.cpp
     src/vulkan/material/MaterialBinding.cpp
     src/vulkan/material/PbrMaterialConfig.cpp
+    src/vulkan/material/TerrainPbrMaterialConfig.cpp
 
     src/vulkan/pipelines/Pipeline.cpp
     src/vulkan/pipelines/PipelineCache.cpp

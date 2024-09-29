@@ -60,3 +60,21 @@ public:
         VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
         std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) override;
 };
+
+
+class ImageArrayBinding : public MaterialBinding {
+private:
+    std::vector<Texture2d*> textures;
+
+public:
+    ImageArrayBinding(std::shared_ptr<MaterialBindingConfig> bindingConfig, std::vector<Texture2d*> textures)
+        : MaterialBinding(bindingConfig), textures(textures) {}
+
+    const std::vector<Texture2d*> getTextures() const {
+        return textures;
+    }
+
+    void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
+        VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
+        std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) override;
+};

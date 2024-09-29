@@ -25,13 +25,9 @@ layout (constant_id = 1) const float FAR_PLANE = 150.0f;
 struct Material {
     vec4 albedoFactor;
     vec4 emissiveFactor;
-    int albedoTextureSet;
-    int metallicRoughnessTextureSet;
-    int normalTextureSet;	
-    int occlusionTextureSet;
-    int emissiveTextureSet;
     float metallicFactor;	
     float roughnessFactor;
+    uint textureSetFlags;
     int padding;
 };
 
@@ -47,7 +43,7 @@ float linearDepth(float depth)
 
 vec3 calculateNormal(Material mat)
 {
-    if (mat.normalTextureSet == -1)
+    if ((mat.textureSetFlags & (1u << 2u)) == 0)
         return normalize(inNormal);
 
     vec3 tangentNormal = texture(normalMap, inUV).rgb * 2.0 - 1.0;
@@ -71,14 +67,14 @@ vec2 calculatePackedNormal(Material mat)
 vec4 getAlbedo(Material mat) {
     vec4 albedo = mat.albedoFactor;
 
-    if (mat.albedoTextureSet != -1)
+    if ((mat.textureSetFlags & (1u << 0u)) != 0)
         albedo *= texture(colorMap, inUV) * vec4(1.0);
 
     return albedo;
 }
 
-float getAo(Material mat) {    
-    if (mat.occlusionTextureSet == -1)
+float getAo(Material mat) {
+    if ((mat.textureSetFlags & (1u << 3u)) == 0)
         return 1.0;
 
     return texture(aoMap, inUV).r;
@@ -88,7 +84,7 @@ vec2 getMr(Material mat) {
     float metallic = mat.metallicFactor; // g
     float roughness = mat.roughnessFactor; // r
 
-    if (mat.metallicRoughnessTextureSet != -1) {
+    if ((mat.textureSetFlags & (1u << 1u)) != 0) {
         vec3 orm = texture(metallicRoughnessMap, inUV).rgb;
 
         metallic *= orm.b;
@@ -98,8 +94,8 @@ vec2 getMr(Material mat) {
     return vec2(roughness, metallic);
 }
 
-vec4 getEmissive(Material mat) {    
-    if (mat.emissiveTextureSet == -1)
+vec4 getEmissive(Material mat) {
+    if ((mat.textureSetFlags & (1u << 4u)) == 0)
         return vec4(0);
 
     return vec4(texture(emissiveMap, inUV).rgb, 1) * mat.emissiveFactor;

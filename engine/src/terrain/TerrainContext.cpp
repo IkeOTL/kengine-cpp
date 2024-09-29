@@ -23,12 +23,12 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 
     terrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
 
-    auto matConfig = PbrMaterialConfig::create();
+    /*auto matConfig = PbrMaterialConfig::create();
     TextureConfig textureConfig("img/poke-tileset.png");
     matConfig->setHasShadow(false);
     matConfig->addAlbedoTexture(&textureConfig);
     matConfig->setMetallicFactor(0.0f);
-    matConfig->setRoughnessFactor(0.5f);
+    matConfig->setRoughnessFactor(0.5f);*/
 
     auto& bufCache = vkCxt.getGpuBufferCache();
 

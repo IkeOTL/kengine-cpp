@@ -72,3 +72,10 @@ void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet&
     setWrite.descriptorType = bindingConfig.descriptorType;
     setWrite.pImageInfo = &imageInfo;
 }
+
+
+void ImageArrayBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
+    VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
+    std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) {
+    
+}
