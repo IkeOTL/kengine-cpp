@@ -732,6 +732,8 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
         {
             ZoneScopedN("RenderContext::deferredPass - Record Draw Cmds");
             
+            terrainContext->draw(vkContext, rpCxt, descSetAllocator);
+
             // move to secondary cmdbuf?
             for (int i = 0; i < staticBatches; i++) {
                 auto& batch = staticBatchCache[i];

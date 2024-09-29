@@ -30,7 +30,7 @@ public:
 
     void init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators);
 
-    void resetDrawBuf();
+    void resetDrawBuf(uint32_t frameIdx);
 
     //const glm::vec4& getChunkBoundingSphere();
     const glm::vec4 getChunkBoundingSphere();
@@ -42,6 +42,9 @@ public:
         return drawIndirectCmdBuf;
     }
 
-    void draw(RenderPassContext& rpCtx);
+    static const size_t terrainDataBufAlignedFrameSize(VulkanContext& vkCxt);
+    static const size_t drawInstanceBufAlignedFrameSize(VulkanContext& vkCxt);
+
+    void draw(VulkanContext& vkCxt, RenderPassContext& rpCtx, DescriptorSetAllocator& descSetAllocator);
     void cull(RenderPassContext& rpCtx);
 };

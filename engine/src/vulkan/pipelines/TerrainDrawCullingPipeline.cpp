@@ -10,8 +10,8 @@ void TerrainDrawCullingPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocat
     auto set0 = descSetAllocator.getGlobalDescriptorSet("terrain-deferred-culling", cullingLayout);
 
     uint32_t dynamicOffsets[] = {
-        frameIndex * sizeof(VkDrawIndexedIndirectCommand),
-        frameIndex * TerrainContext::MAX_CHUNKS * sizeof(uint32_t)
+        frameIndex * vkCxt.alignSsboFrame(sizeof(VkDrawIndexedIndirectCommand)),
+        frameIndex * TerrainContext::drawInstanceBufAlignedFrameSize(vkCxt)
     };
 
     vkCmdBindDescriptorSets(

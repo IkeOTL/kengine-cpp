@@ -15,14 +15,15 @@ void TerrainDeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorS
 
     VkDescriptorSet descriptorSets[] = {
        descSetAllocator.getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
-       descSetAllocator.getGlobalDescriptorSet("terrain-deferred-gbuffer", TerrainDeferredOffscreenPbrPipeline::objectLayout)
+       descSetAllocator.getGlobalDescriptorSet("terrain-deferred-gbuffer", TerrainDeferredOffscreenPbrPipeline::objectLayout),
+       descSetAllocator.getGlobalDescriptorSet("terrain-pbr", TerrainDeferredOffscreenPbrPipeline::pbrTextureLayout)
     };
 
     // TODO: check alignments
     uint32_t dynamicOffsets[] = {
         frameIndex * SceneData::alignedFrameSize(vkCxt),
-        frameIndex * TerrainContext::MAX_TILES * sizeof(uint32_t),
-        frameIndex * TerrainContext::MAX_CHUNKS * sizeof(uint32_t),
+        frameIndex * TerrainContext::terrainDataBufAlignedFrameSize(vkCxt),
+        frameIndex * TerrainContext::drawInstanceBufAlignedFrameSize(vkCxt),
         frameIndex * MaterialsBuffer::alignedFrameSize(vkCxt)
     };
 
@@ -32,7 +33,7 @@ void TerrainDeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorS
         VK_PIPELINE_BIND_POINT_GRAPHICS,
         getVkPipelineLayout(),
         0,
-        2, descriptorSets,
+        3, descriptorSets,
         4, dynamicOffsets
     );
 }

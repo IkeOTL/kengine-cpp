@@ -140,7 +140,7 @@ void RenderSystem::init() {
                 // need to profile if static batches are even worth it.
                 // since the drawcmd is always sent for them. the ebefit is that
                 // the mat and other details dont have to be uploaded again
-                auto sIdx = renderCtx->startStaticBatch();
+               /* auto sIdx = renderCtx->startStaticBatch();
                 {
                     auto modelTask = modelCache->getAsync(chunk.getModelConfig());
                     auto materialTask = materialCache->getAsync(matConfig);
@@ -157,7 +157,7 @@ void RenderSystem::init() {
                         model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
                     );
                 }
-                renderCtx->endStaticBatch(sIdx);
+                renderCtx->endStaticBatch(sIdx);*/
             }
         }
     }

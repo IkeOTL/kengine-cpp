@@ -110,7 +110,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
         // terrain culling
         if (terrainContext) {
             // precull            
-            terrainContext->resetDrawBuf();
+            terrainContext->resetDrawBuf(frameIdx);
 
             {
                 auto localSizeX = 32; // must match compute shader
