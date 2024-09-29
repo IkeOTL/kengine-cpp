@@ -9,6 +9,7 @@
 #include <typeindex>
 #include <utility>
 #include <functional>
+#include <span>
 
 class MaterialConfig : Hashable {
 private:
@@ -43,7 +44,7 @@ public:
 
     void addImageBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, const TextureConfig& config);
 
-    void addImageArrayBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, const std::vector<TextureConfig>& configs);
+    void addImageArrayBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, const std::span<TextureConfig> configs);
 
     void addBufferBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, GpuBufferId bufferId);
 
@@ -66,7 +67,7 @@ public:
         this->_hasSkeleton = hasSkeleton;
         return *this;
     }
-    virtual void upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) = 0;
+    virtual void upload(VulkanContext& vkCxt, const CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) = 0;
 
     virtual size_t hash() const noexcept = 0;
 

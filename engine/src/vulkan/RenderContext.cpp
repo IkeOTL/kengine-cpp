@@ -21,7 +21,7 @@
 #include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/mesh/MeshBuilder.hpp>
 
-void RenderContext::init() {
+void RenderContext::init(TerrainContext* terrainContext) {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto ptr = std::make_unique<DescriptorSetAllocator>(vkContext.getVkDevice(), vkContext.getDescSetLayoutCache());
         ptr->init();
@@ -34,16 +34,15 @@ void RenderContext::init() {
     initBuffers();
     initDescriptors();
 
-    // TODO: MOVE
-    {
-        terrainContext = std::make_unique<TerrainContext>(*materialsBuf);
-        terrainContext->init(vkContext, descSetAllocators);
-    }
+    // move?
+    this->terrainContext = terrainContext;
+    terrainContext->setMaterialBuf(materialsBuf);
+    terrainContext->init(vkContext, descSetAllocators);
 
     cullContext = std::make_unique<CullContext>(*indirectCmdBuf, *objectInstanceBuf,
         *drawObjectBuf, *drawInstanceBuffer);
     cullContext->init(vkContext, descSetAllocators);
-    cullContext->setTerrainContext(terrainContext.get());
+    cullContext->setTerrainContext(terrainContext);
 
 
     auto& bufCache = vkContext.getGpuBufferCache();
@@ -731,7 +730,7 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
         // subpass 1
         {
             ZoneScopedN("RenderContext::deferredPass - Record Draw Cmds");
-            
+
             terrainContext->draw(vkContext, rpCxt, descSetAllocator);
 
             // move to secondary cmdbuf?

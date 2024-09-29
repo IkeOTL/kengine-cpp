@@ -5,13 +5,13 @@
 
 #include <future>
 
-void TerrainPbrMaterialConfig::upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) {
+void TerrainPbrMaterialConfig::upload(VulkanContext& vkCxt, const CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) {
     auto mat = PbrMaterialData{
         albedoFactor,
         emissiveFactor,
         metallicFactor,
         roughnessFactor,
-        0
+        textureSetFlags
     };
 
     auto pos = gpuBuffer.getFrameOffset(frameIndex) + materialId * sizeof(PbrMaterialData);
@@ -24,38 +24,44 @@ size_t TerrainPbrMaterialConfig::hash() const noexcept {
     size_t hash = 3;
     hash = prime * hash + vecutils::hashCode(albedoFactor);
     hash = prime * hash + vecutils::hashCode(emissiveFactor);
-    hash = prime * hash + albedoTextureSet;
-    hash = prime * hash + metallicRoughnessTextureSet;
-    hash = prime * hash + normalTextureSet;
-    hash = prime * hash + occlusionTextureSet;
-    hash = prime * hash + emissiveTextureSet;
     hash = prime * hash + static_cast<std::size_t>(std::bit_cast<int>(metallicFactor));
     hash = prime * hash + static_cast<std::size_t>(std::bit_cast<int>(roughnessFactor));
+    hash = prime * hash + textureSetFlags;
     return hash;
 }
 
-TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addAlbedoTexture(TextureConfig* config) {
-  
+TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addAlbedoTextures(const std::initializer_list<TextureConfig> configs) {
+    assert(configs.size() > 0);
+    std::vector<TextureConfig> configVec(configs);
+    addImageArrayBinding(2, 0, configVec);
     return *this;
 }
 
-TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addNormalsTexture(TextureConfig* config) {
-  
+TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addNormalsTextures(const std::initializer_list<TextureConfig> configs) {
+    assert(configs.size() > 0);
+    std::vector<TextureConfig> configVec(configs);
+    addImageArrayBinding(2, 1, configVec);
     return *this;
 }
 
-TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addMetallicRoughnessTexture(TextureConfig* config) {
- 
+TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addMetallicRoughnessTextures(const std::initializer_list<TextureConfig> configs) {
+    assert(configs.size() > 0);
+    std::vector<TextureConfig> configVec(configs);
+    addImageArrayBinding(2, 2, configVec);
     return *this;
 }
 
-TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addAmbientOcclusionTexture(TextureConfig* config) {
-  
+TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addAmbientOcclusionTextures(const std::initializer_list<TextureConfig> configs) {
+    assert(configs.size() > 0);
+    std::vector<TextureConfig> configVec(configs);
+    addImageArrayBinding(2, 3, configVec);
     return *this;
 }
 
-TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addEmissiveTexture(TextureConfig* config) {
-   
+TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addEmissiveTextures(const std::initializer_list<TextureConfig> configs) {
+    assert(configs.size() > 0);
+    std::vector<TextureConfig> configVec(configs);
+    addImageArrayBinding(2, 4, configVec);
     return *this;
 }
 

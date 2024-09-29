@@ -63,7 +63,7 @@ public:
         return std::make_shared<PbrMaterialConfig>(skeletonBufferId);
     }
 
-    void upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) override;
+    void upload(VulkanContext& vkCxt, const CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) override;
     size_t hash() const noexcept override;
 
     void addSkeleton(int skeletonBufferId) override;

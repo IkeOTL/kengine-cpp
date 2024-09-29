@@ -32,7 +32,7 @@ public:
 
     const MaterialBinding& getBinding(int descSetIdx, int bindingIdx) const;
     void addBinding(std::unique_ptr<MaterialBinding>&& binding);
-    void upload(VulkanContext& vkCxt, CachedGpuBuffer& buf, int frameIdx) const;
+    void upload(VulkanContext& vkCxt, const CachedGpuBuffer& buf, int frameIdx) const;
     void bindPipeline(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) const;
     void bindMaterial(VulkanContext& cxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) const;
 };

@@ -39,7 +39,7 @@ private:
 
     std::unique_ptr<CullContext> cullContext;
     std::unique_ptr<ShadowContext> shadowContext;
-    std::unique_ptr<TerrainContext> terrainContext;
+    TerrainContext* terrainContext = nullptr;
     CameraController& cameraController;
     LightsManager& lightsManager;
 
@@ -108,7 +108,7 @@ public:
         return std::make_unique<RenderContext>(vkCtx, lightsManager, cameraController);
     }
 
-    void init();
+    void init(TerrainContext* terrainContext);
 
 #ifdef KE_DEBUG_RENDER
     void drawDebug(const glm::mat4& transform, const glm::vec4& color);

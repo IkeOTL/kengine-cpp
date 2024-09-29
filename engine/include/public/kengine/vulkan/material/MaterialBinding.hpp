@@ -24,7 +24,7 @@ public:
 
     virtual void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
         VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
-        std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) = 0;
+        std::vector<std::vector<VkDescriptorBufferInfo>>& pBufferInfos, std::vector<std::vector<VkDescriptorImageInfo>>& pImageInfos, std::vector<uint32_t>& offsets) = 0;
 };
 
 class BufferBinding : public MaterialBinding {
@@ -41,7 +41,7 @@ public:
 
     void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
         VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
-        std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) override;
+        std::vector<std::vector<VkDescriptorBufferInfo>>& pBufferInfos, std::vector<std::vector<VkDescriptorImageInfo>>& pImageInfos, std::vector<uint32_t>& offsets) override;
 };
 
 class ImageBinding : public MaterialBinding {
@@ -58,7 +58,7 @@ public:
 
     void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
         VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
-        std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) override;
+        std::vector<std::vector<VkDescriptorBufferInfo>>& pBufferInfos, std::vector<std::vector<VkDescriptorImageInfo>>& pImageInfos, std::vector<uint32_t>& offsets) override;
 };
 
 
@@ -76,5 +76,5 @@ public:
 
     void apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
         VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
-        std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) override;
+        std::vector<std::vector<VkDescriptorBufferInfo>>& pBufferInfos, std::vector<std::vector<VkDescriptorImageInfo>>& pImageInfos, std::vector<uint32_t>& offsets) override;
 };

@@ -6,6 +6,10 @@
 #include <kengine/vulkan/renderpass/RenderPass.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/pipelines/TerrainDrawCullingPipeline.hpp>
+#include <kengine/vulkan/texture/TextureConfig.hpp>
+#include <kengine/vulkan/material/TerrainPbrMaterialConfig.hpp>
+#include <kengine/vulkan/material/AsyncMaterialCache.hpp>
+#include <kengine/vulkan/material/Material.hpp>
 
 
 const size_t TerrainContext::terrainDataBufAlignedFrameSize(VulkanContext& vkCxt) {
@@ -23,12 +27,14 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 
     terrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
 
-    /*auto matConfig = PbrMaterialConfig::create();
+    auto matConfig = TerrainPbrMaterialConfig::create();
     TextureConfig textureConfig("img/poke-tileset.png");
     matConfig->setHasShadow(false);
-    matConfig->addAlbedoTexture(&textureConfig);
+    matConfig->addAlbedoTextures({ textureConfig });
     matConfig->setMetallicFactor(0.0f);
-    matConfig->setRoughnessFactor(0.5f);*/
+    matConfig->setRoughnessFactor(0.5f);
+
+    material = &materialCache.get(matConfig);
 
     auto& bufCache = vkCxt.getGpuBufferCache();
 
@@ -38,9 +44,6 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 
     //chunkIndicesBuf;
     {
-        auto chunkWidth = 64;
-        auto chunkLength = 64;
-
         std::vector<uint32_t> indices;
 
         /*
@@ -51,8 +54,8 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
            1----2    2  1---2
          */
         uint32_t curVert = 0;
-        for (int z = 0; z < chunkLength; z++) {
-            for (int x = 0; x < chunkWidth; x++) {
+        for (int z = 0; z < terrain->getChunkLength(); z++) {
+            for (int x = 0; x < terrain->getChunkWidth(); x++) {
                 auto i0 = curVert++;
                 auto i1 = curVert++;
                 auto i2 = curVert++;
@@ -68,6 +71,23 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
             }
         }
 
+        // probably change to a device only buffer?
+        {
+            drawIndirectCmdBuf = &bufCache.createHostMapped(
+                sizeof(VkDrawIndexedIndirectCommand),
+                VulkanContext::FRAME_OVERLAP,
+                VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                VMA_MEMORY_USAGE_AUTO,
+                xferFlags);
+
+            VkDrawIndexedIndirectCommand cmd{};
+            cmd.indexCount = indices.size();
+
+            auto cmdBuf = static_cast<VkDrawIndexedIndirectCommand*>(drawIndirectCmdBuf->getGpuBuffer().data());
+            for (auto i = 0; i < VulkanContext::FRAME_OVERLAP; i++)
+                memcpy(cmdBuf + i, &cmd, sizeof(VkDrawIndexedIndirectCommand));
+        }
+
         auto idxBuffer = std::make_unique<IndexBuffer>(indices);
         vkCxt.uploadBuffer(*idxBuffer,
             VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR, VK_ACCESS_2_INDEX_READ_BIT,
@@ -75,18 +95,6 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 
         chunkIndicesBuf = std::move(idxBuffer->releaseBuffer());
     }
-
-    // probably change to a device only buffer?
-    drawIndirectCmdBuf = &bufCache.createHostMapped(
-        sizeof(VkDrawIndexedIndirectCommand),
-        VulkanContext::FRAME_OVERLAP,
-        VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-        VMA_MEMORY_USAGE_AUTO,
-        xferFlags);
-    VkDrawIndexedIndirectCommand cmd{};
-    auto cmdBuf = static_cast<VkDrawIndexedIndirectCommand*>(drawIndirectCmdBuf->getGpuBuffer().data());
-    for (auto i = 0; i < VulkanContext::FRAME_OVERLAP; i++)
-        memcpy(cmdBuf + i, &cmd, sizeof(VkDrawIndexedIndirectCommand));
 
     // probably change to a device only buffer?
     terrainDataBuf = &bufCache.createHostMapped(
@@ -154,7 +162,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
             pushBuf(
                 deferredDescriptorSet,
                 TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(2),
-                &materialsBuf
+                materialsBuf
             );
         }
 
@@ -190,7 +198,7 @@ void TerrainContext::resetDrawBuf(uint32_t frameIdx) {
 //const glm::vec4& TerrainContext::getChunkBoundingSphere() {
 const glm::vec4 TerrainContext::getChunkBoundingSphere() {
     glm::vec3 offset = glm::vec3{ terrain->getChunkWidth() * 0.5f, 0, terrain->getChunkLength() * 0.5f };
-    float radius = glm::length(offset);
+    float radius = 2;
     return glm::vec4{ offset, radius };
 }
 
@@ -201,23 +209,28 @@ const glm::uvec2 TerrainContext::getChunkCount() {
 }
 
 const glm::uvec2 TerrainContext::getChunkDimensions() {
-    return glm::uvec2{ terrain->getChunkWidth() ,terrain->getChunkLength() };
+    return glm::uvec2{ terrain->getChunkWidth(), terrain->getChunkLength() };
 }
 
 const glm::vec2 TerrainContext::getWorldOffset() {
-    return glm::uvec2{ terrain->getWorldOffsetX() ,terrain->getWorldOffsetZ() };
+    return glm::vec2{ terrain->getWorldOffsetX() ,terrain->getWorldOffsetZ() };
 }
 void TerrainContext::draw(VulkanContext& vkCxt, RenderPassContext& rpCtx, DescriptorSetAllocator& descSetAllocator) {
+    auto& pl = vkCxt.getPipelineCache().getPipeline<TerrainDeferredOffscreenPbrPipeline>();
+    //pl.bind(vkCxt, descSetAllocator, rpCtx.cmd, rpCtx.renderTargetIndex);
+
+    material->upload(vkCxt, *materialsBuf, rpCtx.renderTargetIndex);
+    material->bindPipeline(vkCxt, descSetAllocator, rpCtx.cmd, rpCtx.renderTargetIndex);
+    material->bindMaterial(vkCxt, descSetAllocator, rpCtx.cmd, rpCtx.renderTargetIndex);
+
     auto pc = TerrainDeferredOffscreenPbrPipeline::PushConstant{};
     pc.chunkDimensions = getChunkDimensions();
     pc.chunkCount = getChunkCount();
     pc.tilesheetDimensions = glm::uvec2{ 96, 80 };
     pc.tileDimensions = glm::uvec2{ 16, 16 };
-    pc.materialIds = glm::uvec4{ 0 };
+    pc.materialIds = glm::uvec4{ material->getId() };
     pc.worldOffset = getWorldOffset();
 
-    auto& pl = vkCxt.getPipelineCache().getPipeline<TerrainDeferredOffscreenPbrPipeline>();
-    pl.bind(vkCxt, descSetAllocator, rpCtx.cmd, rpCtx.renderTargetIndex);
     vkCmdPushConstants(rpCtx.cmd, pl.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(TerrainDeferredOffscreenPbrPipeline::PushConstant), &pc);
 
     vkCmdBindIndexBuffer(rpCtx.cmd, chunkIndicesBuf->vkBuffer, 0, VK_INDEX_TYPE_UINT32);

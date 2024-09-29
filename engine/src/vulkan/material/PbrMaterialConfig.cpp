@@ -24,7 +24,7 @@ PbrMaterialConfig::PbrMaterialConfig(std::type_index type) :
     addEmissiveTexture(nullptr);
 }
 
-void PbrMaterialConfig::upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) {
+void PbrMaterialConfig::upload(VulkanContext& vkCxt, const CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) {
     auto mat = PbrMaterialData{
         albedoFactor,
         emissiveFactor,

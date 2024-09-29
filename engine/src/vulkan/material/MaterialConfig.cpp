@@ -12,7 +12,7 @@ void MaterialConfig::addBufferBinding(uint32_t descriptorSetIndex, uint32_t bind
     bindingConfigs[std::make_pair(descriptorSetIndex, bindingIndex)] = ptr;
 }
 
-void MaterialConfig::addImageArrayBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, const std::vector<TextureConfig>& configs) {
+void MaterialConfig::addImageArrayBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, const std::span<TextureConfig> configs) {
     std::vector<std::shared_ptr<TextureConfig>> outConfigs(configs.size());
     for (auto i = 0; i < configs.size(); i++)
         outConfigs[i] = std::make_shared<TextureConfig>(configs[i]);
@@ -26,6 +26,8 @@ void MaterialConfig::addSkeleton(int skeletonBufferId)
 }
 
 size_t MaterialConfig::hashCode() const noexcept {
+    ZoneScoped;
+
     size_t hash = 5;
     size_t prime = 53;
     hash = prime * hash + pipelineTypeIndex.hash_code();

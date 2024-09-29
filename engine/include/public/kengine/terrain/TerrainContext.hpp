@@ -10,6 +10,8 @@ class VulkanContext;
 class CameraController;
 class RenderPassContext;
 class CachedGpuBuffer;
+class AsyncMaterialCache;
+class Material;
 
 class TerrainContext {
 private:
@@ -17,18 +19,25 @@ private:
     CachedGpuBuffer* drawIndirectCmdBuf = nullptr;
     CachedGpuBuffer* terrainDataBuf = nullptr;
     CachedGpuBuffer* drawInstanceBuf = nullptr;
-    CachedGpuBuffer& materialsBuf;
+    CachedGpuBuffer* materialsBuf = nullptr;
 
-    std::unique_ptr<TileTerrain> terrain = nullptr;
+    AsyncMaterialCache& materialCache;
+    Material* material = nullptr;
+
+    std::unique_ptr<TileTerrain> terrain;
 
 public:
     inline static const int MAX_TILES = 1024 * 1024;
     inline static const int MAX_CHUNKS = 64 * 64;
 
-    TerrainContext(CachedGpuBuffer& materialsBuf)
-        : materialsBuf(materialsBuf) {}
+    TerrainContext(AsyncMaterialCache& materialCache)
+        : materialCache(materialCache) {}
 
     void init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators);
+
+    void setMaterialBuf(CachedGpuBuffer* buf) {
+        materialsBuf = buf;
+    }
 
     void resetDrawBuf(uint32_t frameIdx);
 

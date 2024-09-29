@@ -120,7 +120,7 @@ void RenderSystem::init() {
             for (int x = 0; x < tileTerrain->getChunkCountX(); x++) {
                 auto& chunk = tileTerrain->getChunk(x, z);
 
-                auto entity = ecs->create();
+                /*auto entity = ecs->create();
                 auto& renderable = ecs->emplace<Component::Renderable>(entity);
                 renderable.setStatic();
 
@@ -135,7 +135,7 @@ void RenderSystem::init() {
 
                 auto& material = ecs->emplace<Component::Material>(entity, matConfig);
                 auto& model = ecs->emplace<Component::ModelComponent>(entity);
-                model.config = chunk.getModelConfig();
+                model.config = chunk.getModelConfig();*/
 
                 // need to profile if static batches are even worth it.
                 // since the drawcmd is always sent for them. the ebefit is that

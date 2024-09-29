@@ -99,8 +99,11 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
     imGuiContext->init(*window);
 
+
+    terrainContext = std::make_unique<TerrainContext>(*materialCache);
+
     renderContext = RenderContext::create(*vulkanCxt, *lightsManager, *cameraController);
-    renderContext->init();
+    renderContext->init(terrainContext.get());
     renderContext->setImGuiContext(imGuiContext.get());
 
     auto config = AnimationConfig::create("gltf/char01.glb", "Run00");

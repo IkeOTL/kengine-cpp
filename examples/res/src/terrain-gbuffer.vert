@@ -47,10 +47,11 @@ void main() {
         chunkLocalPos.z * pcs.chunkDimensions.y + pcs.worldOffset.y
     );
 
+    uint tileId = gl_VertexIndex / 4;
     vec3 vertPos = vec3(
-        float(gl_VertexIndex % pcs.chunkDimensions.x),
+        float(tileId % pcs.chunkDimensions.x),
         0.0,
-        float(gl_VertexIndex / pcs.chunkDimensions.x)
+        float(tileId / pcs.chunkDimensions.x)
     );
 
     uint tileCorner = gl_VertexIndex % 4;
@@ -68,7 +69,6 @@ void main() {
     // Vertex position in world space
     outWorldPos = vertPos;
 
-    uint tileId = gl_VertexIndex / 4;
     uint tileData = terrainDataBuffer.packetData[tileId];
     uint tileInSheetId = (tileData >> 3) & 0xFFF;
 
