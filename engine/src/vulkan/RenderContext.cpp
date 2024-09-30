@@ -591,6 +591,7 @@ int RenderContext::draw(const Mesh& mesh, const Material& material, const glm::m
 }
 
 void RenderContext::begin(RenderFrameContext& frameCxt, float sceneTime, float alpha) {
+    ZoneScoped;
     this->frameCxt = &frameCxt;
     this->sceneTime = sceneTime;
     this->alpha = alpha;

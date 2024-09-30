@@ -105,6 +105,7 @@ uint32_t VulkanContext::acquireImage(uint32_t& pImageIndex) {
 }
 
 std::unique_ptr<RenderFrameContext> VulkanContext::createNextFrameContext() {
+    ZoneScoped;
     uint32_t pImageIndex;
     auto idx = acquireImage(pImageIndex);
     auto cmd = frameCmdBufs[pImageIndex]->vkCmdBuf;

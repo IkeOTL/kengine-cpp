@@ -34,6 +34,7 @@ TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addAlbedoTextures(const std:
     assert(configs.size() > 0);
     std::vector<TextureConfig> configVec(configs);
     addImageArrayBinding(2, 0, configVec);
+    textureSetFlags |= TextureSetFlag::ALBEDO_TEXTURE_SET;
     return *this;
 }
 
@@ -41,6 +42,7 @@ TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addNormalsTextures(const std
     assert(configs.size() > 0);
     std::vector<TextureConfig> configVec(configs);
     addImageArrayBinding(2, 1, configVec);
+    textureSetFlags |= TextureSetFlag::NORMAL_TEXTURE_SET;
     return *this;
 }
 
@@ -48,6 +50,7 @@ TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addMetallicRoughnessTextures
     assert(configs.size() > 0);
     std::vector<TextureConfig> configVec(configs);
     addImageArrayBinding(2, 2, configVec);
+    textureSetFlags |= TextureSetFlag::METALLIC_ROUGHNESS_SET;
     return *this;
 }
 
@@ -55,6 +58,7 @@ TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addAmbientOcclusionTextures(
     assert(configs.size() > 0);
     std::vector<TextureConfig> configVec(configs);
     addImageArrayBinding(2, 3, configVec);
+    textureSetFlags |= TextureSetFlag::OCCLUSION_TEXTURE_SET;
     return *this;
 }
 
@@ -62,6 +66,7 @@ TerrainPbrMaterialConfig& TerrainPbrMaterialConfig::addEmissiveTextures(const st
     assert(configs.size() > 0);
     std::vector<TextureConfig> configVec(configs);
     addImageArrayBinding(2, 4, configVec);
+    textureSetFlags |= TextureSetFlag::EMISSIVE_TEXTURE_SET;
     return *this;
 }
 

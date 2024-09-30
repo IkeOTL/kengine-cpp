@@ -34,17 +34,11 @@ out gl_PerVertex
 
 void main() {
     uint chunkId = drawInstanceBuffer.instanceIds[gl_InstanceIndex];
-
-    vec3 chunkLocalPos = vec3(
-        float(chunkId % pcs.chunkCount.x),
-        0.0,
-        float(chunkId / pcs.chunkCount.x)
-    );
     
     vec3 chunkWorldPos = vec3(
-        chunkLocalPos.x * pcs.chunkDimensions.x + pcs.worldOffset.x,
+        float(chunkId % pcs.chunkCount.x) * pcs.chunkDimensions.x + pcs.worldOffset.x,
         0.0,
-        chunkLocalPos.z * pcs.chunkDimensions.y + pcs.worldOffset.y
+        float(chunkId / pcs.chunkCount.x) * pcs.chunkDimensions.y + pcs.worldOffset.y
     );
 
     uint tileId = gl_VertexIndex / 4;

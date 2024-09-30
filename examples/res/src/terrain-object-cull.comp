@@ -2,12 +2,17 @@
 
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
-layout(std430, set = 0, binding = 0) buffer DrawCommandBuffer {
+struct DrawCommand
+{
     uint indexCount;
     uint instanceCount;
     uint firstIndex;
     uint vertexOffset;
     uint firstInstance;
+};
+
+layout(std430, set = 0, binding = 0) buffer DrawCommandBuffer {
+    DrawCommand cmd;
 } drawCommandBuffer;
 
 // contains all instances to be rendered AFTER culling and their ids
@@ -25,17 +30,11 @@ layout(push_constant) uniform PushConstants {
 } pcs;
 
 bool isVisible(uint chunkId)
-{
-    vec3 chunkLocalPos = vec3(
-        float(chunkId % pcs.chunkCount.x),
-        0.0,
-        float(chunkId / pcs.chunkCount.x)
-    );
-    
+{    
     vec3 chunkWorldPos = vec3(
-        chunkLocalPos.x * pcs.chunkDimensions.x + pcs.worldOffset.x,
+        float(chunkId % pcs.chunkCount.x) * pcs.chunkDimensions.x + pcs.worldOffset.x,
         0.0,
-        chunkLocalPos.z * pcs.chunkDimensions.y + pcs.worldOffset.y
+        float(chunkId / pcs.chunkCount.x) * pcs.chunkDimensions.y + pcs.worldOffset.y
     );
 
     vec3 sphereBoundsPos = pcs.sphereBounds.xyz + chunkWorldPos;
@@ -61,8 +60,8 @@ void main() {
     if (!isVisible(chunkId))
         return;
 
-    uint relativeId = atomicAdd(drawCommandBuffer.instanceCount, 1);
-    uint instanceIdx = drawCommandBuffer.firstInstance + relativeId;
+    uint relativeId = atomicAdd(drawCommandBuffer.cmd.instanceCount, 1);
+    uint instanceIdx = drawCommandBuffer.cmd.firstInstance + relativeId;
 
     drawInstanceBuffer.instanceIds[instanceIdx] = chunkId;
 }

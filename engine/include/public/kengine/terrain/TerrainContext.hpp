@@ -55,5 +55,4 @@ public:
     static const size_t drawInstanceBufAlignedFrameSize(VulkanContext& vkCxt);
 
     void draw(VulkanContext& vkCxt, RenderPassContext& rpCtx, DescriptorSetAllocator& descSetAllocator);
-    void cull(RenderPassContext& rpCtx);
 };
