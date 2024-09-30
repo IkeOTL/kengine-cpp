@@ -14,14 +14,11 @@ private:
     std::vector<uint32_t>& indices;
 
 public:
-    IndexBuffer(std::vector<uint32_t>& indices) : indices(indices) {}
+    IndexBuffer(std::vector<uint32_t>& indices)
+        : GpuUploadable(sizeof(uint32_t)* indices.size()), indices(indices) {}
 
-    void upload(VulkanContext& vkCxt, void* data) override {
+    void upload(VulkanContext& vkCxt, std::vector<uint32_t>& indices, void* data) override {
         memcpy(data, indices.data(), size());
-    }
-
-    VkDeviceSize size() override {
-        return sizeof(uint32_t) * indices.size();
     }
 };
 
@@ -33,14 +30,11 @@ private:
     std::vector<V>& vertices;
 
 public:
-    VertexBuffer(std::vector<V>& vertices) : vertices(vertices) {}
+    VertexBuffer(std::vector<V>& vertices) 
+        : GpuUploadable(V::sizeOf()* vertices.size()), vertices(vertices) {}
 
     void upload(VulkanContext& vkCxt, void* data) override {
         memcpy(data, vertices.data(), size());
-    }
-
-    VkDeviceSize VertexBuffer::size() override {
-        return V::sizeOf() * vertices.size();
     }
 };
 

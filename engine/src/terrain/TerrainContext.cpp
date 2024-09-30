@@ -40,7 +40,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 
     auto xferFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
         //| VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT
-        | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+        | VMA_ALLOCATION_CREATE_MAPPED_BIT; // mapping shoudl be needed for device only buffer
 
     //chunkIndicesBuf;
     {
@@ -90,12 +90,17 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
             }
         }
 
-        auto idxBuffer = std::make_unique<IndexBuffer>(indices);
-        vkCxt.uploadBuffer(*idxBuffer,
-            VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR, VK_ACCESS_2_INDEX_READ_BIT,
-            VK_BUFFER_USAGE_INDEX_BUFFER_BIT, xferFlags, nullptr);
-
-        chunkIndicesBuf = std::move(idxBuffer->releaseBuffer());
+        chunkIndicesBuf = vkCxt.uploadBuffer(
+            [&indices](VulkanContext& vkCxt, void* data) {
+                memcpy(data, indices.data(), indices.size() * sizeof(uint32_t));
+            },
+            indices.size() * sizeof(uint32_t),
+            VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR,
+            VK_ACCESS_2_INDEX_READ_BIT,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            xferFlags,
+            nullptr
+        );
     }
 
     // probably change to a device only buffer?
@@ -189,11 +194,11 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 }
 
 void TerrainContext::resetDrawBuf(uint32_t frameIdx) {
-   /* assert(frameIdx >= 0 && frameIdx <= VulkanContext::FRAME_OVERLAP);
-    auto cmd = reinterpret_cast<VkDrawIndexedIndirectCommand*>(
-        reinterpret_cast<char*>(drawIndirectCmdBuf->getGpuBuffer().data())
-        + drawIndirectCmdBuf->getFrameOffset(frameIdx));
-    cmd->instanceCount = 0;*/
+    /* assert(frameIdx >= 0 && frameIdx <= VulkanContext::FRAME_OVERLAP);
+     auto cmd = reinterpret_cast<VkDrawIndexedIndirectCommand*>(
+         reinterpret_cast<char*>(drawIndirectCmdBuf->getGpuBuffer().data())
+         + drawIndirectCmdBuf->getFrameOffset(frameIdx));
+     cmd->instanceCount = 0;*/
 }
 
 // TODO: optimize this change to ref once we have it calced once

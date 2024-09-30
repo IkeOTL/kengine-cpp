@@ -132,10 +132,10 @@ public:
     VkDeviceSize alignUboFrame(VkDeviceSize baseFrameSize) const;
     VkDeviceSize alignSsboFrame(VkDeviceSize baseFrameSize) const;
 
-    void uploadBuffer(GpuUploadable& obj, VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask,
-        VkBufferUsageFlags usageFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
-    void uploadBuffer(GpuUploadable& obj, VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask,
-        VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
+    std::unique_ptr<GpuBuffer> uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
+        VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, VkBufferUsageFlags usageFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
+    std::unique_ptr<GpuBuffer> uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
+        VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
 
     void recordAndSubmitTransferCmdBuf(CommandBufferRecordFunc func, bool awaitFence);
 
