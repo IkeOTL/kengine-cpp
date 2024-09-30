@@ -41,8 +41,8 @@ void RenderContext::init(TerrainContext* terrainContext) {
 
     cullContext = std::make_unique<CullContext>(*indirectCmdBuf, *objectInstanceBuf,
         *drawObjectBuf, *drawInstanceBuffer);
-    cullContext->init(vkContext, descSetAllocators);
     cullContext->setTerrainContext(terrainContext);
+    cullContext->init(vkContext, descSetAllocators);
 
 
     auto& bufCache = vkContext.getGpuBufferCache();

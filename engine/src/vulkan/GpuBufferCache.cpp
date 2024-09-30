@@ -48,3 +48,21 @@ CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, uint32_t frameCo
 
     return *(cache[newId]);
 }
+
+CachedGpuBuffer& GpuBufferCache::upload(GpuUploadable& uploadable, VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
+    VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
+
+    vkContext.uploadBuffer(uploadable,
+        dstStageMask, dstAccessMask,
+        usageFlags, allocFlags, nullptr);
+
+    auto newId = runningId.fetch_add(1);
+    auto buf = std::make_unique<CachedGpuBuffer>(newId, std::move(uploadable.releaseBuffer()), framesize, framevount);
+
+    {
+        std::unique_lock<std::shared_mutex> lock(this->mtx);
+        cache[newId] = std::move(buf);
+    }
+
+    return *(cache[newId]);
+}

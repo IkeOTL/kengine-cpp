@@ -2,6 +2,7 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/Mesh.hpp>
 #include <kengine/vulkan/mesh/Vertex.hpp>
+#include <kengine/vulkan/GpuUploadable.hpp>
 #include <vector>
 #include <memory>
 

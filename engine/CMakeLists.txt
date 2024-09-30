@@ -74,6 +74,7 @@ set(HEADERS
     include/public/kengine/vulkan/Swapchain.hpp
     include/public/kengine/vulkan/CommandBuffer.hpp
     include/public/kengine/vulkan/GpuBufferCache.hpp
+    include/public/kengine/vulkan/GpuUploadable.hpp
     include/public/kengine/vulkan/CommandPool.hpp
     include/public/kengine/vulkan/QueueOwnerTransfer.hpp
     include/public/kengine/vulkan/Camera.hpp
@@ -125,6 +126,7 @@ set(HEADERS
     include/public/kengine/vulkan/pipelines/SkinnedOffscreenPbrPipeline.hpp
     include/public/kengine/vulkan/pipelines/TerrainDeferredOffscreenPbrPipeline.hpp
     include/public/kengine/vulkan/pipelines/PreDrawCullingPipeline.hpp
+    include/public/kengine/vulkan/pipelines/TerrainPreDrawCullingPipeline.hpp
     include/public/kengine/vulkan/pipelines/DrawCullingPipeline.hpp
     include/public/kengine/vulkan/pipelines/TerrainDrawCullingPipeline.hpp
     include/public/kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp
@@ -222,6 +224,7 @@ set(SOURCES
     src/vulkan/pipelines/SkinnedOffscreenPbrPipeline.cpp
     src/vulkan/pipelines/TerrainDeferredOffscreenPbrPipeline.cpp
     src/vulkan/pipelines/PreDrawCullingPipeline.cpp
+    src/vulkan/pipelines/TerrainPreDrawCullingPipeline.cpp
     src/vulkan/pipelines/DrawCullingPipeline.cpp
     src/vulkan/pipelines/TerrainDrawCullingPipeline.cpp
     src/vulkan/pipelines/CascadeShadowMapPipeline.cpp

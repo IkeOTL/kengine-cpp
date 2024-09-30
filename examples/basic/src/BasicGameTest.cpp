@@ -28,6 +28,7 @@
 #include <kengine/vulkan/pipelines/PreDrawCullingPipeline.hpp>
 #include <kengine/vulkan/pipelines/TerrainDrawCullingPipeline.hpp>
 #include <kengine/vulkan/pipelines/TerrainDeferredOffscreenPbrPipeline.hpp>
+#include <kengine/vulkan/pipelines/TerrainPreDrawCullingPipeline.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -177,6 +178,9 @@ void BasicGameTest::initVulkan() {
                 .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
             // terrain
+            pc->createPipeline<TerrainPreDrawCullingPipeline>()
+                .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
+
             pc->createPipeline<TerrainDrawCullingPipeline>()
                 .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
 

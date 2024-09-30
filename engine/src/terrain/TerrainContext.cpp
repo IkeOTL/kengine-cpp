@@ -189,11 +189,11 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 }
 
 void TerrainContext::resetDrawBuf(uint32_t frameIdx) {
-    assert(frameIdx >= 0 && frameIdx <= VulkanContext::FRAME_OVERLAP);
+   /* assert(frameIdx >= 0 && frameIdx <= VulkanContext::FRAME_OVERLAP);
     auto cmd = reinterpret_cast<VkDrawIndexedIndirectCommand*>(
         reinterpret_cast<char*>(drawIndirectCmdBuf->getGpuBuffer().data())
         + drawIndirectCmdBuf->getFrameOffset(frameIdx));
-    cmd->instanceCount = 0;
+    cmd->instanceCount = 0;*/
 }
 
 // TODO: optimize this change to ref once we have it calced once

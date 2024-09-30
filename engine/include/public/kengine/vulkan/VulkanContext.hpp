@@ -11,6 +11,7 @@
 #include <kengine/vulkan/CommandPool.hpp>
 #include <kengine/vulkan/QueueOwnerTransfer.hpp>
 #include <kengine/vulkan/pipelines/PipelineCache.hpp>
+#include <kengine/vulkan/GpuUploadable.hpp>
 
 #include <glm/vec2.hpp>
 #include <functional>
@@ -25,27 +26,6 @@ class RenderPassContext;
 class DescriptorSetLayoutCache;
 
 class FrameSyncObjects;
-
-class GpuUploadable {
-private:
-    std::unique_ptr<GpuBuffer> gpuBuffer;
-
-public:
-    virtual void upload(VulkanContext& vkCxt, void* data) = 0;
-    virtual VkDeviceSize size() = 0;
-
-    void setGpuBuffer(std::unique_ptr<GpuBuffer>&& buf) {
-        gpuBuffer = std::move(buf);
-    }
-
-    GpuBuffer* getGpuBuffer() const {
-        return gpuBuffer.get();
-    }
-
-    std::unique_ptr<GpuBuffer> releaseBuffer() {
-        return std::move(gpuBuffer);
-    }
-};
 
 class SwapchainCreator {
 public:

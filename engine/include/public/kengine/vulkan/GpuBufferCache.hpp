@@ -6,6 +6,7 @@
 #include <memory>
 
 class VulkanContext;
+class GpuUploadable;
 
 using GpuBufferId = uint32_t;
 
@@ -44,12 +45,12 @@ class GpuBufferCache {
 
 private:
     std::atomic<uint32_t> runningId;
-    const VulkanContext& vkContext;
+    VulkanContext& vkContext;
     std::unordered_map<GpuBufferId, std::unique_ptr<CachedGpuBuffer>> cache;
     std::shared_mutex mtx{};
 
 public:
-    GpuBufferCache(const VulkanContext& vkContext)
+    GpuBufferCache(VulkanContext& vkContext)
         : vkContext(vkContext), runningId(0) {}
 
     CachedGpuBuffer* get(GpuBufferId cacheKey);
@@ -57,4 +58,10 @@ public:
     CachedGpuBuffer& createHostMapped(VkDeviceSize frameSize, uint32_t frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
     CachedGpuBuffer& create(VkDeviceSize totalSize, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
     CachedGpuBuffer& create(VkDeviceSize frameSize, uint32_t frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
+
+    /// <summary>
+    ///  Creates and uploads a device only buffer
+    /// </summary>
+    CachedGpuBuffer& upload(GpuUploadable& uploadable, VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
+        VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
 };
