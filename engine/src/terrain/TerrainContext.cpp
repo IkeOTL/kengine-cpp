@@ -40,7 +40,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 
     auto xferFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
         //| VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT
-        | VMA_ALLOCATION_CREATE_MAPPED_BIT; // mapping shoudl be needed for device only buffer
+        | VMA_ALLOCATION_CREATE_MAPPED_BIT; // todo?: mapping shoudl be needed for device only buffer
 
     //chunkIndicesBuf;
     {
@@ -98,7 +98,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
             VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR,
             VK_ACCESS_2_INDEX_READ_BIT,
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-            xferFlags,
+            0,
             nullptr
         );
     }

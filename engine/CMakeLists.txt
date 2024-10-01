@@ -74,7 +74,6 @@ set(HEADERS
     include/public/kengine/vulkan/Swapchain.hpp
     include/public/kengine/vulkan/CommandBuffer.hpp
     include/public/kengine/vulkan/GpuBufferCache.hpp
-    include/public/kengine/vulkan/GpuUploadable.hpp
     include/public/kengine/vulkan/CommandPool.hpp
     include/public/kengine/vulkan/QueueOwnerTransfer.hpp
     include/public/kengine/vulkan/Camera.hpp

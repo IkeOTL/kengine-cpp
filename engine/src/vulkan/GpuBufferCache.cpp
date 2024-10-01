@@ -29,6 +29,8 @@ CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize totalSize, VkBufferUsageFla
 }
 
 CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, uint32_t frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
+    // only align if we have frames? or align everytgin just in case
+    //if (frameCount != 0)
     if (usageFlags & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
         frameSize = vkContext.alignUboFrame(frameSize);
     else if (usageFlags & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
@@ -49,15 +51,25 @@ CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, uint32_t frameCo
     return *(cache[newId]);
 }
 
-CachedGpuBuffer& GpuBufferCache::upload(GpuUploadable& uploadable, VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
+CachedGpuBuffer& GpuBufferCache::upload(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider,
+    VkDeviceSize frameSize, uint32_t frameCount,
+    VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
     VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
+    // only align if we have frames? or align everytgin just in case
+    //if (frameCount != 0)
+    if (usageFlags & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+        frameSize = vkContext.alignUboFrame(frameSize);
+    else if (usageFlags & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
+        frameSize = vkContext.alignSsboFrame(frameSize);
 
-    vkContext.uploadBuffer(uploadable,
+    auto totalSize = frameSize * frameCount;
+
+    auto gpuBuf = vkContext.uploadBuffer(dataProvider, totalSize,
         dstStageMask, dstAccessMask,
         usageFlags, allocFlags, nullptr);
 
     auto newId = runningId.fetch_add(1);
-    auto buf = std::make_unique<CachedGpuBuffer>(newId, std::move(uploadable.releaseBuffer()), framesize, framevount);
+    auto buf = std::make_unique<CachedGpuBuffer>(newId, std::move(gpuBuf), frameSize, totalSize);
 
     {
         std::unique_lock<std::shared_mutex> lock(this->mtx);

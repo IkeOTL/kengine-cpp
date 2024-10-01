@@ -570,8 +570,8 @@ std::unique_ptr<GpuBuffer> VulkanContext::uploadBuffer(std::function<void(Vulkan
 }
 
 std::unique_ptr<GpuBuffer> VulkanContext::uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
-    const VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
-    VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit) {
+    const VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask, VkBufferUsageFlags dvcUsageFlags,
+    VmaAllocationCreateFlags dvcAllocFlags, std::function<void(VkCommandBuffer)> beforeSubmit) {
 
     // create staging buffer
     auto stagingBuf = createBuffer(
@@ -590,9 +590,9 @@ std::unique_ptr<GpuBuffer> VulkanContext::uploadBuffer(std::function<void(Vulkan
     // create device buffer
     auto deviceBuf = createBuffer(
         dstBufSize,
-        usageFlags | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        dvcUsageFlags | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-        allocFlags
+        dvcAllocFlags
     );
 
     auto cmdBuf = commandPool->createTransferCmdBuf();

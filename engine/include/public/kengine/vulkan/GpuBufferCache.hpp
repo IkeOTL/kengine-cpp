@@ -4,6 +4,7 @@
 #include <shared_mutex>
 #include <unordered_map>
 #include <memory>
+#include <functional>
 
 class VulkanContext;
 class GpuUploadable;
@@ -62,6 +63,8 @@ public:
     /// <summary>
     ///  Creates and uploads a device only buffer
     /// </summary>
-    CachedGpuBuffer& upload(GpuUploadable& uploadable, VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
+    CachedGpuBuffer& upload(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider,
+        VkDeviceSize frameSize, uint32_t frameCount,
+        VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
         VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
 };

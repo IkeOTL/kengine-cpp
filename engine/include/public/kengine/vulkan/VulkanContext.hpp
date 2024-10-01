@@ -11,7 +11,6 @@
 #include <kengine/vulkan/CommandPool.hpp>
 #include <kengine/vulkan/QueueOwnerTransfer.hpp>
 #include <kengine/vulkan/pipelines/PipelineCache.hpp>
-#include <kengine/vulkan/GpuUploadable.hpp>
 
 #include <glm/vec2.hpp>
 #include <functional>

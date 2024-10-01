@@ -2,7 +2,6 @@
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <kengine/vulkan/GpuBuffer.hpp>
 #include <kengine/terrain/TileTerrain.hpp>
-#include <kengine/vulkan/GpuUploadable.hpp>
 
 #include <vector>
 #include <memory>
@@ -15,32 +14,6 @@ class AsyncMaterialCache;
 class Material;
 
 class TerrainContext {
-public:
-    class IndirectDrawCmdBuffer : public GpuUploadable {
-    private:
-        uint32_t frameSize;
-        uint32_t indicesCount;
-
-    public:
-        IndirectDrawCmdBuffer(uint32_t frameSize, uint32_t indicesCount)
-            : frameSize(frameSize), indicesCount(indicesCount) {}
-
-        void upload(VulkanContext& vkCxt, void* data) override {
-            VkDrawIndexedIndirectCommand cmd{};
-            cmd.indexCount = indicesCount;
-
-            auto* buf = static_cast<unsigned char*>(data);
-            for (auto i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
-                auto pos = frameSize * i;
-                memcpy(buf + pos, &cmd, sizeof(VkDrawIndexedIndirectCommand));
-            }
-        }
-
-        VkDeviceSize size() override {
-            return static_cast<VkDeviceSize>(frameSize * VulkanContext::FRAME_OVERLAP);
-        }
-    };
-
 private:
     std::unique_ptr<GpuBuffer> chunkIndicesBuf;
     CachedGpuBuffer* drawIndirectCmdBuf = nullptr;
