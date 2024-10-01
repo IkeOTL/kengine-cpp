@@ -114,10 +114,8 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 
             uint32_t matIdx = 0;
             uint32_t tileId = random::randInt(0, 2); // id of the tile in the tilesheet
-            d |= (matIdx & 0b111);
-            d |= ((tileId & 0b111111111111) << 3);
 
-            buf[i] = d;
+            buf[i] = ((tileId & 0b111111111111) << 3) | (matIdx & 0b111);
         }
     }
 

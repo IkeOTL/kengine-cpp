@@ -43,11 +43,13 @@ void main() {
         float(chunkId / pcs.chunkCount.x) * pcs.chunkDimensions.y + pcs.worldOffset.y
     );
 
+    // todo: try to calc vert pos using globalTileId, need to figure out the func for that
+    // would allow us to not need chunk worldpos
     uint tileId = gl_VertexIndex / 4;
     vec3 vertPos = vec3(
         float(tileId % pcs.chunkDimensions.x),
         0.0,
-        float(tileId / pcs.chunkDimensions.x)
+        float(tileId / pcs.chunkDimensions.x) 
     );
 
     uint tileCorner = gl_VertexIndex % 4;
@@ -65,8 +67,9 @@ void main() {
     // Vertex position in world space
     outWorldPos = vertPos;
 
-    // todo: potentially precompute all this into a lookup
-    uint tileData = terrainDataBuffer.packetData[tileId];
+    // todo: potentially precompute all this into a lookup    
+    uint globalTileId = tileId + (chunkId * pcs.chunkDimensions.x * pcs.chunkDimensions.y);
+    uint tileData = terrainDataBuffer.packetData[globalTileId];
     uint tileInSheetId = (tileData >> 3) & 0xFFF;
 
     uint tileX = tileInSheetId % pcs.tileDenom;
