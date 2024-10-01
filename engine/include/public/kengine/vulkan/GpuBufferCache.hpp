@@ -63,8 +63,8 @@ public:
     /// <summary>
     ///  Creates and uploads a device only buffer
     /// </summary>
-    CachedGpuBuffer& upload(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider,
+    CachedGpuBuffer& upload(std::function<void(VulkanContext& vkCxt, void* data, VkDeviceSize frameSize, uint32_t frameCount)> dataProvider,
         VkDeviceSize frameSize, uint32_t frameCount,
         VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
-        VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
+        VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags);
 };

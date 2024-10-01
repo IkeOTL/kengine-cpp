@@ -51,10 +51,10 @@ CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, uint32_t frameCo
     return *(cache[newId]);
 }
 
-CachedGpuBuffer& GpuBufferCache::upload(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider,
+CachedGpuBuffer& GpuBufferCache::upload(std::function<void(VulkanContext& vkCxt, void* data, VkDeviceSize frameSize, uint32_t frameCount)> dataProvider,
     VkDeviceSize frameSize, uint32_t frameCount,
     VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
-    VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
+    VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags) {
     // only align if we have frames? or align everytgin just in case
     //if (frameCount != 0)
     if (usageFlags & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
@@ -64,7 +64,11 @@ CachedGpuBuffer& GpuBufferCache::upload(std::function<void(VulkanContext& vkCxt,
 
     auto totalSize = frameSize * frameCount;
 
-    auto gpuBuf = vkContext.uploadBuffer(dataProvider, totalSize,
+    auto gpuBuf = vkContext.uploadBuffer(
+        [&dataProvider, frameSize, frameCount](VulkanContext& vkCxt, void* data) {
+            dataProvider(vkCxt, data, frameSize, frameCount);
+        },
+        totalSize,
         dstStageMask, dstAccessMask,
         usageFlags, allocFlags, nullptr);
 

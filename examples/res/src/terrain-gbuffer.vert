@@ -21,6 +21,8 @@ layout(push_constant) uniform PushConstants {
     uvec2 tileDimensions;
     uvec4 materialIds; //the material Id from the manager
     vec2 worldOffset; // could probably calculate this in the shader if we need the space here
+    vec2 tileUvSize; // just to move 2 divisions out
+    uint tileDenom; // just to move a division out
 } pcs;
 
 layout (location = 0) out vec3 outWorldPos;
@@ -50,9 +52,9 @@ void main() {
 
     uint tileCorner = gl_VertexIndex % 4;
     vec3 cornerOffset = vec3(
-        float(tileCorner == 2 || tileCorner == 3),
+        float((tileCorner >> 1) & 1),
         0.0,
-        float(tileCorner == 1 || tileCorner == 2)
+        float(((tileCorner + 1) >> 1) & 1)
     );
 
     vertPos += chunkWorldPos;
@@ -63,25 +65,19 @@ void main() {
     // Vertex position in world space
     outWorldPos = vertPos;
 
+    // todo: potentially precompute all this into a lookup
     uint tileData = terrainDataBuffer.packetData[tileId];
     uint tileInSheetId = (tileData >> 3) & 0xFFF;
 
-    float invTileSheetWidth = 1.0 / pcs.tilesheetDimensions.x;
-    float invTileSheetHeight = 1.0 / pcs.tilesheetDimensions.y;
+    uint tileX = tileInSheetId % pcs.tileDenom;
+    uint tileY = tileInSheetId / pcs.tileDenom;
 
-    float tileU = pcs.tileDimensions.x * invTileSheetWidth;
-    float tileV = pcs.tileDimensions.y * invTileSheetHeight;
-
-    uint tileDenom = uint(pcs.tilesheetDimensions.x / pcs.tileDimensions.x);
-    uint tileX = tileInSheetId % tileDenom;
-    uint tileY = tileInSheetId / tileDenom;
-
-    float tileOffsetX = tileX * tileU;
-    float tileOffsetY = tileY * tileV;
+    float tileOffsetX = tileX * pcs.tileUvSize.x;
+    float tileOffsetY = tileY * pcs.tileUvSize.y;
 
     vec2 calcedUV = vec2(
-        tileOffsetX + float((tileCorner == 2 || tileCorner == 3)) * tileU,
-        tileOffsetY + float((tileCorner == 1 || tileCorner == 2)) * tileV 
+        tileOffsetX + float((tileCorner >> 1) & 1) * pcs.tileUvSize.x,
+        tileOffsetY + float(((tileCorner + 1) >> 1) & 1) * pcs.tileUvSize.y
     );
 
     outUV = calcedUV;

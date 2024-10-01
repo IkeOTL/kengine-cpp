@@ -131,6 +131,7 @@ public:
         // todo: no need for vertdata, just calcuate bounds without it
         auto vertData = std::make_unique<VertexData<V>>(std::move(vertices), getVertexAttributes(), getIndexCount(), getVertexCount());
         vertData->calcBounds();
+
         return std::make_unique<Mesh>(
             getVertexAttributes(),
             getIndexCount(), std::move(idxBuffer),

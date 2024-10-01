@@ -2,6 +2,9 @@
 
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
+layout (constant_id = 0) const float NEAR_PLANE = 0.01f;
+layout (constant_id = 1) const float FAR_PLANE = 150.0f;
+
 struct DrawCommand
 {
 	uint indexCount;
@@ -61,6 +64,8 @@ bool isVisible(uint objectId)
     // cull between left/right frustum planes
     bool visible = center.z * pcs.frustum[1] - abs(center.x) * pcs.frustum[0] > -radius;
     visible = visible && center.z * pcs.frustum[3] - abs(center.y) * pcs.frustum[2] > -radius;
+    visible = visible && (center.z - radius < -NEAR_PLANE);
+    visible = visible && (center.z + radius > -FAR_PLANE);
 
     return visible;
 }

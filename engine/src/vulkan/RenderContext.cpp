@@ -408,7 +408,7 @@ void RenderContext::endStaticBatch(uint32_t startBatchIndex) {
         auto indCmdFrameOffset = static_cast<uint32_t>(indirectCmdBuf->getFrameOffset(fIdx));
         auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
         auto buf = indirectCmdBuf->getGpuBuffer().data();
-        auto commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
+        auto* commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
         for (auto i = startBatchIndex; i < staticBatches; i++) {
             auto& indirectBatch = staticBatchCache[i];
             auto cmdIdx = indCmdFrameIdx + indirectBatch.getCmdId();

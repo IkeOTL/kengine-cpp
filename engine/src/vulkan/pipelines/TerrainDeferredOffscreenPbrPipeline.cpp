@@ -21,7 +21,6 @@ void TerrainDeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorS
     // TODO: check alignments
     uint32_t dynamicOffsets[] = {
         frameIndex * SceneData::alignedFrameSize(vkCxt),
-        frameIndex * TerrainContext::terrainDataBufAlignedFrameSize(vkCxt),
         frameIndex * TerrainContext::drawInstanceBufAlignedFrameSize(vkCxt),
         frameIndex * MaterialsBuffer::alignedFrameSize(vkCxt)
     };
@@ -33,7 +32,7 @@ void TerrainDeferredOffscreenPbrPipeline::bind(VulkanContext& vkCxt, DescriptorS
         getVkPipelineLayout(),
         0,
         2, descriptorSets,
-        4, dynamicOffsets
+        3, dynamicOffsets
     );
 }
 

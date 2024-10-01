@@ -279,7 +279,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
                     bufferBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
                     bufferBarrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
                     bufferBarrier.dstStageMask = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
-                    bufferBarrier.dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT;
+                    bufferBarrier.dstAccessMask = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;
                     bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
                     bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
                     bufferBarrier.buffer = indirectBuf.getGpuBuffer().getVkBuffer();
@@ -295,7 +295,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
                     terrainBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
                     terrainBarrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
                     terrainBarrier.dstStageMask = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
-                    terrainBarrier.dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT;
+                    terrainBarrier.dstAccessMask = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;
                     terrainBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
                     terrainBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
                     terrainBarrier.buffer = terrainIndirectBuf->getGpuBuffer().getVkBuffer();
