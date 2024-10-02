@@ -15,7 +15,7 @@ class Material;
 
 class TerrainContext {
 private:
-    std::unique_ptr<GpuBuffer> chunkIndicesBuf;
+    CachedGpuBuffer* chunkIndicesBuf = nullptr;
     CachedGpuBuffer* drawIndirectCmdBuf = nullptr;
     CachedGpuBuffer* terrainDataBuf = nullptr;
     CachedGpuBuffer* drawInstanceBuf = nullptr;

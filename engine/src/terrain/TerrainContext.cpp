@@ -87,16 +87,15 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
                 0);
         }
 
-        chunkIndicesBuf = vkCxt.uploadBuffer(
-            [&indices](VulkanContext& vkCxt, void* data) {
+        chunkIndicesBuf = &bufCache.upload(
+            [&indices](VulkanContext& vkCxt, void* data, VkDeviceSize frameSize, uint32_t frameCount) {
                 memcpy(data, indices.data(), indices.size() * sizeof(uint32_t));
             },
-            indices.size() * sizeof(uint32_t),
+            indices.size() * sizeof(uint32_t), 1,
             VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR,
             VK_ACCESS_2_INDEX_READ_BIT,
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-            0,
-            nullptr
+            0
         );
     }
 
@@ -250,7 +249,7 @@ void TerrainContext::draw(VulkanContext& vkCxt, RenderPassContext& rpCtx, Descri
 
     vkCmdPushConstants(rpCtx.cmd, pl.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(TerrainDeferredOffscreenPbrPipeline::PushConstant), &pc);
 
-    vkCmdBindIndexBuffer(rpCtx.cmd, chunkIndicesBuf->vkBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindIndexBuffer(rpCtx.cmd, chunkIndicesBuf->getGpuBuffer().vkBuffer, 0, VK_INDEX_TYPE_UINT32);
 
     vkCmdDrawIndexedIndirect(
         rpCtx.cmd,
