@@ -41,6 +41,7 @@ set(HEADERS
 
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
+    include/public/kengine/io/AssetSerializer.hpp
 
     include/public/kengine/EngineConfig.hpp
     include/public/kengine/Logger.hpp
@@ -154,6 +155,7 @@ set(SOURCES
     
     src/io/FlieSystemAssetIO.cpp
     src/io/MemoryMappedFile.cpp
+    src/io/AssetSerializer.cpp
 
     src/input/InputManager.cpp
     src/input/EventListener.cpp

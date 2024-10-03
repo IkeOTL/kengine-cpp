@@ -12,7 +12,7 @@ std::unique_ptr<Model> GltfModelFactory::loadModel(const ModelConfig& config) {
     tinygltf::Model model;
     std::string err, warn;
 
-    auto assetData = assetIo.loadBuffer(config.getModelKey());
+    auto assetData = assetIo.load(config.getModelKey());
 
     auto ret = gltfLoader.LoadBinaryFromMemory(&model, &err, &warn, assetData->data(), assetData->length());
 

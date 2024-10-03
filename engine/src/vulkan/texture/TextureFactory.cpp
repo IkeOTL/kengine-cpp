@@ -6,7 +6,7 @@
 std::unique_ptr<Texture2d> TextureFactory::loadTexture(const TextureConfig& config) {
     auto& key = config.getTextureKey();
 
-    auto assetData = assetIo.loadBuffer(key);
+    auto assetData = assetIo.load(key);
 
     int width, height, channels;
     auto imageData = stbi_load_from_memory(

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <memory>
 
+class AssetSerializer;
+
 // 
 class AssetData {
 public:
@@ -15,9 +17,8 @@ public:
 
 class AssetIO {
 public:
-    virtual std::unique_ptr<std::istream> load(const std::string& key) = 0;
-    virtual std::unique_ptr<std::ostream> save(const std::string& key) = 0;
-    virtual std::unique_ptr<AssetData> loadBuffer(const std::string& key) = 0;
+    virtual std::unique_ptr<AssetSerializer> save(const std::string& key) = 0;
+    virtual std::unique_ptr<AssetData> load(const std::string& key) = 0;
 };
 
 class FileSystemAssetIO : public AssetIO {
@@ -26,9 +27,8 @@ public:
         return std::make_unique<FileSystemAssetIO>();
     }
 
-    std::unique_ptr<std::istream> load(const std::string& key) override;
-    std::unique_ptr<std::ostream> save(const std::string& key) override;
-    std::unique_ptr<AssetData> loadBuffer(const std::string& key) override;
+    std::unique_ptr<AssetSerializer> save(const std::string& key) override;
+    std::unique_ptr<AssetData> load(const std::string& key) override;
 };
 
 class MemoryMappedFileAssetData : public AssetData {

@@ -11,7 +11,7 @@ std::unique_ptr<Animation> GltfAnimationFactory::loadAnimation(const AnimationCo
     tinygltf::Model model;
     std::string err, warn;
 
-    auto assetData = assetIo.loadBuffer(config.getAnimationSet());
+    auto assetData = assetIo.load(config.getAnimationSet());
 
     auto ret = gltfLoader.LoadBinaryFromMemory(&model, &err, &warn, assetData->data(), assetData->length());
 
