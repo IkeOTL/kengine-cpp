@@ -17,7 +17,7 @@ public:
 
 class AssetIO {
 public:
-    virtual std::unique_ptr<AssetSerializer> save(const std::string& key) = 0;
+    virtual std::unique_ptr<std::ostream> save(const std::string& key) = 0;
     virtual std::unique_ptr<AssetData> load(const std::string& key) = 0;
 };
 
@@ -27,7 +27,7 @@ public:
         return std::make_unique<FileSystemAssetIO>();
     }
 
-    std::unique_ptr<AssetSerializer> save(const std::string& key) override;
+    std::unique_ptr<std::ostream> save(const std::string& key) override;
     std::unique_ptr<AssetData> load(const std::string& key) override;
 };
 

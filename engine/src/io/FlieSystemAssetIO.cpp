@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <kengine/io/AssetSerializer.hpp>
 
-std::unique_ptr<AssetSerializer> FileSystemAssetIO::save(const std::string& key) {
+std::unique_ptr<std::ostream> FileSystemAssetIO::save(const std::string& key) {
     // open stream create smart pointer and add deleter so the stream flushes and closes as expected
     throw std::runtime_error("Not implemented");
 }
