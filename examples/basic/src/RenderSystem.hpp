@@ -6,6 +6,7 @@
 
 #include <glm/mat4x4.hpp>
 
+#include <vector>
 #include <memory>
 
 namespace Component {
@@ -39,6 +40,9 @@ private:
     CameraController* cameraController;
     SpatialPartitioningManager* spatialPartitioning;
     SkeletonManager* skeletonManager;
+
+    inline static const uint32_t maxVisibleEntities = 1024;
+    std::vector<entt::entity> visibleEntities = std::vector<entt::entity>(maxVisibleEntities);
 
 public:
     RenderSystem() = default;

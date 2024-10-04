@@ -39,8 +39,8 @@ public:
     void setDirty(const entt::entity entity);
     std::function<void()> createCb(const entt::entity eId);
 
-    void getVisible(const glm::vec3& camPos, const std::array<glm::vec3, 8>& frustomPoints,
-        const FrustumIntersection& frustumTester, std::vector<entt::entity>& dest);
+    uint32_t getVisible(const glm::vec3& camPos, const std::array<glm::vec3, 8>& frustomPoints,
+        const FrustumIntersection& frustumTester, std::vector<entt::entity>& dest, uint32_t maximumVisible);
 
     void updateEntity(entt::entity entityId, const glm::mat4& xform, const Aabb& aabb);
     void addEntity(entt::entity entityId, const glm::mat4& xform, const Aabb& aabb);

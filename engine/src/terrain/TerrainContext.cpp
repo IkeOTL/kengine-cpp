@@ -22,8 +22,8 @@ const size_t TerrainContext::drawInstanceBufAlignedFrameSize(VulkanContext& vkCx
 }
 
 void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators) {
-    auto tilesWidth = 1024;
-    auto tilesLength = 1024;
+    auto tilesWidth = 512;
+    auto tilesLength = 512;
     // terrain
 
     terrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);

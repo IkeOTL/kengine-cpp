@@ -57,6 +57,7 @@ public:
 class AssetDeserializer : public Serializer {
 private:
     std::unique_ptr<AssetData> input;
+    uint32_t pos = 0;
 
 public:
     void readInt32(int32_t value);
@@ -66,6 +67,14 @@ public:
     void readFloat(float value);
     void readDouble(float value);
     void readString(std::string value);
+
+    uint32_t position() const {
+        return pos;
+    }
+
+    uint32_t remaining() const {
+        return input->length() - pos;
+    }
 };
 
 class SerializableAsset {

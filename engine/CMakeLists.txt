@@ -59,6 +59,7 @@ set(HEADERS
     include/public/kengine/SpatialGrid.hpp
     include/public/kengine/SpatialPartitioningManager.hpp
     include/public/kengine/FrustumIntersection.hpp
+    include/public/kengine/DeferredJob.hpp
     
     include/public/kengine/vulkan/ImGuiKEContext.hpp
     include/public/kengine/vulkan/VulkanContext.hpp
@@ -152,6 +153,7 @@ set(SOURCES
     src/SpatialGrid.cpp
     src/FrustumIntersection.cpp
     src/DebugContext.cpp
+    src/DeferredJobManager.cpp
     
     src/io/FlieSystemAssetIO.cpp
     src/io/MemoryMappedFile.cpp
