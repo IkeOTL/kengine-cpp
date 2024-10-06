@@ -1,5 +1,6 @@
 #pragma once
 #include "ExecutorService.hpp"
+#include <kengine/Logger.hpp>
 
 #include <functional>
 #include <future>
@@ -7,89 +8,100 @@
 
 class World;
 
+class BaseDeferredJob {
+public:
+    virtual ~BaseDeferredJob() = default;
+    virtual bool isDone() const = 0;
+    virtual void executeThenFunc(World& world) = 0;
+};
+
 template<typename T>
-class DeferredJob {
-public:
-    using TaskFunc = std::function<T(World&)>;
-    using ReadyFunc = std::function<void(World&, T)>;
-
+class DeferredJob : public BaseDeferredJob {
 private:
-    TaskFunc task;
-    std::future<T> future;
-    ReadyFunc ready;
+    using ThenFunc = std::conditional_t<
+        std::is_void_v<T>,
+        std::function<void(World&)>,
+        std::function<void(World&, T)>
+    >;
+
+    std::shared_future<T> future;
+    ThenFunc thenFunc;
 
 public:
-    DeferredJob(TaskFunc&& task, ReadyFunc&& ready)
-        : task(std::move(task)), ready(std::move(ready)) {}
+    DeferredJob(std::shared_future<T> future, ThenFunc&& thenFunc)
+        : future(std::move(future)), thenFunc(std::move(thenFunc)) {}
 
-    DeferredJob(TaskFunc&& task)
-        : task(std::move(task)), ready(nullptr)) {}
-
-    TaskFunc& getTask() const {
-        return task;
+    bool isDone() const override {
+        return future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
     }
 
-    std::future<T>& getFuture() {
-        return future;
-    }
-
-    void setFuture(std::future<T>&& fut) {
-        future = std::move(fut);
-    }
-
-    ReadyFunc* getReadyFunc() const {
-        return  ready ? &ready : nullptr;;
+    void executeThenFunc(World& world) override {
+        try {
+            if constexpr (std::is_void_v<T>) {
+                future.get();
+                thenFunc(world);
+            }
+            else {
+                auto result = future.get();
+                thenFunc(world, result);
+            }
+        }
+        catch (const std::exception& e) {
+            KE_LOG_ERROR(std::format("Follow-up function failed: {}", e.what()));
+        }
+        catch (...) {
+            KE_LOG_ERROR("Follow-up function failed due to an unknown exception.");
+        }
     }
 };
 
 class DeferredJobManager {
 private:
-    ExecutorService& workerPool;
-    std::vector<std::unique_ptr<DeferredJob<void>>> newJobs;
-    std::vector<std::unique_ptr<DeferredJob<void>>> jobs;
+    using BaseJobPtr = std::unique_ptr<BaseDeferredJob>;
+    std::deque<BaseJobPtr> newJobs;
+    std::deque<BaseJobPtr> jobs;
     std::mutex newJobLock;
 
 public:
-    explicit DeferredJobManager(ExecutorService& workerPool)
-        : workerPool(workerPool) {}
-
-    template<typename T>
-    void job(World& world, std::unique_ptr<DeferredJob<T>> j) {
+    template<typename T, typename Func>
+    void submit(World& world, std::shared_future<T> task, Func&& thenFunc) {
         std::lock_guard<std::mutex> lock(newJobLock);
-        auto future = workerPool.submitShared([&world, task& = j->getTask()]() {
-            return task(world);
-            });
-        j->setFuture(std::move(future));
-        newJobs.push_back(std::move(j));
+        using DecayedFunc = std::function<void(World&, T)>;
+        newJobs.emplace_back(std::make_unique<DeferredJob<T>>(std::move(task), DecayedFunc(std::forward<Func>(thenFunc))));
+    }
+
+    // Submit method for void with perfect forwarding
+    template<typename Func>
+    void submit(World& world, std::shared_future<void> task, Func&& thenFunc) {
+        std::lock_guard<std::mutex> lock(newJobLock);
+        using DecayedFunc = std::function<void(World&)>;
+        newJobs.emplace_back(std::make_unique<DeferredJob<void>>(std::move(task), DecayedFunc(std::forward<Func>(thenFunc))));
     }
 
     void process(World& world) {
-        {
+        if (newJobs.empty() && jobs.empty())
+            return;
+
+        if (!newJobs.empty()) {
             std::lock_guard<std::mutex> lock(newJobLock);
-            std::move(std::make_move_iterator(newJobs.begin()), std::make_move_iterator(newJobs.end()), std::back_inserter(jobs));
+
+            jobs.insert(jobs.end(),
+                std::make_move_iterator(newJobs.begin()),
+                std::make_move_iterator(newJobs.end()));
             newJobs.clear();
         }
 
         auto it = jobs.begin();
         while (it != jobs.end()) {
-            auto& job = *it;
+            auto& ptr = *it;
 
-            auto& future = job->getFuture();
-            if (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
+            if (!ptr->isDone()) {
                 ++it;
                 continue;
             }
 
-            auto stepTwo = job->getReadyFunc();
-            if (!stepTwo) {
-                it = jobs.erase(it);
-                continue;
-            }
-
-            auto res = future.get();
-            stepTwo(world, res);
+            ptr->executeThenFunc(world);
             it = jobs.erase(it);
         }
     }
 };
-

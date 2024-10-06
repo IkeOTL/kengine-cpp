@@ -357,6 +357,8 @@ source_group(
     FILES ${IMGUI}
 )
 
+add_subdirectory(tests)
+
 # imgui
 target_include_directories(kengine_engine PUBLIC ${imgui_SOURCE_DIR})
 
