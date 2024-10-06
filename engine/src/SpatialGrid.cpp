@@ -43,8 +43,8 @@ glm::vec3 SpatialGrid::intersectPoint(const glm::vec3& start, const glm::vec3& e
 /// <summary>
 /// gets cells visible to frustum and then grab all the entity ids for visible cells and adds them to the output list
 /// </summary>
-void SpatialGrid::getVisible(const glm::vec3& camPos, const std::array<glm::vec3, 8>& frustomPoints,
-    const FrustumIntersection& frustumTester, std::vector<entt::entity>& dest) {
+uint32_t SpatialGrid::getVisible(const glm::vec3& camPos, const std::array<glm::vec3, 8>& frustomPoints,
+    const FrustumIntersection& frustumTester, std::vector<entt::entity>& dest, uint32_t maximumVisible) {
     using namespace matutils;
     auto topLeft = intersectPoint(frustomPoints[FrustumCorner::CORNER_NXPYNZ], frustomPoints[FrustumCorner::CORNER_NXPYPZ]);
     auto bottomLeft = intersectPoint(frustomPoints[FrustumCorner::CORNER_NXNYNZ], frustomPoints[FrustumCorner::CORNER_NXNYPZ]);
@@ -66,6 +66,7 @@ void SpatialGrid::getVisible(const glm::vec3& camPos, const std::array<glm::vec3
     endCellZ = math::max(0, math::min(endCellZ, cellCountZ - 1));
 
     std::unordered_set<entt::entity> set;
+    //set.reserve(maximumVisible);
 
     // disabled grid culling
     //for (auto z = 0; z <= cellCountZ - 1; z++) {
@@ -89,6 +90,7 @@ void SpatialGrid::getVisible(const glm::vec3& camPos, const std::array<glm::vec3
     //    }
     //}
 
+    auto done = false;
     for (auto z = startCellZ; z <= endCellZ; z++) {
         int32_t minWorldZ = cellSize * z + worldOffsetZ;
         int32_t maxWorldZ = minWorldZ + cellSize;
@@ -110,14 +112,28 @@ void SpatialGrid::getVisible(const glm::vec3& camPos, const std::array<glm::vec3
                 auto cellIndex = z * cellCountX + x;
                 auto& cell = cells[cellIndex];
 
-                for (int i = 0; i < cell.size(); i++)
+                for (int i = 0; i < cell.size(); i++) {
                     set.insert(cell[i]);
+                    if (set.size() >= maximumVisible) {
+                        done = true;
+                        break;
+                    }
+                }
             }
+
+            if (done)
+                break;
         }
+
+        if (done)
+            break;
     }
 
+    auto i = 0;
     for (auto& e : set)
-        dest.push_back(e);
+        dest[i++] = e;
+
+    return set.size();
 }
 
 

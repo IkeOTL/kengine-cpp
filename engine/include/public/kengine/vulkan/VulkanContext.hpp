@@ -26,27 +26,6 @@ class DescriptorSetLayoutCache;
 
 class FrameSyncObjects;
 
-class GpuUploadable {
-private:
-    std::unique_ptr<GpuBuffer> gpuBuffer;
-
-public:
-    virtual void upload(VulkanContext& vkCxt, void* data) = 0;
-    virtual VkDeviceSize size() = 0;
-
-    void setGpuBuffer(std::unique_ptr<GpuBuffer>&& buf) {
-        gpuBuffer = std::move(buf);
-    }
-
-    GpuBuffer* getGpuBuffer() const {
-        return gpuBuffer.get();
-    }
-
-    std::unique_ptr<GpuBuffer> releaseBuffer() {
-        return std::move(gpuBuffer);
-    }
-};
-
 class SwapchainCreator {
 public:
     using OnSwapchainCreate = std::function<void(VulkanContext&, Swapchain&, std::vector<std::unique_ptr<RenderPass>>&)>;
@@ -152,10 +131,10 @@ public:
     VkDeviceSize alignUboFrame(VkDeviceSize baseFrameSize) const;
     VkDeviceSize alignSsboFrame(VkDeviceSize baseFrameSize) const;
 
-    void uploadBuffer(GpuUploadable& obj, VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask,
-        VkBufferUsageFlags usageFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
-    void uploadBuffer(GpuUploadable& obj, VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask,
-        VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
+    std::unique_ptr<GpuBuffer> uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
+        VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, VkBufferUsageFlags usageFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
+    std::unique_ptr<GpuBuffer> uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
+        VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
 
     void recordAndSubmitTransferCmdBuf(CommandBufferRecordFunc func, bool awaitFence);
 

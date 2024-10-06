@@ -29,7 +29,7 @@ void Material::addBinding(std::unique_ptr<MaterialBinding>&& binding) {
     materialBindings[binding->getDescriptorSetIndex()].push_back(std::move(binding));
 }
 
-void Material::upload(VulkanContext& vkCxt, CachedGpuBuffer& buf, int frameIdx) const {
+void Material::upload(VulkanContext& vkCxt, const CachedGpuBuffer& buf, int frameIdx) const {
     config->upload(vkCxt, buf, frameIdx, id);
 }
 
@@ -50,11 +50,11 @@ void Material::bindMaterial(VulkanContext& cxt, DescriptorSetAllocator& descSetA
         offsets.reserve(bindings.size());
 
         // need better strategy for keeping these in scope
-        std::vector<VkDescriptorBufferInfo> pBufferInfos;
+        std::vector<std::vector<VkDescriptorBufferInfo>> pBufferInfos;
         pBufferInfos.reserve(bindings.size());
 
         // need better strategy for keeping these in scope
-        std::vector<VkDescriptorImageInfo> pImageInfos;
+        std::vector<std::vector<VkDescriptorImageInfo>> pImageInfos;
         pImageInfos.reserve(bindings.size());
 
         std::vector<VkWriteDescriptorSet> pDescWrites(bindings.size());

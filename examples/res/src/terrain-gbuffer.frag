@@ -1,16 +1,16 @@
 #version 450
 
-layout (set = 2, binding = 0) uniform sampler2D colorMap;
-layout (set = 2, binding = 1) uniform sampler2D normalMap;
-layout (set = 2, binding = 2) uniform sampler2D metallicRoughnessMap;
-layout (set = 2, binding = 3) uniform sampler2D aoMap;
-layout (set = 2, binding = 4) uniform sampler2D emissiveMap;
+#define NUM_MATERIALS 4
+
+layout (set = 2, binding = 0) uniform sampler2D colorMap[NUM_MATERIALS];
+layout (set = 2, binding = 1) uniform sampler2D normalMap[NUM_MATERIALS];
+layout (set = 2, binding = 2) uniform sampler2D metallicRoughnessMap[NUM_MATERIALS];
+layout (set = 2, binding = 3) uniform sampler2D aoMap[NUM_MATERIALS];
+layout (set = 2, binding = 4) uniform sampler2D emissiveMap[NUM_MATERIALS];
 
 layout (location = 0) in vec3 inWorldPos;
 layout (location = 1) in vec2 inUV;
-layout (location = 2) in vec3 inNormal;
-layout (location = 3) in mat3 inTbn;
-layout (location = 6) flat in uint materialId;
+layout (location = 2) flat in uvec2 materialId; // x = SSBO Idx, y = sampler idx
 
 layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec4 outAlbedo;
@@ -41,34 +41,11 @@ float linearDepth(float depth)
     return (2.0f * NEAR_PLANE * FAR_PLANE) / (FAR_PLANE + NEAR_PLANE - z * (FAR_PLANE - NEAR_PLANE));	
 }
 
-vec3 calculateNormal(Material mat)
-{
-    if ((mat.textureSetFlags & (1u << 2u)) == 0)
-        return normalize(inNormal);
-
-    vec3 tangentNormal = texture(normalMap, inUV).rgb * 2.0 - 1.0;
-    return normalize(inTbn * tangentNormal);
-}
-
-vec2 signNotZero(vec2 v) {
-  return vec2((v.x >= 0.0) ? 1.0 : -1.0, (v.y >= 0.0) ? 1.0 : -1.0);
-}
-
-vec2 encodeNormal(vec3 v) {
-    vec2 p = v.xy * (1.0 / (abs(v.x) + abs(v.y) + abs(v.z)));
-    return (v.z <= 0.0) ? ((1.0 - abs(p.yx)) * signNotZero(p)) : p;
-}
-
-vec2 calculatePackedNormal(Material mat)
-{
-    return encodeNormal(calculateNormal(mat));
-}
-
 vec4 getAlbedo(Material mat) {
     vec4 albedo = mat.albedoFactor;
 
     if ((mat.textureSetFlags & (1u << 0u)) != 0)
-        albedo *= texture(colorMap, inUV) * vec4(1.0);
+        albedo *= texture(colorMap[materialId[1]], inUV) * vec4(1.0);
 
     return albedo;
 }
@@ -77,7 +54,7 @@ float getAo(Material mat) {
     if ((mat.textureSetFlags & (1u << 3u)) == 0)
         return 1.0;
 
-    return texture(aoMap, inUV).r;
+    return texture(aoMap[materialId[1]], inUV).r;
 }
 
 vec2 getMr(Material mat) {
@@ -85,7 +62,7 @@ vec2 getMr(Material mat) {
     float roughness = mat.roughnessFactor; // r
 
     if ((mat.textureSetFlags & (1u << 1u)) != 0) {
-        vec3 orm = texture(metallicRoughnessMap, inUV).rgb;
+        vec3 orm = texture(metallicRoughnessMap[materialId[1]], inUV).rgb;
 
         metallic *= orm.b;
         roughness *= orm.g;
@@ -98,18 +75,17 @@ vec4 getEmissive(Material mat) {
     if ((mat.textureSetFlags & (1u << 4u)) == 0)
         return vec4(0);
 
-    return vec4(texture(emissiveMap, inUV).rgb, 1) * mat.emissiveFactor;
+    return vec4(texture(emissiveMap[materialId[1]], inUV).rgb, 1) * mat.emissiveFactor;
 }
 
 void main() 
 {
-    Material mat = materialsSsbo.materials[materialId];
+    Material mat = materialsSsbo.materials[materialId[0]];
 
     outPosition = vec4(inWorldPos, 1.0);
     outPosition.a = linearDepth(gl_FragCoord.z);
 
-    outNormal = calculatePackedNormal(mat);
-    outAoMetallicRoughness = vec4(getAo(mat), getMr(mat), materialId); // float(materialId)
+    outAoMetallicRoughness = vec4(getAo(mat), getMr(mat), materialId[0]);
     outEmissive = getEmissive(mat);
     outAlbedo = getAlbedo(mat);
 

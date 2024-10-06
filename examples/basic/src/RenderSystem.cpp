@@ -56,35 +56,47 @@ void RenderSystem::init() {
         auto material = materialTask.get();
 
         auto xCount = 20;
+        auto yCount = 20;
         auto zCount = 20;
+        auto yOffset = 3;
         auto zOffset = -5;
         auto sIdx = renderCtx->startStaticBatch();
         {
-            for (size_t i = 0; i < xCount; i++) {
-                for (size_t j = 0; j < zCount; j++) {
-                    //auto entity = ecs->create();
-                    //auto& renderable = ecs->emplace<Component::Renderable>(entity);
-                    //renderable.setStatic();
-                    //ecs->emplace<Component::ModelComponent>(entity, modelConfig);
+            for (size_t k = 0; k < yCount; k++) {
+                for (size_t i = 0; i < xCount; i++) {
+                    for (size_t j = 0; j < zCount; j++) {
+                        //auto entity = ecs->create();
+                        //auto& renderable = ecs->emplace<Component::Renderable>(entity);
+                        //renderable.setStatic();
+                        //ecs->emplace<Component::ModelComponent>(entity, modelConfig);
 
-                    //auto& model = modelCache->get(modelConfig);
-                    //auto& spatials = ecs->emplace<Component::Spatials>(entity);
-                    //auto rootSpatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), renderable.type);
+                        //auto& model = modelCache->get(modelConfig);
+                        //auto& spatials = ecs->emplace<Component::Spatials>(entity);
+                        //auto rootSpatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), renderable.type);
 
-                    ////rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
+                        ////rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
 
-                    //rootSpatial->setLocalPosition(glm::vec3((1.5f * i) - (1.5 * xCount * 0.5f), 3, (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset));
+                        //rootSpatial->setLocalPosition(glm::vec3(
+                        //    (1.5f * i) - (1.5 * xCount * 0.5f),
+                        //    (1.5f * k) + yOffset,
+                        //    (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset
+                        //));
 
-                    //spatialPartitioning->getSpatialGrid()->setDirty(entity);
+                        //spatialPartitioning->getSpatialGrid()->setDirty(entity);
 
-                    //ecs->emplace<Component::Material>(entity, materialConfig);
+                        //ecs->emplace<Component::Material>(entity, materialConfig);
 
-                    renderCtx->addStaticInstance(
-                        model->getMeshGroups()[0]->getMesh(0),
-                        *material,
-                        glm::translate(glm::mat4(1.0f), glm::vec3((1.5f * i) - (1.5 * xCount * 0.5f), 3, (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset)),
-                        model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
-                    );
+                        renderCtx->addStaticInstance(
+                            model->getMeshGroups()[0]->getMesh(0),
+                            *material,
+                            glm::translate(glm::mat4(1.0f), glm::vec3(
+                                (1.5f * i) - (1.5 * xCount * 0.5f),
+                                (1.5f * k) + yOffset,
+                                (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset
+                            )),
+                            model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
+                        );
+                    }
                 }
             }
         }
@@ -140,7 +152,7 @@ void RenderSystem::init() {
                 // need to profile if static batches are even worth it.
                 // since the drawcmd is always sent for them. the ebefit is that
                 // the mat and other details dont have to be uploaded again
-                auto sIdx = renderCtx->startStaticBatch();
+               /* auto sIdx = renderCtx->startStaticBatch();
                 {
                     auto modelTask = modelCache->getAsync(chunk.getModelConfig());
                     auto materialTask = materialCache->getAsync(matConfig);
@@ -157,7 +169,7 @@ void RenderSystem::init() {
                         model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
                     );
                 }
-                renderCtx->endStaticBatch(sIdx);
+                renderCtx->endStaticBatch(sIdx);*/
             }
         }
     }
@@ -212,16 +224,22 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
 
     auto& ecs = getEcs();
 
-    std::vector<entt::entity> entities;
-    entities.reserve(64);
-
     auto* c = static_cast<FreeCameraController*>(cameraController);
-    spatialPartitioning->getSpatialGrid()->getVisible(c->getCamera()->getPosition(), c->getFrustumCorners(), c->getFrustumTester(), entities);
+    auto visibleCount = spatialPartitioning->getSpatialGrid()->getVisible(
+        c->getCamera()->getPosition(),
+        c->getFrustumCorners(),
+        c->getFrustumTester(),
+        visibleEntities,
+        maxVisibleEntities
+    );
 
-    debugCtx->storeIntValue("spatialGridVisibleEntities", entities.size());
+    debugCtx->storeIntValue("spatialGridVisibleEntities", visibleCount);
 
-    for (auto& e : entities) {
+    for (auto eIdx = 0; eIdx < visibleCount; eIdx++) {
         ZoneScopedN("draw_entity");
+
+        auto& e = visibleEntities[eIdx];
+
         auto& modelComponent = ecs.get<Component::ModelComponent>(e);
         auto modelTask = modelCache->getAsync(modelComponent.config);
 

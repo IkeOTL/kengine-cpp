@@ -26,6 +26,9 @@
 #include <kengine/Logger.hpp>
 #include <kengine/EngineConfig.hpp>
 #include <kengine/vulkan/pipelines/PreDrawCullingPipeline.hpp>
+#include <kengine/vulkan/pipelines/TerrainDrawCullingPipeline.hpp>
+#include <kengine/vulkan/pipelines/TerrainDeferredOffscreenPbrPipeline.hpp>
+#include <kengine/vulkan/pipelines/TerrainPreDrawCullingPipeline.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -97,8 +100,11 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
     imGuiContext->init(*window);
 
+
+    terrainContext = std::make_unique<TerrainContext>(*materialCache);
+
     renderContext = RenderContext::create(*vulkanCxt, *lightsManager, *cameraController);
-    renderContext->init();
+    renderContext->init(terrainContext.get());
     renderContext->setImGuiContext(imGuiContext.get());
 
     auto config = AnimationConfig::create("gltf/char01.glb", "Run00");
@@ -170,6 +176,16 @@ void BasicGameTest::initVulkan() {
 
             pc->createPipeline<DrawCullingPipeline>()
                 .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
+
+            // terrain
+            pc->createPipeline<TerrainPreDrawCullingPipeline>()
+                .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
+
+            pc->createPipeline<TerrainDrawCullingPipeline>()
+                .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
+
+            pc->createPipeline<TerrainDeferredOffscreenPbrPipeline>()
+                .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
 #ifdef KE_DEBUG_RENDER
             pc->createPipeline<DebugDeferredOffscreenPbrPipeline>()

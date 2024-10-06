@@ -24,17 +24,13 @@ PbrMaterialConfig::PbrMaterialConfig(std::type_index type) :
     addEmissiveTexture(nullptr);
 }
 
-void PbrMaterialConfig::upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) {
+void PbrMaterialConfig::upload(VulkanContext& vkCxt, const CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) {
     auto mat = PbrMaterialData{
         albedoFactor,
         emissiveFactor,
-        albedoTextureSet,
-        metallicRoughnessTextureSet,
-        normalTextureSet,
-        occlusionTextureSet,
-        emissiveTextureSet,
         metallicFactor,
-        roughnessFactor
+        roughnessFactor,
+        textureSetFlags
     };
 
     auto pos = gpuBuffer.getFrameOffset(frameIndex) + materialId * sizeof(PbrMaterialData);
@@ -47,13 +43,9 @@ size_t PbrMaterialConfig::hash() const noexcept {
     size_t hash = 3;
     hash = prime * hash + vecutils::hashCode(albedoFactor);
     hash = prime * hash + vecutils::hashCode(emissiveFactor);
-    hash = prime * hash + albedoTextureSet;
-    hash = prime * hash + metallicRoughnessTextureSet;
-    hash = prime * hash + normalTextureSet;
-    hash = prime * hash + occlusionTextureSet;
-    hash = prime * hash + emissiveTextureSet;
     hash = prime * hash + static_cast<std::size_t>(std::bit_cast<int>(metallicFactor));
     hash = prime * hash + static_cast<std::size_t>(std::bit_cast<int>(roughnessFactor));
+    hash = prime * hash + textureSetFlags;
     return hash;
 }
 
@@ -72,12 +64,12 @@ void PbrMaterialConfig::addSkeleton(int skeletonBufferId) {
 PbrMaterialConfig& PbrMaterialConfig::addAlbedoTexture(TextureConfig* config) {
     if (!config) {
         addImageBinding(2, 0, EMPTY_CONFIG);
-        albedoTextureSet = -1;
+        textureSetFlags &= ~TextureSetFlag::ALBEDO_TEXTURE_SET;
         return *this;
     }
 
     addImageBinding(2, 0, *config);
-    albedoTextureSet = 0;
+    textureSetFlags |= TextureSetFlag::ALBEDO_TEXTURE_SET;
     albedoFactor = glm::vec4(1.0f);
     return *this;
 }
@@ -85,24 +77,24 @@ PbrMaterialConfig& PbrMaterialConfig::addAlbedoTexture(TextureConfig* config) {
 PbrMaterialConfig& PbrMaterialConfig::addNormalsTexture(TextureConfig* config) {
     if (!config) {
         addImageBinding(2, 1, EMPTY_CONFIG);
-        normalTextureSet = -1;
+        textureSetFlags &= ~TextureSetFlag::NORMAL_TEXTURE_SET;
         return *this;
     }
 
     addImageBinding(2, 1, *config);
-    normalTextureSet = 0;
+    textureSetFlags |= TextureSetFlag::NORMAL_TEXTURE_SET;
     return *this;
 }
 
 PbrMaterialConfig& PbrMaterialConfig::addMetallicRoughnessTexture(TextureConfig* config) {
     if (!config) {
         addImageBinding(2, 2, EMPTY_CONFIG);
-        metallicRoughnessTextureSet = -1;
+        textureSetFlags &= ~TextureSetFlag::METALLIC_ROUGHNESS_SET;
         return *this;
     }
 
     addImageBinding(2, 2, *config);
-    metallicRoughnessTextureSet = 0;
+    textureSetFlags |= TextureSetFlag::METALLIC_ROUGHNESS_SET;
     metallicFactor = 1;
     roughnessFactor = 1;
     return *this;
@@ -111,24 +103,24 @@ PbrMaterialConfig& PbrMaterialConfig::addMetallicRoughnessTexture(TextureConfig*
 PbrMaterialConfig& PbrMaterialConfig::addAmbientOcclusionTexture(TextureConfig* config) {
     if (!config) {
         addImageBinding(2, 3, EMPTY_CONFIG);
-        occlusionTextureSet = -1;
+        textureSetFlags &= ~TextureSetFlag::OCCLUSION_TEXTURE_SET;
         return *this;
     }
 
     addImageBinding(2, 3, *config);
-    occlusionTextureSet = 0;
+    textureSetFlags |= TextureSetFlag::OCCLUSION_TEXTURE_SET;
     return *this;
 }
 
 PbrMaterialConfig& PbrMaterialConfig::addEmissiveTexture(TextureConfig* config) {
     if (!config) {
         addImageBinding(2, 4, EMPTY_CONFIG);
-        emissiveTextureSet = -1;
+        textureSetFlags &= ~TextureSetFlag::EMISSIVE_TEXTURE_SET;
         return *this;
     }
 
     addImageBinding(2, 4, *config);
-    emissiveTextureSet = 0;
+    textureSetFlags |= TextureSetFlag::EMISSIVE_TEXTURE_SET;
     emissiveFactor = glm::vec4(1.0f);
     return *this;
 }

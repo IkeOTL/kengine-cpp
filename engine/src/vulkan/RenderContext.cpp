@@ -21,7 +21,7 @@
 #include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/mesh/MeshBuilder.hpp>
 
-void RenderContext::init() {
+void RenderContext::init(TerrainContext* terrainContext) {
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto ptr = std::make_unique<DescriptorSetAllocator>(vkContext.getVkDevice(), vkContext.getDescSetLayoutCache());
         ptr->init();
@@ -34,9 +34,16 @@ void RenderContext::init() {
     initBuffers();
     initDescriptors();
 
+    // move?
+    this->terrainContext = terrainContext;
+    terrainContext->setMaterialBuf(materialsBuf);
+    terrainContext->init(vkContext, descSetAllocators);
+
     cullContext = std::make_unique<CullContext>(*indirectCmdBuf, *objectInstanceBuf,
         *drawObjectBuf, *drawInstanceBuffer);
+    cullContext->setTerrainContext(terrainContext);
     cullContext->init(vkContext, descSetAllocators);
+
 
     auto& bufCache = vkContext.getGpuBufferCache();
     shadowContext = std::make_unique<ShadowContext>(bufCache, *indirectCmdBuf, cameraController, *sceneData);
@@ -96,6 +103,7 @@ void RenderContext::initBuffers() {
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
         VMA_MEMORY_USAGE_AUTO,
         xferFlags);
+
     drawObjectBuf = &bufCache.createHostMapped(
         DrawObjectBuffer::frameSize(),
         VulkanContext::FRAME_OVERLAP,
@@ -400,7 +408,7 @@ void RenderContext::endStaticBatch(uint32_t startBatchIndex) {
         auto indCmdFrameOffset = static_cast<uint32_t>(indirectCmdBuf->getFrameOffset(fIdx));
         auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
         auto buf = indirectCmdBuf->getGpuBuffer().data();
-        auto commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
+        auto* commands = static_cast<VkDrawIndexedIndirectCommand*>(buf);
         for (auto i = startBatchIndex; i < staticBatches; i++) {
             auto& indirectBatch = staticBatchCache[i];
             auto cmdIdx = indCmdFrameIdx + indirectBatch.getCmdId();
@@ -583,6 +591,7 @@ int RenderContext::draw(const Mesh& mesh, const Material& material, const glm::m
 }
 
 void RenderContext::begin(RenderFrameContext& frameCxt, float sceneTime, float alpha) {
+    ZoneScoped;
     this->frameCxt = &frameCxt;
     this->sceneTime = sceneTime;
     this->alpha = alpha;
@@ -723,6 +732,9 @@ void RenderContext::deferredPass(DescriptorSetAllocator& descSetAllocator) {
         {
             ZoneScopedN("RenderContext::deferredPass - Record Draw Cmds");
 
+            terrainContext->draw(vkContext, rpCxt, descSetAllocator);
+
+            // move to secondary cmdbuf?
             for (int i = 0; i < staticBatches; i++) {
                 auto& batch = staticBatchCache[i];
                 batch.draw(vkContext, vkCmd, *indirectCmdBuf,

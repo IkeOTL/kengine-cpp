@@ -9,6 +9,7 @@
 #include <typeindex>
 #include <utility>
 #include <functional>
+#include <span>
 
 class MaterialConfig : Hashable {
 private:
@@ -28,7 +29,7 @@ private:
     bool _hasSkeleton = false;
     int32_t skeletonBufferId = -1;
 
-    std::unordered_map<std::pair<int, int>, std::shared_ptr<MaterialBindingConfig>, IntPairHash> bindingConfigs;
+    std::unordered_map<std::pair<uint32_t, uint32_t>, std::shared_ptr<MaterialBindingConfig>, IntPairHash> bindingConfigs;
 
 public:
     MaterialConfig(std::type_index type) : pipelineTypeIndex(type) {}
@@ -37,13 +38,15 @@ public:
         return pipelineTypeIndex;
     }
 
-    const std::unordered_map<std::pair<int, int>, std::shared_ptr<MaterialBindingConfig>, IntPairHash>& getBindingConfigs() const {
+    const std::unordered_map<std::pair<uint32_t, uint32_t>, std::shared_ptr<MaterialBindingConfig>, IntPairHash>& getBindingConfigs() const {
         return bindingConfigs;
     }
 
-    void addImageBinding(unsigned int descriptorSetIndex, unsigned int bindingIndex, TextureConfig config);
+    void addImageBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, const TextureConfig& config);
 
-    void addBufferBinding(unsigned int descriptorSetIndex, unsigned int bindingIndex, int bufferId);
+    void addImageArrayBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, const std::span<TextureConfig> configs);
+
+    void addBufferBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, GpuBufferId bufferId);
 
     virtual void addSkeleton(int skeletonBufferId) = 0;
 
@@ -64,7 +67,7 @@ public:
         this->_hasSkeleton = hasSkeleton;
         return *this;
     }
-    virtual void upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) = 0;
+    virtual void upload(VulkanContext& vkCxt, const CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) = 0;
 
     virtual size_t hash() const noexcept = 0;
 

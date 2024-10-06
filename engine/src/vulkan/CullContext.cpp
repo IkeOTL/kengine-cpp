@@ -4,12 +4,15 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/GpuBufferCache.hpp>
 #include <kengine/vulkan/CameraController.hpp>
+#include <kengine/terrain/TerrainContext.hpp>
 #include <kengine/math.hpp>
 
 #include <glm/glm.hpp>
 #include <array>
 #include <kengine/util/MatUtils.hpp>
 #include <kengine/vulkan/pipelines/PreDrawCullingPipeline.hpp>
+#include <kengine/vulkan/pipelines/TerrainDrawCullingPipeline.hpp>
+#include <kengine/vulkan/pipelines/TerrainPreDrawCullingPipeline.hpp>
 
 VkSemaphore CullContext::getSemaphore(size_t frameIdx) {
     return semaphores[frameIdx];
@@ -66,7 +69,7 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Descrip
     }
 
     {
-        auto descSetInit = [](size_t idx, VkDescriptorSet descSet, CachedGpuBuffer& buf,
+        auto descSetInit = [](size_t idx, VkDescriptorSet descSet, const CachedGpuBuffer& buf,
             std::vector<VkWriteDescriptorSet>& setWrites, std::vector<VkDescriptorBufferInfo>& bufferInfos) {
                 auto& binding = PreDrawCullingPipeline::preCullingLayout.bindings[idx];
                 auto& write = setWrites[idx];
@@ -86,14 +89,27 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Descrip
         for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
             auto& descSetAllo = *descSetAllocators[i];
 
-            auto cullingDescSet = descSetAllo.getGlobalDescriptorSet("pre-deferred-culling", PreDrawCullingPipeline::preCullingLayout);
+            {
+                auto cullingDescSet = descSetAllo.getGlobalDescriptorSet("pre-deferred-culling", PreDrawCullingPipeline::preCullingLayout);
 
-            std::vector<VkWriteDescriptorSet> setWrites(1);
-            std::vector<VkDescriptorBufferInfo> bufferInfos(1);
+                std::vector<VkWriteDescriptorSet> setWrites(1);
+                std::vector<VkDescriptorBufferInfo> bufferInfos(1);
 
-            descSetInit(0, cullingDescSet, indirectBuf, setWrites, bufferInfos);
+                descSetInit(0, cullingDescSet, indirectBuf, setWrites, bufferInfos);
 
-            vkUpdateDescriptorSets(vkCxt.getVkDevice(), setWrites.size(), setWrites.data(), 0, VK_NULL_HANDLE);
+                vkUpdateDescriptorSets(vkCxt.getVkDevice(), setWrites.size(), setWrites.data(), 0, VK_NULL_HANDLE);
+            }
+
+            {
+                auto cullingDescSet = descSetAllo.getGlobalDescriptorSet("terrain-pre-deferred-culling", TerrainPreDrawCullingPipeline::preCullingLayout);
+
+                std::vector<VkWriteDescriptorSet> setWrites(1);
+                std::vector<VkDescriptorBufferInfo> bufferInfos(1);
+
+                descSetInit(0, cullingDescSet, *terrainContext->getDrawIndirectBuf(), setWrites, bufferInfos);
+
+                vkUpdateDescriptorSets(vkCxt.getVkDevice(), setWrites.size(), setWrites.data(), 0, VK_NULL_HANDLE);
+            }
         }
     }
 }
@@ -105,83 +121,196 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
     cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     vkBeginCommandBuffer(cmdBuf, &cmdBeginInfo);
     {
-        auto localSizeX = 32; // must match compute shader
-        auto localSizeY = 32; // must match compute shader
-        auto workGroupCountX = static_cast<uint32_t>((objectCount + (localSizeX * localSizeY) - 1) / (localSizeX * localSizeY));
-        auto dispatchSizeX = static_cast<uint32_t>(ceil(sqrt(workGroupCountX)));
-        auto dispatchSizeY = static_cast<uint32_t>(ceil((float)workGroupCountX / dispatchSizeX));
-
-        // pre cull pass. reset the draw cmds to 0 instanceCount instead of doign it on the CPU
+        // precull
         {
-            auto pc = PreDrawCullingPipeline::PushConstant{};
-            pc.totalDrawCalls = drawCallCount;
+            // pre cull pass. reset the draw cmds to 0 instanceCount instead of doign it on the CPU
+            auto localSizeX = 32; // must match compute shader
+            auto localSizeY = 32; // must match compute shader
 
-            auto& pl = vkCxt.getPipelineCache().getPipeline<PreDrawCullingPipeline>();
-            pl.bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
-            vkCmdPushConstants(cmdBuf, pl.getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PreDrawCullingPipeline::PushConstant), &pc);
-            vkCmdDispatch(cmdBuf, dispatchSizeX, dispatchSizeY, 1);
 
-            // Create a VkMemoryBarrier2 for synchronization between the two dispatches
-             VkBufferMemoryBarrier2 bufferBarrier{};
-             bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
-             bufferBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-             bufferBarrier.srcAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
-             bufferBarrier.dstStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-             bufferBarrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
-             bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-             bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-             bufferBarrier.buffer = indirectBuf.getGpuBuffer().getVkBuffer();
-             bufferBarrier.offset = indirectBuf.getFrameOffset(frameIdx);
-             bufferBarrier.size = indirectBuf.getFrameSize();
+            // terrain
+            if (terrainContext) {
+                auto chunkCount = terrainContext->getChunkCount().x * terrainContext->getChunkCount().y;
+                auto workGroupCountX = static_cast<uint32_t>((chunkCount + (localSizeX * localSizeY) - 1) / (localSizeX * localSizeY));
+                auto dispatchSizeX = static_cast<uint32_t>(ceil(sqrt(workGroupCountX)));
+                auto dispatchSizeY = static_cast<uint32_t>(ceil((float)workGroupCountX / dispatchSizeX));
 
-             VkDependencyInfo depInfo{};
-             depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-             depInfo.bufferMemoryBarrierCount = 1;
-             depInfo.pBufferMemoryBarriers = &bufferBarrier;
+                auto pc = PreDrawCullingPipeline::PushConstant{};
+                pc.totalDrawCalls = chunkCount;
 
-             vkCmdPipelineBarrier2(cmdBuf, &depInfo);
-        }
+                auto& pl = vkCxt.getPipelineCache().getPipeline<PreDrawCullingPipeline>();
+                pl.bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
+                vkCmdPushConstants(cmdBuf, pl.getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PreDrawCullingPipeline::PushConstant), &pc);
+                vkCmdDispatch(cmdBuf, dispatchSizeX, dispatchSizeY, 1);
+            }
 
-        auto camera = cc.getCamera();
-        auto& proj = camera->getProjectionMatrix();
-        auto frustumX = matutils::frustumPlane(proj, matutils::PLANE_NX);
-        auto frustumY = matutils::frustumPlane(proj, matutils::PLANE_PX);
+            // main
+            {
+                auto chunkCount = terrainContext->getChunkCount().x * terrainContext->getChunkCount().y;
+                auto workGroupCountX = static_cast<uint32_t>((chunkCount + (localSizeX * localSizeY) - 1) / (localSizeX * localSizeY));
+                auto dispatchSizeX = static_cast<uint32_t>(ceil(sqrt(workGroupCountX)));
+                auto dispatchSizeY = static_cast<uint32_t>(ceil((float)workGroupCountX / dispatchSizeX));
 
-        auto pc = DrawCullingPipeline::PushConstant{};
-        camera->getViewMatrix(pc.viewMatrix);
-        pc.frustum[0] = frustumX.x;
-        pc.frustum[1] = frustumX.z;
-        pc.frustum[2] = frustumY.x;
-        pc.frustum[3] = frustumY.z;
+                auto pc = TerrainPreDrawCullingPipeline::PushConstant{};
+                pc.totalChunkCount = chunkCount;
 
-        pc.p00 = proj[0][0];
-        pc.p11 = proj[1][1];
-        pc.zNear = camera->getNearClip();
-        pc.zFar = camera->getFarClip();
+                auto& pl = vkCxt.getPipelineCache().getPipeline<TerrainPreDrawCullingPipeline>();
+                pl.bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
+                vkCmdPushConstants(cmdBuf, pl.getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PreDrawCullingPipeline::PushConstant), &pc);
+                vkCmdDispatch(cmdBuf, dispatchSizeX, dispatchSizeY, 1);
+            }
 
-        pc.totalInstances = objectCount;
 
-        auto& pl = vkCxt.getPipelineCache().getPipeline<DrawCullingPipeline>();
-        pl.bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
-        vkCmdPushConstants(cmdBuf, pl.getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(DrawCullingPipeline::PushConstant), &pc);
+            std::vector<VkBufferMemoryBarrier2> barriers;
 
-        vkCmdDispatch(cmdBuf, dispatchSizeX, dispatchSizeY, 1);
+            // terrain
+            if (terrainContext) {
+                const auto& terrainIndirectBuf = terrainContext->getDrawIndirectBuf();
+                VkBufferMemoryBarrier2 bufferBarrier{};
+                bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+                bufferBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+                bufferBarrier.srcAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
+                bufferBarrier.dstStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+                bufferBarrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
+                bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                bufferBarrier.buffer = terrainIndirectBuf->getGpuBuffer().getVkBuffer();
+                bufferBarrier.offset = terrainIndirectBuf->getFrameOffset(frameIdx);
+                bufferBarrier.size = terrainIndirectBuf->getFrameSize();
+                barriers.push_back(bufferBarrier);
+            }
 
-        // insert barrier
-        {
-            VkMemoryBarrier2 barrier{};
-            barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2;
-            barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
-            barrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
-            barrier.dstStageMask = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
-            barrier.dstAccessMask = VK_ACCESS_2_MEMORY_READ_BIT;
+            // main
+            {
+                VkBufferMemoryBarrier2 bufferBarrier{};
+                bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+                bufferBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+                bufferBarrier.srcAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
+                bufferBarrier.dstStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+                bufferBarrier.dstAccessMask = VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT;
+                bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                bufferBarrier.buffer = indirectBuf.getGpuBuffer().getVkBuffer();
+                bufferBarrier.offset = indirectBuf.getFrameOffset(frameIdx);
+                bufferBarrier.size = indirectBuf.getFrameSize();
+                barriers.push_back(bufferBarrier);
+            }
 
             VkDependencyInfo depInfo{};
             depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-            depInfo.memoryBarrierCount = 1;
-            depInfo.pMemoryBarriers = &barrier;
+            depInfo.bufferMemoryBarrierCount = barriers.size();
+            depInfo.pBufferMemoryBarriers = barriers.data();
 
             vkCmdPipelineBarrier2(cmdBuf, &depInfo);
+        }
+
+        // terrain culling
+        if (terrainContext) {
+            // precull            
+            terrainContext->resetDrawBuf(frameIdx);
+
+            {
+                auto localSizeX = 32; // must match compute shader
+                auto localSizeY = 32; // must match compute shader
+                auto chunkCount = terrainContext->getChunkCount().x * terrainContext->getChunkCount().y;
+                auto workGroupCountX = static_cast<uint32_t>((chunkCount + (localSizeX * localSizeY) - 1) / (localSizeX * localSizeY));
+                auto dispatchSizeX = static_cast<uint32_t>(ceil(sqrt(workGroupCountX)));
+                auto dispatchSizeY = static_cast<uint32_t>(ceil((float)workGroupCountX / dispatchSizeX));
+
+                auto camera = cc.getCamera();
+                auto& proj = camera->getProjectionMatrix();
+                auto frustumX = matutils::frustumPlane(proj, matutils::PLANE_NX);
+                auto frustumY = matutils::frustumPlane(proj, matutils::PLANE_PX);
+
+                auto pc = TerrainDrawCullingPipeline::PushConstant{};
+                camera->getViewMatrix(pc.viewMatrix);
+                pc.frustum[0] = frustumX.x;
+                pc.frustum[1] = frustumX.z;
+                pc.frustum[2] = frustumY.x;
+                pc.frustum[3] = frustumY.z;
+                pc.sphereBounds = terrainContext->getChunkBoundingSphere(); // need to calculate this
+                pc.chunkDimensions = terrainContext->getChunkDimensions();
+                pc.chunkCount = terrainContext->getChunkCount();
+                pc.worldOffset = terrainContext->getWorldOffset();
+
+                auto& pl = vkCxt.getPipelineCache().getPipeline<TerrainDrawCullingPipeline>();
+                pl.bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
+                vkCmdPushConstants(cmdBuf, pl.getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(TerrainDrawCullingPipeline::PushConstant), &pc);
+
+                vkCmdDispatch(cmdBuf, dispatchSizeX, dispatchSizeY, 1);
+            }
+        }
+
+        // main object
+        {
+            auto localSizeX = 32; // must match compute shader
+            auto localSizeY = 32; // must match compute shader
+            auto workGroupCountX = static_cast<uint32_t>((objectCount + (localSizeX * localSizeY) - 1) / (localSizeX * localSizeY));
+            auto dispatchSizeX = static_cast<uint32_t>(ceil(sqrt(workGroupCountX)));
+            auto dispatchSizeY = static_cast<uint32_t>(ceil((float)workGroupCountX / dispatchSizeX));
+
+            auto camera = cc.getCamera();
+            auto& proj = camera->getProjectionMatrix();
+            auto frustumX = matutils::frustumPlane(proj, matutils::PLANE_NX);
+            auto frustumY = matutils::frustumPlane(proj, matutils::PLANE_PX);
+
+            auto pc = DrawCullingPipeline::PushConstant{};
+            camera->getViewMatrix(pc.viewMatrix);
+            pc.frustum[0] = frustumX.x;
+            pc.frustum[1] = frustumX.z;
+            pc.frustum[2] = frustumY.x;
+            pc.frustum[3] = frustumY.z;
+
+            pc.totalInstances = objectCount;
+
+            auto& pl = vkCxt.getPipelineCache().getPipeline<DrawCullingPipeline>();
+            pl.bind(vkCxt, descSetAllocator, cmdBuf, frameIdx);
+            vkCmdPushConstants(cmdBuf, pl.getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(DrawCullingPipeline::PushConstant), &pc);
+
+            vkCmdDispatch(cmdBuf, dispatchSizeX, dispatchSizeY, 1);
+
+            // insert barrier
+            {
+                std::vector<VkBufferMemoryBarrier2> barriers;
+
+                {
+                    VkBufferMemoryBarrier2 bufferBarrier{};
+                    bufferBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+                    bufferBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+                    bufferBarrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
+                    bufferBarrier.dstStageMask = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
+                    bufferBarrier.dstAccessMask = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;
+                    bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                    bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                    bufferBarrier.buffer = indirectBuf.getGpuBuffer().getVkBuffer();
+                    bufferBarrier.offset = indirectBuf.getFrameOffset(frameIdx);
+                    bufferBarrier.size = indirectBuf.getFrameSize();
+                    barriers.push_back(bufferBarrier);
+                }
+
+                if (terrainContext) {
+                    const auto& terrainIndirectBuf = terrainContext->getDrawIndirectBuf();
+                    VkBufferMemoryBarrier2 terrainBarrier{};
+                    terrainBarrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+                    terrainBarrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+                    terrainBarrier.srcAccessMask = VK_ACCESS_2_SHADER_WRITE_BIT;
+                    terrainBarrier.dstStageMask = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
+                    terrainBarrier.dstAccessMask = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;
+                    terrainBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                    terrainBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                    terrainBarrier.buffer = terrainIndirectBuf->getGpuBuffer().getVkBuffer();
+                    terrainBarrier.offset = terrainIndirectBuf->getFrameOffset(frameIdx);
+                    terrainBarrier.size = terrainIndirectBuf->getFrameSize();
+                    barriers.push_back(terrainBarrier);
+                }
+
+                VkDependencyInfo depInfo{};
+                depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+                depInfo.bufferMemoryBarrierCount = barriers.size();
+                depInfo.pBufferMemoryBarriers = barriers.data();
+
+                vkCmdPipelineBarrier2(cmdBuf, &depInfo);
+            }
         }
     }
     vkEndCommandBuffer(cmdBuf);

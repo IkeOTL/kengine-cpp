@@ -45,6 +45,7 @@ private:
     std::unique_ptr<DebugContext> debugContext;
     std::unique_ptr<VulkanContext> vulkanCxt;
     std::unique_ptr<ImGuiKEContext> imGuiContext;
+    std::unique_ptr<TerrainContext> terrainContext;
     std::unique_ptr<RenderContext> renderContext;
     std::unique_ptr<AssetIO> assetIo;
     std::unique_ptr<SceneGraph> sceneGraph;

@@ -1,17 +1,17 @@
-#include <kengine/vulkan/pipelines/PreDrawCullingPipeline.hpp>
+#include <kengine/vulkan/pipelines/TerrainDrawCullingPipeline.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
-#include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/DrawObjectBuffer.hpp>
+#include <kengine/terrain/TerrainContext.hpp>
 
-void PreDrawCullingPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) {
+void TerrainDrawCullingPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) {
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, getVkPipeline());
 
-    auto set0 = descSetAllocator.getGlobalDescriptorSet("pre-deferred-culling", preCullingLayout);
+    auto set0 = descSetAllocator.getGlobalDescriptorSet("terrain-deferred-culling", cullingLayout);
 
-    // TODO: check alignments
     uint32_t dynamicOffsets[] = {
-        frameIndex * vkCxt.alignSsboFrame(RenderContext::MAX_INSTANCES * sizeof(VkDrawIndexedIndirectCommand))
+        frameIndex * vkCxt.alignSsboFrame(sizeof(VkDrawIndexedIndirectCommand)),
+        frameIndex * TerrainContext::drawInstanceBufAlignedFrameSize(vkCxt)
     };
 
     vkCmdBindDescriptorSets(
@@ -20,16 +20,16 @@ void PreDrawCullingPipeline::bind(VulkanContext& vkCxt, DescriptorSetAllocator& 
         getVkPipelineLayout(),
         0,
         1, &set0,
-        1, dynamicOffsets
+        2, dynamicOffsets
     );
 }
 
 
-void PreDrawCullingPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
-    dst.push_back(preCullingLayout);
+void TerrainDrawCullingPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
+    dst.push_back(cullingLayout);
 }
 
-VkPipelineLayout PreDrawCullingPipeline::createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) {
+VkPipelineLayout TerrainDrawCullingPipeline::createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) {
     std::vector<VkDescriptorSetLayout> setLayouts;
     for (const auto& config : descSetLayoutConfigs)
         setLayouts.push_back(layoutCache.getLayout(config));
@@ -37,7 +37,7 @@ VkPipelineLayout PreDrawCullingPipeline::createPipelineLayout(VulkanContext& vkC
     VkPushConstantRange pushConstantRange{};
     pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
     pushConstantRange.offset = 0;
-    pushConstantRange.size = sizeof(PreDrawCullingPipeline::PushConstant);
+    pushConstantRange.size = sizeof(TerrainDrawCullingPipeline::PushConstant);
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -53,9 +53,9 @@ VkPipelineLayout PreDrawCullingPipeline::createPipelineLayout(VulkanContext& vkC
     return pipelineLayout;
 }
 
-VkPipeline PreDrawCullingPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
+VkPipeline TerrainDrawCullingPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
-    loadShader(device, "src/pre-object-cull.comp.spv", VK_SHADER_STAGE_COMPUTE_BIT, shaderStagesCreateInfo);
+    loadShader(device, "src/terrain-object-cull.comp.spv", VK_SHADER_STAGE_COMPUTE_BIT, shaderStagesCreateInfo);
 
     VkComputePipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;

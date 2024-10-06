@@ -6,44 +6,6 @@
 #include <memory>
 
 template <typename V>
-class MeshBuilder;
-
-class IndexBuffer : public GpuUploadable {
-private:
-    std::vector<uint32_t>& indices;
-
-public:
-    IndexBuffer(std::vector<uint32_t>& indices) : indices(indices) {}
-
-    void upload(VulkanContext& vkCxt, void* data) override {
-        memcpy(data, indices.data(), size());
-    }
-
-    VkDeviceSize size() override {
-        return sizeof(uint32_t) * indices.size();
-    }
-};
-
-template <typename V>
-class VertexBuffer : public GpuUploadable {
-private:
-    static_assert(std::is_base_of<Vertex, V>::value, "V must be derived from Vertex");
-
-    std::vector<V>& vertices;
-
-public:
-    VertexBuffer(std::vector<V>& vertices) : vertices(vertices) {}
-
-    void upload(VulkanContext& vkCxt, void* data) override {
-        memcpy(data, vertices.data(), size());
-    }
-
-    VkDeviceSize VertexBuffer::size() override {
-        return V::sizeOf() * vertices.size();
-    }
-};
-
-template <typename V>
 class MeshBuilder {
 private:
     static_assert(std::is_base_of<Vertex, V>::value, "V must be derived from Vertex");
@@ -142,23 +104,38 @@ public:
 
         auto xferFlag = 0;
 
-        auto idxBuffer = std::make_unique<IndexBuffer>(indices);
-        vkContext->uploadBuffer(*idxBuffer,
-            VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR, VK_ACCESS_2_INDEX_READ_BIT,
-            VK_BUFFER_USAGE_INDEX_BUFFER_BIT, xferFlag, nullptr);
+        auto idxBuffer = vkContext->uploadBuffer(
+            [&lol = indices](VulkanContext& vkCxt, void* data) {
+                memcpy(data, lol.data(), lol.size() * sizeof(uint32_t));
+            },
+            indices.size() * sizeof(uint32_t),
+            VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR,
+            VK_ACCESS_2_INDEX_READ_BIT,
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            0,
+            nullptr
+        );
 
-        auto vertBuffer = std::make_unique<VertexBuffer<V>>(vertices);
-        vkContext->uploadBuffer(*vertBuffer,
-            VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR, VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT,
-            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, xferFlag, nullptr);
+        auto vertBuffer = vkContext->uploadBuffer(
+            [&lol = vertices](VulkanContext& vkCxt, void* data) {
+                memcpy(data, lol.data(), V::sizeOf() * lol.size());
+            },
+            V::sizeOf() * vertices.size(),
+            VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR,
+            VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            0,
+            nullptr
+        );
 
         // todo: no need for vertdata, just calcuate bounds without it
         auto vertData = std::make_unique<VertexData<V>>(std::move(vertices), getVertexAttributes(), getIndexCount(), getVertexCount());
         vertData->calcBounds();
+
         return std::make_unique<Mesh>(
             getVertexAttributes(),
-            getIndexCount(), std::move(idxBuffer->releaseBuffer()),
-            getVertexCount(), std::move(vertBuffer->releaseBuffer()),
+            getIndexCount(), std::move(idxBuffer),
+            getVertexCount(), std::move(vertBuffer),
             vertData->getBounds());
     }
 

@@ -17,16 +17,16 @@ int MaterialBinding::getBindingIndex() {
 
 void BufferBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
     VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
-    std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) {
+    std::vector<std::vector<VkDescriptorBufferInfo>>& pBufferInfos, std::vector<std::vector<VkDescriptorImageInfo>>& pImageInfos, std::vector<uint32_t>& offsets) {
     auto& bindingConfig = layoutConfig.getBinding(getBindingIndex());
 
     // i dont like this, need to think of a more effecient way
-    pBufferInfos.push_back(VkDescriptorBufferInfo{});
-    auto& bufferInfo = pBufferInfos[pBufferInfos.size() - 1];
+    auto& bufferInfos = pBufferInfos.emplace_back(std::vector<VkDescriptorBufferInfo>{});
+    bufferInfos.reserve(1);
+    auto& bufferInfo = bufferInfos.emplace_back(VkDescriptorBufferInfo{});
     bufferInfo.buffer = gpuBuffer.getGpuBuffer().getVkBuffer();
     bufferInfo.offset = 0;
     bufferInfo.range = gpuBuffer.getFrameSize();
-    pBufferInfos.push_back(bufferInfo);
 
     setWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     setWrite.dstBinding = bindingConfig.bindingIndex;
@@ -40,7 +40,7 @@ void BufferBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet
 
 void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
     VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
-    std::vector<VkDescriptorBufferInfo>& pBufferInfos, std::vector<VkDescriptorImageInfo>& pImageInfos, std::vector<uint32_t>& offsets) {
+    std::vector<std::vector<VkDescriptorBufferInfo>>& pBufferInfos, std::vector<std::vector<VkDescriptorImageInfo>>& pImageInfos, std::vector<uint32_t>& offsets) {
     auto samplerConfig = SamplerConfig(
         VK_SAMPLER_MIPMAP_MODE_LINEAR,
         VK_FILTER_NEAREST,
@@ -59,8 +59,9 @@ void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet&
     auto& bindingConfig = layoutConfig.getBinding(getBindingIndex());
 
     // i dont like this, need to think of a more effecient way
-    pImageInfos.push_back(VkDescriptorImageInfo{});
-    auto& imageInfo = pImageInfos[pImageInfos.size() - 1];
+    auto& imageInfos = pImageInfos.emplace_back(std::vector<VkDescriptorImageInfo>{});
+    imageInfos.reserve(1);
+    auto& imageInfo = imageInfos.emplace_back(VkDescriptorImageInfo{});
     imageInfo.sampler = sampler;
     imageInfo.imageView = texture.getImageView();
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -71,4 +72,44 @@ void ImageBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet&
     setWrite.descriptorCount = bindingConfig.descriptorCount;
     setWrite.descriptorType = bindingConfig.descriptorType;
     setWrite.pImageInfo = &imageInfo;
+}
+
+void ImageArrayBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
+    VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
+    std::vector<std::vector<VkDescriptorBufferInfo>>& pBufferInfos, std::vector<std::vector<VkDescriptorImageInfo>>& pImageInfos, std::vector<uint32_t>& offsets) {
+
+    auto& imageInfos = pImageInfos.emplace_back(std::vector<VkDescriptorImageInfo>{});
+    imageInfos.reserve(textures.size());
+
+    for (auto* texture : textures) {
+        auto samplerConfig = SamplerConfig(
+            VK_SAMPLER_MIPMAP_MODE_LINEAR,
+            VK_FILTER_NEAREST,
+            VK_FILTER_NEAREST,
+            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            VK_COMPARE_OP_NEVER,
+            VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+            0,
+            texture->getMipLevels(),
+            0,
+            1.0f);
+        auto sampler = cxt.getSamplerCache().getSampler(samplerConfig);
+
+
+        // i dont like this, need to think of a more effecient way
+        auto& imageInfo = imageInfos.emplace_back(VkDescriptorImageInfo{});
+        imageInfo.sampler = sampler;
+        imageInfo.imageView = texture->getImageView();
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    }
+
+    auto& bindingConfig = layoutConfig.getBinding(getBindingIndex());
+    setWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    setWrite.dstSet = dstSet;
+    setWrite.dstBinding = bindingConfig.bindingIndex;
+    setWrite.descriptorType = bindingConfig.descriptorType;
+    setWrite.descriptorCount = textures.size();
+    setWrite.pImageInfo = imageInfos.data();
 }

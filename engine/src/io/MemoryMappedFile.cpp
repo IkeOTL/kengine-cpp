@@ -1,6 +1,9 @@
 #include <kengine/io/MemoryMappedFile.hpp>
 
 
+/// <summary>
+/// It's safe to read from multiple threads.
+/// </summary>
 const unsigned char* MemoryMappedFile::data() const {
     return static_cast<const unsigned char*>(mappedView);
 }

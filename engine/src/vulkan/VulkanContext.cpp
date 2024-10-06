@@ -105,6 +105,7 @@ uint32_t VulkanContext::acquireImage(uint32_t& pImageIndex) {
 }
 
 std::unique_ptr<RenderFrameContext> VulkanContext::createNextFrameContext() {
+    ZoneScoped;
     uint32_t pImageIndex;
     auto idx = acquireImage(pImageIndex);
     auto cmd = frameCmdBufs[pImageIndex]->vkCmdBuf;
@@ -561,16 +562,20 @@ void VulkanContext::submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfe
     vkQueueTransfers.push(qXfer);
 }
 
-void VulkanContext::uploadBuffer(GpuUploadable& obj, const VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
+std::unique_ptr<GpuBuffer> VulkanContext::uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
+    const VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
     VkBufferUsageFlags usageFlags, std::function<void(VkCommandBuffer)> beforeSubmit) {
-    uploadBuffer(obj, dstStageMask, dstAccessMask, usageFlags, 0, beforeSubmit);
+
+    return uploadBuffer(dataProvider, dstBufSize, dstStageMask, dstAccessMask, usageFlags, 0, beforeSubmit);
 }
 
-void VulkanContext::uploadBuffer(GpuUploadable& obj, const VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
-    VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit) {
+std::unique_ptr<GpuBuffer> VulkanContext::uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
+    const VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask, VkBufferUsageFlags dvcUsageFlags,
+    VmaAllocationCreateFlags dvcAllocFlags, std::function<void(VkCommandBuffer)> beforeSubmit) {
+
     // create staging buffer
     auto stagingBuf = createBuffer(
-        obj.size(),
+        dstBufSize,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VMA_MEMORY_USAGE_AUTO,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT
@@ -579,15 +584,15 @@ void VulkanContext::uploadBuffer(GpuUploadable& obj, const VkPipelineStageFlags2
     // copy to staging buffer
     {
         GpuBuffer::ScopedMap scopedMap(*stagingBuf);
-        obj.upload(*this, stagingBuf->data());
+        dataProvider(*this, stagingBuf->data());
     }
 
     // create device buffer
     auto deviceBuf = createBuffer(
-        obj.size(),
-        usageFlags | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        dstBufSize,
+        dvcUsageFlags | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
         VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-        allocFlags
+        dvcAllocFlags
     );
 
     auto cmdBuf = commandPool->createTransferCmdBuf();
@@ -600,13 +605,13 @@ void VulkanContext::uploadBuffer(GpuUploadable& obj, const VkPipelineStageFlags2
         *transferQueue,
         [&](const CommandBuffer& cmdBuf) {
             auto qXfer = std::make_shared<BufferQueueOwnerTransfer>(
-                deviceBuf->getVkBuffer(), obj.size(),
+                deviceBuf->getVkBuffer(), dstBufSize,
                 xferQueueFamilyIndex, gfxQueueFamilyIndex,
                 dstStageMask, dstAccessMask
             );
             qXfer->applyReleaseBarrier(cmdBuf.vkCmdBuf);
 
-            VkBufferCopy copy{ 0, 0, obj.size() };
+            VkBufferCopy copy{ 0, 0, dstBufSize };
             vkCmdCopyBuffer(cmdBuf.vkCmdBuf, sStagingBuf->vkBuffer, deviceBuf->vkBuffer, 1, &copy);
 
             if (beforeSubmit)
@@ -619,8 +624,7 @@ void VulkanContext::uploadBuffer(GpuUploadable& obj, const VkPipelineStageFlags2
         },
         true);
 
-    // transfer device buffer ownershiop to uploadable obj
-    obj.setGpuBuffer(std::move(deviceBuf));
+    return deviceBuf;
 }
 
 void VulkanContext::recordAndSubmitTransferCmdBuf(CommandBufferRecordFunc func, bool awaitFence) {

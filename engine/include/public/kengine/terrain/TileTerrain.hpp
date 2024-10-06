@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/terrain/TileTerrainChunk.hpp>
+#include <kengine/vulkan/texture/Texture2d.hpp>
 #include <glm/glm.hpp>
 #include <vector>
 #include <memory>
@@ -7,7 +8,6 @@
 class VulkanContext;
 class AsyncModelCache;
 class MaterialConfig;
-class Texture2d;
 
 class TileTerrain {
 public:

@@ -4,6 +4,7 @@
 #include <future>
 #include <condition_variable>
 #include <iostream>
+#include <optional>
 
 class ExecutorService {
 private:
@@ -14,10 +15,11 @@ private:
     bool stop = false;
 
 public:
-    ExecutorService(size_t numThreads, std::function<void()> onThreadStartup) {
+    ExecutorService(size_t numThreads, const std::optional<std::function<void()>> onThreadStartup = std::nullopt) {
         for (size_t i = 0; i < numThreads; ++i) {
             workers.emplace_back([this, onThreadStartup] {
-                onThreadStartup();
+                if (onThreadStartup)
+                    (*onThreadStartup)();
 
                 while (true) {
                     std::function<void()> task;
@@ -101,3 +103,60 @@ public:
         return future.share();
     }
 };
+
+//template<typename R>
+//class YeildingTask {
+//private:
+//    ExecutorService& threadPool;
+//    std::shared_ptr<std::promise<R>> promise;
+//
+//public:
+//    YeildingTask(ExecutorService& threadPool)
+//        : threadPool(threadPool) {}
+//
+//    virtual void run() = 0;
+//
+//protected:
+//    void setResult(R res) {
+//        promise->set_value(res);
+//    }
+//
+//    void yield() {
+//        threadPool.submit([this]() { this->run(); });
+//    }
+//};
+//
+//template<typename R, typename N>
+//class YeildingMultiTask : YeildingTask {
+//private:
+//    enum class TaskState {
+//        Start,
+//        Running,
+//        Done
+//    };
+//
+//    std::array<R, N> tasks;
+//    TaskState state;
+//
+//public:
+//    YeildingMultiTask(ExecutorService& threadPool)
+//        : YeildingTask(threadPool) {}
+//
+//    void run() {
+//        switch (state) {
+//        case TaskState::Start:
+//            for (size_t i = 0; i < length; i++) {
+//                tasks.push_back([]() {asdasdasd})
+//            }
+//
+//            state = TaskState::Running;
+//
+//            yeild();
+//            break;
+//        case TaskState::Running:
+//            if (areTasksDone(tasks))
+//                setResult(asdasdasd);
+//            break;
+//        }
+//    }
+//};

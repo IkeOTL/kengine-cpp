@@ -2,13 +2,22 @@
 #include <kengine/vulkan/material/MaterialBindingConfig.hpp>
 #include <kengine/util/MapUtils.hpp>
 
-void MaterialConfig::addImageBinding(unsigned int descriptorSetIndex, unsigned int bindingIndex, TextureConfig config) {
+void MaterialConfig::addImageBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, const TextureConfig& config) {
     auto ptr = std::make_shared<ImageBindingConfig>(descriptorSetIndex, bindingIndex, std::make_shared<TextureConfig>(config));
     bindingConfigs[std::make_pair(descriptorSetIndex, bindingIndex)] = ptr;
 }
 
-void MaterialConfig::addBufferBinding(unsigned int descriptorSetIndex, unsigned int bindingIndex, int bufferId) {
+void MaterialConfig::addBufferBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, GpuBufferId bufferId) {
     auto ptr = std::make_shared<BufferBindingConfig>(descriptorSetIndex, bindingIndex, bufferId);
+    bindingConfigs[std::make_pair(descriptorSetIndex, bindingIndex)] = ptr;
+}
+
+void MaterialConfig::addImageArrayBinding(uint32_t descriptorSetIndex, uint32_t bindingIndex, const std::span<TextureConfig> configs) {
+    std::vector<std::shared_ptr<TextureConfig>> outConfigs(configs.size());
+    for (auto i = 0; i < configs.size(); i++)
+        outConfigs[i] = std::make_shared<TextureConfig>(configs[i]);
+
+    auto ptr = std::make_shared<ImageArrayBindingConfig>(descriptorSetIndex, bindingIndex, std::move(outConfigs));
     bindingConfigs[std::make_pair(descriptorSetIndex, bindingIndex)] = ptr;
 }
 
@@ -17,6 +26,8 @@ void MaterialConfig::addSkeleton(int skeletonBufferId)
 }
 
 size_t MaterialConfig::hashCode() const noexcept {
+    ZoneScoped;
+
     size_t hash = 5;
     size_t prime = 53;
     hash = prime * hash + pipelineTypeIndex.hash_code();

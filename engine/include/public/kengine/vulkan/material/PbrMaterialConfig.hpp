@@ -6,16 +6,20 @@
 
 class VulkanContext;
 
+enum TextureSetFlag {
+    ALBEDO_TEXTURE_SET = 1 << 0,
+    METALLIC_ROUGHNESS_SET = 1 << 1,
+    NORMAL_TEXTURE_SET = 1 << 2,
+    OCCLUSION_TEXTURE_SET = 1 << 3,
+    EMISSIVE_TEXTURE_SET = 1 << 4,
+};
+
 struct PbrMaterialData {
     const glm::vec4 albedoFactor;
     const glm::vec4 emissiveFactor;
-    const int32_t albedoTextureSet;
-    const int32_t metallicRoughnessTextureSet;
-    const int32_t normalTextureSet;
-    const int32_t occlusionTextureSet;
-    const int32_t emissiveTextureSet;
     const float metallicFactor;
     const float roughnessFactor;
+    const uint32_t textureSetFlags;
     const float padding = 0;
 };
 
@@ -36,14 +40,9 @@ class PbrMaterialConfig : public MaterialConfig {
 private:
     glm::vec4 albedoFactor = glm::vec4(1.0f);
     glm::vec4 emissiveFactor = glm::vec4(0);
-
-    int32_t albedoTextureSet = -1;
-    int32_t metallicRoughnessTextureSet = -1;
-    int32_t normalTextureSet = -1;
-    int32_t occlusionTextureSet = -1;
-    int32_t emissiveTextureSet = -1;
     float metallicFactor = 0;
     float roughnessFactor = 0;
+    uint32_t textureSetFlags = 0;
 
 public:
     inline static const TextureConfig EMPTY_CONFIG = TextureConfig("img/empty.png");
@@ -64,7 +63,7 @@ public:
         return std::make_shared<PbrMaterialConfig>(skeletonBufferId);
     }
 
-    void upload(VulkanContext& vkCxt, CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) override;
+    void upload(VulkanContext& vkCxt, const CachedGpuBuffer& gpuBuffer, uint32_t frameIndex, int materialId) override;
     size_t hash() const noexcept override;
 
     void addSkeleton(int skeletonBufferId) override;

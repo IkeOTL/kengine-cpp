@@ -1,0 +1,73 @@
+#version 450
+
+layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
+
+layout (constant_id = 0) const float NEAR_PLANE = 0.01f;
+layout (constant_id = 1) const float FAR_PLANE = 150.0f;
+
+struct DrawCommand
+{
+    uint indexCount;
+    uint instanceCount;
+    uint firstIndex;
+    uint vertexOffset;
+    uint firstInstance;
+};
+
+layout(std430, set = 0, binding = 0) buffer DrawCommandBuffer {
+    DrawCommand cmd;
+} drawCommandBuffer;
+
+// contains all instances to be rendered AFTER culling and their ids
+layout(std430, set = 0, binding = 1) buffer DrawInstanceBuffer {
+    uint instanceIds[];
+} drawInstanceBuffer;
+
+layout(push_constant) uniform PushConstants {
+    mat4 view;
+    vec4 frustum;
+    vec4 sphereBounds;
+    uvec2 chunkDimensions;
+    uvec2 chunkCount;
+    vec2 worldOffset; // could probably calculate this in the shader if we need the space here
+} pcs;
+
+bool isVisible(uint chunkId)
+{    
+    vec3 chunkWorldPos = vec3(
+        float(chunkId % pcs.chunkCount.x) * pcs.chunkDimensions.x + pcs.worldOffset.x,
+        0.0,
+        float(chunkId / pcs.chunkCount.x) * pcs.chunkDimensions.y + pcs.worldOffset.y
+    );
+
+    vec3 sphereBoundsPos = pcs.sphereBounds.xyz + chunkWorldPos;
+
+    vec3 center = (pcs.view * vec4(sphereBoundsPos, 1.0)).xyz;
+    float radius = pcs.sphereBounds.w;
+
+    // update to full frustum cull
+    // cull between left/right frustum planes
+    
+    bool visible = center.z * pcs.frustum[1] - abs(center.x) * pcs.frustum[0] > -radius;
+    visible = visible && center.z * pcs.frustum[3] - abs(center.y) * pcs.frustum[2] > -radius;
+    visible = visible && (center.z - radius < -NEAR_PLANE);
+    visible = visible && (center.z + radius > -FAR_PLANE);
+
+    return visible;
+}
+
+void main() {
+    uint totalChunks = pcs.chunkCount.x * pcs.chunkCount.y;
+    uint chunkId = gl_GlobalInvocationID.y * gl_NumWorkGroups.x * gl_WorkGroupSize.x + gl_GlobalInvocationID.x;
+
+    if (chunkId >= totalChunks)
+        return;    
+
+    if (!isVisible(chunkId))
+        return;
+
+    uint relativeId = atomicAdd(drawCommandBuffer.cmd.instanceCount, 1);
+    uint instanceIdx = drawCommandBuffer.cmd.firstInstance + relativeId;
+
+    drawInstanceBuffer.instanceIds[instanceIdx] = chunkId;
+}

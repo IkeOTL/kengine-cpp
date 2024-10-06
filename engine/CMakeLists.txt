@@ -37,9 +37,11 @@ set(HEADERS
     include/public/kengine/terrain/TileTerrain.hpp
     include/public/kengine/terrain/TileTerrainChunk.hpp
     include/public/kengine/terrain/TileSheet.hpp
+    include/public/kengine/terrain/TerrainContext.hpp
 
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
+    include/public/kengine/io/AssetSerializer.hpp
 
     include/public/kengine/EngineConfig.hpp
     include/public/kengine/Logger.hpp
@@ -57,6 +59,7 @@ set(HEADERS
     include/public/kengine/SpatialGrid.hpp
     include/public/kengine/SpatialPartitioningManager.hpp
     include/public/kengine/FrustumIntersection.hpp
+    include/public/kengine/DeferredJob.hpp
     
     include/public/kengine/vulkan/ImGuiKEContext.hpp
     include/public/kengine/vulkan/VulkanContext.hpp
@@ -116,13 +119,17 @@ set(HEADERS
     include/public/kengine/vulkan/material/MaterialBindingConfig.hpp
     include/public/kengine/vulkan/material/MaterialBinding.hpp
     include/public/kengine/vulkan/material/PbrMaterialConfig.hpp
+    include/public/kengine/vulkan/material/TerrainPbrMaterialConfig.hpp
 
     include/public/kengine/vulkan/pipelines/Pipeline.hpp
     include/public/kengine/vulkan/pipelines/PipelineCache.hpp
     include/public/kengine/vulkan/pipelines/DeferredOffscreenPbrPipeline.hpp
     include/public/kengine/vulkan/pipelines/SkinnedOffscreenPbrPipeline.hpp
+    include/public/kengine/vulkan/pipelines/TerrainDeferredOffscreenPbrPipeline.hpp
     include/public/kengine/vulkan/pipelines/PreDrawCullingPipeline.hpp
+    include/public/kengine/vulkan/pipelines/TerrainPreDrawCullingPipeline.hpp
     include/public/kengine/vulkan/pipelines/DrawCullingPipeline.hpp
+    include/public/kengine/vulkan/pipelines/TerrainDrawCullingPipeline.hpp
     include/public/kengine/vulkan/pipelines/CascadeShadowMapPipeline.hpp
     include/public/kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp
     include/public/kengine/vulkan/pipelines/DeferredCompositionPbrPipeline.hpp
@@ -146,9 +153,11 @@ set(SOURCES
     src/SpatialGrid.cpp
     src/FrustumIntersection.cpp
     src/DebugContext.cpp
+    src/DeferredJobManager.cpp
     
     src/io/FlieSystemAssetIO.cpp
     src/io/MemoryMappedFile.cpp
+    src/io/AssetSerializer.cpp
 
     src/input/InputManager.cpp
     src/input/EventListener.cpp
@@ -156,6 +165,7 @@ set(SOURCES
 
     src/terrain/DualGridTileTerrain.cpp
     src/terrain/TileTerrainChunk.cpp
+    src/terrain/TerrainContext.cpp
 
     src/ecs/World.cpp
     
@@ -209,13 +219,17 @@ set(SOURCES
     src/vulkan/material/MaterialBindingConfig.cpp
     src/vulkan/material/MaterialBinding.cpp
     src/vulkan/material/PbrMaterialConfig.cpp
+    src/vulkan/material/TerrainPbrMaterialConfig.cpp
 
     src/vulkan/pipelines/Pipeline.cpp
     src/vulkan/pipelines/PipelineCache.cpp
     src/vulkan/pipelines/DeferredOffscreenPbrPipeline.cpp
     src/vulkan/pipelines/SkinnedOffscreenPbrPipeline.cpp
+    src/vulkan/pipelines/TerrainDeferredOffscreenPbrPipeline.cpp
     src/vulkan/pipelines/PreDrawCullingPipeline.cpp
+    src/vulkan/pipelines/TerrainPreDrawCullingPipeline.cpp
     src/vulkan/pipelines/DrawCullingPipeline.cpp
+    src/vulkan/pipelines/TerrainDrawCullingPipeline.cpp
     src/vulkan/pipelines/CascadeShadowMapPipeline.cpp
     src/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.cpp
     src/vulkan/pipelines/DeferredCompositionPbrPipeline.cpp
@@ -342,6 +356,8 @@ source_group(
     PREFIX "thirdparty"
     FILES ${IMGUI}
 )
+
+add_subdirectory(tests)
 
 # imgui
 target_include_directories(kengine_engine PUBLIC ${imgui_SOURCE_DIR})

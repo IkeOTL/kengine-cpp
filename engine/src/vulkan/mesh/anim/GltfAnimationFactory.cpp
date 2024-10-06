@@ -11,7 +11,7 @@ std::unique_ptr<Animation> GltfAnimationFactory::loadAnimation(const AnimationCo
     tinygltf::Model model;
     std::string err, warn;
 
-    auto assetData = assetIo.loadBuffer(config.getAnimationSet());
+    auto assetData = assetIo.load(config.getAnimationSet());
 
     auto ret = gltfLoader.LoadBinaryFromMemory(&model, &err, &warn, assetData->data(), assetData->length());
 
@@ -92,8 +92,7 @@ std::unique_ptr<Animation> GltfAnimationFactory::loadAnimation(const AnimationCo
                 const auto* data = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
 
                 // todo: handle doubles
-                if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT)
-                    throw std::runtime_error("Animation data is expect to be floats.");
+                assert(accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT);
 
                 const auto stride = bufferView.byteStride ? bufferView.byteStride : sizeof(glm::vec3);
 
