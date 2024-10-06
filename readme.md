@@ -9,6 +9,11 @@ Requirements:
 - Vulkan SDK 1.3 (make sure to include VMA headers and GLM headers on install) (https://vulkan.lunarg.com/sdk/home#windows)
 - vcpkg (https://learn.microsoft.com/en-us/vcpkg/get_started/get-started)
 
+Tests:
+- Visual studio:
+  - https://github.com/JohnnyHendriks/TestAdapter_Catch2/blob/main/Docs/Walkthrough-vs2022.md
+  - `.runsettings` is provided in the root of the repo
+
 Build:
 - `cmake -DCMAKE_TOOLCHAIN_FILE=D:/git/vcpkg/scripts/buildsystems/vcpkg.cmake . -A x64 -B build`
 - Copy contents of `examples/res` into `build/examples/res` (Todo: need to automate this)

@@ -10,28 +10,7 @@
 #include <chrono>
 #include <format>
 
-
-TEST_CASE("Basic ExecutorService test", "multithread") {
-    ExecutorService pool(2);
-    DeferredJobManager djm;
-
-    const auto count = 1000;
-    const auto incVal = 2;
-
-    std::vector<std::future<int>> futures;
-    futures.reserve(count);
-
-    for (auto i = 0; i < count; i++)
-        futures.emplace_back(pool.submit([i, incVal]() { return incVal; }));
-
-    auto sum = 0;
-    for (auto& f : futures)
-        sum += f.get();
-
-    REQUIRE(sum == (count * incVal));
-}
-
-TEST_CASE("Basic DJM test", "multithread") {
+TEST_CASE("multithread::DJM. Basic DJM test", "[multithread]") {
     ExecutorService pool(2);
     DeferredJobManager djm;
     World world(WorldConfig()

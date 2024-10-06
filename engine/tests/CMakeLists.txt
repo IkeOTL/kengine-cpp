@@ -12,15 +12,22 @@ set_target_properties(Catch2WithMain PROPERTIES FOLDER "thirdparty/Catch2")
 
 set(TEST_SOURCES
     deferred_job.cpp
+    executor_service.cpp
 )
 
-foreach(test_file ${TEST_SOURCES})
-    get_filename_component(test_name ${test_file} NAME_WE)
-    add_executable(${test_name} ${test_file})
-    set_target_properties(${test_name} PROPERTIES CXX_STANDARD 20)
-    set_target_properties(${test_name} PROPERTIES FOLDER "tests/engine")
-    target_link_libraries(${test_name} PRIVATE Catch2::Catch2WithMain kengine_engine)
-    
-    # (Optional) Add labels or properties if needed
-    # set_tests_properties(${test_name} PROPERTIES LABELS "unit;math")
-endforeach()
+add_executable(engine_tests ${TEST_SOURCES})
+set_target_properties(engine_tests PROPERTIES CXX_STANDARD 20)
+set_target_properties(engine_tests PROPERTIES FOLDER "tests")
+
+target_link_libraries(engine_tests PRIVATE
+    Catch2::Catch2WithMain
+    kengine_engine
+)
+
+if(NOT MSVC)
+    list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+    include(CTest)
+endif()
+
+include(Catch)
+catch_discover_tests(engine_tests)
