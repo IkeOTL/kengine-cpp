@@ -17,6 +17,7 @@ set(TEST_SOURCES
 foreach(test_file ${TEST_SOURCES})
     get_filename_component(test_name ${test_file} NAME_WE)
     add_executable(${test_name} ${test_file})
+    set_target_properties(${test_name} PROPERTIES CXX_STANDARD 20)
     set_target_properties(${test_name} PROPERTIES FOLDER "tests/engine")
     target_link_libraries(${test_name} PRIVATE Catch2::Catch2WithMain kengine_engine)
     

@@ -65,17 +65,21 @@ private:
 public:
     template<typename T, typename Func>
     void submit(World& world, std::shared_future<T> task, Func&& thenFunc) {
-        std::lock_guard<std::mutex> lock(newJobLock);
-        using DecayedFunc = std::function<void(World&, T)>;
-        newJobs.emplace_back(std::make_unique<DeferredJob<T>>(std::move(task), DecayedFunc(std::forward<Func>(thenFunc))));
-    }
+        if constexpr (std::is_void_v<T>)
+            static_assert(std::is_invocable_v<Func, World&>, "`thenFunc` is missing `World&` parameter.");
+        else
+            static_assert(std::is_invocable_v<Func, World&, T>, "`thenFunc` is missing `World&` and `T` parameter.");
 
-    // Submit method for void with perfect forwarding
-    template<typename Func>
-    void submit(World& world, std::shared_future<void> task, Func&& thenFunc) {
         std::lock_guard<std::mutex> lock(newJobLock);
-        using DecayedFunc = std::function<void(World&)>;
-        newJobs.emplace_back(std::make_unique<DeferredJob<void>>(std::move(task), DecayedFunc(std::forward<Func>(thenFunc))));
+        using DecayedFunc = std::conditional_t<
+            std::is_void_v<T>,
+            std::function<void(World&)>,
+            std::function<void(World&, T)>
+        >;
+
+        newJobs.emplace_back(
+            std::make_unique<DeferredJob<T>>(std::move(task), DecayedFunc(std::forward<Func>(thenFunc)))
+        );
     }
 
     void process(World& world) {
