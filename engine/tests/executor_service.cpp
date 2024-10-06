@@ -11,7 +11,7 @@
 #include <format>
 
 
-TEST_CASE("multithread::ExecutorService. Basic ExecutorService test", "[multithread]") {
+TEST_CASE("multithread::ExecutorService. Basic", "[multithread]") {
     ExecutorService pool(2);
     DeferredJobManager djm;
 
@@ -29,4 +29,100 @@ TEST_CASE("multithread::ExecutorService. Basic ExecutorService test", "[multithr
         sum += f.get();
 
     REQUIRE(sum == (count * incVal));
+}
+
+TEST_CASE("multithread::ExecutorService. Basic yielding", "[multithread]") {
+    ExecutorService pool(2);
+
+    const auto count = 1000;
+    const auto testModifier = 2;
+    std::atomic_int32_t lol = 0;
+
+    auto yieldingTask = pool.submitYielding<int>(
+        [&lol, count](auto& pool) {
+            std::vector<std::shared_future<void>> tFut;
+            tFut.reserve(count);
+
+            for (auto i = 0; i < count; i++)
+                tFut.emplace_back(pool.submitShared(
+                    [&lol]() {
+                        lol++;
+                        //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    }));
+
+            return [&lol, tFut = std::move(tFut)](auto& promise) mutable {
+                for (auto& f : tFut) {
+                    if (f.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                        return false;
+                }
+
+                promise.set_value(lol * 2);
+                return true;
+                };
+        }
+    );
+
+    auto res = yieldingTask.get();
+
+    REQUIRE(res == count * testModifier);
+}
+
+TEST_CASE("multithread::ExecutorService. Basic yielding void return", "[multithread]") {
+    ExecutorService pool(2);
+
+    const auto count = 1000;
+
+    auto yieldingTask = pool.submitYielding<void>(
+        [count](auto& pool) {
+            std::vector<std::shared_future<void>> tFut;
+            tFut.reserve(count);
+
+            for (auto i = 0; i < count; i++)
+                tFut.emplace_back(pool.submitShared([]() {}));
+
+            return [tFut = std::move(tFut)](auto& promise) mutable {
+                // not even needed for this scenario since work is placed into the queue in order, 
+                // this will always run after tasks before it. i guess we could check if a task failed
+                for (auto& f : tFut) {
+                    if (f.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                        return false;
+                }
+
+                promise.set_value();
+                return true;
+                };
+        }
+    );
+
+    REQUIRE_NOTHROW(yieldingTask.get());
+}
+
+TEST_CASE("multithread::ExecutorService. Basic yielding exception", "[multithread]") {
+    ExecutorService pool(2);
+
+    auto yieldingTask = pool.submitYielding<void>(
+        [](auto& pool) {
+            std::vector<std::shared_future<void>> tFut;
+            tFut.emplace_back(pool.submitShared([]() {}));
+            tFut.emplace_back(pool.submitShared([]() { throw std::runtime_error("Rawr we broken..."); }));
+            tFut.emplace_back(pool.submitShared([]() {}));
+
+            return [tFut = std::move(tFut)](auto& promise) mutable {
+                // not even needed for this scenario since work is placed into the queue in order, 
+                // this will always run after tasks before it. i guess we could check if a task failed
+                for (auto& f : tFut) {
+                    if (f.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                        return false;
+                }
+
+                for (auto& f : tFut)
+                    f.get(); // one of these should throw
+
+                promise.set_value();
+                return true;
+                };
+        }
+    );
+
+    REQUIRE_THROWS(yieldingTask.get());
 }

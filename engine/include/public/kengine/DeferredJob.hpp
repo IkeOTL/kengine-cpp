@@ -49,9 +49,6 @@ public:
         catch (const std::exception& e) {
             KE_LOG_ERROR(std::format("Follow-up function failed: {}", e.what()));
         }
-        catch (...) {
-            KE_LOG_ERROR("Follow-up function failed due to an unknown exception.");
-        }
     }
 };
 
