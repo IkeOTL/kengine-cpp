@@ -13,7 +13,6 @@
 
 TEST_CASE("multithread::ExecutorService. Basic", "[multithread]") {
     ExecutorService pool(2);
-    DeferredJobManager djm;
 
     const auto count = 1000;
     const auto incVal = 2;
@@ -102,21 +101,18 @@ TEST_CASE("multithread::ExecutorService. Basic yielding exception", "[multithrea
 
     auto yieldingTask = pool.submitYielding<void>(
         [](auto& pool) {
-            std::vector<std::shared_future<void>> tFut;
-            tFut.emplace_back(pool.submitShared([]() {}));
-            tFut.emplace_back(pool.submitShared([]() { throw std::runtime_error("Rawr we broken..."); }));
-            tFut.emplace_back(pool.submitShared([]() {}));
+            auto future = pool.submitShared([]() { throw std::runtime_error("Rawr we broken..."); });
 
-            return [tFut = std::move(tFut)](auto& promise) mutable {
+            return [future](auto& promise) mutable {
                 // not even needed for this scenario since work is placed into the queue in order, 
                 // this will always run after tasks before it. i guess we could check if a task failed
-                for (auto& f : tFut) {
-                    if (f.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
-                        return false;
-                }
+                if (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+                    return false;
 
-                for (auto& f : tFut)
-                    f.get(); // one of these should throw
+                REQUIRE_THROWS(future.get());
+
+                // make it throw again to see if the promise outside gets hit
+                future.get();
 
                 promise.set_value();
                 return true;

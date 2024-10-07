@@ -7,6 +7,7 @@
 #include <kengine/vulkan/pipelines/SkinnedCascadeShadowMapPipeline.hpp>
 #include <kengine/vulkan/pipelines/DrawCullingPipeline.hpp>
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
+#include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 #include <kengine/Math.hpp>
 
 #include <tracy/Tracy.hpp>
@@ -29,6 +30,12 @@
 #include <kengine/vulkan/pipelines/TerrainDrawCullingPipeline.hpp>
 #include <kengine/vulkan/pipelines/TerrainDeferredOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/pipelines/TerrainPreDrawCullingPipeline.hpp>
+
+
+#include "components/Components.hpp"
+#include <components/Material.hpp>
+#include <components/Model.hpp>
+#include <kengine/util/Random.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -79,6 +86,8 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
     vulkanCxt->setDebugContext(debugContext.get());
 
+    djm = DeferredJobManager::create();
+
     assetIo = FileSystemAssetIO::create();
     lightsManager = LightsManager::create(*cameraController);
     sceneTime = std::make_unique<SceneTime>();
@@ -100,15 +109,11 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
     imGuiContext->init(*window);
 
-
     terrainContext = std::make_unique<TerrainContext>(*materialCache);
 
     renderContext = RenderContext::create(*vulkanCxt, *lightsManager, *cameraController);
     renderContext->init(terrainContext.get());
     renderContext->setImGuiContext(imGuiContext.get());
-
-    auto config = AnimationConfig::create("gltf/char01.glb", "Run00");
-    auto& lol = animationCache->get(config);
 
     world = World::create(WorldConfig()
         // injectable objects. order doesnt matter
@@ -141,6 +146,89 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .setSystem<SpatialGridUpdateSystem>()
         .setSystem<RenderSystem>()
     );
+
+    {
+        auto* ecs = world->getService<entt::registry>();
+        auto modelConfig = std::make_shared<ModelConfig>("gltf/smallcube.glb",
+            VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
+            | VertexAttribute::TANGENTS
+        );
+
+        auto materialConfig = PbrMaterialConfig::create();
+        materialConfig->setHasShadow(true);
+
+        auto assetTask = threadPool->submitYielding<void>(
+            [modelConfig, materialConfig, modelCache = modelCache.get(), materialCache = materialCache.get()](auto& pool) {
+                auto modelTask = modelCache->getAsync(modelConfig);
+                auto materialTask = materialCache->getAsync(materialConfig);
+
+                return [modelTask, materialTask](auto& promise) {
+                    if (!modelTask.isDone() || !materialTask.isDone())
+                        return false;
+
+                    promise.set_value();
+                    return true;
+                    };
+            });
+
+        djm->submit(*world, assetTask,
+            []() {
+                dfgdsgfdfg
+            });
+
+        auto modelTask = modelCache->getAsync(modelConfig);
+        auto materialTask = materialCache->getAsync(materialConfig);
+
+        auto model = modelTask.get();
+        auto material = materialTask.get();
+
+        auto xCount = 10;
+        auto yCount = 10;
+        auto zCount = 10;
+        auto yOffset = 3;
+        auto zOffset = -5;
+        auto sIdx = renderContext->startStaticBatch();
+        {
+            for (size_t k = 0; k < yCount; k++) {
+                for (size_t i = 0; i < xCount; i++) {
+                    for (size_t j = 0; j < zCount; j++) {
+                        auto entity = ecs->create();
+                        auto& renderable = ecs->emplace<Component::Renderable>(entity);
+                        renderable.setStatic();
+                        ecs->emplace<Component::ModelComponent>(entity, modelConfig);
+
+                        auto& model = modelCache->get(modelConfig);
+                        auto& spatials = ecs->emplace<Component::Spatials>(entity);
+                        auto rootSpatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), renderable.type);
+
+                        //rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
+
+                        rootSpatial->setLocalPosition(glm::vec3(
+                            (1.5f * i) - (1.5 * xCount * 0.5f),
+                            (1.5f * k) + yOffset,
+                            (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset
+                        ));
+
+                        spatialPartitioningManager->getSpatialGrid()->setDirty(entity);
+
+                        ecs->emplace<Component::Material>(entity, materialConfig);
+
+                        //renderContext->addStaticInstance(
+                        //    model->getMeshGroups()[0]->getMesh(0),
+                        //    *material,
+                        //    glm::translate(glm::mat4(1.0f), glm::vec3(
+                        //        (1.5f * i) - (1.5 * xCount * 0.5f),
+                        //        (1.5f * k) + yOffset,
+                        //        (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset
+                        //    )),
+                        //    model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
+                        //);
+                    }
+                }
+            }
+        }
+        renderContext->endStaticBatch(sIdx);
+    }
 
     return std::make_unique<MainGameState>(*world);
 }

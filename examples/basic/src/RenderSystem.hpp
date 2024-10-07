@@ -44,6 +44,9 @@ private:
     inline static const uint32_t maxVisibleEntities = 1024;
     std::vector<entt::entity> visibleEntities = std::vector<entt::entity>(maxVisibleEntities);
 
+    void integrate(Component::Renderable& renderable, Component::Spatials& spatials,
+        Transform& curTranform, uint32_t meshIdx, float delta, glm::mat4& dest);
+
 public:
     RenderSystem() = default;
 
@@ -54,6 +57,4 @@ public:
     void init() override;
     void processSystem(float delta) override;
     void drawEntities(RenderFrameContext& ctx, float delta);
-    void integrate(Component::Renderable& renderable, Component::Spatials& spatials,
-        Transform& curTranform, uint32_t meshIdx, float delta, glm::mat4& dest);
 };

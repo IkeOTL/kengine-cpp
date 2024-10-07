@@ -60,6 +60,11 @@ private:
     std::mutex newJobLock;
 
 public:
+
+    inline static std::unique_ptr<DeferredJobManager> create() {
+        return std::make_unique<DeferredJobManager>();
+    }
+
     template<typename T, typename Func>
     void submit(World& world, std::shared_future<T> task, Func&& thenFunc) {
         if constexpr (std::is_void_v<T>)

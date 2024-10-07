@@ -22,6 +22,7 @@
 
 #include <memory>
 #include "Game.hpp"
+#include <kengine/DeferredJob.hpp>
 
 class TestGui : public ImGuiKEContext {
 private:
@@ -43,6 +44,7 @@ private:
     std::unique_ptr<Window> window;
     std::unique_ptr<InputManager> inputManager;
     std::unique_ptr<DebugContext> debugContext;
+    std::unique_ptr<DeferredJobManager> djm;
     std::unique_ptr<VulkanContext> vulkanCxt;
     std::unique_ptr<ImGuiKEContext> imGuiContext;
     std::unique_ptr<TerrainContext> terrainContext;
