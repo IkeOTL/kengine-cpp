@@ -8,7 +8,7 @@ target_compile_definitions(kengine_engine PUBLIC
     GLM_FORCE_DEPTH_ZERO_TO_ONE
     TINYGLTF_NO_STB_IMAGE
     TINYGLTF_NO_STB_IMAGE_WRITE
-    TRACY_ENABLE # need to be conditional
+    #TRACY_ENABLE # need to be conditional
 )
 
 #include(CheckCXXCompilerFlag)
@@ -258,6 +258,8 @@ FetchContent_MakeAvailable(spdlog)
 set_target_properties(spdlog PROPERTIES FOLDER "thirdparty")
 
 # download tracy source
+set(TRACY_ENABLE ON CACHE BOOL "Enable profiling" FORCE)
+set(TRACY_ON_DEMAND ON CACHE BOOL "On-demand profiling" FORCE)
 FetchContent_Declare(
     tracy
     GIT_REPOSITORY https://github.com/wolfpld/tracy.git
