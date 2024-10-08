@@ -45,7 +45,7 @@ TEST_CASE("multithread::ExecutorService. Basic yielding", "[multithread]") {
             for (auto i = 0; i < count; i++)
                 tFut.emplace_back(pool.submitShared(
                     [&lol]() {
-                        lol++;
+                        lol.fetch_add(1);
                         //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     }));
 

@@ -157,7 +157,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         auto materialConfig = PbrMaterialConfig::create();
         materialConfig->setHasShadow(true);
 
-        auto assetTask = threadPool->submitYielding<void>(
+       /* auto assetTask = threadPool->submitYielding<void>(
             [modelConfig, materialConfig, modelCache = modelCache.get(), materialCache = materialCache.get()](auto& pool) {
                 auto modelTask = modelCache->getAsync(modelConfig);
                 auto materialTask = materialCache->getAsync(materialConfig);
@@ -174,7 +174,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         djm->submit(*world, assetTask,
             []() {
                 dfgdsgfdfg
-            });
+            });*/
 
         auto modelTask = modelCache->getAsync(modelConfig);
         auto materialTask = materialCache->getAsync(materialConfig);

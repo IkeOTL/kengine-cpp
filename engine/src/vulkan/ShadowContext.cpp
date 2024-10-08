@@ -42,7 +42,7 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<std::unique_ptr<D
         auto& descSetAllocator = *descSetAllocators[i];
         std::vector<VkWriteDescriptorSet> setWrites(4);
 
-        {
+        
             VkDescriptorSet modelMatDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
                 "shadow-pass0", CascadeShadowMapPipeline::shadowPassLayout);
             // Model matrix descriptor write
@@ -72,9 +72,9 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<std::unique_ptr<D
             setWrites[1].descriptorCount = drawInstanceBinding.descriptorCount;
             setWrites[1].descriptorType = drawInstanceBinding.descriptorType;
             setWrites[1].pBufferInfo = &drawInstanceBufferInfo;
-        }
+        
 
-        {
+        
             VkDescriptorSet cascadeDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
                 "cascade", CascadeShadowMapPipeline::cascadeViewProjLayout);
             // Cascade UBO descriptor write
@@ -90,9 +90,9 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<std::unique_ptr<D
             setWrites[2].descriptorCount = cascadeUboBinding.descriptorCount;
             setWrites[2].descriptorType = cascadeUboBinding.descriptorType;
             setWrites[2].pBufferInfo = &cascadeBufferInfo;
-        }
+        
 
-        {
+        
             VkDescriptorSet compositionDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
                 "deferred-composition", DeferredCompositionPbrPipeline::compositionLayout);
             // Composition descriptor write
@@ -108,7 +108,7 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<std::unique_ptr<D
             setWrites[3].descriptorCount = cascadesUboBinding.descriptorCount;
             setWrites[3].descriptorType = cascadesUboBinding.descriptorType;
             setWrites[3].pBufferInfo = &compositionBufferInfo;
-        }
+        
 
         vkUpdateDescriptorSets(vkContext.getVkDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
     }

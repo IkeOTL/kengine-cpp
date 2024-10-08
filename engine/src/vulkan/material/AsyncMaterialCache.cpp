@@ -9,7 +9,7 @@
 
 std::unique_ptr<Material> AsyncMaterialCache::create(std::shared_ptr<MaterialConfig> keyObj)
 {
-    auto newMat = std::make_unique<Material>(runningId++, keyObj, pipelineCache.getPipeline(keyObj->getPipeline()));
+    auto newMat = std::make_unique<Material>(runningId.fetch_add(1), keyObj, pipelineCache.getPipeline(keyObj->getPipeline()));
 
     auto& tConfigs = keyObj->getBindingConfigs();
     for (auto& entry : tConfigs) {

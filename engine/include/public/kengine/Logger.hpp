@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <spdlog/spdlog.h>
+#include <format>
 
 namespace kengine {
     class Logger {
@@ -8,7 +9,7 @@ namespace kengine {
         virtual ~Logger() = default;
 
         virtual void info(const std::string& message) = 0;
-        virtual void warning(const std::string& message) = 0;
+        virtual void warn(const std::string& message) = 0;
         virtual void error(const std::string& message) = 0;
     };
 
@@ -18,7 +19,7 @@ namespace kengine {
             spdlog::info(message);
         }
 
-        void warning(const std::string& message) override {
+        void warn(const std::string& message) override {
             spdlog::warn(message);
         }
 
