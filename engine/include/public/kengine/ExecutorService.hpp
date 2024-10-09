@@ -194,8 +194,8 @@ public:
         }
 
         // need to determine which works best
-        condition.notify_all();
-        //condition.notify_one();
+        //condition.notify_all();
+        condition.notify_one();
     }
 
     /// <summary>

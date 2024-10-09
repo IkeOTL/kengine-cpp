@@ -46,7 +46,6 @@ TEST_CASE("multithread::ExecutorService. Basic yielding", "[multithread]") {
                 tFut.emplace_back(pool.submitShared(
                     [&lol]() {
                         lol.fetch_add(1);
-                        //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     }));
 
             return [&lol, tFut = std::move(tFut)](auto& promise) mutable {
@@ -55,7 +54,7 @@ TEST_CASE("multithread::ExecutorService. Basic yielding", "[multithread]") {
                         return false;
                 }
 
-                promise.set_value(lol * 2);
+                promise.set_value(lol.load() * 2);
                 return true;
                 };
         }
