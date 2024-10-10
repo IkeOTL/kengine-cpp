@@ -60,6 +60,7 @@ set(HEADERS
     include/public/kengine/SpatialPartitioningManager.hpp
     include/public/kengine/FrustumIntersection.hpp
     include/public/kengine/DeferredJob.hpp
+    include/public/kengine/EventBus.hpp
     
     include/public/kengine/vulkan/ImGuiKEContext.hpp
     include/public/kengine/vulkan/VulkanContext.hpp
@@ -268,6 +269,15 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(tracy)
 set_target_properties(TracyClient PROPERTIES FOLDER "thirdparty")
 
+# EASTL
+FetchContent_Declare(
+    EASTL
+    GIT_REPOSITORY https://github.com/electronicarts/EASTL.git
+    GIT_TAG 3.21.23
+)
+FetchContent_MakeAvailable(EASTL)
+set_target_properties(EASTL PROPERTIES FOLDER "thirdparty")
+
 # download imgui source
 FetchContent_Declare(
     imgui
@@ -382,6 +392,7 @@ target_link_libraries(kengine_engine PUBLIC
     Threads::Threads
     Vulkan::Vulkan
     glfw
+    EASTL
     msgpack-cxx
     #Jolt ## commented out to work on it when i need it, and ensure its linking correctly
     GameNetworkingSockets::shared

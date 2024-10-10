@@ -13,6 +13,7 @@ set_target_properties(Catch2WithMain PROPERTIES FOLDER "thirdparty/Catch2")
 set(TEST_SOURCES
     deferred_job.cpp
     executor_service.cpp
+    event_bus.cpp
 )
 
 add_executable(engine_tests ${TEST_SOURCES})

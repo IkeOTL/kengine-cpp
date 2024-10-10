@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
+    <RunConfiguration>
+        <MaxCpuCount>4</MaxCpuCount>
+        <TestSessionTimeout>5000</TestSessionTimeout>
+    </RunConfiguration>
     <Catch2Adapter>
         <FilenameFilter>_tests$</FilenameFilter>
+        <DebugBreak>on</DebugBreak>
+        <TestCaseTimeout>2000</TestCaseTimeout>
     </Catch2Adapter>
 </RunSettings>
