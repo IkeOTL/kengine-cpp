@@ -8,6 +8,7 @@ target_compile_definitions(kengine_engine PUBLIC
     GLM_FORCE_DEPTH_ZERO_TO_ONE
     TINYGLTF_NO_STB_IMAGE
     TINYGLTF_NO_STB_IMAGE_WRITE
+    "EASTL_DEBUG=0"
     #TRACY_ENABLE # need to be conditional
 )
 
@@ -147,6 +148,7 @@ set(HEADERS
 
 set(SOURCES
     src/Window.cpp
+    src/EASTL_impl.cpp
     src/Transform.cpp
     src/Spatial.cpp
     src/SceneGraph.cpp
@@ -270,6 +272,7 @@ FetchContent_MakeAvailable(tracy)
 set_target_properties(TracyClient PROPERTIES FOLDER "thirdparty")
 
 # EASTL
+add_compile_definitions(EASTL_DEBUG=0)
 FetchContent_Declare(
     EASTL
     GIT_REPOSITORY https://github.com/electronicarts/EASTL.git
