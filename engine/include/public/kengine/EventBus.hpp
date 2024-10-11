@@ -113,6 +113,9 @@ public:
             evt->data = nullptr;
         }
 
+        if (evt->data)
+            memset(evt->data, 0, bufSize);
+
         evt->dataBufSize = dataBufSize;
 
 
