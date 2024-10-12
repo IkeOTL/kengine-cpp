@@ -5,6 +5,7 @@
 #include <shared_mutex>
 #include "Logger.hpp"
 #include <EASTL/fixed_hash_map.h>
+#include "ecs/BaseSystem.hpp"
 
 /// Inspired by https://github.com/libgdx/gdx-ai/
 
@@ -41,18 +42,13 @@ public:
     }
 };
 
-class Subscriber {
-public:
-    virtual bool handleMessage(Event* msg) = 0;
-};
-
 class EventPool
 {
 private:
     unsigned char telegramBuf[1000 * sizeof(Event)];
     eastl::fixed_allocator_with_overflow telegramAllocator;
 
-    unsigned char tinyDatabuf[1000 * 16];
+    unsigned char tinyDatabuf[500 * 16];
     eastl::fixed_allocator tinyAllocator;
 
     unsigned char smallDatabuf[500 * 32];
@@ -148,6 +144,20 @@ public:
     }
 };
 
+using SubscriberId = uint32_t;
+
+class Subscriber {
+public:
+    uint32_t getId() const { return id; }
+    void setId(uint32_t newId) { id = newId; }
+
+    bool handle(Event* evt) final {
+        return static_cast<T*>(this)->handleEvent(evt);
+    }
+
+private:
+    uint32_t id;
+};
 
 class EventBus {
 private:
@@ -159,14 +169,20 @@ private:
         }
     };
 
+    std::atomic<uint32_t> runningId = 0;
     eastl::priority_queue<Event*, eastl::vector<Event*>, EventComparator> queue;
-    eastl::hash_map<Event::EventOpcode, eastl::vector<eastl::weak_ptr<Subscriber>>> evtListeners;
+    eastl::hash_map<SubscriberId, std::function<void(World& world, const Event&)>> subscribers;
+    eastl::hash_map<Event::EventOpcode, eastl::vector<SubscriberId>> evtSubscriptions;
     EventPool eventPool;
     std::shared_mutex mutex;
 
 public:
-    void addSubscriber(Event::EventOpcode opcode, const eastl::weak_ptr<Subscriber>& subscriber) {
-        evtListeners[opcode].push_back(subscriber);
+    SubscriberId registerSubscriber(std::function<void(World& world, const Event&)>&& func) {
+        subscribers[runningId++] = std::move(func);
+    }
+
+    void subscribe(const Event::EventOpcode opcode, const SubscriberId subscriberId) {
+        evtSubscriptions[opcode].push_back(subscriberId);
 
         /*  if (providers != null) {
               for (int i = 0, n = providers.size; i < n; i++) {
@@ -180,7 +196,7 @@ public:
           }*/
     }
 
-    void removeSubscriber(Event::EventOpcode opcode, const eastl::shared_ptr<Subscriber>& subscriber) {
+    void removeSubscriber(const Event::EventOpcode opcode, const SubscriberId subscriberId) {
         auto it = evtListeners.find(opcode);
 
         if (it == evtListeners.end())
@@ -207,5 +223,12 @@ public:
 
         if (subscribers.empty())
             evtListeners.erase(it);
+    }
+
+private:
+    template <typename T>
+    static bool invokeHandler(void* instance, Event* event) {
+        T* subscriber = static_cast<T*>(instance);
+        return subscriber->handle(event);
     }
 };
