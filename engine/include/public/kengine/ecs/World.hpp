@@ -7,6 +7,19 @@
 #include <memory>
 #include <stdexcept>
 
+class World;
+
+class WorldService {
+protected:
+    friend class World;
+    World* world;
+
+protected:
+    void setWorld(World* w) {
+        world = w;
+    }
+};
+
 class WorldConfig {
 protected:
     friend class World;
@@ -36,6 +49,14 @@ private:
 public:
     World(WorldConfig& wc)
         : services(std::move(wc.services)), systems(std::move(wc.systems)) {
+
+        for (auto& entry : this->services) {
+            auto& srv = entry.second;
+
+            if (auto* dSrv = dynamic_cast<WorldService*>(static_cast<WorldService*>(srv)))
+                dSrv->setWorld(this);
+        }
+
         for (auto& entry : this->systems) {
             auto& sys = entry.second;
             sys->world = this;

@@ -157,6 +157,7 @@ set(SOURCES
     src/FrustumIntersection.cpp
     src/DebugContext.cpp
     src/DeferredJobManager.cpp
+    src/EventBus.cpp
     
     src/io/FlieSystemAssetIO.cpp
     src/io/MemoryMappedFile.cpp

@@ -5,9 +5,14 @@
 #include <shared_mutex>
 #include "Logger.hpp"
 #include <EASTL/fixed_hash_map.h>
+#include "ecs/World.hpp"
 #include "ecs/BaseSystem.hpp"
+#include <thirdparty/entt.hpp>
 
 /// Inspired by https://github.com/libgdx/gdx-ai/
+
+using EventOpcode = uint32_t;
+using SubscriberId = uint32_t;
 
 enum TelegramReceiptMode {
     RETURN_RECEIPT_UNNEEDED, RETURN_RECEIPT_NEEDED, RETURN_RECEIPT_SENT
@@ -17,14 +22,10 @@ enum TelegramDataBufSize {
     NONE, TINY, SMALL, MEDIUM, LARGE
 };
 
-class Subscriber;
-
 struct Event {
 public:
-    using EventOpcode = uint32_t;
-
-    eastl::weak_ptr<Subscriber> sender;
-    eastl::weak_ptr<Subscriber> recipient;
+    SubscriberId sender;
+    SubscriberId recipient;
     EventOpcode opcode = 0;
     float timestamp = 0;
     TelegramReceiptMode returnReceiptStatus = TelegramReceiptMode::RETURN_RECEIPT_UNNEEDED;
@@ -32,9 +33,9 @@ public:
     void* data = nullptr;
 
     bool operator==(const Event& other) const {
-        if (this->sender.lock() != other.sender.lock())
+        if (this->sender != other.sender)
             return false;
-        if (this->recipient.lock() != other.recipient.lock())
+        if (this->recipient != other.recipient)
             return false;
         if (opcode != other.opcode)
             return false;
@@ -60,6 +61,9 @@ private:
     unsigned char largeDataBuf[150 * 128];
     eastl::fixed_allocator largeAllocator;
 
+    std::mutex poolMtx;
+    std::mutex dataMtx;
+
 public:
     EventPool()
     {
@@ -72,94 +76,11 @@ public:
 
     ~EventPool() = default;
 
-    Event* rent(uint32_t bufSize = 0) {
-        if (bufSize > 128) {
-            KE_LOG_ERROR("Max buf size supported is 128.");
-            return nullptr;
-        }
-
-        auto* mem = telegramAllocator.allocate(sizeof(Event));
-
-        if (!mem)
-            throw std::bad_alloc();
-
-        memset(mem, 0, sizeof(Event));
-        auto* evt = new (mem) Event();
-
-        auto dataBufSize = TelegramDataBufSize::NONE;
-
-        if (bufSize > 64) {
-            dataBufSize = TelegramDataBufSize::LARGE;
-            evt->data = largeAllocator.allocate(128);
-        }
-        else if (bufSize > 32) {
-            dataBufSize = TelegramDataBufSize::MEDIUM;
-            evt->data = mediumAllocator.allocate(64);
-        }
-        else if (bufSize > 16) {
-            dataBufSize = TelegramDataBufSize::SMALL;
-            evt->data = smallAllocator.allocate(32);
-        }
-        else if (bufSize > 0) {
-            dataBufSize = TelegramDataBufSize::TINY;
-            evt->data = tinyAllocator.allocate(16);
-        }
-        else {
-            evt->dataBufSize = TelegramDataBufSize::NONE;
-            evt->data = nullptr;
-        }
-
-        if (evt->data)
-            memset(evt->data, 0, bufSize);
-
-        evt->dataBufSize = dataBufSize;
-
-
-        return evt;
-    }
-
-    void release(Event* evt) {
-        if (!evt)
-            return;
-
-        evt->~Event();
-
-        // deallocate for data
-        switch (evt->dataBufSize) {
-        case TelegramDataBufSize::TINY:
-            tinyAllocator.deallocate(evt->data, 16);
-            break;
-        case TelegramDataBufSize::SMALL:
-            smallAllocator.deallocate(evt->data, 32);
-            break;
-        case TelegramDataBufSize::MEDIUM:
-            mediumAllocator.deallocate(evt->data, 64);
-            break;
-        case TelegramDataBufSize::LARGE:
-            largeAllocator.deallocate(evt->data, 128);
-            break;
-        }
-
-        telegramAllocator.deallocate(evt, sizeof(Event));
-    }
+    Event* rent(uint32_t bufSize);
+    void release(Event* evt);
 };
 
-using SubscriberId = uint32_t;
-
-class Subscriber {
-public:
-    uint32_t getId() const { return id; }
-    void setId(uint32_t newId) { id = newId; }
-
-    bool handle(Event* evt) final {
-        return static_cast<T*>(this)->handleEvent(evt);
-    }
-
-private:
-    uint32_t id;
-};
-
-class EventBus {
+class EventBus : public  WorldService {
 private:
     struct EventComparator {
         bool operator()(const Event* a, const Event* b) const {
@@ -169,66 +90,39 @@ private:
         }
     };
 
+    //using EventSubscription = entt::delegate<void(const void*, World&, const Event&)>;
+    using EventSubscription = std::function<void(World& world, const Event&)>;
+
     std::atomic<uint32_t> runningId = 0;
     eastl::priority_queue<Event*, eastl::vector<Event*>, EventComparator> queue;
-    eastl::hash_map<SubscriberId, std::function<void(World& world, const Event&)>> subscribers;
-    eastl::hash_map<Event::EventOpcode, eastl::vector<SubscriberId>> evtSubscriptions;
+    eastl::hash_map<SubscriberId, EventSubscription> subscribers;
+    eastl::hash_map<EventOpcode, eastl::vector<SubscriberId>> subscriptions;
     EventPool eventPool;
-    std::shared_mutex mutex;
+    std::mutex busMtx;
 
 public:
-    SubscriberId registerSubscriber(std::function<void(World& world, const Event&)>&& func) {
-        subscribers[runningId++] = std::move(func);
+    template <typename Callable>
+    SubscriberId registerSubscriber(Callable&& func) {
+        std::lock_guard<std::mutex> lock(busMtx);
+
+        static_assert(std::is_invocable_r_v<void, Callable, World&, const Event&>,
+            "Subscriber must be callable with (World&, const Event&)");
+
+        auto id = runningId++;
+
+        //subscribers[id].connect(std::forward<Callable>(func));
+        subscribers[id] = std::move(func);
+        return id;
     }
 
-    void subscribe(const Event::EventOpcode opcode, const SubscriberId subscriberId) {
-        evtSubscriptions[opcode].push_back(subscriberId);
-
-        /*  if (providers != null) {
-              for (int i = 0, n = providers.size; i < n; i++) {
-                  TelegramProvider provider = providers.get(i);
-                  Object info = provider.provideMessageInfo(msg, listener);
-                  if (info != null) {
-                      Telegraph sender = ClassReflection.isInstance(Telegraph.class, provider) ? (Telegraph)provider : null;
-                      dispatchMessage(0, sender, listener, msg, info, false);
-                  }
-              }
-          }*/
+    void unregisterSubscriber(SubscriberId subId) {
+        std::lock_guard<std::mutex> lock(busMtx);
+        // tink about mutex usage in this class
     }
 
-    void removeSubscriber(const Event::EventOpcode opcode, const SubscriberId subscriberId) {
-        auto it = evtListeners.find(opcode);
-
-        if (it == evtListeners.end())
-            return;
-
-        auto& subscribers = it->second;
-
-        // clean up expired weak_ptrs in one pass
-        subscribers.erase(
-            eastl::remove_if(subscribers.begin(), subscribers.end(),
-                [](const eastl::weak_ptr<Subscriber>& weakSub) {
-                    return weakSub.expired();
-                }),
-            subscribers.end());
-
-        for (auto subIt = subscribers.begin(); subIt != subscribers.end(); ++subIt) {
-            if (auto sub = subIt->lock()) {
-                if (sub == subscriber) {
-                    subscribers.erase(subIt);
-                    break;
-                }
-            }
-        }
-
-        if (subscribers.empty())
-            evtListeners.erase(it);
-    }
-
-private:
-    template <typename T>
-    static bool invokeHandler(void* instance, Event* event) {
-        T* subscriber = static_cast<T*>(instance);
-        return subscriber->handle(event);
-    }
+    Event* rentEvent(const EventOpcode opcode, const uint32_t bufSize);
+    void subscribe(const EventOpcode opcode, const SubscriberId subscriberId);
+    void unsubscribe(const EventOpcode opcode, const SubscriberId subscriberId);
+    void publish(Event* evt);
+    void enqueue(Event* evt);
 };
