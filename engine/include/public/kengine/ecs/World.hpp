@@ -24,12 +24,17 @@ class WorldConfig {
 protected:
     friend class World;
     std::unordered_map<std::type_index, void*> services;
+    std::unordered_map<std::type_index, WorldService*> worldServices;
     std::unordered_map<std::type_index, std::unique_ptr<BaseSystem>> systems;
 
 public:
     template<typename T>
     WorldConfig& addService(void* service) {
         services[std::type_index(typeid(T))] = service;
+
+        if constexpr (std::is_base_of<WorldService, T>::value)
+            worldServices[std::type_index(typeid(T))] = static_cast<WorldService*>(service);
+
         return *this;
     }
 
@@ -50,12 +55,8 @@ public:
     World(WorldConfig& wc)
         : services(std::move(wc.services)), systems(std::move(wc.systems)) {
 
-        for (auto& entry : this->services) {
-            auto& srv = entry.second;
-
-            if (auto* dSrv = dynamic_cast<WorldService*>(static_cast<WorldService*>(srv)))
-                dSrv->setWorld(this);
-        }
+        for (auto& entry : wc.worldServices)
+            entry.second->setWorld(this);
 
         for (auto& entry : this->systems) {
             auto& sys = entry.second;

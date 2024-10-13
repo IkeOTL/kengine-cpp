@@ -100,7 +100,7 @@ private:
     EventPool eventPool;
     std::mutex busMtx;
 
-    SceneTime* sceneTime;
+   // SceneTime* sceneTime;
 
 public:
     template <typename Callable>

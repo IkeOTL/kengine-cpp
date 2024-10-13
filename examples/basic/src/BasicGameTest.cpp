@@ -157,24 +157,24 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         auto materialConfig = PbrMaterialConfig::create();
         materialConfig->setHasShadow(true);
 
-        auto assetTask = threadPool->submitYielding<void>(
-            [modelConfig, materialConfig, modelCache = modelCache.get(), materialCache = materialCache.get()](auto& pool) {
-                auto modelTask = modelCache->getAsync(modelConfig);
-                auto materialTask = materialCache->getAsync(materialConfig);
+        //auto assetTask = threadPool->submitYielding<void>(
+        //    [modelConfig, materialConfig, modelCache = modelCache.get(), materialCache = materialCache.get()](auto& pool) {
+        //        auto modelTask = modelCache->getAsync(modelConfig);
+        //        auto materialTask = materialCache->getAsync(materialConfig);
 
-                return [modelTask = std::move(modelTask), materialTask = std::move(materialTask)](auto& promise) {
-                    if (!modelTask.isDone() || !materialTask.isDone())
-                        return false;
-                   // modelTask
-                    promise.set_value();
-                    return true;
-                    };
-            });
+        //        return [modelTask = std::move(modelTask), materialTask = std::move(materialTask)](auto& promise) {
+        //            if (!modelTask.isDone() || !materialTask.isDone())
+        //                return false;
+        //           // modelTask
+        //            promise.set_value();
+        //            return true;
+        //            };
+        //    });
 
-        djm->submit<void>(*world, assetTask,
-            [](World& world) {
-                //dfgdsgfdfg
-            });
+        //djm->submit<void>(*world, assetTask,
+        //    [](World& world) {
+        //        //dfgdsgfdfg
+        //    });
 
         auto modelTask = modelCache->getAsync(modelConfig);
         auto materialTask = materialCache->getAsync(materialConfig);

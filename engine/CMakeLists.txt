@@ -8,8 +8,6 @@ target_compile_definitions(kengine_engine PUBLIC
     GLM_FORCE_DEPTH_ZERO_TO_ONE
     TINYGLTF_NO_STB_IMAGE
     TINYGLTF_NO_STB_IMAGE_WRITE
-    "EASTL_DEBUG=0"
-    #TRACY_ENABLE # need to be conditional
 )
 
 #include(CheckCXXCompilerFlag)

@@ -5,7 +5,7 @@
 
 class EcsSystem : public BaseSystem {
 private:
-    entt::registry* ecs;
+    entt::registry* ecs = nullptr;
 
 protected:
     virtual void begin() override {}
