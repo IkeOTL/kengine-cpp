@@ -70,7 +70,6 @@ private:
     StateMachine<Game> sm;
 
     float delta = 0;
-    const bool isDebugRendering = true;
 
     std::unique_ptr<State<Game>> init();
     void initVulkan();

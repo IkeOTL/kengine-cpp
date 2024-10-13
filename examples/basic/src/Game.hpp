@@ -1,5 +1,4 @@
 #pragma once
-#include <kengine/StateMachine.hpp>
 
 struct SceneTime {
 private:

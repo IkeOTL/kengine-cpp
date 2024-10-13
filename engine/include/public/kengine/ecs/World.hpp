@@ -29,7 +29,7 @@ protected:
 
 public:
     template<typename T>
-    WorldConfig& addService(void* service) {
+    WorldConfig& addService(T* service) {
         services[std::type_index(typeid(T))] = service;
 
         if constexpr (std::is_base_of<WorldService, T>::value)
