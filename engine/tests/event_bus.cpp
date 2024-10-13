@@ -13,16 +13,23 @@ TEST_CASE("event-bus::EventBus. Basic publish", "[event-bus]") {
     World world(WorldConfig()
         .addService<EventBus>(&evtBus));
 
+    auto inc = 0;
     uint32_t targetNum = 8008;
-    auto subscriberId00 = evtBus.registerSubscriber([targetNum](World& w, const Event& e) {
-        uint32_t evtNum = *static_cast<uint32_t*>(e.data);
-        REQUIRE(evtNum == targetNum);
+    auto subscriberId00 = evtBus.registerSubscriber(
+        [targetNum, &inc](World& w, const Event& e) {
+            // pull number out of data
+            auto evtNum = *static_cast<uint32_t*>(e.data);
+            REQUIRE(evtNum == targetNum);
+            inc += 5;
         });
     evtBus.subscribe(1337, subscriberId00);
 
-    auto subscriberId01 = evtBus.registerSubscriber([targetNum](World& w, const Event& e) {
-        uint32_t evtNum = *static_cast<uint32_t*>(e.data);
-        REQUIRE(evtNum == targetNum);
+    auto subscriberId01 = evtBus.registerSubscriber(
+        [targetNum, &inc](World& w, const Event& e) {
+            // pull number out of data
+            auto evtNum = *static_cast<uint32_t*>(e.data);
+            REQUIRE(evtNum == targetNum);
+            inc += 10;
         });
     evtBus.subscribe(1337, subscriberId01);
 
@@ -30,6 +37,13 @@ TEST_CASE("event-bus::EventBus. Basic publish", "[event-bus]") {
     memcpy(evt->data, &targetNum, sizeof(targetNum));
 
     evtBus.publish(evt);
+    REQUIRE(inc == 15);
+
+    // check if it removes the event subcription for the subscriber
+    evtBus.unregisterSubscriber(subscriberId00);
+    evtBus.publish(evt);
+    // with a subscription removed the value should increase less
+    REQUIRE(inc == 25);
 }
 
 TEST_CASE("event-bus::EventBus. pool basic", "[event-bus]") {

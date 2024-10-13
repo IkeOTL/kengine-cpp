@@ -1,6 +1,7 @@
 add_executable(basic)
 
 set(HEADERS
+    src/Game.hpp
     src/BasicGameTest.hpp
     src/MainGameState.hpp
     src/BasicCameraController.hpp
@@ -31,7 +32,7 @@ set(SOURCES
     src/SpatialGridUpdateSystem.cpp
     src/AnimationSystem.cpp
 
-    src/Components.cpp
+    src/components/Components.cpp
 )
 
 set_target_properties(basic PROPERTIES FOLDER "examples")

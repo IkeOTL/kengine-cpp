@@ -28,7 +28,7 @@ public:
         return alpha;
     }
 
-    void setAlpha(float delta) {
+    void setAlpha(float alpha) {
         this->alpha = alpha;
     }
 };

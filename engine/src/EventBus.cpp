@@ -1,10 +1,19 @@
 #include <kengine/EventBus.hpp>
 
 
-Event* EventBus::rentEvent(const EventOpcode opcode, const uint32_t bufSize = 0) {
+Event* EventBus::rentEvent(const EventOpcode opcode, const uint32_t bufSize) {
     auto* evt = eventPool.rent(bufSize);
+    evt->opcode = opcode;
 
+    // set other stuff here too? like the time, grab it from the world
     return evt;
+}
+
+void EventBus::unregisterSubscriber(SubscriberId subId) {
+    std::lock_guard<std::mutex> lock(busMtx);
+    auto it = subscribers.find(subId);
+    if (it != subscribers.end())
+        subscribers.erase(it);
 }
 
 void EventBus::subscribe(const EventOpcode opcode, const SubscriberId subscriberId) {
@@ -30,30 +39,42 @@ void EventBus::unsubscribe(const EventOpcode opcode, const SubscriberId subscrib
     if (it == subscriptions.end())
         return;
 
-    auto& subscribers = it->second;
+    auto& evtSubs = it->second;
 
-    for (auto* subIt = subscribers.begin(); subIt != subscribers.end(); ++subIt) {
-        if (*subIt == subscriberId) {
-            subscribers.erase(subIt);
-            break;
-        }
-    }
+    auto subIt = std::find_if(evtSubs.begin(), evtSubs.end(),
+        [subscriberId](SubscriberId id) {
+            return id == subscriberId;
+        });
 
-    if (subscribers.empty())
+    if (subIt != evtSubs.end())
+        evtSubs.erase(subIt);
+
+    if (evtSubs.empty())
         subscriptions.erase(it);
 }
 
 void EventBus::publish(Event* evt) {
     std::lock_guard<std::mutex> lock(busMtx);
-    auto it = subscriptions.find(evt->opcode);
+    auto subscriptionsIt = subscriptions.find(evt->opcode);
 
-    if (it == subscriptions.end())
+    if (subscriptionsIt == subscriptions.end())
         return;
 
-    auto& subs = it->second;
+    auto& evtSubs = subscriptionsIt->second;
 
-    for (const auto& subId : subs)
-        subscribers[subId](*world, *evt);
+    for (auto* evtSubIdIt = evtSubs.begin(); evtSubIdIt != evtSubs.end(); ) {
+        auto subsIt = subscribers.find(*evtSubIdIt);
+
+        // subscriber is not in the map, its been removed.
+        // lets remove it from this opcode's subscriptions
+        if (subsIt == subscribers.end()) {
+            evtSubIdIt = evtSubs.erase(evtSubIdIt);
+            continue;
+        }
+
+        subsIt->second(*world, *evt);
+        ++evtSubIdIt;
+    }
 }
 
 void EventBus::enqueue(Event* evt) {
@@ -61,7 +82,7 @@ void EventBus::enqueue(Event* evt) {
     queue.push(evt);
 }
 
-Event* EventPool::rent(uint32_t bufSize = 0) {
+Event* EventPool::rent(uint32_t bufSize) {
     if (bufSize > 128) {
         KE_LOG_ERROR("Max buf size supported is 128.");
         return nullptr;

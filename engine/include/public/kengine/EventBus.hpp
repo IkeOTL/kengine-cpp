@@ -76,7 +76,7 @@ public:
 
     ~EventPool() = default;
 
-    Event* rent(uint32_t bufSize);
+    Event* rent(uint32_t bufSize = 0);
     void release(Event* evt);
 };
 
@@ -100,6 +100,8 @@ private:
     EventPool eventPool;
     std::mutex busMtx;
 
+    SceneTime* sceneTime;
+
 public:
     template <typename Callable>
     SubscriberId registerSubscriber(Callable&& func) {
@@ -115,12 +117,9 @@ public:
         return id;
     }
 
-    void unregisterSubscriber(SubscriberId subId) {
-        std::lock_guard<std::mutex> lock(busMtx);
-        // tink about mutex usage in this class
-    }
+    void unregisterSubscriber(SubscriberId subId);
 
-    Event* rentEvent(const EventOpcode opcode, const uint32_t bufSize);
+    Event* rentEvent(const EventOpcode opcode, const uint32_t bufSize = 0);
     void subscribe(const EventOpcode opcode, const SubscriberId subscriberId);
     void unsubscribe(const EventOpcode opcode, const SubscriberId subscriberId);
     void publish(Event* evt);
