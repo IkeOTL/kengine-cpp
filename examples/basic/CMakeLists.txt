@@ -1,7 +1,6 @@
 add_executable(basic)
 
 set(HEADERS
-    src/Game.hpp
     src/BasicGameTest.hpp
     src/MainGameState.hpp
     src/BasicCameraController.hpp

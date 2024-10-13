@@ -22,7 +22,7 @@
 #include "CameraSystem.hpp"
 
 #include "MainGameState.hpp"
-#include "Game.hpp"
+#include <kengine/Game.hpp>
 #include "BasicCameraController.hpp"
 #include <kengine/Logger.hpp>
 #include <kengine/EngineConfig.hpp>

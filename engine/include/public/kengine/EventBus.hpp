@@ -8,6 +8,7 @@
 #include "ecs/World.hpp"
 #include "ecs/BaseSystem.hpp"
 #include <thirdparty/entt.hpp>
+#include "Game.hpp"
 
 /// Inspired by https://github.com/libgdx/gdx-ai/
 
@@ -100,9 +101,13 @@ private:
     EventPool eventPool;
     std::mutex busMtx;
 
-   // SceneTime* sceneTime;
+    // to avoud calls to world for the registered time service
+    SceneTime& sceneTime;
 
 public:
+    EventBus(SceneTime& st)
+        : sceneTime(st) {}
+
     template <typename Callable>
     SubscriberId registerSubscriber(Callable&& func) {
         std::lock_guard<std::mutex> lock(busMtx);
@@ -119,9 +124,10 @@ public:
 
     void unregisterSubscriber(SubscriberId subId);
 
-    Event* rentEvent(const EventOpcode opcode, const uint32_t bufSize = 0);
+    Event* createEvent(const EventOpcode opcode, const uint32_t bufSize = 0);
     void subscribe(const EventOpcode opcode, const SubscriberId subscriberId);
     void unsubscribe(const EventOpcode opcode, const SubscriberId subscriberId);
     void publish(Event* evt);
     void enqueue(Event* evt);
+    void process(float delaySeconds = 0);
 };

@@ -21,7 +21,7 @@
 #include <thirdparty/entt.hpp>
 
 #include <memory>
-#include "Game.hpp"
+#include <kengine/Game.hpp>
 #include <kengine/DeferredJob.hpp>
 
 class TestGui : public ImGuiKEContext {

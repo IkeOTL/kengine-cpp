@@ -44,6 +44,7 @@ set(HEADERS
 
     include/public/kengine/EngineConfig.hpp
     include/public/kengine/Logger.hpp
+    include/public/kengine/Game.hpp
     include/public/kengine/Profiler.hpp
     include/public/kengine/DebugContext.hpp
     include/public/kengine/Math.hpp

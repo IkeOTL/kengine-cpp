@@ -1,5 +1,5 @@
 #include "MainGameState.hpp"
-#include "Game.hpp"
+#include <kengine/Game.hpp>
 #include "RenderSystem.hpp"
 #include "RenderablePreviousTransformSystem.hpp"
 

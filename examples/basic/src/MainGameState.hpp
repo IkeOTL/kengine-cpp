@@ -1,5 +1,5 @@
 #pragma once
-#include "Game.hpp"
+#include <kengine/Game.hpp>
 #include <kengine/StateMachine.hpp>
 
 class ExecutorService;

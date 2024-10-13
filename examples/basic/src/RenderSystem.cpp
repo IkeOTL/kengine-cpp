@@ -1,6 +1,6 @@
 
 #include "RenderSystem.hpp"
-#include "Game.hpp"
+#include <kengine/Game.hpp>
 #include "components/Material.hpp"
 #include "components/Model.hpp"
 #include "components/Components.hpp"

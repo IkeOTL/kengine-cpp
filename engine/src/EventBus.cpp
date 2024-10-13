@@ -1,10 +1,9 @@
 #include <kengine/EventBus.hpp>
 
 
-Event* EventBus::rentEvent(const EventOpcode opcode, const uint32_t bufSize) {
+Event* EventBus::createEvent(const EventOpcode opcode, const uint32_t bufSize) {
     auto* evt = eventPool.rent(bufSize);
     evt->opcode = opcode;
-
     // set other stuff here too? like the time, grab it from the world
     return evt;
 }
@@ -53,35 +52,60 @@ void EventBus::unsubscribe(const EventOpcode opcode, const SubscriberId subscrib
         subscriptions.erase(it);
 }
 
-void EventBus::publish(Event* evt) {
-    std::lock_guard<std::mutex> lock(busMtx);
-    auto subscriptionsIt = subscriptions.find(evt->opcode);
+void EventBus::publish(switch to buld evt here, float delaySeconds) {
+    assert(delaySeconds >= 0);
 
-    if (subscriptionsIt == subscriptions.end())
+    if (delaySeconds > 0) {
+        std::lock_guard<std::mutex> lock(busMtx);
+        queue.push(evt);
         return;
+    }
 
-    auto& evtSubs = subscriptionsIt->second;
+    {
+        std::lock_guard<std::mutex> lock(busMtx);
+        auto subscriptionsIt = subscriptions.find(evt->opcode);
 
-    for (auto* evtSubIdIt = evtSubs.begin(); evtSubIdIt != evtSubs.end(); ) {
-        auto subsIt = subscribers.find(*evtSubIdIt);
+        if (subscriptionsIt == subscriptions.end())
+            return;
 
-        // subscriber is not in the map, its been removed.
-        // lets remove it from this opcode's subscriptions
-        if (subsIt == subscribers.end()) {
-            evtSubIdIt = evtSubs.erase(evtSubIdIt);
-            continue;
+        auto& evtSubs = subscriptionsIt->second;
+
+        for (auto* evtSubIdIt = evtSubs.begin(); evtSubIdIt != evtSubs.end(); ) {
+            auto subsIt = subscribers.find(*evtSubIdIt);
+
+            // subscriber is not in the map, its been removed.
+            // lets remove it from this opcode's subscriptions
+            if (subsIt == subscribers.end()) {
+                evtSubIdIt = evtSubs.erase(evtSubIdIt);
+                continue;
+            }
+
+            subsIt->second(*world, *evt);
+            ++evtSubIdIt;
         }
-
-        subsIt->second(*world, *evt);
-        ++evtSubIdIt;
     }
 }
 
-void EventBus::enqueue(Event* evt) {
-    std::lock_guard<std::mutex> lock(busMtx);
-    queue.push(evt);
+void EventBus::process() {
+    if (queue.empty())
+        return;
+
+    auto curTime = sceneTime.getSceneTime();
+
+    while (queue.size()) {
+        auto* evt = queue.top();
+
+        if (evt->timestamp > curTime)
+            break;
+
+        publish(evt);
+
+        queue.pop();
+    }
 }
 
+
+/// EventPool
 Event* EventPool::rent(uint32_t bufSize) {
     if (bufSize > 128) {
         KE_LOG_ERROR("Max buf size supported is 128.");

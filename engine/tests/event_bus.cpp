@@ -8,8 +8,9 @@
 #include <chrono>
 #include <format>
 
-TEST_CASE("event-bus::EventBus. Basic publish", "[event-bus]") {
-    EventBus evtBus;
+TEST_CASE("event-bus::EventBus. Basic process", "[event-bus]") {
+    SceneTime time;
+    EventBus evtBus(time);
     World world(WorldConfig()
         .addService<EventBus>(&evtBus));
 
@@ -33,7 +34,79 @@ TEST_CASE("event-bus::EventBus. Basic publish", "[event-bus]") {
         });
     evtBus.subscribe(1337, subscriberId01);
 
-    auto* evt = evtBus.rentEvent(1337, sizeof(uint32_t));
+    auto* evt = evtBus.createEvent(1337, 0, sizeof(uint32_t));
+    memcpy(evt->data, &targetNum, sizeof(targetNum));
+
+    REQUIRE(inc == 0);
+    evtBus.enqueue(evt);
+    evtBus.process();
+    REQUIRE(inc == 15);
+
+    // check if it removes the event subcription for the subscriber
+    evtBus.unregisterSubscriber(subscriberId00);
+    evtBus.enqueue(evt);
+    evtBus.process();
+    // with a subscription removed the value should increase less
+    REQUIRE(inc == 25);
+}
+
+TEST_CASE("event-bus::EventBus. delay test", "[event-bus]") {
+    SceneTime time;
+    EventBus evtBus(time);
+    World world(WorldConfig()
+        .addService<EventBus>(&evtBus));
+
+    auto inc = 0;
+    uint32_t targetNum = 8008;
+    auto subscriberId00 = evtBus.registerSubscriber(
+        [targetNum, &inc](World& w, const Event& e) {
+            // pull number out of data
+            auto evtNum = *static_cast<uint32_t*>(e.data);
+            REQUIRE(evtNum == targetNum);
+            inc += 5;
+        });
+    evtBus.subscribe(1337, subscriberId00);
+
+    auto* evt = evtBus.createEvent(1337, 0, sizeof(uint32_t));
+    memcpy(evt->data, &targetNum, sizeof(targetNum));
+
+    evtBus.publish(evt);
+    REQUIRE(inc == 15);
+
+    // check if it removes the event subcription for the subscriber
+    evtBus.unregisterSubscriber(subscriberId00);
+    evtBus.publish(evt);
+    // with a subscription removed the value should increase less
+    REQUIRE(inc == 25);
+}
+
+TEST_CASE("event-bus::EventBus. Basic publish", "[event-bus]") {
+    SceneTime time;
+    EventBus evtBus(time);
+    World world(WorldConfig()
+        .addService<EventBus>(&evtBus));
+
+    auto inc = 0;
+    uint32_t targetNum = 8008;
+    auto subscriberId00 = evtBus.registerSubscriber(
+        [targetNum, &inc](World& w, const Event& e) {
+            // pull number out of data
+            auto evtNum = *static_cast<uint32_t*>(e.data);
+            REQUIRE(evtNum == targetNum);
+            inc += 5;
+        });
+    evtBus.subscribe(1337, subscriberId00);
+
+    auto subscriberId01 = evtBus.registerSubscriber(
+        [targetNum, &inc](World& w, const Event& e) {
+            // pull number out of data
+            auto evtNum = *static_cast<uint32_t*>(e.data);
+            REQUIRE(evtNum == targetNum);
+            inc += 10;
+        });
+    evtBus.subscribe(1337, subscriberId01);
+
+    auto* evt = evtBus.createEvent(1337, 0, sizeof(uint32_t));
     memcpy(evt->data, &targetNum, sizeof(targetNum));
 
     evtBus.publish(evt);
@@ -73,6 +146,6 @@ TEST_CASE("event-bus::EventBus. pool basic", "[event-bus]") {
 
 TEST_CASE("event-bus::EventBus. Max data buf size", "[event-bus]") {
     EventPool pool;
-    auto* evt = pool.rent(256);
+    auto* evt = pool.rent(9999);
     REQUIRE(evt == nullptr);
 }
