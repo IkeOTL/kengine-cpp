@@ -8,6 +8,55 @@ Event* EventBus::createEvent(const EventOpcode opcode, const uint32_t bufSize) {
     return evt;
 }
 
+void EventBus::dispatch(Event* evt) {
+    if (evt->recipient) {
+        std::lock_guard<std::mutex> lock(busMtx);
+        auto recipientIt = subscribers.find(evt->recipient);
+
+        // recipient is no longer registered in the event bus
+        if (recipientIt != subscribers.end())
+            recipientIt->second(*world, *evt);
+        else
+            // might leak data if `evt->data != nullptr`, and it never gets returned to pool or disposed
+            KE_LOG_WARN(std::format("Event was dispatched to non-existent recipient. Might leak data."));
+    }
+    else { // target all subscribers of the opcode
+        std::lock_guard<std::mutex> lock(busMtx);
+        auto subscriptionsIt = subscriptions.find(evt->opcode);
+
+        if (subscriptionsIt == subscriptions.end())
+            return;
+
+        auto& evtSubs = subscriptionsIt->second;
+
+        // send to all subs
+        for (auto* evtSubIdIt = evtSubs.begin(); evtSubIdIt != evtSubs.end(); ) {
+            auto subsIt = subscribers.find(*evtSubIdIt);
+
+            // subscriber is not in the map, its been removed.
+            // lets remove it from this opcode's subscriptions
+            if (subsIt == subscribers.end()) {
+                evtSubIdIt = evtSubs.erase(evtSubIdIt);
+                continue;
+            }
+
+            subsIt->second(*world, *evt);
+            ++evtSubIdIt;
+        }
+    }
+
+    if (evt->returnReceiptStatus == RETURN_RECEIPT_NEEDED) {
+        evt->recipient = evt->sender;
+        evt->sender = 0;
+        evt->returnReceiptStatus = RETURN_RECEIPT_SENT;
+        dispatch(evt);
+        return;
+    }
+
+    // Release the telegram to the pool
+    eventPool.release(evt);
+}
+
 void EventBus::unregisterSubscriber(SubscriberId subId) {
     std::lock_guard<std::mutex> lock(busMtx);
     auto it = subscribers.find(subId);
@@ -52,7 +101,7 @@ void EventBus::unsubscribe(const EventOpcode opcode, const SubscriberId subscrib
         subscriptions.erase(it);
 }
 
-void EventBus::publish(switch to buld evt here, float delaySeconds) {
+void EventBus::publish(const EventOpcode opcode, const SubscriberId senderId, const SubscriberId recipientId, float delaySeconds, bool requiresReply, void* data) {
     assert(delaySeconds >= 0);
 
     if (delaySeconds > 0) {
@@ -61,29 +110,7 @@ void EventBus::publish(switch to buld evt here, float delaySeconds) {
         return;
     }
 
-    {
-        std::lock_guard<std::mutex> lock(busMtx);
-        auto subscriptionsIt = subscriptions.find(evt->opcode);
 
-        if (subscriptionsIt == subscriptions.end())
-            return;
-
-        auto& evtSubs = subscriptionsIt->second;
-
-        for (auto* evtSubIdIt = evtSubs.begin(); evtSubIdIt != evtSubs.end(); ) {
-            auto subsIt = subscribers.find(*evtSubIdIt);
-
-            // subscriber is not in the map, its been removed.
-            // lets remove it from this opcode's subscriptions
-            if (subsIt == subscribers.end()) {
-                evtSubIdIt = evtSubs.erase(evtSubIdIt);
-                continue;
-            }
-
-            subsIt->second(*world, *evt);
-            ++evtSubIdIt;
-        }
-    }
 }
 
 void EventBus::process() {
@@ -124,30 +151,30 @@ Event* EventPool::rent(uint32_t bufSize) {
     memset(mem, 0, sizeof(Event));
     auto* evt = new (mem) Event();
 
-    auto dataBufSize = TelegramDataBufSize::NONE;
+    auto dataBufSize = EventDataBufSize::NONE;
 
     if (bufSize > 64) {
         std::lock_guard<std::mutex> lock(dataMtx);
-        dataBufSize = TelegramDataBufSize::LARGE;
+        dataBufSize = EventDataBufSize::LARGE;
         evt->data = largeAllocator.allocate(128);
     }
     else if (bufSize > 32) {
         std::lock_guard<std::mutex> lock(dataMtx);
-        dataBufSize = TelegramDataBufSize::MEDIUM;
+        dataBufSize = EventDataBufSize::MEDIUM;
         evt->data = mediumAllocator.allocate(64);
     }
     else if (bufSize > 16) {
         std::lock_guard<std::mutex> lock(dataMtx);
-        dataBufSize = TelegramDataBufSize::SMALL;
+        dataBufSize = EventDataBufSize::SMALL;
         evt->data = smallAllocator.allocate(32);
     }
     else if (bufSize > 0) {
         std::lock_guard<std::mutex> lock(dataMtx);
-        dataBufSize = TelegramDataBufSize::TINY;
+        dataBufSize = EventDataBufSize::TINY;
         evt->data = tinyAllocator.allocate(16);
     }
     else {
-        evt->dataBufSize = TelegramDataBufSize::NONE;
+        evt->dataBufSize = EventDataBufSize::NONE;
         evt->data = nullptr;
     }
 
@@ -168,22 +195,22 @@ void EventPool::release(Event* evt) {
 
     // deallocate for data
     switch (evt->dataBufSize) {
-    case TelegramDataBufSize::TINY: {
+    case EventDataBufSize::TINY: {
         std::lock_guard<std::mutex> lock(dataMtx);
         tinyAllocator.deallocate(evt->data, 16);
         break;
     }
-    case TelegramDataBufSize::SMALL: {
+    case EventDataBufSize::SMALL: {
         std::lock_guard<std::mutex> lock(dataMtx);
         smallAllocator.deallocate(evt->data, 32);
         break;
     }
-    case TelegramDataBufSize::MEDIUM: {
+    case EventDataBufSize::MEDIUM: {
         std::lock_guard<std::mutex> lock(dataMtx);
         mediumAllocator.deallocate(evt->data, 64);
         break;
     }
-    case TelegramDataBufSize::LARGE: {
+    case EventDataBufSize::LARGE: {
         std::lock_guard<std::mutex> lock(dataMtx);
         largeAllocator.deallocate(evt->data, 128);
         break;

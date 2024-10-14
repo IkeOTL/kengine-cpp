@@ -15,11 +15,11 @@
 using EventOpcode = uint32_t;
 using SubscriberId = uint32_t;
 
-enum TelegramReceiptMode {
+enum EventReceiptMode {
     RETURN_RECEIPT_UNNEEDED, RETURN_RECEIPT_NEEDED, RETURN_RECEIPT_SENT
 };
 
-enum TelegramDataBufSize {
+enum EventDataBufSize {
     NONE, TINY, SMALL, MEDIUM, LARGE
 };
 
@@ -29,8 +29,8 @@ public:
     SubscriberId recipient;
     EventOpcode opcode = 0;
     float timestamp = 0;
-    TelegramReceiptMode returnReceiptStatus = TelegramReceiptMode::RETURN_RECEIPT_UNNEEDED;
-    TelegramDataBufSize dataBufSize = TelegramDataBufSize::NONE;
+    EventReceiptMode returnReceiptStatus = EventReceiptMode::RETURN_RECEIPT_UNNEEDED;
+    EventDataBufSize dataBufSize = EventDataBufSize::NONE;
     void* data = nullptr;
 
     bool operator==(const Event& other) const {
@@ -50,17 +50,20 @@ private:
     unsigned char telegramBuf[1000 * sizeof(Event)];
     eastl::fixed_allocator_with_overflow telegramAllocator;
 
-    unsigned char tinyDatabuf[500 * 16];
-    eastl::fixed_allocator tinyAllocator;
+    create a engine level pool for this.
+    {
+        unsigned char tinyDatabuf[500 * 16];
+        eastl::fixed_allocator tinyAllocator;
 
-    unsigned char smallDatabuf[500 * 32];
-    eastl::fixed_allocator smallAllocator;
+        unsigned char smallDatabuf[500 * 32];
+        eastl::fixed_allocator smallAllocator;
 
-    unsigned char mediumDataBuf[250 * 64];
-    eastl::fixed_allocator mediumAllocator;
+        unsigned char mediumDataBuf[250 * 64];
+        eastl::fixed_allocator mediumAllocator;
 
-    unsigned char largeDataBuf[150 * 128];
-    eastl::fixed_allocator largeAllocator;
+        unsigned char largeDataBuf[150 * 128];
+        eastl::fixed_allocator largeAllocator;
+    }
 
     std::mutex poolMtx;
     std::mutex dataMtx;
@@ -92,17 +95,22 @@ private:
     };
 
     //using EventSubscription = entt::delegate<void(const void*, World&, const Event&)>;
-    using EventSubscription = std::function<void(World& world, const Event&)>;
+    using EventSubscription = std::function<void(const SubscriberId, const Event&, World&)>;
 
-    std::atomic<uint32_t> runningId = 0;
+    /// <summary>
+    /// SubscriberId = 0 is reserved for reference no/null/void subscriber
+    /// </summary>
+    std::atomic<SubscriberId> subcriberRunningId = 1;
     eastl::priority_queue<Event*, eastl::vector<Event*>, EventComparator> queue;
-    eastl::hash_map<SubscriberId, EventSubscription> subscribers;
+    eastl::hash_map<SubscriberId, EventSubscription> subscribers; rename to handler, becuase in case of reponding to an even its easier to consceptualize
     eastl::hash_map<EventOpcode, eastl::vector<SubscriberId>> subscriptions;
     EventPool eventPool;
     std::mutex busMtx;
 
     // to avoud calls to world for the registered time service
     SceneTime& sceneTime;
+
+    void dispatch(Event* evt);
 
 public:
     EventBus(SceneTime& st)
@@ -112,10 +120,10 @@ public:
     SubscriberId registerSubscriber(Callable&& func) {
         std::lock_guard<std::mutex> lock(busMtx);
 
-        static_assert(std::is_invocable_r_v<void, Callable, World&, const Event&>,
-            "Subscriber must be callable with (World&, const Event&)");
+        static_assert(std::is_invocable_r_v<void, Callable, const SubscriberId, const Event&, World&>,
+            "Subscriber must be callable with (const SubscriberId, const Event&, World&)");
 
-        auto id = runningId++;
+        auto id = subcriberRunningId++;
 
         //subscribers[id].connect(std::forward<Callable>(func));
         subscribers[id] = std::move(func);
@@ -127,7 +135,6 @@ public:
     Event* createEvent(const EventOpcode opcode, const uint32_t bufSize = 0);
     void subscribe(const EventOpcode opcode, const SubscriberId subscriberId);
     void unsubscribe(const EventOpcode opcode, const SubscriberId subscriberId);
-    void publish(Event* evt);
-    void enqueue(Event* evt);
-    void process(float delaySeconds = 0);
+    void publish(const EventOpcode opcode, const SubscriberId senderId, const SubscriberId recipientId, float delaySeconds, bool requiresReply, void* data);
+    void process();
 };
