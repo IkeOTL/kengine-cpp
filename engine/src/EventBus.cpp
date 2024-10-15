@@ -1,5 +1,26 @@
 #include <kengine/EventBus.hpp>
-#include <kengine/BufferPool.hpp>
+
+Event* EventBus::leaseEvent() {
+    void* mem = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(poolMtx);
+        mem = eventPool.allocate(sizeof(Event));
+    }
+
+    if (!mem)
+        throw std::bad_alloc();
+
+    memset(mem, 0, sizeof(Event));
+    return new (mem) Event();
+}
+
+void EventBus::releaseEvent(Event* evt) {
+    if (!evt)
+        return;
+
+    std::lock_guard<std::mutex> lock(poolMtx);
+    eventPool.deallocate(evt, sizeof(Event));
+}
 
 void EventBus::dispatch(Event* evt) {
     if (evt->recipient) {
@@ -8,7 +29,7 @@ void EventBus::dispatch(Event* evt) {
 
         // recipient is no longer registered in the event bus
         if (recipientIt != handlers.end())
-            recipientIt->second(*world, *evt);
+            recipientIt->second(*evt, *world);
         else
             // might leak data if `evt->data != nullptr`, and it never gets returned to pool or disposed
             KE_LOG_WARN(std::format("Event was dispatched to non-existent recipient. Might leak data."));
@@ -33,21 +54,20 @@ void EventBus::dispatch(Event* evt) {
                 continue;
             }
 
-            subsIt->second(*world, *evt);
+            subsIt->second(*evt, *world);
             ++evtSubIdIt;
         }
     }
 
-    if (evt->returnReceiptStatus == RETURN_RECEIPT_NEEDED) {
-        evt->recipient = evt->sender;
-        evt->sender = 0;
-        evt->returnReceiptStatus = RETURN_RECEIPT_SENT;
+    if (evt->onFulfilled) {
+        evt->recipient = evt->onFulfilled;
+        evt->onFulfilled = 0;
         dispatch(evt);
         return;
     }
 
     // Release the telegram to the pool
-    eventPool.release(evt);
+    releaseEvent(evt);
 }
 
 void EventBus::unregisterHandler(HandlerId subId) {
@@ -94,22 +114,23 @@ void EventBus::unsubscribe(const EventOpcode opcode, const HandlerId subscriberI
         subscriptions.erase(it);
 }
 
-void EventBus::publish(const EventOpcode opcode, const HandlerId recipientId, const HandlerId onFulfilledId, float delaySeconds, ByteBuf data) {
+void EventBus::publish(const EventOpcode opcode, const HandlerId recipientId, const HandlerId onFulfilledId, float delaySeconds, ByteBuf* data) {
     assert(delaySeconds >= 0);
 
-    auto* evt = eventPool.rent();
+    auto* evt = leaseEvent();
     evt->opcode = opcode;
     evt->recipient = recipientId;
     evt->onFulfilled = onFulfilledId;
     evt->timestamp = sceneTime.getSceneTime() + delaySeconds;
-   
-    evt->data = data;
+    evt->data = *data;
 
     if (delaySeconds > 0) {
         std::lock_guard<std::mutex> lock(busMtx);
         queue.push(evt);
         return;
     }
+
+
 }
 
 void EventBus::process() {
@@ -124,96 +145,8 @@ void EventBus::process() {
         if (evt->timestamp > curTime)
             break;
 
-        publish(evt);
+        dispatch(evt);
 
         queue.pop();
-    }
-}
-
-
-/// EventPool
-Event* EventPool::rent() {
-
-    void* mem = nullptr;
-    { // lock main allocator
-        std::lock_guard<std::mutex> lock(poolMtx);
-        mem = telegramAllocator.allocate(sizeof(Event));
-    }
-
-    if (!mem)
-        throw std::bad_alloc();
-
-    memset(mem, 0, sizeof(Event));
-    auto* evt = new (mem) Event();
-
-    auto dataBufSize = EventDataBufSize::NONE;
-
-    if (bufSize > 64) {
-        std::lock_guard<std::mutex> lock(dataMtx);
-        dataBufSize = EventDataBufSize::LARGE;
-        evt->data = largeAllocator.allocate(128);
-    }
-    else if (bufSize > 32) {
-        std::lock_guard<std::mutex> lock(dataMtx);
-        dataBufSize = EventDataBufSize::MEDIUM;
-        evt->data = mediumAllocator.allocate(64);
-    }
-    else if (bufSize > 16) {
-        std::lock_guard<std::mutex> lock(dataMtx);
-        dataBufSize = EventDataBufSize::SMALL;
-        evt->data = smallAllocator.allocate(32);
-    }
-    else if (bufSize > 0) {
-        std::lock_guard<std::mutex> lock(dataMtx);
-        dataBufSize = EventDataBufSize::TINY;
-        evt->data = tinyAllocator.allocate(16);
-    }
-    else {
-        evt->dataBufSize = EventDataBufSize::NONE;
-        evt->data = nullptr;
-    }
-
-
-    if (evt->data)
-        memset(evt->data, 0, bufSize);
-
-    evt->dataBufSize = dataBufSize;
-
-    return evt;
-}
-
-void EventPool::release(Event* evt) {
-    if (!evt)
-        return;
-
-    evt->~Event();
-
-    // deallocate for data
-    switch (evt->dataBufSize) {
-    case EventDataBufSize::TINY: {
-        std::lock_guard<std::mutex> lock(dataMtx);
-        tinyAllocator.deallocate(evt->data, 16);
-        break;
-    }
-    case EventDataBufSize::SMALL: {
-        std::lock_guard<std::mutex> lock(dataMtx);
-        smallAllocator.deallocate(evt->data, 32);
-        break;
-    }
-    case EventDataBufSize::MEDIUM: {
-        std::lock_guard<std::mutex> lock(dataMtx);
-        mediumAllocator.deallocate(evt->data, 64);
-        break;
-    }
-    case EventDataBufSize::LARGE: {
-        std::lock_guard<std::mutex> lock(dataMtx);
-        largeAllocator.deallocate(evt->data, 128);
-        break;
-    }
-    }
-
-    { // lock main allocator
-        std::lock_guard<std::mutex> lock(poolMtx);
-        telegramAllocator.deallocate(evt, sizeof(Event));
     }
 }

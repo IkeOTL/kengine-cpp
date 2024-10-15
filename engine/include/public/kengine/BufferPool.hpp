@@ -4,7 +4,7 @@
 #include "Logger.hpp"
 #include <memory_resource>
 
-enum BufferSize {
+enum LeasedBufferSize {
     NONE,
     TINY = 16,
     SMALL = 32,
@@ -16,7 +16,7 @@ enum BufferSize {
 
 struct ByteBuf
 {
-    BufferSize bufSize;
+    LeasedBufferSize bufSize;
     void* data;
 };
 
@@ -36,7 +36,7 @@ public:
 
     ByteBuf lease(uint32_t bufSize) {
         ByteBuf buf{};
-        buf.bufSize = BufferSize::NONE;
+        buf.bufSize = LeasedBufferSize::NONE;
 
         if (bufSize > 512) {
             KE_LOG_ERROR("Max buf size supported is 512.");
@@ -45,18 +45,18 @@ public:
 
         {
             std::lock_guard<std::mutex> lock(mtx);
-            if (bufSize >= BufferSize::XXLARGE)
-                buf.bufSize = BufferSize::XXLARGE;
-            else if (bufSize >= BufferSize::XLARGE)
-                buf.bufSize = BufferSize::XLARGE;
-            else if (bufSize >= BufferSize::LARGE)
-                buf.bufSize = BufferSize::LARGE;
-            else if (bufSize >= BufferSize::MEDIUM)
-                buf.bufSize = BufferSize::MEDIUM;
-            else if (bufSize >= BufferSize::SMALL)
-                buf.bufSize = BufferSize::SMALL;
+            if (bufSize >= LeasedBufferSize::XXLARGE)
+                buf.bufSize = LeasedBufferSize::XXLARGE;
+            else if (bufSize >= LeasedBufferSize::XLARGE)
+                buf.bufSize = LeasedBufferSize::XLARGE;
+            else if (bufSize >= LeasedBufferSize::LARGE)
+                buf.bufSize = LeasedBufferSize::LARGE;
+            else if (bufSize >= LeasedBufferSize::MEDIUM)
+                buf.bufSize = LeasedBufferSize::MEDIUM;
+            else if (bufSize >= LeasedBufferSize::SMALL)
+                buf.bufSize = LeasedBufferSize::SMALL;
             else if (bufSize > 0)
-                buf.bufSize = BufferSize::TINY;
+                buf.bufSize = LeasedBufferSize::TINY;
 
             buf.data = pool.allocate(buf.bufSize);
         }
@@ -67,13 +67,13 @@ public:
         return buf;
     }
 
-    void release(ByteBuf buf) {
-        if (!buf.data)
+    void release(ByteBuf* buf) {
+        if (!buf)
             return;
 
         {
             std::lock_guard<std::mutex> lock(mtx);
-            pool.deallocate(buf.data, buf.bufSize);
+            pool.deallocate(buf->data, buf->bufSize);
         }
     }
 };

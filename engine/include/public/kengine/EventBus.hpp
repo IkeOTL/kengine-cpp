@@ -9,6 +9,7 @@
 #include "ecs/BaseSystem.hpp"
 #include <thirdparty/entt.hpp>
 #include "Game.hpp"
+#include "BufferPool.hpp"
 
 /// Inspired by https://github.com/libgdx/gdx-ai/
 
@@ -21,11 +22,10 @@ enum EventReceiptMode {
 
 struct Event {
 public:
+    EventOpcode opcode = 0;
     HandlerId recipient;
     HandlerId onFulfilled;
-    EventOpcode opcode = 0;
     float timestamp = 0;
-    EventReceiptMode returnReceiptStatus = EventReceiptMode::RETURN_RECEIPT_UNNEEDED;
     ByteBuf data;
 
     bool operator==(const Event& other) const {
@@ -50,7 +50,7 @@ private:
     };
 
     //using EventSubscription = entt::delegate<void(const void*, World&, const Event&)>;
-    using EventHandler = std::function<void(const HandlerId, const Event&, World&)>;
+    using EventHandler = std::function<void(const Event&, World&)>;
 
     /// <summary>
     /// SubscriberId = 0 is reserved for reference no/null/void subscriber
@@ -64,10 +64,14 @@ private:
     std::byte telegramBuf[1000 * sizeof(Event)];
     eastl::fixed_allocator_with_overflow eventPool;
 
+    std::mutex poolMtx;
     std::mutex busMtx;
 
     // to avoud calls to world for the registered time service
     SceneTime& sceneTime;
+
+    Event* leaseEvent();
+    void releaseEvent(Event* evt);
 
     void dispatch(Event* evt);
 
@@ -79,7 +83,7 @@ public:
     HandlerId registerHandler(Callable&& func) {
         std::lock_guard<std::mutex> lock(busMtx);
 
-        static_assert(std::is_invocable_r_v<void, Callable, const HandlerIds, const Event&, World&>,
+        static_assert(std::is_invocable_r_v<void, Callable, const Event&, World&>,
             "Subscriber must be callable with (const HandlerId, const Event&, World&)");
 
         auto id = subcriberRunningId++;
@@ -93,6 +97,6 @@ public:
 
     void subscribe(const EventOpcode opcode, const HandlerId handlerId);
     void unsubscribe(const EventOpcode opcode, const HandlerId handlerId);
-    void publish(const EventOpcode opcode, const HandlerId recipientId, const HandlerId onFulfilledId, float delaySeconds, ByteBuf data);
+    void publish(const EventOpcode opcode, const HandlerId recipientId, const HandlerId onFulfilledId, float delaySeconds, ByteBuf* data);
     void process();
 };
