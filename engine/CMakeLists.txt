@@ -61,6 +61,7 @@ set(HEADERS
     include/public/kengine/FrustumIntersection.hpp
     include/public/kengine/DeferredJob.hpp
     include/public/kengine/EventBus.hpp
+    include/public/kengine/BufferPool.hpp
     
     include/public/kengine/vulkan/ImGuiKEContext.hpp
     include/public/kengine/vulkan/VulkanContext.hpp

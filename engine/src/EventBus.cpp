@@ -1,20 +1,13 @@
 #include <kengine/EventBus.hpp>
-
-
-Event* EventBus::createEvent(const EventOpcode opcode, const uint32_t bufSize) {
-    auto* evt = eventPool.rent(bufSize);
-    evt->opcode = opcode;
-    // set other stuff here too? like the time, grab it from the world
-    return evt;
-}
+#include <kengine/BufferPool.hpp>
 
 void EventBus::dispatch(Event* evt) {
     if (evt->recipient) {
         std::lock_guard<std::mutex> lock(busMtx);
-        auto recipientIt = subscribers.find(evt->recipient);
+        auto recipientIt = handlers.find(evt->recipient);
 
         // recipient is no longer registered in the event bus
-        if (recipientIt != subscribers.end())
+        if (recipientIt != handlers.end())
             recipientIt->second(*world, *evt);
         else
             // might leak data if `evt->data != nullptr`, and it never gets returned to pool or disposed
@@ -31,11 +24,11 @@ void EventBus::dispatch(Event* evt) {
 
         // send to all subs
         for (auto* evtSubIdIt = evtSubs.begin(); evtSubIdIt != evtSubs.end(); ) {
-            auto subsIt = subscribers.find(*evtSubIdIt);
+            auto subsIt = handlers.find(*evtSubIdIt);
 
             // subscriber is not in the map, its been removed.
             // lets remove it from this opcode's subscriptions
-            if (subsIt == subscribers.end()) {
+            if (subsIt == handlers.end()) {
                 evtSubIdIt = evtSubs.erase(evtSubIdIt);
                 continue;
             }
@@ -57,14 +50,14 @@ void EventBus::dispatch(Event* evt) {
     eventPool.release(evt);
 }
 
-void EventBus::unregisterSubscriber(SubscriberId subId) {
+void EventBus::unregisterHandler(HandlerId subId) {
     std::lock_guard<std::mutex> lock(busMtx);
-    auto it = subscribers.find(subId);
-    if (it != subscribers.end())
-        subscribers.erase(it);
+    auto it = handlers.find(subId);
+    if (it != handlers.end())
+        handlers.erase(it);
 }
 
-void EventBus::subscribe(const EventOpcode opcode, const SubscriberId subscriberId) {
+void EventBus::subscribe(const EventOpcode opcode, const HandlerId subscriberId) {
     std::lock_guard<std::mutex> lock(busMtx);
     subscriptions[opcode].push_back(subscriberId);
 
@@ -80,7 +73,7 @@ void EventBus::subscribe(const EventOpcode opcode, const SubscriberId subscriber
       }*/
 }
 
-void EventBus::unsubscribe(const EventOpcode opcode, const SubscriberId subscriberId) {
+void EventBus::unsubscribe(const EventOpcode opcode, const HandlerId subscriberId) {
     std::lock_guard<std::mutex> lock(busMtx);
     auto it = subscriptions.find(opcode);
 
@@ -90,7 +83,7 @@ void EventBus::unsubscribe(const EventOpcode opcode, const SubscriberId subscrib
     auto& evtSubs = it->second;
 
     auto subIt = std::find_if(evtSubs.begin(), evtSubs.end(),
-        [subscriberId](SubscriberId id) {
+        [subscriberId](HandlerId id) {
             return id == subscriberId;
         });
 
@@ -101,16 +94,22 @@ void EventBus::unsubscribe(const EventOpcode opcode, const SubscriberId subscrib
         subscriptions.erase(it);
 }
 
-void EventBus::publish(const EventOpcode opcode, const SubscriberId senderId, const SubscriberId recipientId, float delaySeconds, bool requiresReply, void* data) {
+void EventBus::publish(const EventOpcode opcode, const HandlerId recipientId, const HandlerId onFulfilledId, float delaySeconds, ByteBuf data) {
     assert(delaySeconds >= 0);
+
+    auto* evt = eventPool.rent();
+    evt->opcode = opcode;
+    evt->recipient = recipientId;
+    evt->onFulfilled = onFulfilledId;
+    evt->timestamp = sceneTime.getSceneTime() + delaySeconds;
+   
+    evt->data = data;
 
     if (delaySeconds > 0) {
         std::lock_guard<std::mutex> lock(busMtx);
         queue.push(evt);
         return;
     }
-
-
 }
 
 void EventBus::process() {
@@ -133,11 +132,7 @@ void EventBus::process() {
 
 
 /// EventPool
-Event* EventPool::rent(uint32_t bufSize) {
-    if (bufSize > 128) {
-        KE_LOG_ERROR("Max buf size supported is 128.");
-        return nullptr;
-    }
+Event* EventPool::rent() {
 
     void* mem = nullptr;
     { // lock main allocator

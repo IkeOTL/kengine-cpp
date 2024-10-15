@@ -13,75 +13,30 @@
 /// Inspired by https://github.com/libgdx/gdx-ai/
 
 using EventOpcode = uint32_t;
-using SubscriberId = uint32_t;
+using HandlerId = uint32_t;
 
 enum EventReceiptMode {
     RETURN_RECEIPT_UNNEEDED, RETURN_RECEIPT_NEEDED, RETURN_RECEIPT_SENT
 };
 
-enum EventDataBufSize {
-    NONE, TINY, SMALL, MEDIUM, LARGE
-};
-
 struct Event {
 public:
-    SubscriberId sender;
-    SubscriberId recipient;
+    HandlerId recipient;
+    HandlerId onFulfilled;
     EventOpcode opcode = 0;
     float timestamp = 0;
     EventReceiptMode returnReceiptStatus = EventReceiptMode::RETURN_RECEIPT_UNNEEDED;
-    EventDataBufSize dataBufSize = EventDataBufSize::NONE;
-    void* data = nullptr;
+    ByteBuf data;
 
     bool operator==(const Event& other) const {
-        if (this->sender != other.sender)
-            return false;
         if (this->recipient != other.recipient)
+            return false;
+        if (this->onFulfilled != other.onFulfilled)
             return false;
         if (opcode != other.opcode)
             return false;
         return std::bit_cast<uint32_t>(timestamp) == std::bit_cast<uint32_t>(other.timestamp);
     }
-};
-
-class EventPool
-{
-private:
-    unsigned char telegramBuf[1000 * sizeof(Event)];
-    eastl::fixed_allocator_with_overflow telegramAllocator;
-
-    create a engine level pool for this.
-    {
-        unsigned char tinyDatabuf[500 * 16];
-        eastl::fixed_allocator tinyAllocator;
-
-        unsigned char smallDatabuf[500 * 32];
-        eastl::fixed_allocator smallAllocator;
-
-        unsigned char mediumDataBuf[250 * 64];
-        eastl::fixed_allocator mediumAllocator;
-
-        unsigned char largeDataBuf[150 * 128];
-        eastl::fixed_allocator largeAllocator;
-    }
-
-    std::mutex poolMtx;
-    std::mutex dataMtx;
-
-public:
-    EventPool()
-    {
-        telegramAllocator.init(telegramBuf, sizeof(telegramBuf), sizeof(Event), alignof(Event));
-        tinyAllocator.init(tinyDatabuf, sizeof(tinyDatabuf), 16, 8);
-        smallAllocator.init(smallDatabuf, sizeof(smallDatabuf), 32, 8);
-        mediumAllocator.init(mediumDataBuf, sizeof(mediumDataBuf), 64, 8);
-        largeAllocator.init(largeDataBuf, sizeof(largeDataBuf), 128, 8);
-    }
-
-    ~EventPool() = default;
-
-    Event* rent(uint32_t bufSize = 0);
-    void release(Event* evt);
 };
 
 class EventBus : public  WorldService {
@@ -95,16 +50,20 @@ private:
     };
 
     //using EventSubscription = entt::delegate<void(const void*, World&, const Event&)>;
-    using EventSubscription = std::function<void(const SubscriberId, const Event&, World&)>;
+    using EventHandler = std::function<void(const HandlerId, const Event&, World&)>;
 
     /// <summary>
     /// SubscriberId = 0 is reserved for reference no/null/void subscriber
     /// </summary>
-    std::atomic<SubscriberId> subcriberRunningId = 1;
+    std::atomic<HandlerId> subcriberRunningId = 1;
     eastl::priority_queue<Event*, eastl::vector<Event*>, EventComparator> queue;
-    eastl::hash_map<SubscriberId, EventSubscription> subscribers; rename to handler, becuase in case of reponding to an even its easier to consceptualize
-    eastl::hash_map<EventOpcode, eastl::vector<SubscriberId>> subscriptions;
-    EventPool eventPool;
+    eastl::hash_map<HandlerId, EventHandler> handlers;
+    eastl::hash_map<EventOpcode, eastl::vector<HandlerId>> subscriptions;
+    
+    //  used std::pmr?
+    std::byte telegramBuf[1000 * sizeof(Event)];
+    eastl::fixed_allocator_with_overflow eventPool;
+
     std::mutex busMtx;
 
     // to avoud calls to world for the registered time service
@@ -117,24 +76,23 @@ public:
         : sceneTime(st) {}
 
     template <typename Callable>
-    SubscriberId registerSubscriber(Callable&& func) {
+    HandlerId registerHandler(Callable&& func) {
         std::lock_guard<std::mutex> lock(busMtx);
 
-        static_assert(std::is_invocable_r_v<void, Callable, const SubscriberId, const Event&, World&>,
-            "Subscriber must be callable with (const SubscriberId, const Event&, World&)");
+        static_assert(std::is_invocable_r_v<void, Callable, const HandlerIds, const Event&, World&>,
+            "Subscriber must be callable with (const HandlerId, const Event&, World&)");
 
         auto id = subcriberRunningId++;
 
         //subscribers[id].connect(std::forward<Callable>(func));
-        subscribers[id] = std::move(func);
+        handlers[id] = std::move(func);
         return id;
     }
 
-    void unregisterSubscriber(SubscriberId subId);
+    void unregisterHandler(HandlerId subId);
 
-    Event* createEvent(const EventOpcode opcode, const uint32_t bufSize = 0);
-    void subscribe(const EventOpcode opcode, const SubscriberId subscriberId);
-    void unsubscribe(const EventOpcode opcode, const SubscriberId subscriberId);
-    void publish(const EventOpcode opcode, const SubscriberId senderId, const SubscriberId recipientId, float delaySeconds, bool requiresReply, void* data);
+    void subscribe(const EventOpcode opcode, const HandlerId handlerId);
+    void unsubscribe(const EventOpcode opcode, const HandlerId handlerId);
+    void publish(const EventOpcode opcode, const HandlerId recipientId, const HandlerId onFulfilledId, float delaySeconds, ByteBuf data);
     void process();
 };
