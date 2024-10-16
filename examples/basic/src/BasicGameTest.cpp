@@ -95,6 +95,8 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     spatialPartitioningManager = SpatialPartitioningManager::create();
     skeletonManager = SkeletonManager::create(*vulkanCxt);
 
+    eventBus = EventBus::create(*sceneTime);
+
     spatialPartitioningManager->setSpatialGrid(SpatialGrid::create(64, 64, 16));
 
     modelFactory = GltfModelFactory::create(*vulkanCxt, *assetIo);
@@ -125,6 +127,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .addService(sceneGraph.get())
         .addService(sceneTime.get())
         .addService(spatialPartitioningManager.get())
+        .addService(eventBus.get())
 
         .addService(threadPool.get())
         .addService(assetIo.get())
@@ -147,7 +150,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
     {
         auto* ecs = world->getService<entt::registry>();
-        auto modelConfig = std::make_shared<ModelConfig>("gltf/smallcube.glb",
+        auto modelConfig = ModelConfig::create("gltf/smallcube.glb",
             VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
             | VertexAttribute::TANGENTS
         );

@@ -10,142 +10,141 @@
 
 TEST_CASE("event-bus::EventBus. Basic process", "[event-bus]") {
     SceneTime time;
+    BufferPool bufPool;
     EventBus evtBus(time);
     World world(WorldConfig()
         .addService<EventBus>(&evtBus));
 
     auto inc = 0;
     uint32_t targetNum = 8008;
-    auto subscriberId00 = evtBus.registerHandler(
-        [targetNum, &inc](World& w, const Event& e) {
-            // pull number out of data
-            auto evtNum = *static_cast<uint32_t*>(e.data);
-            REQUIRE(evtNum == targetNum);
+    auto handlerId00 = evtBus.registerHandler(
+        [targetNum, &inc](const Event& e, World& w) {
             inc += 5;
         });
-    evtBus.subscribe(1337, subscriberId00);
+    evtBus.subscribe(1337, handlerId00);
 
-    auto subscriberId01 = evtBus.registerHandler(
-        [targetNum, &inc](World& w, const Event& e) {
-            // pull number out of data
-            auto evtNum = *static_cast<uint32_t*>(e.data);
-            REQUIRE(evtNum == targetNum);
+    auto handlerId01 = evtBus.registerHandler(
+        [targetNum, &inc](const Event& e, World& w) {
             inc += 10;
         });
-    evtBus.subscribe(1337, subscriberId01);
-
-    auto* evt = evtBus.createEvent(1337, 0, sizeof(uint32_t));
-    memcpy(evt->data, &targetNum, sizeof(targetNum));
+    evtBus.subscribe(1337, handlerId01);
 
     REQUIRE(inc == 0);
-    evtBus.enqueue(evt);
+
+    // sned to a single handler
+    evtBus.publish(1337, handlerId00, 0, 0, nullptr);
     evtBus.process();
-    REQUIRE(inc == 15);
+    REQUIRE(inc == 5);
 
     // check if it removes the event subcription for the subscriber
-    evtBus.unregisterHandler(subscriberId00);
-    evtBus.enqueue(evt);
+    // send to all listening to eventid
+    evtBus.publish(1337, 0, 0, 0, nullptr);
     evtBus.process();
     // with a subscription removed the value should increase less
-    REQUIRE(inc == 25);
+    REQUIRE(inc == 20);
+
+    // unregister one and publsuih to all
+    evtBus.unregisterHandler(handlerId00);
+    evtBus.publish(1337, 0, 0, 0, nullptr);
+    evtBus.process();
+    REQUIRE(inc == 30);
 }
 
-TEST_CASE("event-bus::EventBus. delay test", "[event-bus]") {
+TEST_CASE("event-bus::EventBus. Data buf contents", "[event-bus]") {
     SceneTime time;
+    BufferPool bufPool;
+    EventBus evtBus(time);
+    World world(WorldConfig()
+        .addService<EventBus>(&evtBus));
+
+    uint32_t targetNum = 8008;
+    auto handlerId00 = evtBus.registerHandler(
+        [targetNum](const Event& e, World& w) {
+            // pull number out of data
+            auto evtNum = *static_cast<uint32_t*>(e.dataBuf.data);
+            REQUIRE(evtNum == targetNum);
+        });
+    evtBus.subscribe(1337, handlerId00);
+
+    auto handlerId01 = evtBus.registerHandler(
+        [targetNum](const Event& e, World& w) {
+            // pull number out of data
+            auto evtNum = *static_cast<uint32_t*>(e.dataBuf.data);
+            REQUIRE(evtNum == targetNum);
+        });
+    evtBus.subscribe(1337, handlerId01);
+
+    auto dataBuf = bufPool.lease(sizeof(uint32_t));
+    memcpy(dataBuf.data, &targetNum, sizeof(targetNum));
+
+    evtBus.publish(1337, 0, 0, 0, &dataBuf);
+    evtBus.process();
+}
+
+TEST_CASE("event-bus::EventBus. Delay test", "[event-bus]") {
+    SceneTime time;
+    BufferPool bufPool;
     EventBus evtBus(time);
     World world(WorldConfig()
         .addService<EventBus>(&evtBus));
 
     auto inc = 0;
-    uint32_t targetNum = 8008;
-    auto subscriberId00 = evtBus.registerHandler(
-        [targetNum, &inc](World& w, const Event& e) {
-            // pull number out of data
-            auto evtNum = *static_cast<uint32_t*>(e.data);
-            REQUIRE(evtNum == targetNum);
+
+    auto handlerId00 = evtBus.registerHandler(
+        [&inc](const Event& e, World& w) {
             inc += 5;
         });
-    evtBus.subscribe(1337, subscriberId00);
 
-    auto* evt = evtBus.createEvent(1337, 0, sizeof(uint32_t));
-    memcpy(evt->data, &targetNum, sizeof(targetNum));
+    // start at 0
+    REQUIRE(inc == 0);
 
-    evtBus.publish(evt);
-    REQUIRE(inc == 15);
+    // target a specific handler
+    evtBus.publish(1337, handlerId00, 0, 5, nullptr);
+    evtBus.process();
+    REQUIRE(inc == 0); // should still be 0
+    time.addSceneTime(5); // increment scenetime
+    evtBus.process();
+    REQUIRE(inc == 5); // should now be 5
 
-    // check if it removes the event subcription for the subscriber
-    evtBus.unregisterHandler(subscriberId00);
-    evtBus.publish(evt);
-    // with a subscription removed the value should increase less
-    REQUIRE(inc == 25);
+    // try a broadcast
+    evtBus.subscribe(1337, handlerId00);
+    evtBus.publish(1337, 0, 0, 2, nullptr);
+    evtBus.process();
+    REQUIRE(inc == 5); // should still be 5
+    time.addSceneTime(15); // increment scenetime
+    evtBus.process();
+    REQUIRE(inc == 10); // should now be 10
 }
 
-TEST_CASE("event-bus::EventBus. Basic publish", "[event-bus]") {
+TEST_CASE("event-bus::EventBus. Large test", "[event-bus]") {
     SceneTime time;
+    BufferPool bufPool;
     EventBus evtBus(time);
     World world(WorldConfig()
         .addService<EventBus>(&evtBus));
 
     auto inc = 0;
-    uint32_t targetNum = 8008;
-    auto subscriberId00 = evtBus.registerHandler(
-        [targetNum, &inc](World& w, const Event& e) {
-            // pull number out of data
-            auto evtNum = *static_cast<uint32_t*>(e.data);
-            REQUIRE(evtNum == targetNum);
-            inc += 5;
-        });
-    evtBus.subscribe(1337, subscriberId00);
+    auto handlerCount = 10000;
 
-    auto subscriberId01 = evtBus.registerHandler(
-        [targetNum, &inc](World& w, const Event& e) {
-            // pull number out of data
-            auto evtNum = *static_cast<uint32_t*>(e.data);
-            REQUIRE(evtNum == targetNum);
-            inc += 10;
-        });
-    evtBus.subscribe(1337, subscriberId01);
+    std::vector<int> handlerIds;
+    handlerIds.reserve(handlerCount);
 
-    auto* evt = evtBus.createEvent(1337, 0, sizeof(uint32_t));
-    memcpy(evt->data, &targetNum, sizeof(targetNum));
+    for (size_t i = 0; i < handlerCount; i++)
+    {
+        auto hId = evtBus.registerHandler(
+            [&inc](const Event& e, World& w) {
+                inc += 1;
+            });
 
-    evtBus.publish(evt);
-    REQUIRE(inc == 15);
+        evtBus.subscribe(8008, hId);
+        handlerIds.push_back(hId);
+    }
 
-    // check if it removes the event subcription for the subscriber
-    evtBus.unregisterHandler(subscriberId00);
-    evtBus.publish(evt);
-    // with a subscription removed the value should increase less
-    REQUIRE(inc == 25);
-}
+    // start at 0
+    REQUIRE(inc == 0);
 
-TEST_CASE("event-bus::EventBus. pool basic", "[event-bus]") {
-    EventPool pool;
+    evtBus.publish(8008, 0, 0, 0, nullptr);
+    evtBus.process();
 
-    auto* r0 = pool.rent();
-    r0->timestamp = 1337;
-
-    auto* r1 = pool.rent();
-    r1->timestamp = 1337;
-
-    // simple test on data block
-    auto* r2 = pool.rent(sizeof(uint32_t));
-    auto r = *static_cast<uint32_t*>(r2->data);
-    // test is zeroed
-    REQUIRE(r == 0);
-
-    uint32_t lol = 1337;
-    memcpy(r2->data, &lol, sizeof(uint32_t));
-    r = *static_cast<uint32_t*>(r2->data);
-    REQUIRE(r == lol);
-
-    pool.release(r0);
-    pool.release(r1);
-    pool.release(r2);
-}
-
-TEST_CASE("event-bus::EventBus. Max data buf size", "[event-bus]") {
-    EventPool pool;
-    auto* evt = pool.rent(9999);
-    REQUIRE(evt == nullptr);
+    REQUIRE(inc == handlerCount);
 }

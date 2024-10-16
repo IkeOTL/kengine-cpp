@@ -14,7 +14,7 @@
 /// Inspired by https://github.com/libgdx/gdx-ai/
 
 using EventOpcode = uint32_t;
-using HandlerId = uint32_t;
+using EventHandlerId = uint32_t;
 
 enum EventReceiptMode {
     RETURN_RECEIPT_UNNEEDED, RETURN_RECEIPT_NEEDED, RETURN_RECEIPT_SENT
@@ -23,10 +23,10 @@ enum EventReceiptMode {
 struct Event {
 public:
     EventOpcode opcode = 0;
-    HandlerId recipient;
-    HandlerId onFulfilled;
+    EventHandlerId recipient;
+    EventHandlerId onFulfilled;
     float timestamp = 0;
-    ByteBuf data;
+    ByteBuf dataBuf;
 
     bool operator==(const Event& other) const {
         if (this->recipient != other.recipient)
@@ -55,13 +55,13 @@ private:
     /// <summary>
     /// SubscriberId = 0 is reserved for reference no/null/void subscriber
     /// </summary>
-    std::atomic<HandlerId> subcriberRunningId = 1;
+    std::atomic<EventHandlerId> subcriberRunningId = 1;
     eastl::priority_queue<Event*, eastl::vector<Event*>, EventComparator> queue;
-    eastl::hash_map<HandlerId, EventHandler> handlers;
-    eastl::hash_map<EventOpcode, eastl::vector<HandlerId>> subscriptions;
-    
+    eastl::hash_map<EventHandlerId, EventHandler> handlers;
+    eastl::hash_map<EventOpcode, eastl::vector<EventHandlerId>> subscriptions;
+
     //  used std::pmr?
-    std::byte telegramBuf[1000 * sizeof(Event)];
+    std::byte eventBuf[1000 * sizeof(Event)]{};
     eastl::fixed_allocator_with_overflow eventPool;
 
     std::mutex poolMtx;
@@ -77,14 +77,21 @@ private:
 
 public:
     EventBus(SceneTime& st)
-        : sceneTime(st) {}
+        : sceneTime(st) {
+        eventPool.init(eventBuf, sizeof(eventBuf), sizeof(Event), alignof(Event));
+    }
 
-    template <typename Callable>
-    HandlerId registerHandler(Callable&& func) {
+    inline static std::unique_ptr<EventBus> create(SceneTime& st) {
+        return std::make_unique<EventBus>(st);
+    }
+
+    //template <typename Callable>
+    //EventHandlerId registerHandler(Callable&& func) {
+    EventHandlerId registerHandler(EventHandler&& func) {
         std::lock_guard<std::mutex> lock(busMtx);
 
-        static_assert(std::is_invocable_r_v<void, Callable, const Event&, World&>,
-            "Subscriber must be callable with (const HandlerId, const Event&, World&)");
+    //    static_assert(std::is_invocable_r_v<void, Callable, const Event&, World&>,
+    //        "Subscriber must be callable with (const Event&, World&)");
 
         auto id = subcriberRunningId++;
 
@@ -93,10 +100,10 @@ public:
         return id;
     }
 
-    void unregisterHandler(HandlerId subId);
+    void unregisterHandler(EventHandlerId subId);
 
-    void subscribe(const EventOpcode opcode, const HandlerId handlerId);
-    void unsubscribe(const EventOpcode opcode, const HandlerId handlerId);
-    void publish(const EventOpcode opcode, const HandlerId recipientId, const HandlerId onFulfilledId, float delaySeconds, ByteBuf* data);
+    void subscribe(const EventOpcode opcode, const EventHandlerId handlerId);
+    void unsubscribe(const EventOpcode opcode, const EventHandlerId handlerId);
+    void publish(const EventOpcode opcode, const EventHandlerId recipientId, const EventHandlerId onFulfilledId, float delaySeconds, ByteBuf* dataBuf);
     void process();
 };

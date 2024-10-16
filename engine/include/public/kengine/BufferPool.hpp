@@ -24,13 +24,15 @@ class BufferPool
 {
 private:
     std::pmr::pool_options poolOptions;
+
+    // switch to mutlple pools for contention reasons so we only lock certain pools at a time
     std::pmr::unsynchronized_pool_resource pool;
 
     std::mutex mtx;
 
 public:
     BufferPool()
-        : poolOptions({ 1000, 512 }), pool(poolOptions) {}
+        : poolOptions({ 100, 512 }), pool(poolOptions) {}
 
     ~BufferPool() = default;
 
@@ -43,21 +45,21 @@ public:
             return buf;
         }
 
+        if (bufSize >= LeasedBufferSize::XXLARGE)
+            buf.bufSize = LeasedBufferSize::XXLARGE;
+        else if (bufSize >= LeasedBufferSize::XLARGE)
+            buf.bufSize = LeasedBufferSize::XLARGE;
+        else if (bufSize >= LeasedBufferSize::LARGE)
+            buf.bufSize = LeasedBufferSize::LARGE;
+        else if (bufSize >= LeasedBufferSize::MEDIUM)
+            buf.bufSize = LeasedBufferSize::MEDIUM;
+        else if (bufSize >= LeasedBufferSize::SMALL)
+            buf.bufSize = LeasedBufferSize::SMALL;
+        else if (bufSize > 0)
+            buf.bufSize = LeasedBufferSize::TINY;
+
         {
             std::lock_guard<std::mutex> lock(mtx);
-            if (bufSize >= LeasedBufferSize::XXLARGE)
-                buf.bufSize = LeasedBufferSize::XXLARGE;
-            else if (bufSize >= LeasedBufferSize::XLARGE)
-                buf.bufSize = LeasedBufferSize::XLARGE;
-            else if (bufSize >= LeasedBufferSize::LARGE)
-                buf.bufSize = LeasedBufferSize::LARGE;
-            else if (bufSize >= LeasedBufferSize::MEDIUM)
-                buf.bufSize = LeasedBufferSize::MEDIUM;
-            else if (bufSize >= LeasedBufferSize::SMALL)
-                buf.bufSize = LeasedBufferSize::SMALL;
-            else if (bufSize > 0)
-                buf.bufSize = LeasedBufferSize::TINY;
-
             buf.data = pool.allocate(buf.bufSize);
         }
 

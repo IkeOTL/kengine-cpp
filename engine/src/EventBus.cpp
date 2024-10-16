@@ -70,14 +70,14 @@ void EventBus::dispatch(Event* evt) {
     releaseEvent(evt);
 }
 
-void EventBus::unregisterHandler(HandlerId subId) {
+void EventBus::unregisterHandler(EventHandlerId subId) {
     std::lock_guard<std::mutex> lock(busMtx);
     auto it = handlers.find(subId);
     if (it != handlers.end())
         handlers.erase(it);
 }
 
-void EventBus::subscribe(const EventOpcode opcode, const HandlerId subscriberId) {
+void EventBus::subscribe(const EventOpcode opcode, const EventHandlerId subscriberId) {
     std::lock_guard<std::mutex> lock(busMtx);
     subscriptions[opcode].push_back(subscriberId);
 
@@ -93,7 +93,7 @@ void EventBus::subscribe(const EventOpcode opcode, const HandlerId subscriberId)
       }*/
 }
 
-void EventBus::unsubscribe(const EventOpcode opcode, const HandlerId subscriberId) {
+void EventBus::unsubscribe(const EventOpcode opcode, const EventHandlerId subscriberId) {
     std::lock_guard<std::mutex> lock(busMtx);
     auto it = subscriptions.find(opcode);
 
@@ -103,7 +103,7 @@ void EventBus::unsubscribe(const EventOpcode opcode, const HandlerId subscriberI
     auto& evtSubs = it->second;
 
     auto subIt = std::find_if(evtSubs.begin(), evtSubs.end(),
-        [subscriberId](HandlerId id) {
+        [subscriberId](EventHandlerId id) {
             return id == subscriberId;
         });
 
@@ -114,23 +114,27 @@ void EventBus::unsubscribe(const EventOpcode opcode, const HandlerId subscriberI
         subscriptions.erase(it);
 }
 
-void EventBus::publish(const EventOpcode opcode, const HandlerId recipientId, const HandlerId onFulfilledId, float delaySeconds, ByteBuf* data) {
+void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientId, const EventHandlerId onFulfilledId, float delaySeconds, ByteBuf* dataBuf) {
     assert(delaySeconds >= 0);
 
     auto* evt = leaseEvent();
     evt->opcode = opcode;
     evt->recipient = recipientId;
     evt->onFulfilled = onFulfilledId;
-    evt->timestamp = sceneTime.getSceneTime() + delaySeconds;
-    evt->data = *data;
+    evt->timestamp = sceneTime.getSceneTime();
 
-    if (delaySeconds > 0) {
-        std::lock_guard<std::mutex> lock(busMtx);
-        queue.push(evt);
+    if (dataBuf)
+        evt->dataBuf = *dataBuf;
+
+    if (delaySeconds <= 0) {
+        dispatch(evt);
         return;
     }
 
+    evt->timestamp += delaySeconds;
 
+    std::lock_guard<std::mutex> lock(busMtx);
+    queue.push(evt);
 }
 
 void EventBus::process() {
