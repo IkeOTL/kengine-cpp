@@ -1,5 +1,12 @@
 #include <kengine/EventBus.hpp>
 
+EventHandlerId EventBus::registerHandler(EventHandler&& func) {
+    std::lock_guard<std::mutex> lock(busMtx);
+    auto id = subcriberRunningId++;
+    handlers[id] = std::move(func);
+    return id;
+}
+
 Event* EventBus::leaseEvent() {
     void* mem = nullptr;
     {
@@ -136,6 +143,27 @@ void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientI
     std::lock_guard<std::mutex> lock(busMtx);
     queue.push(evt);
 }
+
+void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientId, const EventHandlerId onFulfilledId, ByteBuf* dataBuf = nullptr) {
+    publish(opcode, recipientId, onFulfilledId, 0, dataBuf);
+}
+
+void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientId, float delaySeconds, ByteBuf* dataBuf = nullptr) {
+    publish(opcode, recipientId, 0, delaySeconds, dataBuf);
+}
+
+void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientId, ByteBuf* dataBuf = nullptr) {
+    publish(opcode, recipientId, 0, 0, dataBuf);
+}
+
+void EventBus::publish(const EventOpcode opcode, float delaySeconds, ByteBuf* dataBuf = nullptr) {
+    publish(opcode, 0, 0, delaySeconds, dataBuf);
+}
+
+void EventBus::publish(const EventOpcode opcode, ByteBuf* dataBuf = nullptr) {
+    publish(opcode, 0, 0, 0, dataBuf);
+}
+
 
 void EventBus::process() {
     if (queue.empty())

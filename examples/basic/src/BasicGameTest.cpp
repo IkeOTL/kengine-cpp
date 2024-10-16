@@ -96,6 +96,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     skeletonManager = SkeletonManager::create(*vulkanCxt);
 
     eventBus = EventBus::create(*sceneTime);
+    eventBus->registerHandler([](const auto& evt, auto& w) {});
 
     spatialPartitioningManager->setSpatialGrid(SpatialGrid::create(64, 64, 16));
 

@@ -81,29 +81,22 @@ public:
         eventPool.init(eventBuf, sizeof(eventBuf), sizeof(Event), alignof(Event));
     }
 
+    /// <summary>
+    /// helper func for creating the event bus in a smart ptr
+    /// </summary>
     inline static std::unique_ptr<EventBus> create(SceneTime& st) {
         return std::make_unique<EventBus>(st);
     }
 
-    //template <typename Callable>
-    //EventHandlerId registerHandler(Callable&& func) {
-    EventHandlerId registerHandler(EventHandler&& func) {
-        std::lock_guard<std::mutex> lock(busMtx);
-
-    //    static_assert(std::is_invocable_r_v<void, Callable, const Event&, World&>,
-    //        "Subscriber must be callable with (const Event&, World&)");
-
-        auto id = subcriberRunningId++;
-
-        //subscribers[id].connect(std::forward<Callable>(func));
-        handlers[id] = std::move(func);
-        return id;
-    }
-
+    EventHandlerId registerHandler(EventHandler&& func);
     void unregisterHandler(EventHandlerId subId);
-
     void subscribe(const EventOpcode opcode, const EventHandlerId handlerId);
     void unsubscribe(const EventOpcode opcode, const EventHandlerId handlerId);
-    void publish(const EventOpcode opcode, const EventHandlerId recipientId, const EventHandlerId onFulfilledId, float delaySeconds, ByteBuf* dataBuf);
+    void publish(const EventOpcode opcode, const EventHandlerId recipientId, const EventHandlerId onFulfilledId, float delaySeconds, ByteBuf* dataBuf = nullptr);
+    void publish(const EventOpcode opcode, const EventHandlerId recipientId, const EventHandlerId onFulfilledId, ByteBuf* dataBuf = nullptr);
+    void publish(const EventOpcode opcode, const EventHandlerId recipientId, float delaySeconds, ByteBuf* dataBuf = nullptr);
+    void publish(const EventOpcode opcode, const EventHandlerId recipientId, ByteBuf* dataBuf = nullptr);
+    void publish(const EventOpcode opcode, float delaySeconds, ByteBuf* dataBuf = nullptr);
+    void publish(const EventOpcode opcode, ByteBuf* dataBuf = nullptr);
     void process();
 };
