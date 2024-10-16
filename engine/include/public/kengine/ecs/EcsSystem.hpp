@@ -8,9 +8,6 @@ private:
     entt::registry* ecs = nullptr;
 
 protected:
-    virtual void begin() override {}
-    virtual void end() override {}
-
     entt::registry& getEcs() {
         return *ecs;
     }
@@ -19,7 +16,7 @@ public:
     virtual void init() = 0;
     virtual void processSystem(float delta) override = 0;
 
-    void initialize() override {
+    virtual void initialize() override {
         ecs = getWorld().getService<entt::registry>();
 
         if (!ecs)

@@ -65,13 +65,13 @@ void MainGameState::enter(Game& parent) {
 //}
 
 void MainGameState::update(Game& parent) {
-    window.pollEvents();
-
     auto delta = parent.getDelta();
 
     accumulator += delta;
 
     while (accumulator >= GAME_UPDATE_TICK_INTERVAL) {
+        window.pollEvents();
+
         sceneTime.setDelta(GAME_UPDATE_TICK_INTERVAL);
 
         // these only need to be updated as the last updates

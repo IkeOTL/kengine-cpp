@@ -36,6 +36,7 @@
 #include <components/Material.hpp>
 #include <components/Model.hpp>
 #include <kengine/util/Random.hpp>
+#include <KinematicPlayerSystem.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -96,7 +97,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     skeletonManager = SkeletonManager::create(*vulkanCxt);
 
     eventBus = EventBus::create(*sceneTime);
-    eventBus->registerHandler([](const auto& evt, auto& w) {});
+    //eventBus->registerHandler([](const auto& evt, auto& w) {});
 
     spatialPartitioningManager->setSpatialGrid(SpatialGrid::create(64, 64, 16));
 
@@ -108,6 +109,9 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     textureFactory = TextureFactory::create(*vulkanCxt, *assetIo);
     textureCache = AsyncTextureCache::create(*textureFactory, *threadPool);
     materialCache = AsyncMaterialCache::create(vulkanCxt->getPipelineCache(), *textureCache, vulkanCxt->getGpuBufferCache(), *threadPool);
+
+    myPlayerContext = MyPlayerContext::create();
+    playerMovementManager = PlayerMovementManager::create();
 
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
     imGuiContext->init(*window);
@@ -129,6 +133,8 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .addService(sceneTime.get())
         .addService(spatialPartitioningManager.get())
         .addService(eventBus.get())
+        .addService(playerMovementManager.get())
+        .addService(myPlayerContext.get())
 
         .addService(threadPool.get())
         .addService(assetIo.get())
@@ -144,6 +150,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
         // systems. order matters.
         .setSystem<RenderablePreviousTransformSystem>()
+        .setSystem<KinematicPlayerSystem>()
         .setSystem<CameraSystem>()
         .setSystem<SpatialGridUpdateSystem>()
         .setSystem<RenderSystem>()

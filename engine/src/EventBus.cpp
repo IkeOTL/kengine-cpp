@@ -144,23 +144,23 @@ void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientI
     queue.push(evt);
 }
 
-void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientId, const EventHandlerId onFulfilledId, ByteBuf* dataBuf = nullptr) {
+void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientId, const EventHandlerId onFulfilledId, ByteBuf* dataBuf) {
     publish(opcode, recipientId, onFulfilledId, 0, dataBuf);
 }
 
-void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientId, float delaySeconds, ByteBuf* dataBuf = nullptr) {
+void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientId, float delaySeconds, ByteBuf* dataBuf) {
     publish(opcode, recipientId, 0, delaySeconds, dataBuf);
 }
 
-void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientId, ByteBuf* dataBuf = nullptr) {
+void EventBus::publish(const EventOpcode opcode, const EventHandlerId recipientId, ByteBuf* dataBuf) {
     publish(opcode, recipientId, 0, 0, dataBuf);
 }
 
-void EventBus::publish(const EventOpcode opcode, float delaySeconds, ByteBuf* dataBuf = nullptr) {
+void EventBus::publish(const EventOpcode opcode, float delaySeconds, ByteBuf* dataBuf) {
     publish(opcode, 0, 0, delaySeconds, dataBuf);
 }
 
-void EventBus::publish(const EventOpcode opcode, ByteBuf* dataBuf = nullptr) {
+void EventBus::publish(const EventOpcode opcode, ByteBuf* dataBuf) {
     publish(opcode, 0, 0, 0, dataBuf);
 }
 

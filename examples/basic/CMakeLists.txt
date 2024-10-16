@@ -5,12 +5,17 @@ set(HEADERS
     src/MainGameState.hpp
     src/BasicCameraController.hpp
 
+    src/MyPlayerContext.hpp
+    src/PlayerMovementManager.hpp
+
     # systems
+    src/MyPlayerSystem.hpp
     src/RenderSystem.hpp
     src/CameraSystem.hpp
     src/RenderablePreviousTransformSystem.hpp
     src/SpatialGridUpdateSystem.hpp
     src/AnimationSystem.hpp
+    src/KinematicPlayerSystem.hpp
 
     # components
     src/components/Components.hpp
@@ -24,12 +29,16 @@ set(SOURCES
     src/MainGameState.cpp
     src/BasicCameraController.cpp
 
+    src/MyPlayerContext.cpp
+    src/PlayerMovementManager.cpp
+
 # systems
     src/RenderSystem.cpp
     src/CameraSystem.cpp
     src/RenderablePreviousTransformSystem.cpp
     src/SpatialGridUpdateSystem.cpp
     src/AnimationSystem.cpp
+    src/KinematicPlayerSystem.cpp
 
     src/components/Components.cpp
 )
