@@ -135,6 +135,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .addService(eventBus.get())
         .addService(playerMovementManager.get())
         .addService(myPlayerContext.get())
+        .addService(inputManager.get())
 
         .addService(threadPool.get())
         .addService(assetIo.get())
@@ -156,6 +157,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .setSystem<RenderSystem>()
     );
 
+    // player dummy
     {
         auto* ecs = world->getService<entt::registry>();
         auto modelConfig = ModelConfig::create("gltf/smallcube.glb",
@@ -166,30 +168,31 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         auto materialConfig = PbrMaterialConfig::create();
         materialConfig->setHasShadow(true);
 
-        //auto assetTask = threadPool->submitYielding<void>(
-        //    [modelConfig, materialConfig, modelCache = modelCache.get(), materialCache = materialCache.get()](auto& pool) {
-        //        auto modelTask = modelCache->getAsync(modelConfig);
-        //        auto materialTask = materialCache->getAsync(materialConfig);
+        auto entity = ecs->create();
+        myPlayerContext->setPlayerEntityId(entity);
 
-        //        return [modelTask = std::move(modelTask), materialTask = std::move(materialTask)](auto& promise) {
-        //            if (!modelTask.isDone() || !materialTask.isDone())
-        //                return false;
-        //           // modelTask
-        //            promise.set_value();
-        //            return true;
-        //            };
-        //    });
+        auto& renderable = ecs->emplace<Component::Renderable>(entity);
+        auto& spatials = ecs->emplace<Component::Spatials>(entity);
+        ecs->emplace<Component::ModelComponent>(entity, modelConfig);
+        ecs->emplace<Component::Material>(entity, materialConfig);
+        ecs->emplace<Component::LinearVelocity>(entity);
 
-        //djm->submit<void>(*world, assetTask,
-        //    [](World& world) {
-        //        //dfgdsgfdfg
-        //    });
+        auto& model = modelCache->get(modelConfig);
+        auto rootSpatial = spatials.generate(*sceneGraph, model, "player", renderable.type);
+        rootSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
+        rootSpatial->setLocalPosition(glm::vec3(0, .5, 3));
+    }
 
-        auto modelTask = modelCache->getAsync(modelConfig);
-        auto materialTask = materialCache->getAsync(materialConfig);
+    // cube array
+    {
+        auto* ecs = world->getService<entt::registry>();
+        auto modelConfig = ModelConfig::create("gltf/smallcube.glb",
+            VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
+            | VertexAttribute::TANGENTS
+        );
 
-        auto model = modelTask.get();
-        auto material = materialTask.get();
+        auto materialConfig = PbrMaterialConfig::create();
+        materialConfig->setHasShadow(true);
 
         auto xCount = 10;
         auto yCount = 10;
@@ -208,7 +211,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
                         auto& model = modelCache->get(modelConfig);
                         auto& spatials = ecs->emplace<Component::Spatials>(entity);
-                        auto rootSpatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), renderable.type);
+                        auto rootSpatial = spatials.generate(*sceneGraph, model, "cube" + std::to_string(i), renderable.type);
 
                         //rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
 

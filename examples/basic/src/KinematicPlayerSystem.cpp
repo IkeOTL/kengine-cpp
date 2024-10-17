@@ -31,4 +31,5 @@ void KinematicPlayerSystem::processSystem(entt::entity playerEntity)
     auto input = getInput();
 
     playerMovementManager->stepPlayer(sceneTime->getDelta(), *spatial, vel, input);
+    int i = 0;
 }
