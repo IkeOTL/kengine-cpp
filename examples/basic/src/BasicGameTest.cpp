@@ -37,6 +37,7 @@
 #include <components/Model.hpp>
 #include <kengine/util/Random.hpp>
 #include <KinematicPlayerSystem.hpp>
+#include <PhysicsSystem.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -122,6 +123,9 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     renderContext->init(terrainContext.get());
     renderContext->setImGuiContext(imGuiContext.get());
 
+    physicsContext = PhysicsContext::create();
+    physicsContext->init();
+
     world = World::create(WorldConfig()
         // injectable objects. order doesnt matter
         .addService(&ecs)
@@ -136,6 +140,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .addService(playerMovementManager.get())
         .addService(myPlayerContext.get())
         .addService(inputManager.get())
+        .addService(physicsContext.get())
 
         .addService(threadPool.get())
         .addService(assetIo.get())
@@ -152,6 +157,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         // systems. order matters.
         .setSystem<RenderablePreviousTransformSystem>()
         .setSystem<KinematicPlayerSystem>()
+        .setSystem<PhysicsSystem>()
         .setSystem<CameraSystem>()
         .setSystem<SpatialGridUpdateSystem>()
         .setSystem<RenderSystem>()

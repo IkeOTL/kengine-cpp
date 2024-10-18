@@ -1,16 +1,17 @@
 #pragma once
-
 #include <Jolt/Jolt.h>
+#include <Jolt/Core/Memory.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Core/JobSystem.h>
+#include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Physics/Collision/ObjectLayer.h>
+#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
+#include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/PhysicsSettings.h>
 
 #include <cstdint>
 #include <thread>
 #include <memory>
-
-#include <Jolt/Physics/Collision/ObjectLayer.h>
-#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
-#include <Jolt/Physics/PhysicsSystem.h>
 #include <cassert>
 
 /// Layer that objects can be in, determines which other objects it can collide with
@@ -43,7 +44,6 @@ public:
     }
 };
 
-/// Broadphase layers
 namespace BroadPhaseLayers {
     static constexpr JPH::BroadPhaseLayer NON_MOVING(0);
     static constexpr JPH::BroadPhaseLayer MOVING(1);
@@ -53,7 +53,6 @@ namespace BroadPhaseLayers {
     static constexpr JPH::uint NUM_LAYERS(5);
 };
 
-/// BroadPhaseLayerInterface implementation
 class BPLayerInterfaceImpl final : public JPH::BroadPhaseLayerInterface
 {
 public:
@@ -123,9 +122,6 @@ public:
     }
 };
 
-
-
-
 class PhysicsContext {
 private:
     JPH::PhysicsSettings physicsSettings;
@@ -142,9 +138,14 @@ private:
     static constexpr JPH::uint cMaxBodyPairs = 65536;
     static constexpr JPH::uint cMaxContactConstraints = 20480;
 
-    void init() {
-        physicsSystem = std::make_unique<JPH::PhysicsSystem>();
-        physicsSystem->Init(cNumBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broadPhaseLayerInterface, objectVsBroadPhaseLayerFilter, objectVsObjectLayerFilter);
-        physicsSystem->SetPhysicsSettings(physicsSettings);
+public:
+    PhysicsContext() = default;
+    ~PhysicsContext() = default;
+
+    inline static std::unique_ptr<PhysicsContext> create() {
+        return std::make_unique<PhysicsContext>();
     }
+
+    void init();
+    void step(float delta);
 };

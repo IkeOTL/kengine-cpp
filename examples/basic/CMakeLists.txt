@@ -18,6 +18,7 @@ set(HEADERS
     src/SpatialGridUpdateSystem.hpp
     src/AnimationSystem.hpp
     src/KinematicPlayerSystem.hpp
+    src/PhysicsSystem.hpp
 
     # components
     src/components/Components.hpp
@@ -43,6 +44,7 @@ set(SOURCES
     src/SpatialGridUpdateSystem.cpp
     src/AnimationSystem.cpp
     src/KinematicPlayerSystem.cpp
+    src/PhysicsSystem.cpp
 
     src/components/Components.cpp
 )

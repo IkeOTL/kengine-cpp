@@ -26,6 +26,7 @@
 #include <kengine/EventBus.hpp>
 #include <PlayerMovementManager.hpp>
 #include "MyPlayerContext.hpp"
+#include <PhysicsContext.hpp>
 
 class TestGui : public ImGuiKEContext {
 private:
@@ -62,6 +63,7 @@ private:
     std::unique_ptr<SpatialPartitioningManager> spatialPartitioningManager;
     std::unique_ptr<MyPlayerContext> myPlayerContext;
     std::unique_ptr<PlayerMovementManager> playerMovementManager;
+    std::unique_ptr<PhysicsContext> physicsContext;
 
     std::unique_ptr<GltfModelFactory> modelFactory;
     std::unique_ptr<AsyncModelCache> modelCache;
