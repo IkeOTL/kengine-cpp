@@ -5,6 +5,8 @@ set(HEADERS
     src/MainGameState.hpp
     src/BasicCameraController.hpp
 
+    src/PhysicsContext.hpp
+
     src/MyPlayerContext.hpp
     src/PlayerMovementManager.hpp
 
@@ -28,6 +30,8 @@ set(SOURCES
     src/BasicGameTest.cpp
     src/MainGameState.cpp
     src/BasicCameraController.cpp
+
+    src/PhysicsContext.cpp
 
     src/MyPlayerContext.cpp
     src/PlayerMovementManager.cpp

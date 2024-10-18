@@ -314,8 +314,8 @@ set_target_properties(glfw PROPERTIES FOLDER "thirdparty/GLFW3")
 set_target_properties(update_mappings PROPERTIES FOLDER "thirdparty/GLFW3")
 
 # download JoltPhysics source
-#set(JPH_PROFILE_ENABLED ON CACHE BOOL "Enable internal profiling")
-#set(JPH_DEBUG_RENDERER ON CACHE BOOL "Enable debug rendering")
+#set(JPH_PROFILE_ENABLED OFF CACHE BOOL "Enable internal profiling")
+#set(JPH_DEBUG_RENDERER OFF CACHE BOOL "Enable debug rendering")
 #set(JPH_DOUBLE_PRECISION OFF CACHE BOOL "Use double precision for large worlds")
 set(JPH_CROSS_PLATFORM_DETERMINISTIC ON CACHE BOOL "Make simulation deterministic across different platforms")
 set(PHYSICS_REPO_ROOT ${CMAKE_BINARY_DIR}/_deps/joltphysics-src)
@@ -398,6 +398,6 @@ target_link_libraries(kengine_engine PUBLIC
     glfw
     EASTL
     msgpack-cxx
-    #Jolt ## commented out to work on it when i need it, and ensure its linking correctly
+    Jolt ## commented out to work on it when i need it, and ensure its linking correctly
     GameNetworkingSockets::shared
 )
