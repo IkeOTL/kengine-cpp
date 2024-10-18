@@ -128,14 +128,23 @@ public:
 
 class PhysicsContext {
 private:
-    uint32_t mMaxConcurrentJobs = std::thread::hardware_concurrency();
-    std::unique_ptr<JPH::TempAllocator> mTempAllocator = nullptr;
-    std::unique_ptr<JPH::JobSystem> mJobSystem = nullptr;
-    BPLayerInterfaceImpl mBroadPhaseLayerInterface;
-    ObjectVsBroadPhaseLayerFilterImpl mObjectVsBroadPhaseLayerFilter;
-    ObjectLayerPairFilterImpl mObjectVsObjectLayerFilter;
-    std::unique_ptr<JPH::PhysicsSystem> mPhysicsSystem = nullptr;
+    JPH::PhysicsSettings physicsSettings;
+    std::unique_ptr<JPH::TempAllocator> tempAllocator = nullptr;
+    std::unique_ptr<JPH::JobSystem> jobSystem = nullptr;
+    std::unique_ptr<JPH::PhysicsSystem> physicsSystem = nullptr;
+    BPLayerInterfaceImpl broadPhaseLayerInterface;
+    ObjectVsBroadPhaseLayerFilterImpl objectVsBroadPhaseLayerFilter;
+    ObjectLayerPairFilterImpl objectVsObjectLayerFilter;
     //ContactListenerImpl* mContactListener = nullptr;
-    JPH::PhysicsSettings mPhysicsSettings;
 
+    static constexpr JPH::uint cNumBodies = 10240;
+    static constexpr JPH::uint cNumBodyMutexes = 0; // Autodetect
+    static constexpr JPH::uint cMaxBodyPairs = 65536;
+    static constexpr JPH::uint cMaxContactConstraints = 20480;
+
+    void init() {
+        physicsSystem = std::make_unique<JPH::PhysicsSystem>();
+        physicsSystem->Init(cNumBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broadPhaseLayerInterface, objectVsBroadPhaseLayerFilter, objectVsObjectLayerFilter);
+        physicsSystem->SetPhysicsSettings(physicsSettings);
+    }
 };
