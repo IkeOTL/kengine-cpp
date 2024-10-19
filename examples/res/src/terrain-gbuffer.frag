@@ -31,7 +31,7 @@ struct Material {
     int padding;
 };
 
-layout(std430, set = 1, binding = 2) readonly buffer MaterialsSsbo {
+layout(std430, set = 1, binding = 3) readonly buffer MaterialsSsbo {
     Material materials[];
 } materialsSsbo;
 

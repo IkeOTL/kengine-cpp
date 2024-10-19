@@ -162,6 +162,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 
 
             std::vector<VkBufferMemoryBarrier2> barriers;
+            barriers.reserve(2);
 
             // terrain
             if (terrainContext) {
@@ -206,9 +207,6 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 
         // terrain culling
         if (terrainContext) {
-            // precull            
-            terrainContext->resetDrawBuf(frameIdx);
-
             {
                 auto localSizeX = 32; // must match compute shader
                 auto localSizeY = 32; // must match compute shader
@@ -272,6 +270,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
             // insert barrier
             {
                 std::vector<VkBufferMemoryBarrier2> barriers;
+                barriers.reserve(2);
 
                 {
                     VkBufferMemoryBarrier2 bufferBarrier{};

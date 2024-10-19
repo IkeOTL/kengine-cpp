@@ -18,6 +18,7 @@ private:
     CachedGpuBuffer* chunkIndicesBuf = nullptr;
     CachedGpuBuffer* drawIndirectCmdBuf = nullptr;
     CachedGpuBuffer* terrainDataBuf = nullptr;
+    CachedGpuBuffer* terrainHeightsBuf = nullptr;
     CachedGpuBuffer* drawInstanceBuf = nullptr;
     CachedGpuBuffer* materialsBuf = nullptr;
 
@@ -38,8 +39,6 @@ public:
     void setMaterialBuf(CachedGpuBuffer* buf) {
         materialsBuf = buf;
     }
-
-    void resetDrawBuf(uint32_t frameIdx);
 
     //const glm::vec4& getChunkBoundingSphere();
     const glm::vec4 getChunkBoundingSphere();

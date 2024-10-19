@@ -118,6 +118,51 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
         }
     }
 
+    // generate heights
+    {
+        std::vector<uint32_t> heights;
+        heights.reserve(tilesLength * tilesWidth);
+        //heights.resize(tilesLength * tilesWidth);
+        // we're packing all 4 corners tile hieghts into a single 4 byte type.
+        // so each corner can have [0, 255]
+
+        // a "unit" will be 10 
+        float max = 0xFF;
+        auto maxHeight = max / 10.0f;
+        auto randMax = 12;
+
+        for (auto i = 0; i < tilesLength * tilesWidth; i++) {
+            auto f0 = random::randInt(0, randMax) ;
+            auto f1 = random::randInt(0, randMax);
+            auto f2 = random::randInt(0, randMax);
+            auto f3 = random::randInt(0, randMax);
+
+            uint8_t u0 = static_cast<uint8_t>(f0);
+            uint8_t u1 = static_cast<uint8_t>(f1);
+            uint8_t u2 = static_cast<uint8_t>(f2);
+            uint8_t u3 = static_cast<uint8_t>(f3);
+
+            // Pack the four 8-bit integers into a 32-bit integer
+            auto packedValue = (static_cast<uint32_t>(u0) << 24) |
+                (static_cast<uint32_t>(u1) << 16) |
+                (static_cast<uint32_t>(u2) << 8) |
+                static_cast<uint32_t>(u3);
+
+            heights.emplace_back(packedValue);
+        }
+
+        terrainHeightsBuf = &bufCache.upload(
+            [&heights](VulkanContext& vkCxt, void* data, VkDeviceSize frameSize, uint32_t frameCount) {
+                memcpy(data, heights.data(), heights.size() * sizeof(uint32_t));
+            },
+            heights.size() * sizeof(uint32_t), 1,
+            VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT,
+            VK_ACCESS_2_SHADER_STORAGE_READ_BIT,
+            VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+            0
+        );
+    }
+
     drawInstanceBuf = &bufCache.create(
         MAX_CHUNKS * sizeof(uint32_t),
         VulkanContext::FRAME_OVERLAP,
@@ -134,8 +179,8 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
         std::vector<VkDescriptorImageInfo> imageInfos;
 
         // so they dont resize
-        setWrites.reserve(5);
-        bufferInfos.reserve(5);
+        setWrites.reserve(6);
+        bufferInfos.reserve(6);
 
         auto pushBuf = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, CachedGpuBuffer* gpuBuf) -> void {
             auto& buf = bufferInfos.emplace_back(VkDescriptorBufferInfo{
@@ -170,12 +215,18 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
             pushBuf(
                 deferredDescriptorSet,
                 TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(1),
-                drawInstanceBuf
+                terrainHeightsBuf
             );
 
             pushBuf(
                 deferredDescriptorSet,
                 TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(2),
+                drawInstanceBuf
+            );
+
+            pushBuf(
+                deferredDescriptorSet,
+                TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(3),
                 materialsBuf
             );
         }
@@ -198,14 +249,6 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 
         vkUpdateDescriptorSets(vkCxt.getVkDevice(), setWrites.size(), setWrites.data(), 0, nullptr);
     }
-}
-
-void TerrainContext::resetDrawBuf(uint32_t frameIdx) {
-    /* assert(frameIdx >= 0 && frameIdx <= VulkanContext::FRAME_OVERLAP);
-     auto cmd = reinterpret_cast<VkDrawIndexedIndirectCommand*>(
-         reinterpret_cast<char*>(drawIndirectCmdBuf->getGpuBuffer().data())
-         + drawIndirectCmdBuf->getFrameOffset(frameIdx));
-     cmd->instanceCount = 0;*/
 }
 
 // TODO: optimize this change to ref once we have it calced once

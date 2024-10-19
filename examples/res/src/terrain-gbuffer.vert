@@ -7,10 +7,14 @@ layout(set = 0, binding = 0) uniform SceneBuffer {
 } sceneBuffer;
 
 layout(std430, set = 1, binding = 0) readonly buffer TerrainDataBuffer {
-    uint packetData[]; // [17bits packing, 12bits tileInSheetId, 3bits materialIdx]
+    uint packedData[]; // [17bits packing, 12bits tileInSheetId, 3bits materialIdx]
 } terrainDataBuffer;
 
-layout(std430, set = 1, binding = 1) readonly buffer DrawInstanceBuffer {
+layout(std430, set = 1, binding = 1) readonly buffer TerrainHeightsBuffer {
+    uint packedHeights[]; // every uint is 4 heights, each being 1 byte
+} terrainHeightsBuffer;
+
+layout(std430, set = 1, binding = 2) readonly buffer DrawInstanceBuffer {
     uint instanceIds[];
 } drawInstanceBuffer;
 
@@ -69,7 +73,7 @@ void main() {
 
     // todo: potentially precompute all this into a lookup    
     uint globalTileId = tileId + (chunkId * pcs.chunkDimensions.x * pcs.chunkDimensions.y);
-    uint tileData = terrainDataBuffer.packetData[globalTileId];
+    uint tileData = terrainDataBuffer.packedData[globalTileId];
     uint tileInSheetId = (tileData >> 3) & 0xFFF;
 
     uint tileX = tileInSheetId % pcs.tileDenom;
