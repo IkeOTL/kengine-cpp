@@ -16,6 +16,23 @@ public:
         glm::uvec4 materialIds;
         glm::vec2 worldOffset;
         glm::vec2 tileUvSize;
+        /// <summary>
+        /// purpose: meant to simplfy calcuclations in vert shader
+        /// 
+        /// original:
+        /// vec2 textureSize = vec2(textureSize(terrainHeights, 0));
+        /// vec2 invTextureSize = 1.0 / textureSize;
+        /// vec2 halfTextureSize = textureSize * 0.5;
+        /// vec2 texCoord = (vertPos.xz + halfTextureSize) * invTextureSize;
+        /// float h = texture(terrainHeights, texCoord).r;
+        /// vertPos.y += h * 25.5;
+        /// 
+        /// simplifies to: 
+        /// vec2 texCoord = (vertPos.xz + vertHeightFactor.x) * vertHeightFactor.z;
+        /// float h = texture(terrainHeights, texCoord).r;
+        /// vertPos.y += h * 25.5; 
+        /// </summary>
+        glm::vec2 vertHeightFactor;
         uint32_t tileDenom;
     };
 

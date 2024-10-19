@@ -23,8 +23,8 @@ const size_t TerrainContext::drawInstanceBufAlignedFrameSize(VulkanContext& vkCx
 }
 
 void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators) {
-    auto tilesWidth = 512;
-    auto tilesLength = 512;
+    auto tilesWidth = 64;
+    auto tilesLength = 64;
     // terrain
 
     terrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
@@ -152,11 +152,10 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 
         // a "unit" will be 10 
         float max = 0xFF;
-        auto maxHeight = max / 10.0f;
-        auto randMax = 12 / maxHeight;
+        auto randMax = 6;
         for (auto i = 0; i < vertexCountX * vertexCountZ; i++) {
-            auto f0 = random::randInt(0, static_cast<int>(randMax)) / maxHeight;
-            heights.emplace_back(static_cast<uint8_t>(f0));
+            auto f0 = random::randInt(0, static_cast<int>(randMax));
+            heights.emplace_back(f0);
         }
 
 

@@ -33,6 +33,13 @@ layout (location = 2) flat out uvec2 materialId;
 
 const float MAX_VERT_HEIGHT_SCALE = 10.0f / 0xFF;
 
+const vec2 cornerOffsets[4] = vec2[4](
+    vec2(0.0, 0.0), // tileCorner = 0
+    vec2(0.0, 1.0), // tileCorner = 1
+    vec2(1.0, 1.0), // tileCorner = 2
+    vec2(1.0, 0.0)  // tileCorner = 3
+);
+
 out gl_PerVertex
 {
     vec4 gl_Position;
@@ -40,51 +47,49 @@ out gl_PerVertex
 
 void main() {
     uint chunkId = drawInstanceBuffer.instanceIds[gl_InstanceIndex];
-    
+
+    uint tileId = gl_VertexIndex >> 2; // gl_VertexIndex / 4
+    uint tileCorner = gl_VertexIndex & 3; // gl_VertexIndex % 4
+
+    uint chunkIdxX = chunkId % pcs.chunkCount.x;
+    uint chunkIdxZ = chunkId / pcs.chunkCount.x;
+
     vec3 chunkWorldPos = vec3(
-        float(chunkId % pcs.chunkCount.x) * pcs.chunkDimensions.x + pcs.worldOffset.x,
+        chunkIdxX * pcs.chunkDimensions.x + pcs.worldOffset.x,
         0.0,
-        float(chunkId / pcs.chunkCount.x) * pcs.chunkDimensions.y + pcs.worldOffset.y
+        chunkIdxZ * pcs.chunkDimensions.y + pcs.worldOffset.y
     );
 
-    // todo: try to calc vert pos using globalTileId, need to figure out the func for that
-    // would allow us to not need chunk worldpos
-    uint tileId = gl_VertexIndex / 4;
-    uint globalTileId = tileId + (chunkId * pcs.chunkDimensions.x * pcs.chunkDimensions.y);
+    // Compute vertex position within the chunk
+    uint chunkDimX = pcs.chunkDimensions.x;
+    uint tilePosX = tileId % chunkDimX;
+    uint tilePosZ = tileId / chunkDimX;
 
-    vec3 vertPos = vec3(
-        float(tileId % pcs.chunkDimensions.x),
-        0.0,
-        float(tileId / pcs.chunkDimensions.x) 
-    );
+    vec3 vertPos = vec3(float(tilePosX), 0.0, float(tilePosZ));
 
-    uint tileCorner = gl_VertexIndex % 4;
-    vec3 cornerOffset = vec3(
-        float((tileCorner >> 1) & 1),
-        0.0,
-        float(((tileCorner + 1) >> 1) & 1)
-    );
+    vec2 offset = cornerOffsets[tileCorner];
+    vec3 cornerOffset = vec3(offset.x, 0.0, offset.y);
 
+    vertPos += chunkWorldPos + cornerOffset;
+    
     // apply vert height
-    float tileHeights = texture(myTexture, inTexCoords).r;
-    if(tileCorner == 3)
-        vertPos.y += float((tileHeights >> 24) & 0xFF) * MAX_VERT_HEIGHT_SCALE;
-    else if(tileCorner == 2)
-        vertPos.y += float((tileHeights >> 16) & 0xFF) * MAX_VERT_HEIGHT_SCALE;
-    else if(tileCorner == 1)
-       vertPos.y += float((tileHeights >> 8) & 0xFF) * MAX_VERT_HEIGHT_SCALE;
-    else if(tileCorner == 0)
-        vertPos.y += float(tileHeights& 0xFF) * MAX_VERT_HEIGHT_SCALE;
+    vec2 textureSize = vec2(textureSize(terrainHeights, 0));
+    vec2 invTextureSize = 1.0 / textureSize;
+    vec2 halfTextureSize = textureSize * 0.5;
 
-    vertPos += chunkWorldPos;
-    vertPos += cornerOffset;
+    // Simplify texture coordinate calculations
+    vec2 texCoord = (vertPos.xz + halfTextureSize) * invTextureSize;
+    float h = texture(terrainHeights, texCoord).r;
+    vertPos.y += h * 25.5;
 
-    gl_Position = sceneBuffer.proj * sceneBuffer.view * vec4(vertPos, 1);
+    gl_Position = sceneBuffer.proj * sceneBuffer.view * vec4(vertPos, 1.0);
 
     // Vertex position in world space
     outWorldPos = vertPos;
 
-    // todo: potentially precompute all this into a lookup    
+    // todo: potentially precompute all this into a lookup   
+    uint tilesPerChunk = pcs.chunkDimensions.x * pcs.chunkDimensions.y;
+    uint globalTileId = tileId + (chunkId * tilesPerChunk); 
     uint tileData = terrainDataBuffer.packedData[globalTileId];
     uint tileInSheetId = (tileData >> 3) & 0xFFF;
 
