@@ -18,9 +18,10 @@ private:
     CachedGpuBuffer* chunkIndicesBuf = nullptr;
     CachedGpuBuffer* drawIndirectCmdBuf = nullptr;
     CachedGpuBuffer* terrainDataBuf = nullptr;
-    CachedGpuBuffer* terrainHeightsBuf = nullptr;
     CachedGpuBuffer* drawInstanceBuf = nullptr;
     CachedGpuBuffer* materialsBuf = nullptr;
+
+    std::unique_ptr<Texture2d> heightsTexture = nullptr;
 
     AsyncMaterialCache& materialCache;
     Material* material = nullptr;

@@ -10,9 +10,7 @@ layout(std430, set = 1, binding = 0) readonly buffer TerrainDataBuffer {
     uint packedData[]; // [17bits packing, 12bits tileInSheetId, 3bits materialIdx]
 } terrainDataBuffer;
 
-layout(std430, set = 1, binding = 1) readonly buffer TerrainHeightsBuffer {
-    uint packedHeights[]; // every uint is 4 heights, each being 1 byte
-} terrainHeightsBuffer;
+layout (set = 1, binding = 1) uniform sampler2D terrainHeights;
 
 layout(std430, set = 1, binding = 2) readonly buffer DrawInstanceBuffer {
     uint instanceIds[];
@@ -33,6 +31,8 @@ layout (location = 0) out vec3 outWorldPos;
 layout (location = 1) out vec2 outUV;
 layout (location = 2) flat out uvec2 materialId;
 
+const float MAX_VERT_HEIGHT_SCALE = 10.0f / 0xFF;
+
 out gl_PerVertex
 {
     vec4 gl_Position;
@@ -50,6 +50,8 @@ void main() {
     // todo: try to calc vert pos using globalTileId, need to figure out the func for that
     // would allow us to not need chunk worldpos
     uint tileId = gl_VertexIndex / 4;
+    uint globalTileId = tileId + (chunkId * pcs.chunkDimensions.x * pcs.chunkDimensions.y);
+
     vec3 vertPos = vec3(
         float(tileId % pcs.chunkDimensions.x),
         0.0,
@@ -63,6 +65,17 @@ void main() {
         float(((tileCorner + 1) >> 1) & 1)
     );
 
+    // apply vert height
+    float tileHeights = texture(myTexture, inTexCoords).r;
+    if(tileCorner == 3)
+        vertPos.y += float((tileHeights >> 24) & 0xFF) * MAX_VERT_HEIGHT_SCALE;
+    else if(tileCorner == 2)
+        vertPos.y += float((tileHeights >> 16) & 0xFF) * MAX_VERT_HEIGHT_SCALE;
+    else if(tileCorner == 1)
+       vertPos.y += float((tileHeights >> 8) & 0xFF) * MAX_VERT_HEIGHT_SCALE;
+    else if(tileCorner == 0)
+        vertPos.y += float(tileHeights& 0xFF) * MAX_VERT_HEIGHT_SCALE;
+
     vertPos += chunkWorldPos;
     vertPos += cornerOffset;
 
@@ -72,7 +85,6 @@ void main() {
     outWorldPos = vertPos;
 
     // todo: potentially precompute all this into a lookup    
-    uint globalTileId = tileId + (chunkId * pcs.chunkDimensions.x * pcs.chunkDimensions.y);
     uint tileData = terrainDataBuffer.packedData[globalTileId];
     uint tileInSheetId = (tileData >> 3) & 0xFFF;
 
