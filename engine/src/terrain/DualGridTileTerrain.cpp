@@ -7,7 +7,7 @@
 DualGridTileTerrain::DualGridTileTerrain(uint32_t terrainTilesWidth, uint32_t terrainTilesLength, uint32_t chunkWidth, uint32_t chunkLength)
     : terrainTilesWidth(terrainTilesWidth), terrainTilesLength(terrainTilesLength),
     chunkWidth(chunkWidth), chunkLength(chunkLength),
-    terrainHeightsWidth(terrainTilesWidth + 2), terrainHeightsLength(terrainTilesLength + 2),
+    terrainHeightsWidth(terrainTilesWidth + 2), terrainHeightsLength(terrainTilesLength + 2), // adding 2 instead of 1 allows for .5tile offset to be fully centered
     worldOffsetX((-static_cast<float>(terrainTilesWidth) / 2.0f) - .5f), worldOffsetZ((-static_cast<float>(terrainTilesLength) / 2.0f) - .5f), // dual grid terrain: https://www.youtube.com/watch?v=Uxeo9c-PX-w&t=308s
     chunkCountX(terrainTilesWidth / chunkWidth), chunkCountZ(terrainTilesLength / chunkLength)
 {
