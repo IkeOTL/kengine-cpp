@@ -24,6 +24,7 @@ layout(push_constant) uniform PushConstants {
     uvec4 materialIds; //the material Id from the manager
     vec2 worldOffset; // could probably calculate this in the shader if we need the space here
     vec2 tileUvSize; // just to move 2 divisions out
+    vec4 vertHeightFactor; // just to move texel calculation out
     uint tileDenom; // just to move a division out
 } pcs;
 
@@ -73,14 +74,11 @@ void main() {
     vertPos += chunkWorldPos + cornerOffset;
     
     // apply vert height
-    vec2 textureSize = vec2(textureSize(terrainHeights, 0));
-    vec2 invTextureSize = 1.0 / textureSize;
-    vec2 halfTextureSize = textureSize * 0.5;
-
-    // Simplify texture coordinate calculations
-    vec2 texCoord = (vertPos.xz + halfTextureSize) * invTextureSize;
-    float h = texture(terrainHeights, texCoord).r;
-    vertPos.y += h * 25.5;
+    {
+        vec2 texCoord = (vertPos.xz + pcs.vertHeightFactor.xy) * pcs.vertHeightFactor.zw;
+        float h = texture(terrainHeights, texCoord).r;
+        vertPos.y += h * 25.5;
+    }
 
     gl_Position = sceneBuffer.proj * sceneBuffer.view * vec4(vertPos, 1.0);
 

@@ -23,8 +23,8 @@ const size_t TerrainContext::drawInstanceBufAlignedFrameSize(VulkanContext& vkCx
 }
 
 void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators) {
-    auto tilesWidth = 64;
-    auto tilesLength = 64;
+    auto tilesWidth = 128;
+    auto tilesLength = 128;
     // terrain
 
     terrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
@@ -112,13 +112,12 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
         auto i = 0;
         for (int chunkZ = 0; chunkZ < terrain->getChunkCountZ(); chunkZ++) {
             for (int chunkX = 0; chunkX < terrain->getChunkCountX(); chunkX++) {
+                // set entire chunk to a single tile for visual verification
                 uint32_t tileId = random::randInt(0, 2); // id of the tile in the tilesheet
                 for (int z = 0; z < terrain->getChunkLength(); z++) {
                     for (int x = 0; x < terrain->getChunkWidth(); x++) {
                         auto startX = chunkX * terrain->getChunkWidth();
                         auto startZ = chunkZ * terrain->getChunkLength();
-
-                        uint32_t d = 0;
 
                         uint32_t matIdx = 0;
 
@@ -127,16 +126,6 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
                 }
             }
         }
-
-
-        //for (auto i = 0; i < tilesWidth * tilesLength; i++) {
-        //    uint32_t d = 0;
-
-        //    uint32_t matIdx = 0;
-        //    uint32_t tileId = random::randInt(0, 2); // id of the tile in the tilesheet
-
-        //    buf[i] = ((tileId & 0b111111111111) << 3) | (matIdx & 0b111);
-        //}
     }
 
     // generate heights
@@ -158,6 +147,27 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
             heights.emplace_back(f0);
         }
 
+        // set obvious points for visual confirmation
+        {
+            auto area = 6;
+            for (size_t z = 0; z < area; z++) {
+                for (auto x = 0; x < area; x++) {
+                    auto posX = x + (vertexCountX / 2) - (area / 2);
+                    auto posZ = z + (vertexCountZ / 2) - (area / 2);
+                    heights[posZ * vertexCountX + posX] = 10;
+                }
+            }
+
+            // depress center
+            area = 2;
+            for (size_t z = 0; z < area; z++) {
+                for (auto x = 0; x < area; x++) {
+                    auto posX = x + (vertexCountX / 2) - (area / 2);
+                    auto posZ = z + (vertexCountZ / 2) - (area / 2);
+                    heights[posZ * vertexCountX + posX] = 0;
+                }
+            }
+        }
 
         /*  Texture2d(VulkanContext& vkCxt, const unsigned char* image, uint32_t width, uint32_t height,
               VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
@@ -171,7 +181,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
             VK_IMAGE_TYPE_2D,            // Image type (2D texture)
             VK_IMAGE_VIEW_TYPE_2D,       // Image view type (2D)
             1,                           // Channels (1 for grayscale)
-            VK_ACCESS_SHADER_READ_BIT,   // Destination stage mask (read access for shaders)
+            VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,   // Destination stage mask (read access for shaders)
             VK_ACCESS_SHADER_READ_BIT,   // Destination access mask (shader read access)
             false                         // Generate mipmaps (if needed)
         );
@@ -345,6 +355,12 @@ void TerrainContext::draw(VulkanContext& vkCxt, RenderPassContext& rpCtx, Descri
     pc.worldOffset = getWorldOffset();
     pc.tileUvSize = glm::vec2{ 16.0f / 96.0f, 16.0f / 80.0f };
     pc.tileDenom = static_cast<uint32_t>(96.0f / 16.0f);
+    pc.vertHeightFactor = glm::vec4{
+        terrain->getTerrainHeightsWidth() * 0.5f,
+        terrain->getTerrainHeightsLength() * 0.5f,
+        1.0f / terrain->getTerrainHeightsWidth(),
+        1.0f / terrain->getTerrainHeightsLength()
+    };
 
     vkCmdPushConstants(rpCtx.cmd, pl.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(TerrainDeferredOffscreenPbrPipeline::PushConstant), &pc);
 

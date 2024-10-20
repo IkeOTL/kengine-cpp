@@ -28,11 +28,11 @@ public:
         /// vertPos.y += h * 25.5;
         /// 
         /// simplifies to: 
-        /// vec2 texCoord = (vertPos.xz + vertHeightFactor.x) * vertHeightFactor.z;
+        /// vec2 texCoord = (vertPos.xz + vertHeightFactor.xy) * vertHeightFactor.zw;
         /// float h = texture(terrainHeights, texCoord).r;
         /// vertPos.y += h * 25.5; 
         /// </summary>
-        glm::vec2 vertHeightFactor;
+        glm::vec4 vertHeightFactor;
         uint32_t tileDenom;
     };
 
