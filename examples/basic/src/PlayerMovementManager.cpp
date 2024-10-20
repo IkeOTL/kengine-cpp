@@ -1,6 +1,7 @@
 
 #include "PlayerMovementManager.hpp"
 #include <kengine/util/VecUtils.hpp>
+#include <components/Physics.hpp>
 
 
 void PlayerMovementManager::stepPlayer(float step, Spatial& spatial, Component::LinearVelocity& velComp, uint32_t input) {

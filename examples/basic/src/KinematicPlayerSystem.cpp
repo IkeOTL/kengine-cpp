@@ -4,6 +4,8 @@
 #include "PlayerMovementManager.hpp"
 #include <kengine/Game.hpp>
 #include <kengine/SceneGraph.hpp>
+#include <components/Physics.hpp>
+#include <components/Components.hpp>
 
 void KinematicPlayerSystem::init() {
     sceneGraph = getService<SceneGraph>();

@@ -1,6 +1,6 @@
 #pragma once
 #include <kengine/Spatial.hpp>
-#include <components/Components.hpp>
+#include <components/Physics.hpp>
 #include <memory>
 
 

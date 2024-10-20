@@ -40,8 +40,4 @@ namespace Component {
 
         std::shared_ptr<Skeleton> generate(SceneGraph& sceneGraph, Model& model, Component::Spatials& spatials, std::string name);
     };
-
-    struct LinearVelocity {
-        glm::vec3 linearVelocity{ 0 };
-    };
 }

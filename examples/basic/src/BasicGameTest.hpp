@@ -29,7 +29,7 @@
 #include "MyPlayerContext.hpp"
 #include <PhysicsContext.hpp>
 
-class TestGui : public ImGuiKEContext {
+class TestGui : public ImGuiKEContext, public WorldService {
 private:
     DebugContext& debugCtx;
     SceneTime& sceneTime;
@@ -52,7 +52,7 @@ private:
     std::unique_ptr<EventBus> eventBus;
     std::unique_ptr<DeferredJobManager> djm;
     std::unique_ptr<VulkanContext> vulkanCxt;
-    std::unique_ptr<ImGuiKEContext> imGuiContext;
+    std::unique_ptr<TestGui> imGuiContext;
     std::unique_ptr<TerrainContext> terrainContext;
     std::unique_ptr<RenderContext> renderContext;
     std::unique_ptr<AssetIO> assetIo;

@@ -6,5 +6,8 @@ void PhysicsSystem::initialize() {
 }
 
 void PhysicsSystem::processSystem(float delta) {
+    if (paused)
+        return;
+
     physicsContext->step(delta);
 }

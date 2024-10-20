@@ -44,6 +44,8 @@
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Math/Real.h>
 #include <Jolt/Math/Math.h>
+#include <components/Physics.hpp>
+#include <PhysicsSyncSystem.hpp>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -136,6 +138,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         // injectable objects. order doesnt matter
         .addService(&ecs)
         .addService(debugContext.get())
+        .addService(imGuiContext.get())
         .addService(window.get())
         .addService(vulkanCxt.get())
         .addService(renderContext.get())
@@ -164,13 +167,17 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         .setSystem<RenderablePreviousTransformSystem>()
         .setSystem<KinematicPlayerSystem>()
         .setSystem<PhysicsSystem>()
+        .setSystem<PhysicsSyncSystem>()
         .setSystem<CameraSystem>()
         .setSystem<SpatialGridUpdateSystem>()
         .setSystem<RenderSystem>()
     );
 
+    // pause physics by defaut
+    world->getSystem<PhysicsSystem>()->setPaused(true);
+
     // player dummy
-    {
+    /*{
         auto* ecs = world->getService<entt::registry>();
         auto modelConfig = ModelConfig::create("gltf/smallcube.glb",
             VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
@@ -194,18 +201,113 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         rootSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
         rootSpatial->setLocalPosition(glm::vec3(0, 2, 0));
         rootSpatial->setLocalScale(glm::vec3(5, .5f, 5));
-    }
+    }*/
 
     // physics experiment
     {
-        JPH::BodyInterface& bodyInterface = physicsContext->getPhysics().GetBodyInterface();
-        JPH::BoxShapeSettings floor_shape_settings(JPH::Vec3(100.0f, 1.0f, 100.0f));
-        floor_shape_settings.SetEmbedded();
-        JPH::ShapeSettings::ShapeResult floor_shape_result = floor_shape_settings.Create();
-        auto& floor_shape = floor_shape_result.Get(); // We don't expect an error here, but you can check floor_shape_result for HasError() / GetError()
-        JPH::BodyCreationSettings floor_settings(floor_shape, JPH::RVec3(0.0, -1.0, 0.0), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::NON_MOVING);
-        JPH::Body* floor = bodyInterface.CreateBody(floor_settings); // Note that if we run out of bodies this can return nullptr
-        bodyInterface.AddBody(floor->GetID(), JPH::EActivation::DontActivate);
+        // static platform
+        {
+            glm::vec3 pos(0, 2, 0);
+            glm::vec3 size(15, .5f, 15);
+
+            // physics
+            JPH::BodyInterface& bodyInterface = physicsContext->getPhysics().GetBodyInterface();
+            JPH::BoxShapeSettings shapeSettings(JPH::Vec3(.5f, .5f, .5f) * JPH::Vec3(size.x, size.y, size.z));
+            shapeSettings.SetEmbedded();
+            JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
+            auto& shape = shapeResult.Get();
+            JPH::BodyCreationSettings bodySettings(shape, JPH::RVec3(pos.x, pos.y, pos.z), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::NON_MOVING);
+            JPH::Body* body = bodyInterface.CreateBody(bodySettings);
+            bodyInterface.AddBody(body->GetID(), JPH::EActivation::DontActivate);
+
+            //entity
+            auto* ecs = world->getService<entt::registry>();
+            auto modelConfig = ModelConfig::create("gltf/smallcube.glb",
+                VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
+                | VertexAttribute::TANGENTS
+            );
+
+            auto materialConfig = PbrMaterialConfig::create();
+            materialConfig->setHasShadow(true);
+
+            auto entity = ecs->create();
+
+            auto& renderable = ecs->emplace<Component::Renderable>(entity);
+            auto& spatials = ecs->emplace<Component::Spatials>(entity);
+            ecs->emplace<Component::Rigidbody>(entity, body->GetID(), false);
+            ecs->emplace<Component::ModelComponent>(entity, modelConfig);
+            ecs->emplace<Component::Material>(entity, materialConfig);
+            //ecs->emplace<Component::LinearVelocity>(entity);
+
+            auto& model = modelCache->get(modelConfig);
+            auto rootSpatial = spatials.generate(*sceneGraph, model, "platform", renderable.type);
+            rootSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
+            rootSpatial->setLocalPosition(pos);
+            rootSpatial->setLocalScale(size);
+        }
+
+        // falling block
+        {
+            auto modelConfig = ModelConfig::create("gltf/smallcube.glb",
+                VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
+                | VertexAttribute::TANGENTS
+            );
+
+            auto materialConfig = PbrMaterialConfig::create();
+            materialConfig->setHasShadow(true);
+
+            auto xCount = 4;
+            auto yCount = 4;
+            auto zCount = 4;
+            auto yOffset = 10;
+            auto zOffset = 0;
+            auto padding = 0;
+            for (size_t k = 0; k < yCount; k++) {
+                for (size_t i = 0; i < xCount; i++) {
+                    for (size_t j = 0; j < zCount; j++) {
+                        glm::vec3 startingPos = glm::vec3(
+                            ((1 + padding) * i) - ((1 + padding) * xCount * 0.5f),
+                            ((1 + padding) * k) + yOffset,
+                            ((1 + padding) * j) - ((1 + padding) * zCount * 0.5f) + zOffset
+                        );
+
+                        // physics
+                        JPH::BodyInterface& bodyInterface = physicsContext->getPhysics().GetBodyInterface();
+                        JPH::BoxShapeSettings shapeSettings(JPH::Vec3(.5f, .5f, .5f));
+                        shapeSettings.SetEmbedded();
+                        JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
+                        auto& shape = shapeResult.Get();
+
+                        JPH::BodyCreationSettings bodySettings(shape,
+                            JPH::RVec3(startingPos.x, startingPos.y, startingPos.z),
+                            JPH::Quat::sIdentity(), JPH::EMotionType::Dynamic, Layers::MOVING);
+
+                        JPH::Body* body = bodyInterface.CreateBody(bodySettings);
+                        bodyInterface.AddBody(body->GetID(), JPH::EActivation::Activate);
+
+                        //entity
+                        auto* ecs = world->getService<entt::registry>();
+
+
+
+                        auto entity = ecs->create();
+
+                        auto& renderable = ecs->emplace<Component::Renderable>(entity);
+                        auto& spatials = ecs->emplace<Component::Spatials>(entity);
+                        ecs->emplace<Component::Rigidbody>(entity, body->GetID(), true);
+                        ecs->emplace<Component::ModelComponent>(entity, modelConfig);
+                        ecs->emplace<Component::Material>(entity, materialConfig);
+                        //ecs->emplace<Component::LinearVelocity>(entity);
+
+                        auto& model = modelCache->get(modelConfig);
+                        auto rootSpatial = spatials.generate(*sceneGraph, model, "falling-block-" + i, renderable.type);
+                        rootSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
+                        rootSpatial->setLocalPosition(startingPos);
+                        //rootSpatial->setLocalScale(glm::vec3(5, .5f, 5));
+                    }
+                }
+            }
+        }
     }
 
 
@@ -335,12 +437,12 @@ void BasicGameTest::initCamera(InputManager& inputManager, DebugContext& dbg) {
     auto aspectRatio = (float)window->getWidth() / window->getHeight();
     auto camera = Camera::create(fov, aspectRatio, Camera::NEAR_CLIP, Camera::FAR_CLIP);
 
-    camera->setPosition(glm::vec3(0, 0, 5));
+    camera->setPosition(glm::vec3(5, 7, 5));
 
-    //glm::quat camRot = camera->getRotation();
-    //camRot = glm::rotate(camRot, glm::radians(55.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
-    //auto rot = glm::rotate(camRot, glm::radians(190.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    //camera->setRotation(rot);
+    glm::quat camRot = camera->getRotation();
+    camRot = glm::rotate(camRot, glm::radians(35.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
+    auto rot = glm::rotate(camRot, glm::radians(-45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    camera->setRotation(rot);
 
     cameraController = std::make_unique<FreeCameraController>(inputManager);
     cameraController->setCamera(std::move(camera));
@@ -352,6 +454,13 @@ void TestGui::draw() {
 
     if (ImGui::Button("Toggle Debug Geometry"))
         EngineConfig::getInstance().setDebugRenderingEnabled(!EngineConfig::getInstance().isDebugRenderingEnabled());
+
+    // physics
+    {
+        auto* ws = world->getSystem<PhysicsSystem>();
+        if (ImGui::Button(ws->isPaused() ? "Unpause Physics" : "Pause Physics"))
+            ws->setPaused(!ws->isPaused());
+    }
 
     ImGui::End();
 }

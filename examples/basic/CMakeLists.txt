@@ -19,11 +19,13 @@ set(HEADERS
     src/AnimationSystem.hpp
     src/KinematicPlayerSystem.hpp
     src/PhysicsSystem.hpp
+    src/PhysicsSyncSystem.hpp
 
     # components
     src/components/Components.hpp
     src/components/Model.hpp
     src/components/Material.hpp
+    src/components/Physics.hpp
 )
 
 set(SOURCES
@@ -45,6 +47,7 @@ set(SOURCES
     src/AnimationSystem.cpp
     src/KinematicPlayerSystem.cpp
     src/PhysicsSystem.cpp
+    src/PhysicsSyncSystem.cpp
 
     src/components/Components.cpp
 )

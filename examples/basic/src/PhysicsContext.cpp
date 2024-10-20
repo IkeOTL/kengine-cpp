@@ -1,5 +1,6 @@
 
 #include "PhysicsContext.hpp"
+#include <Jolt/RegisterTypes.h>
 
 
 void PhysicsContext::init() {
@@ -10,6 +11,8 @@ void PhysicsContext::init() {
 
     factory = std::make_unique<JPH::Factory>();
     JPH::Factory::sInstance = factory.get();
+
+    JPH::RegisterTypes();
 
     //need to implement our own job system
     jobSystem = std::make_unique<JPH::JobSystemThreadPool>(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, std::thread::hardware_concurrency() - 1);
