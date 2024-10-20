@@ -1,4 +1,5 @@
 #pragma once
+#include <Jolt/Jolt.h>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/GltfModelFactory.hpp>
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>

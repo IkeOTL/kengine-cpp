@@ -173,17 +173,17 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
               VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
               VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccesMask, bool generateMipMaps)*/
         heightsTexture = std::make_unique<Texture2d>(
-            vkCxt,                      // Vulkan context
-            heights.data(),            // Pointer to image data
-            vertexCountX,                       // Image width
-            vertexCountZ,                      // Image height
-            VK_FORMAT_R8_UNORM,          // Format (single channel, 8-bit unsigned normalized)
-            VK_IMAGE_TYPE_2D,            // Image type (2D texture)
-            VK_IMAGE_VIEW_TYPE_2D,       // Image view type (2D)
-            1,                           // Channels (1 for grayscale)
-            VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,   // Destination stage mask (read access for shaders)
-            VK_ACCESS_SHADER_READ_BIT,   // Destination access mask (shader read access)
-            false                         // Generate mipmaps (if needed)
+            vkCxt,
+            heights.data(),
+            vertexCountX,
+            vertexCountZ,
+            VK_FORMAT_R8_UNORM,
+            VK_IMAGE_TYPE_2D,
+            VK_IMAGE_VIEW_TYPE_2D,
+            1,
+            VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+            VK_ACCESS_SHADER_READ_BIT,
+            false
         );
     }
 

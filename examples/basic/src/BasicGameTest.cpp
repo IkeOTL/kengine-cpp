@@ -15,6 +15,7 @@
 #include <utility>
 #include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
 
+
 #include "RenderablePreviousTransformSystem.hpp"
 #include "SpatialGridUpdateSystem.hpp"
 #include "RenderSystem.hpp"
@@ -37,7 +38,12 @@
 #include <components/Model.hpp>
 #include <kengine/util/Random.hpp>
 #include <KinematicPlayerSystem.hpp>
+
 #include <PhysicsSystem.hpp>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Math/Real.h>
+#include <Jolt/Math/Math.h>
 
 float BasicGameTest::getDelta() {
     return delta;
@@ -187,7 +193,21 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
         auto rootSpatial = spatials.generate(*sceneGraph, model, "player", renderable.type);
         rootSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
         rootSpatial->setLocalPosition(glm::vec3(0, 2, 0));
+        rootSpatial->setLocalScale(glm::vec3(5, .5f, 5));
     }
+
+    // physics experiment
+    {
+        JPH::BodyInterface& bodyInterface = physicsContext->getPhysics().GetBodyInterface();
+        JPH::BoxShapeSettings floor_shape_settings(JPH::Vec3(100.0f, 1.0f, 100.0f));
+        floor_shape_settings.SetEmbedded();
+        JPH::ShapeSettings::ShapeResult floor_shape_result = floor_shape_settings.Create();
+        auto& floor_shape = floor_shape_result.Get(); // We don't expect an error here, but you can check floor_shape_result for HasError() / GetError()
+        JPH::BodyCreationSettings floor_settings(floor_shape, JPH::RVec3(0.0, -1.0, 0.0), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::NON_MOVING);
+        JPH::Body* floor = bodyInterface.CreateBody(floor_settings); // Note that if we run out of bodies this can return nullptr
+        bodyInterface.AddBody(floor->GetID(), JPH::EActivation::DontActivate);
+    }
+
 
     //// cube array
     //{

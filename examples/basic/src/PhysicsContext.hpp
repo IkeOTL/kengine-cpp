@@ -185,6 +185,10 @@ public:
         return std::make_unique<PhysicsContext>();
     }
 
+    JPH::PhysicsSystem& getPhysics() {
+        return *physicsSystem;
+    }
+
     void init();
     void step(float delta);
 };
