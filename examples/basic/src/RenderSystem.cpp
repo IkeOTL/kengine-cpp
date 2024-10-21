@@ -133,6 +133,7 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
 
                 // need to calc in Model still
                 auto& bounds = m->getBounds();
+                // todo: spherebounds need to scale based on spatial!!
                 renderCtx->draw(*m, *material, blendMat, bounds.getSphereBounds());
 
                 if (EngineConfig::getInstance().isDebugRenderingEnabled()) {

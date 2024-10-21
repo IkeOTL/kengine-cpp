@@ -17,14 +17,22 @@ VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, PipelineCach
     swapchainCreator(SwapchainCreator(std::move(onSwapchainCreate))) {}
 
 VulkanContext::~VulkanContext() {
+    gpuBufferCache.reset();
+    renderPasses.clear();
+
+    char* statsString = nullptr;
+    vmaBuildStatsString(vmaAllocator, &statsString, true);
+    KE_LOG_INFO(statsString);
+    vmaFreeStatsString(vmaAllocator, statsString);
+
+    vmaDestroyAllocator(vmaAllocator);
+
     if (vkInstance == VK_NULL_HANDLE)
         return;
 
     auto funcDestroyDebug = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
     if (funcDestroyDebug)
         funcDestroyDebug(vkInstance, debugCallbackHandle, nullptr);
-
-    vmaDestroyAllocator(vmaAllocator);
 
     vkDestroyInstance(vkInstance, nullptr);
 }
@@ -534,6 +542,8 @@ bool SwapchainCreator::recreate(VulkanContext& vkCxt, bool force, Swapchain& old
 
 std::unique_ptr<GpuBuffer> VulkanContext::createBuffer(
     VkDeviceSize size, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) const {
+    static std::atomic<uint32_t> runningId = 0;
+
 
     VkBufferCreateInfo bufCreateInfo{};
     bufCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -554,7 +564,7 @@ std::unique_ptr<GpuBuffer> VulkanContext::createBuffer(
     vmaGetMemoryTypeProperties(vmaAllocator, allocationInfo.memoryType, &memTypeProperties);
     auto isHostCoherent = (memTypeProperties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0;
 
-    return std::make_unique<GpuBuffer>(vmaAllocator, buffer, allocation, isHostCoherent);
+    return std::make_unique<GpuBuffer>(runningId++, vmaAllocator, buffer, allocation, isHostCoherent);
 }
 
 void VulkanContext::submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer) {

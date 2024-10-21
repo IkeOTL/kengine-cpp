@@ -46,12 +46,13 @@ class BasicGameTest : Game {
 private:
     inline static std::unique_ptr<ExecutorService> threadPool;
 
+
+    std::unique_ptr<VulkanContext> vulkanCxt;
     std::unique_ptr<Window> window;
     std::unique_ptr<InputManager> inputManager;
     std::unique_ptr<DebugContext> debugContext;
     std::unique_ptr<EventBus> eventBus;
     std::unique_ptr<DeferredJobManager> djm;
-    std::unique_ptr<VulkanContext> vulkanCxt;
     std::unique_ptr<TestGui> imGuiContext;
     std::unique_ptr<TerrainContext> terrainContext;
     std::unique_ptr<RenderContext> renderContext;
@@ -87,6 +88,7 @@ private:
 
 public:
     BasicGameTest() : sm(*this, nullptr, nullptr, nullptr) {}
+    ~BasicGameTest();
 
     float getDelta() override;
     void run() override;

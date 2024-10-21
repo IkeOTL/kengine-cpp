@@ -1,5 +1,24 @@
 #include <kengine/vulkan/GpuBuffer.hpp>
+#include <kengine/Logger.hpp>
+
 #include <stdexcept>
+
+
+GpuBuffer::GpuBuffer(
+    uint32_t id,
+    VmaAllocator vmaAllocator,
+    VkBuffer vkBuffer,
+    VmaAllocation vmaAllocation,
+    bool hostCoherent
+)
+    : id(id),
+    vmaAllocator(vmaAllocator),
+    vkBuffer(vkBuffer),
+    vmaAllocation(vmaAllocation),
+    hostCoherent(hostCoherent)
+{
+    KE_LOG_DEBUG(std::format("GpuBuffer created: {}", id));
+}
 
 void* GpuBuffer::data() {
     if (!mappedBuffer)
@@ -36,7 +55,9 @@ GpuBuffer::~GpuBuffer() {
     if (mappedBuffer) {
         vmaUnmapMemory(vmaAllocator, vmaAllocation);
         mappedBuffer = nullptr;
+        KE_LOG_DEBUG(std::format("GpuBuffer unmapped: {}", id));
     }
 
     vmaDestroyBuffer(vmaAllocator, vkBuffer, vmaAllocation);
+    KE_LOG_DEBUG(std::format("GpuBuffer destroyed: {}", id));
 };

@@ -47,6 +47,11 @@
 #include <components/Physics.hpp>
 #include <PhysicsSyncSystem.hpp>
 
+
+BasicGameTest::~BasicGameTest() {
+   // textureCache.reset();
+}
+
 float BasicGameTest::getDelta() {
     return delta;
 }
@@ -64,6 +69,11 @@ void BasicGameTest::run() {
 
     while (!glfwWindowShouldClose(this->window->getWindow())) {
         FrameMark;
+
+        if (inputManager->isKeyDown(GLFW_KEY_ESCAPE)) {
+            vkDeviceWaitIdle(vulkanCxt->getVkDevice());
+            break;
+        }
 
         auto newTime = high_resolution_clock::now();
         delta = duration_cast<nanoseconds>(newTime - lastFrame).count() * .000000001f;

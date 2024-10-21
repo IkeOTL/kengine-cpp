@@ -52,6 +52,7 @@ set(SOURCES
     src/components/Components.cpp
 )
 
+target_compile_definitions(kengine_engine PUBLIC KE_ACTIVE_LOG_LEVEL=KE_LOG_LEVEL_DEBUG)
 set_target_properties(basic PROPERTIES FOLDER "examples")
 
 target_sources(basic 
