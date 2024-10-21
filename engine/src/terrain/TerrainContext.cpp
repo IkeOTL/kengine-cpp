@@ -12,6 +12,7 @@
 #include <kengine/vulkan/material/Material.hpp>
 #include <kengine/util/Random.hpp>
 #include <kengine/vulkan/SamplerCache.hpp>
+#include <kengine/terrain/OptimizedTerrain.hpp>
 
 
 const size_t TerrainContext::terrainDataBufAlignedFrameSize(VulkanContext& vkCxt) {
@@ -27,7 +28,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
     auto tilesLength = 128;
     // terrain
 
-    terrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
+    terrain = std::make_unique<OptimizedTerrain>(tilesWidth, tilesLength, 16, 16);
 
     auto matConfig = TerrainPbrMaterialConfig::create();
     TextureConfig textureConfig("img/poke-tileset.png");
@@ -107,25 +108,31 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
         VMA_MEMORY_USAGE_AUTO,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT);
 
+    // fill in tiledata
     {
-        auto* buf = static_cast<uint32_t*>(terrainDataBuf->getGpuBuffer().data());
         auto i = 0;
-        for (int chunkZ = 0; chunkZ < terrain->getChunkCountZ(); chunkZ++) {
-            for (int chunkX = 0; chunkX < terrain->getChunkCountX(); chunkX++) {
+        for (auto chunkZ = 0; chunkZ < terrain->getChunkCountZ(); chunkZ++) {
+            for (auto chunkX = 0; chunkX < terrain->getChunkCountX(); chunkX++) {
+                auto startX = chunkX * terrain->getChunkWidth();
+                auto startZ = chunkZ * terrain->getChunkLength();
                 // set entire chunk to a single tile for visual verification
-                uint32_t tileId = random::randInt(0, 2); // id of the tile in the tilesheet
-                for (int z = 0; z < terrain->getChunkLength(); z++) {
-                    for (int x = 0; x < terrain->getChunkWidth(); x++) {
-                        auto startX = chunkX * terrain->getChunkWidth();
-                        auto startZ = chunkZ * terrain->getChunkLength();
+                uint16_t tileId = random::randInt(0, 2); // id of the tile in the tilesheet
+                for (auto z = 0; z < terrain->getChunkLength(); z++) {
+                    for (auto x = 0; x < terrain->getChunkWidth(); x++) {
+                        i++;
+                        uint8_t matIdx = 0;
 
-                        uint32_t matIdx = 0;
-
-                        buf[i++] = ((tileId & 0b111111111111) << 3) | (matIdx & 0b111);
+                        auto& tile = terrain->getTile(startX + x, startZ + z);
+                        tile.setMatIdx(0);
+                        tile.setTileId(tileId);
                     }
                 }
             }
         }
+
+        auto& tileData = terrain->getTileData();
+        auto* buf = static_cast<uint32_t*>(terrainDataBuf->getGpuBuffer().data());
+        memcpy(buf, terrain->getTileData().data(), terrain->getTileData().size() * sizeof(uint32_t));
     }
 
     // generate heights
@@ -133,18 +140,14 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
         auto vertexCountX = terrain->getTerrainHeightsWidth();
         auto vertexCountZ = terrain->getTerrainHeightsLength();
 
-        std::vector<uint8_t> heights;
-        heights.reserve(vertexCountX * vertexCountZ);
-        //heights.resize(tilesLength * tilesWidth);
-        // we're packing all 4 corners tile hieghts into a single 4 byte type.
-        // so each corner can have [0, 255]
-
         // a "unit" will be 10 
         float max = 0xFF;
-        auto randMax = 6;
-        for (auto i = 0; i < vertexCountX * vertexCountZ; i++) {
-            auto f0 = random::randInt(0, static_cast<int>(randMax));
-            heights.emplace_back(f0);
+        auto randMax = .3f;
+        for (auto z = 0; z < terrain->getTerrainHeightsLength(); z++) {
+            for (auto x = 0; x < terrain->getTerrainHeightsWidth(); x++) {
+                auto f0 = random::randFloat(0, randMax);
+                terrain->setHeight(x, z, f0);
+            }
         }
 
         // set obvious points for visual confirmation
@@ -154,7 +157,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
                 for (auto x = 0; x < area; x++) {
                     auto posX = x + (vertexCountX / 2) - (area / 2);
                     auto posZ = z + (vertexCountZ / 2) - (area / 2);
-                    heights[posZ * vertexCountX + posX] = 10;
+                    terrain->setHeight(posX, posZ, 1);
                 }
             }
 
@@ -164,7 +167,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
                 for (auto x = 0; x < area; x++) {
                     auto posX = x + (vertexCountX / 2) - (area / 2);
                     auto posZ = z + (vertexCountZ / 2) - (area / 2);
-                    heights[posZ * vertexCountX + posX] = 0;
+                    terrain->setHeight(posX, posZ, 0);
                 }
             }
         }
@@ -174,7 +177,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
               VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccesMask, bool generateMipMaps)*/
         heightsTexture = std::make_unique<Texture2d>(
             vkCxt,
-            heights.data(),
+            terrain->getHeights().data(),
             vertexCountX,
             vertexCountZ,
             VK_FORMAT_R8_UNORM,

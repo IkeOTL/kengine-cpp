@@ -55,10 +55,16 @@ void main() {
     uint chunkIdxX = chunkId % pcs.chunkCount.x;
     uint chunkIdxZ = chunkId / pcs.chunkCount.x;
 
-    vec3 chunkWorldPos = vec3(
-        chunkIdxX * pcs.chunkDimensions.x + pcs.worldOffset.x,
+    uvec3 chunkPos = uvec3(
+        chunkIdxX * pcs.chunkDimensions.x ,
         0.0,
-        chunkIdxZ * pcs.chunkDimensions.y + pcs.worldOffset.y
+        chunkIdxZ * pcs.chunkDimensions.y 
+    );
+
+    vec3 chunkWorldPos = vec3(
+        chunkPos.x + pcs.worldOffset.x,
+        0.0,
+        chunkPos.z + pcs.worldOffset.y
     );
 
     // Compute vertex position within the chunk
@@ -87,7 +93,8 @@ void main() {
 
     // todo: potentially precompute all this into a lookup   
     uint tilesPerChunk = pcs.chunkDimensions.x * pcs.chunkDimensions.y;
-    uint globalTileId = tileId + (chunkId * tilesPerChunk); 
+    //uint globalTileId = tileId + (chunkId * tilesPerChunk); 
+    uint globalTileId = (chunkPos.z + tilePosZ) * pcs.chunkDimensions.x * pcs.chunkCount.x + chunkPos.x + tilePosX;
     uint tileData = terrainDataBuffer.packedData[globalTileId];
     uint tileInSheetId = (tileData >> 3) & 0xFFF;
 

@@ -253,6 +253,13 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
                 | VertexAttribute::TANGENTS
             );
 
+            // physics
+            JPH::BodyInterface& bodyInterface = physicsContext->getPhysics().GetBodyInterface();
+            JPH::BoxShapeSettings shapeSettings(JPH::Vec3(.5f, .5f, .5f));
+            //shapeSettings.SetEmbedded();
+            JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
+            auto& shape = shapeResult.Get();
+
             auto materialConfig = PbrMaterialConfig::create();
             materialConfig->setHasShadow(true);
 
@@ -272,12 +279,6 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
                         );
 
                         // physics
-                        JPH::BodyInterface& bodyInterface = physicsContext->getPhysics().GetBodyInterface();
-                        JPH::BoxShapeSettings shapeSettings(JPH::Vec3(.5f, .5f, .5f));
-                        shapeSettings.SetEmbedded();
-                        JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
-                        auto& shape = shapeResult.Get();
-
                         JPH::BodyCreationSettings bodySettings(shape,
                             JPH::RVec3(startingPos.x, startingPos.y, startingPos.z),
                             JPH::Quat::sIdentity(), JPH::EMotionType::Dynamic, Layers::MOVING);
@@ -287,9 +288,6 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
                         //entity
                         auto* ecs = world->getService<entt::registry>();
-
-
-
                         auto entity = ecs->create();
 
                         auto& renderable = ecs->emplace<Component::Renderable>(entity);
@@ -297,13 +295,11 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
                         ecs->emplace<Component::Rigidbody>(entity, body->GetID(), true);
                         ecs->emplace<Component::ModelComponent>(entity, modelConfig);
                         ecs->emplace<Component::Material>(entity, materialConfig);
-                        //ecs->emplace<Component::LinearVelocity>(entity);
 
                         auto& model = modelCache->get(modelConfig);
-                        auto rootSpatial = spatials.generate(*sceneGraph, model, "falling-block-" + i, renderable.type);
+                        auto rootSpatial = spatials.generate(*sceneGraph, model, std::format("falling-block-{}-{}-{}", k, i, j), renderable.type);
                         rootSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
                         rootSpatial->setLocalPosition(startingPos);
-                        //rootSpatial->setLocalScale(glm::vec3(5, .5f, 5));
                     }
                 }
             }

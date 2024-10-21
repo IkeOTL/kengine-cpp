@@ -37,6 +37,7 @@ set(HEADERS
     include/public/kengine/terrain/TileTerrainChunk.hpp
     include/public/kengine/terrain/TileSheet.hpp
     include/public/kengine/terrain/TerrainContext.hpp
+    include/public/kengine/terrain/OptimizedTerrain.hpp
 
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
@@ -170,6 +171,7 @@ set(SOURCES
     src/terrain/DualGridTileTerrain.cpp
     src/terrain/TileTerrainChunk.cpp
     src/terrain/TerrainContext.cpp
+    src/terrain/OptimizedTerrain.cpp
 
     src/ecs/World.cpp
     

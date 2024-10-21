@@ -1,7 +1,7 @@
 #pragma once
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <kengine/vulkan/GpuBuffer.hpp>
-#include <kengine/terrain/TileTerrain.hpp>
+#include <kengine/terrain/OptimizedTerrain.hpp>
 
 #include <vector>
 #include <memory>
@@ -26,7 +26,7 @@ private:
     AsyncMaterialCache& materialCache;
     Material* material = nullptr;
 
-    std::unique_ptr<TileTerrain> terrain;
+    std::unique_ptr<OptimizedTerrain> terrain;
 
 public:
     inline static const int MAX_TILES = 1024 * 1024;
