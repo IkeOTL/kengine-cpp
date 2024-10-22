@@ -29,8 +29,7 @@ public:
     ShadowContext(GpuBufferCache& bufCache, CachedGpuBuffer& indirectCmdBuf, CameraController& cameraController, SceneData& sceneData)
         :bufCache(bufCache), indirectCmdBuf(indirectCmdBuf), cameraController(cameraController), sceneData(sceneData) {}
 
-    void init(VulkanContext& vkContext, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators,
-        glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer);
+    void init(VulkanContext& vkContext, glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer);
 
     void execute(VulkanContext& vkContext, RenderFrameContext& cxt, DescriptorSetAllocator& dAllocator,
         IndirectDrawBatch* nonSkinnedBatches, size_t nonSkinnedBatchesSize,

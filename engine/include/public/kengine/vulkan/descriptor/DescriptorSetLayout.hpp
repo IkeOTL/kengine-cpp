@@ -50,5 +50,7 @@ public:
     DescriptorSetLayoutCache(VulkanContext& vulkanCxt)
         : vulkanCxt(vulkanCxt) {}
 
+    ~DescriptorSetLayoutCache();
+
     VkDescriptorSetLayout getLayout(const DescriptorSetLayoutConfig& config);
 };

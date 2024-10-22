@@ -66,6 +66,7 @@ set(HEADERS
     
     include/public/kengine/vulkan/ImGuiKEContext.hpp
     include/public/kengine/vulkan/VulkanContext.hpp
+    include/public/kengine/vulkan/VulkanObject.hpp
     include/public/kengine/vulkan/RenderContext.hpp
     include/public/kengine/vulkan/CullContext.hpp
     include/public/kengine/vulkan/ShadowContext.hpp
@@ -178,6 +179,7 @@ set(SOURCES
     src/vulkan/tinygltf_impl.cpp
     src/vulkan/ImGuiKEContext.cpp
     src/vulkan/VulkanContext.cpp
+    src/vulkan/VulkanObject.cpp
     src/vulkan/RenderContext.cpp
     src/vulkan/CullContext.cpp
     src/vulkan/ShadowContext.cpp

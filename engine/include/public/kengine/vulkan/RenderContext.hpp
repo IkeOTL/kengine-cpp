@@ -45,8 +45,6 @@ private:
 
     std::unique_ptr<SceneData> sceneData;
 
-    std::vector<std::unique_ptr<DescriptorSetAllocator>> descSetAllocators;
-
     // bufs
     CachedGpuBuffer* sceneBuf = nullptr;
     CachedGpuBuffer* materialsBuf = nullptr;
@@ -120,14 +118,6 @@ public:
     int draw(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere);
     void begin(RenderFrameContext& frameCxt, float sceneTime, float alpha);
     void end();
-
-    const std::vector<std::unique_ptr<DescriptorSetAllocator>>& getDescSetAllocators() const {
-        return descSetAllocators;
-    }
-
-    DescriptorSetAllocator& getDescSetAllocator(int i) const {
-        return *descSetAllocators[i];
-    }
 
     void setImGuiContext(ImGuiKEContext* imGuiCtx) {
         imGuiContext = imGuiCtx;

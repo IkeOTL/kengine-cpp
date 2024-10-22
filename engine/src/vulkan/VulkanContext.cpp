@@ -17,24 +17,17 @@ VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, PipelineCach
     swapchainCreator(SwapchainCreator(std::move(onSwapchainCreate))) {}
 
 VulkanContext::~VulkanContext() {
-    gpuBufferCache.reset();
-    renderPasses.clear();
+    // print VMA stats
+    //{
+    //    char* statsString = nullptr;
+    //    vmaBuildStatsString(vmaAllocator, &statsString, true);
+    //    KE_LOG_INFO(statsString);
+    //    vmaFreeStatsString(vmaAllocator, statsString);
+    //}
 
-    char* statsString = nullptr;
-    vmaBuildStatsString(vmaAllocator, &statsString, true);
-    KE_LOG_INFO(statsString);
-    vmaFreeStatsString(vmaAllocator, statsString);
-
-    vmaDestroyAllocator(vmaAllocator);
-
-    if (vkInstance == VK_NULL_HANDLE)
-        return;
-
-    auto funcDestroyDebug = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
+    auto funcDestroyDebug = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vulkanInstance->getVkInstance(), "vkDestroyDebugReportCallbackEXT");
     if (funcDestroyDebug)
-        funcDestroyDebug(vkInstance, debugCallbackHandle, nullptr);
-
-    vkDestroyInstance(vkInstance, nullptr);
+        funcDestroyDebug(vulkanInstance->getVkInstance(), debugCallbackHandle, nullptr);
 }
 
 void VulkanContext::init(Window& window, bool validationOn) {
@@ -43,7 +36,7 @@ void VulkanContext::init(Window& window, bool validationOn) {
     if (validationOn)
         setupDebugging();
 
-    window.createSurface(vkInstance, vkSurface);
+    window.createSurface(vulkanInstance->getVkInstance(), vkSurface);
     grabFirstPhysicalDevice();
     colorFormatAndSpace.init(vkPhysicalDevice, vkSurface);
 
@@ -56,8 +49,8 @@ void VulkanContext::init(Window& window, bool validationOn) {
     createQueues();
     createVmaAllocator();
 
-    frameSync = std::make_unique<FrameSyncObjects>();
-    frameSync->init(vkDevice);
+    frameSync = std::make_unique<FrameSyncObjects>(vkDevice);
+    frameSync->init();
 
     swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
 
@@ -77,6 +70,13 @@ void VulkanContext::init(Window& window, bool validationOn) {
     gpuBufferCache = std::make_unique<GpuBufferCache>(*this);
     descSetLayoutCache = std::make_unique<DescriptorSetLayoutCache>(*this);
     pipelineCache = pipelineCacheCreator(*this, renderPasses);
+
+
+    for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+        auto ptr = std::make_unique<DescriptorSetAllocator>(vkDevice, *descSetLayoutCache);
+        ptr->init();
+        descSetAllocators[i] = std::move(ptr);
+    }
 }
 
 /// <summary>
@@ -223,18 +223,28 @@ void VulkanContext::endRenderPass(RenderPassContext& rpCxt) {
 
 void VulkanContext::processFinishedFences() {
     for (auto it = vkFenceActions.begin(); it != vkFenceActions.end(); ) {
-        auto fence = it->first;
+        auto& fence = it->first;
 
         // Check the status of the fence
-        if (vkGetFenceStatus(vkDevice, fence) != VK_SUCCESS) {
+        if (vkGetFenceStatus(vkDevice, fence->getVkFence()) != VK_SUCCESS) {
             ++it;
             continue;
         }
 
         // Fence is finished; destroy it and run the associated action
-        vkDestroyFence(vkDevice, fence, nullptr);
-        it->second(); // Execute the action associated with the fence
+        //vkDestroyFence(vkDevice, fence, nullptr);
 
+        try {
+            it->second(); // Execute the action associated with the fence
+        }
+        catch (const std::runtime_error& e) {
+            KE_LOG_ERROR(std::format("Failed execting fence action: {}", e.what()));
+        }
+        catch (...) {
+            KE_LOG_ERROR(std::format("Failed execting fence action"));
+        }
+
+        // this should erase the fence
         it = vkFenceActions.erase(it);
     }
 }
@@ -274,8 +284,10 @@ void VulkanContext::createVkInstance(bool validationOn) {
 
     // might change this logic since we might need layers that arent validation layers
     if (!validationOn) {
-        VKCHECK(vkCreateInstance(&createInfo, nullptr, &vkInstance),
+        VkInstance newInstance;
+        VKCHECK(vkCreateInstance(&createInfo, nullptr, &newInstance),
             "Failed to create Vulkan instance.");
+        vulkanInstance = ke::VulkanInstance::create(newInstance);
         return;
     }
 
@@ -314,8 +326,11 @@ void VulkanContext::createVkInstance(bool validationOn) {
         createInfo.ppEnabledLayerNames = layersToEnable.data();
     }
 
-    VKCHECK(vkCreateInstance(&createInfo, nullptr, &vkInstance),
+    VkInstance newInstance;
+    VKCHECK(vkCreateInstance(&createInfo, nullptr, &newInstance),
         "Failed to create Vulkan instance.");
+
+    vulkanInstance = ke::VulkanInstance::create(newInstance);
 }
 
 
@@ -338,24 +353,24 @@ void VulkanContext::setupDebugging() {
             return VK_FALSE;
         };
 
-    auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugReportCallbackEXT");
+    auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vulkanInstance->getVkInstance(), "vkCreateDebugReportCallbackEXT");
 
     if (!func)
         throw std::runtime_error("Could not get address of vkCreateDebugReportCallbackEXT.");
 
-    if (func(vkInstance, &vkDebugCbCreateInfo, nullptr, &debugCallbackHandle) != VK_SUCCESS)
+    if (func(vulkanInstance->getVkInstance(), &vkDebugCbCreateInfo, nullptr, &debugCallbackHandle) != VK_SUCCESS)
         throw std::runtime_error("Failed to set up debug callback.");
 }
 
 void VulkanContext::grabFirstPhysicalDevice() {
     auto deviceCnt = 0u;
-    vkEnumeratePhysicalDevices(vkInstance, &deviceCnt, VK_NULL_HANDLE);
+    vkEnumeratePhysicalDevices(vulkanInstance->getVkInstance(), &deviceCnt, VK_NULL_HANDLE);
 
     if (!deviceCnt)
         throw std::runtime_error("No devices available.");
 
     std::vector<VkPhysicalDevice> availableDevices(deviceCnt);
-    vkEnumeratePhysicalDevices(vkInstance, &deviceCnt, availableDevices.data());
+    vkEnumeratePhysicalDevices(vulkanInstance->getVkInstance(), &deviceCnt, availableDevices.data());
 
     for (const auto& device : availableDevices) {
         VkPhysicalDeviceProperties props{};
@@ -441,6 +456,8 @@ void VulkanContext::createQueues() {
 }
 
 void VulkanContext::createVmaAllocator() {
+    auto vkInstance = vulkanInstance->getVkInstance();
+
     auto allocatorInfo = VmaAllocatorCreateInfo{};
     allocatorInfo.instance = vkInstance;
     allocatorInfo.physicalDevice = vkPhysicalDevice;
@@ -480,8 +497,11 @@ void VulkanContext::createVmaAllocator() {
 
     allocatorInfo.pVulkanFunctions = &vmaVkFunctions;
 
+    VmaAllocator vmaAllocator;
     VKCHECK(vmaCreateAllocator(&allocatorInfo, &vmaAllocator),
         "Failed to initialize VMA allocator.");
+
+    vulkanAllocator = ke::VulkanAllocator::create(vmaAllocator);
 }
 
 VkDeviceSize VulkanContext::alignUboFrame(VkDeviceSize baseFrameSize) const {
@@ -553,6 +573,8 @@ std::unique_ptr<GpuBuffer> VulkanContext::createBuffer(
     VmaAllocationCreateInfo allocationCreateInfo{};
     allocationCreateInfo.usage = memoryUsage;
     allocationCreateInfo.flags = allocFlags;
+
+    auto vmaAllocator = getVmaAllocator();
 
     VkBuffer buffer{};
     VmaAllocation allocation{};
@@ -657,9 +679,12 @@ void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, 
     // submit command buffer
     VkFenceCreateInfo fenceCreateInfo{};
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    VkFence fence;
-    VKCHECK(vkCreateFence(vkDevice, &fenceCreateInfo, VK_NULL_HANDLE, &fence),
+    VkFence vkFence;
+    VKCHECK(vkCreateFence(vkDevice, &fenceCreateInfo, VK_NULL_HANDLE, &vkFence),
         "Failed to create fence.");
+
+    // handle vkFence lifetime
+    auto fencePtr = ke::VulkanFence::create(vkDevice, vkFence);
 
     VkCommandBufferSubmitInfo cmdBufSubmitInfo{};
     cmdBufSubmitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO;
@@ -670,14 +695,14 @@ void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, 
     submitInfo.commandBufferInfoCount = 1;
     submitInfo.pCommandBufferInfos = &cmdBufSubmitInfo;
 
-    VKCHECK(queue.submit(1, &submitInfo, fence),
+    VKCHECK(queue.submit(1, &submitInfo, vkFence),
         "Failed to submit command buffer.");
 
     if (!awaitFence) {
         std::lock_guard<std::mutex> lock(waitingFenceMtx);
         // function lambda executes a copy, and we cant copy a unique ptr...
         std::shared_ptr<CommandBuffer> sCmd = std::move(cmd);
-        vkFenceActions[fence] = [sCmd, followUp]() mutable {
+        vkFenceActions[std::move(fencePtr)] = [sCmd, followUp]() mutable {
             // cmd.dispose(); // smart ptr takes care of this for us
             if (followUp)
                 followUp();
@@ -686,7 +711,7 @@ void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, 
         return;
     }
 
-    vkWaitForFences(vkDevice, 1, &fence, true, LLONG_MAX);
+    vkWaitForFences(vkDevice, 1, &vkFence, true, LLONG_MAX);
 
     if (followUp)
         followUp();
@@ -704,26 +729,32 @@ RenderPass& VulkanContext::getRenderPass(int i) {
     return *renderPasses[i];
 }
 
-void FrameSyncObjects::createFences(VkDevice device, VkFence* fences) {
+void FrameSyncObjects::createFences(VkDevice device, std::unique_ptr<ke::VulkanFence>* fences) {
     for (auto i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         VkFenceCreateInfo fenceCreateInfo{};
         fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-        VKCHECK(vkCreateFence(device, &fenceCreateInfo, nullptr, &fences[i]),
+        VkFence newFence;
+        VKCHECK(vkCreateFence(device, &fenceCreateInfo, nullptr, &newFence),
             "Failed to create fence");
+
+        fences[i] = ke::VulkanFence::create(device, newFence);
     }
 }
 
-void FrameSyncObjects::createSemaphores(VkDevice device, VkSemaphore* semaphores) {
+void FrameSyncObjects::createSemaphores(VkDevice device, std::unique_ptr<ke::VulkanSemaphore>* semaphores) {
     for (auto i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         VkSemaphoreCreateInfo semaphoreCreateInfo{};
         semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-        VKCHECK(vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &semaphores[i]),
+        VkSemaphore newSemaphore;
+        VKCHECK(vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &newSemaphore),
             "Failed to create semaphore");
+
+        semaphores[i] = ke::VulkanSemaphore::create(device, newSemaphore);
     }
 }
 
-void FrameSyncObjects::init(VkDevice vkDevice) {
+void FrameSyncObjects::init() {
     createFences(vkDevice, frameFences);
     createSemaphores(vkDevice, frameSemaphores);
     createSemaphores(vkDevice, imageAcquireSemaphores);

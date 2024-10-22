@@ -35,7 +35,7 @@ public:
     TerrainContext(AsyncMaterialCache& materialCache)
         : materialCache(materialCache) {}
 
-    void init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators);
+    void init(VulkanContext& vkCxt);
 
     void setMaterialBuf(CachedGpuBuffer* buf) {
         materialsBuf = buf;

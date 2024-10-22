@@ -23,7 +23,7 @@ const size_t TerrainContext::drawInstanceBufAlignedFrameSize(VulkanContext& vkCx
     return vkCxt.alignSsboFrame(TerrainContext::MAX_CHUNKS * sizeof(uint32_t));
 }
 
-void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators) {
+void TerrainContext::init(VulkanContext& vkCxt) {
     auto tilesWidth = 128;
     auto tilesLength = 128;
     // terrain
@@ -197,7 +197,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
         VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
         VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT);
 
-
+    auto& descSetAllocators = vkCxt.getDescSetAllocators();
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto& descSetAllocator = descSetAllocators[i];
 

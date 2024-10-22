@@ -3,6 +3,8 @@
 #include <kengine/vulkan/descriptor/DescriptorSetPool.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
 #include <mutex>
+#include <memory>
+#include <array>
 
 class DescriptorSetAllocator {
 private:
@@ -28,3 +30,6 @@ public:
     VkDescriptorSet getGlobalDescriptorSet(std::string key, const DescriptorSetLayoutConfig& config);
     VkDescriptorSet leaseDescriptorSet(const DescriptorSetLayoutConfig& config);
 };
+
+// need to move this 3 somewhere? cant use VulkanContext::FRAME_OVERLAP due to cyclic dep
+using DescriptorSetAllocators = std::array<std::unique_ptr<DescriptorSetAllocator>, 3>;

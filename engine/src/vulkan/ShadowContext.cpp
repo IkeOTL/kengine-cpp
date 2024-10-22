@@ -16,8 +16,7 @@
 #include <kengine/vulkan/IndirectDrawBatch.hpp>
 #include <kengine/vulkan/mesh/Mesh.hpp>
 
-void ShadowContext::init(VulkanContext& vkContext, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators,
-    glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer) {
+void ShadowContext::init(VulkanContext& vkContext, glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer) {
     auto xferFlags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
         | VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT
         | VMA_ALLOCATION_CREATE_MAPPED_BIT;
@@ -38,77 +37,78 @@ void ShadowContext::init(VulkanContext& vkContext, std::vector<std::unique_ptr<D
 
     cascadesData.setLightDir(lightDir);
 
+    auto& descSetAllocators = vkContext.getDescSetAllocators();
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto& descSetAllocator = *descSetAllocators[i];
         std::vector<VkWriteDescriptorSet> setWrites(4);
 
-        
-            VkDescriptorSet modelMatDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
-                "shadow-pass0", CascadeShadowMapPipeline::shadowPassLayout);
-            // Model matrix descriptor write
-            auto& modelBufBinding = CascadeShadowMapPipeline::shadowPassLayout.getBinding(0);
-            VkDescriptorBufferInfo modelBufferInfo{};
-            modelBufferInfo.buffer = drawObjectBuf.getGpuBuffer().getVkBuffer();
-            modelBufferInfo.offset = 0;
-            modelBufferInfo.range = drawObjectBuf.getFrameSize();
 
-            setWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            setWrites[0].dstSet = modelMatDescriptorSet;
-            setWrites[0].dstBinding = modelBufBinding.bindingIndex;
-            setWrites[0].descriptorCount = modelBufBinding.descriptorCount;
-            setWrites[0].descriptorType = modelBufBinding.descriptorType;
-            setWrites[0].pBufferInfo = &modelBufferInfo;
+        VkDescriptorSet modelMatDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
+            "shadow-pass0", CascadeShadowMapPipeline::shadowPassLayout);
+        // Model matrix descriptor write
+        auto& modelBufBinding = CascadeShadowMapPipeline::shadowPassLayout.getBinding(0);
+        VkDescriptorBufferInfo modelBufferInfo{};
+        modelBufferInfo.buffer = drawObjectBuf.getGpuBuffer().getVkBuffer();
+        modelBufferInfo.offset = 0;
+        modelBufferInfo.range = drawObjectBuf.getFrameSize();
 
-            // Draw instance descriptor write
-            auto& drawInstanceBinding = CascadeShadowMapPipeline::shadowPassLayout.getBinding(1);
-            VkDescriptorBufferInfo drawInstanceBufferInfo{};
-            drawInstanceBufferInfo.buffer = drawInstanceBuffer.getGpuBuffer().getVkBuffer();
-            drawInstanceBufferInfo.offset = 0;
-            drawInstanceBufferInfo.range = drawInstanceBuffer.getFrameSize();
+        setWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        setWrites[0].dstSet = modelMatDescriptorSet;
+        setWrites[0].dstBinding = modelBufBinding.bindingIndex;
+        setWrites[0].descriptorCount = modelBufBinding.descriptorCount;
+        setWrites[0].descriptorType = modelBufBinding.descriptorType;
+        setWrites[0].pBufferInfo = &modelBufferInfo;
 
-            setWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            setWrites[1].dstSet = modelMatDescriptorSet;
-            setWrites[1].dstBinding = drawInstanceBinding.bindingIndex;
-            setWrites[1].descriptorCount = drawInstanceBinding.descriptorCount;
-            setWrites[1].descriptorType = drawInstanceBinding.descriptorType;
-            setWrites[1].pBufferInfo = &drawInstanceBufferInfo;
-        
+        // Draw instance descriptor write
+        auto& drawInstanceBinding = CascadeShadowMapPipeline::shadowPassLayout.getBinding(1);
+        VkDescriptorBufferInfo drawInstanceBufferInfo{};
+        drawInstanceBufferInfo.buffer = drawInstanceBuffer.getGpuBuffer().getVkBuffer();
+        drawInstanceBufferInfo.offset = 0;
+        drawInstanceBufferInfo.range = drawInstanceBuffer.getFrameSize();
 
-        
-            VkDescriptorSet cascadeDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
-                "cascade", CascadeShadowMapPipeline::cascadeViewProjLayout);
-            // Cascade UBO descriptor write
-            auto& cascadeUboBinding = CascadeShadowMapPipeline::cascadeViewProjLayout.getBinding(0);
-            VkDescriptorBufferInfo cascadeBufferInfo{};
-            cascadeBufferInfo.buffer = shadowPassCascadeBuf->getGpuBuffer().getVkBuffer(); // Assuming similar method exists in C++
-            cascadeBufferInfo.offset = 0;
-            cascadeBufferInfo.range = shadowPassCascadeBuf->getFrameSize();
+        setWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        setWrites[1].dstSet = modelMatDescriptorSet;
+        setWrites[1].dstBinding = drawInstanceBinding.bindingIndex;
+        setWrites[1].descriptorCount = drawInstanceBinding.descriptorCount;
+        setWrites[1].descriptorType = drawInstanceBinding.descriptorType;
+        setWrites[1].pBufferInfo = &drawInstanceBufferInfo;
 
-            setWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            setWrites[2].dstSet = cascadeDescriptorSet;
-            setWrites[2].dstBinding = cascadeUboBinding.bindingIndex;
-            setWrites[2].descriptorCount = cascadeUboBinding.descriptorCount;
-            setWrites[2].descriptorType = cascadeUboBinding.descriptorType;
-            setWrites[2].pBufferInfo = &cascadeBufferInfo;
-        
 
-        
-            VkDescriptorSet compositionDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
-                "deferred-composition", DeferredCompositionPbrPipeline::compositionLayout);
-            // Composition descriptor write
-            auto& cascadesUboBinding = DeferredCompositionPbrPipeline::compositionLayout.getBinding(7);
-            VkDescriptorBufferInfo compositionBufferInfo{};
-            compositionBufferInfo.buffer = compositePassCascadeBuf->getGpuBuffer().getVkBuffer(); // Assuming similar method exists in C++
-            compositionBufferInfo.offset = 0;
-            compositionBufferInfo.range = compositePassCascadeBuf->getFrameSize();
 
-            setWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            setWrites[3].dstSet = compositionDescriptorSet;
-            setWrites[3].dstBinding = cascadesUboBinding.bindingIndex;
-            setWrites[3].descriptorCount = cascadesUboBinding.descriptorCount;
-            setWrites[3].descriptorType = cascadesUboBinding.descriptorType;
-            setWrites[3].pBufferInfo = &compositionBufferInfo;
-        
+        VkDescriptorSet cascadeDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
+            "cascade", CascadeShadowMapPipeline::cascadeViewProjLayout);
+        // Cascade UBO descriptor write
+        auto& cascadeUboBinding = CascadeShadowMapPipeline::cascadeViewProjLayout.getBinding(0);
+        VkDescriptorBufferInfo cascadeBufferInfo{};
+        cascadeBufferInfo.buffer = shadowPassCascadeBuf->getGpuBuffer().getVkBuffer(); // Assuming similar method exists in C++
+        cascadeBufferInfo.offset = 0;
+        cascadeBufferInfo.range = shadowPassCascadeBuf->getFrameSize();
+
+        setWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        setWrites[2].dstSet = cascadeDescriptorSet;
+        setWrites[2].dstBinding = cascadeUboBinding.bindingIndex;
+        setWrites[2].descriptorCount = cascadeUboBinding.descriptorCount;
+        setWrites[2].descriptorType = cascadeUboBinding.descriptorType;
+        setWrites[2].pBufferInfo = &cascadeBufferInfo;
+
+
+
+        VkDescriptorSet compositionDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
+            "deferred-composition", DeferredCompositionPbrPipeline::compositionLayout);
+        // Composition descriptor write
+        auto& cascadesUboBinding = DeferredCompositionPbrPipeline::compositionLayout.getBinding(7);
+        VkDescriptorBufferInfo compositionBufferInfo{};
+        compositionBufferInfo.buffer = compositePassCascadeBuf->getGpuBuffer().getVkBuffer(); // Assuming similar method exists in C++
+        compositionBufferInfo.offset = 0;
+        compositionBufferInfo.range = compositePassCascadeBuf->getFrameSize();
+
+        setWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        setWrites[3].dstSet = compositionDescriptorSet;
+        setWrites[3].dstBinding = cascadesUboBinding.bindingIndex;
+        setWrites[3].descriptorCount = cascadesUboBinding.descriptorCount;
+        setWrites[3].descriptorType = cascadesUboBinding.descriptorType;
+        setWrites[3].pBufferInfo = &compositionBufferInfo;
+
 
         vkUpdateDescriptorSets(vkContext.getVkDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
     }
