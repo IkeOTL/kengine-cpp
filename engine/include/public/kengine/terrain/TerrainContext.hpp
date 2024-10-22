@@ -1,7 +1,7 @@
 #pragma once
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <kengine/vulkan/GpuBuffer.hpp>
-#include <kengine/terrain/TileTerrain.hpp>
+#include <kengine/terrain/OptimizedTerrain.hpp>
 
 #include <vector>
 #include <memory>
@@ -21,10 +21,12 @@ private:
     CachedGpuBuffer* drawInstanceBuf = nullptr;
     CachedGpuBuffer* materialsBuf = nullptr;
 
+    std::unique_ptr<Texture2d> heightsTexture = nullptr;
+
     AsyncMaterialCache& materialCache;
     Material* material = nullptr;
 
-    std::unique_ptr<TileTerrain> terrain;
+    std::unique_ptr<OptimizedTerrain> terrain;
 
 public:
     inline static const int MAX_TILES = 1024 * 1024;
@@ -33,13 +35,11 @@ public:
     TerrainContext(AsyncMaterialCache& materialCache)
         : materialCache(materialCache) {}
 
-    void init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators);
+    void init(VulkanContext& vkCxt);
 
     void setMaterialBuf(CachedGpuBuffer* buf) {
         materialsBuf = buf;
     }
-
-    void resetDrawBuf(uint32_t frameIdx);
 
     //const glm::vec4& getChunkBoundingSphere();
     const glm::vec4 getChunkBoundingSphere();

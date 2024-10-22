@@ -15,23 +15,25 @@
 #include <kengine/vulkan/pipelines/TerrainPreDrawCullingPipeline.hpp>
 
 VkSemaphore CullContext::getSemaphore(size_t frameIdx) {
-    return semaphores[frameIdx];
+    return semaphores[frameIdx]->getVkSemaphore();
 }
 
-void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators) {
-    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++)
+void CullContext::init(VulkanContext& vkCxt) {
+    // create compute cmdbufs and sempahores
+    for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
+        computeCmdBufs[i] = vkCxt.getCommandPool()->createComputeCmdBuf();
 
-        // create compute cmdbufs and sempahores
-        for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
-            computeCmdBufs[i] = vkCxt.getCommandPool()->createComputeCmdBuf();
+        VkSemaphoreCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-            VkSemaphoreCreateInfo createInfo{};
-            createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        VkSemaphore newSemaphore;
+        VKCHECK(vkCreateSemaphore(vkCxt.getVkDevice(), &createInfo, nullptr, &newSemaphore),
+            "Failed to create semaphore");
 
-            VKCHECK(vkCreateSemaphore(vkCxt.getVkDevice(), &createInfo, nullptr, &semaphores[i]),
-                "Failed to create semaphore");
-        }
+        semaphores[i] = ke::VulkanSemaphore::create(vkCxt.getVkDevice(), newSemaphore);
+    }
 
+    auto& descSetAllocators = vkCxt.getDescSetAllocators();
     // init descriptorsets with buffers
     {
         auto descSetInit = [](size_t idx, VkDescriptorSet descSet, CachedGpuBuffer& buf,
@@ -50,6 +52,7 @@ void CullContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Descrip
                 bufferInfo.range = buf.getFrameSize();
                 write.pBufferInfo = &bufferInfo;
             };
+
 
         for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
             auto& descSetAllo = *descSetAllocators[i];
@@ -162,6 +165,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 
 
             std::vector<VkBufferMemoryBarrier2> barriers;
+            barriers.reserve(2);
 
             // terrain
             if (terrainContext) {
@@ -206,9 +210,6 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 
         // terrain culling
         if (terrainContext) {
-            // precull            
-            terrainContext->resetDrawBuf(frameIdx);
-
             {
                 auto localSizeX = 32; // must match compute shader
                 auto localSizeY = 32; // must match compute shader
@@ -272,6 +273,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
             // insert barrier
             {
                 std::vector<VkBufferMemoryBarrier2> barriers;
+                barriers.reserve(2);
 
                 {
                     VkBufferMemoryBarrier2 bufferBarrier{};
@@ -321,7 +323,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 
     VkSemaphoreSubmitInfo semaInfo{};
     semaInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-    semaInfo.semaphore = semaphores[frameIdx];
+    semaInfo.semaphore = semaphores[frameIdx]->getVkSemaphore();
 
     VkSubmitInfo2 submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;

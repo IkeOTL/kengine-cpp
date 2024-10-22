@@ -3,6 +3,7 @@
 #include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
 #include <kengine/vulkan/CommandBuffer.hpp>
 #include <vector>
+#include "VulkanObject.hpp"
 
 class VulkanContext;
 class TerrainContext;
@@ -14,7 +15,7 @@ class CameraController;
 class CullContext {
 private:
     std::unique_ptr<CommandBuffer> computeCmdBufs[VulkanContext::FRAME_OVERLAP];
-    VkSemaphore semaphores[VulkanContext::FRAME_OVERLAP]{};
+    std::unique_ptr<ke::VulkanSemaphore> semaphores[VulkanContext::FRAME_OVERLAP]{};
 
     TerrainContext* terrainContext = nullptr;
     CachedGpuBuffer& indirectBuf;
@@ -32,6 +33,6 @@ public:
         terrainContext = ctx;
     }
 
-    void init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators);
+    void init(VulkanContext& vkCxt);
     void dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, CameraController& cc, int frameIdx, int drawCallCount, int objectCount);
 };

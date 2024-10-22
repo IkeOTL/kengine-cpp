@@ -23,13 +23,11 @@ private:
         }
     };
 
+    std::unordered_map<std::pair<uint32_t, uint32_t>, std::shared_ptr<MaterialBindingConfig>, IntPairHash> bindingConfigs;
     std::type_index pipelineTypeIndex;
-
+    int32_t skeletonBufferId = -1;
     bool _hasShadow = false;
     bool _hasSkeleton = false;
-    int32_t skeletonBufferId = -1;
-
-    std::unordered_map<std::pair<uint32_t, uint32_t>, std::shared_ptr<MaterialBindingConfig>, IntPairHash> bindingConfigs;
 
 public:
     MaterialConfig(std::type_index type) : pipelineTypeIndex(type) {}

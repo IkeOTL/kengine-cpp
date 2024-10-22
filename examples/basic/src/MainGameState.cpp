@@ -1,5 +1,5 @@
 #include "MainGameState.hpp"
-#include "Game.hpp"
+#include <kengine/Game.hpp>
 #include "RenderSystem.hpp"
 #include "RenderablePreviousTransformSystem.hpp"
 
@@ -65,21 +65,21 @@ void MainGameState::enter(Game& parent) {
 //}
 
 void MainGameState::update(Game& parent) {
-    window.pollEvents();
-
     auto delta = parent.getDelta();
 
     accumulator += delta;
 
     while (accumulator >= GAME_UPDATE_TICK_INTERVAL) {
-        sceneTime.setDelta(GAME_UPDATE_TICK_INTERVAL);
-
-        // these only need to be updated as the last updates
-        // typically used for alpha lerping
+        // these only need to be updated as the last updates, typically used for alpha lerping
         if (accumulator - GAME_UPDATE_TICK_INTERVAL < GAME_UPDATE_TICK_INTERVAL) {
             world.getSystem<RenderablePreviousTransformSystem>()->processSystem(GAME_UPDATE_TICK_INTERVAL);
             //world.getSystem<SkeletonPreviousTransformSystem>()->processSystem(GAME_UPDATE_TICK_INTERVAL);
         }
+
+        window.pollEvents();
+
+        sceneTime.setDelta(GAME_UPDATE_TICK_INTERVAL);
+
 
         world.process(GAME_UPDATE_TICK_INTERVAL);
         accumulator -= GAME_UPDATE_TICK_INTERVAL;

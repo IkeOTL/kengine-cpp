@@ -1,24 +1,49 @@
 #pragma once
 #include <string>
 #include <spdlog/spdlog.h>
+#include <format>
 
 namespace kengine {
+
+#define KE_LOG_LEVEL_TRACE 0
+#define KE_LOG_LEVEL_DEBUG 1
+#define KE_LOG_LEVEL_INFO 2
+#define KE_LOG_LEVEL_WARN 3
+#define KE_LOG_LEVEL_ERROR 4
+#define KE_LOG_LEVEL_CRITICAL 5
+#define KE_LOG_LEVEL_OFF 6
+
+    // Preprocessor directive to allow for overriding the log level at compile time
+#ifndef KE_ACTIVE_LOG_LEVEL
+#define KE_ACTIVE_LOG_LEVEL KE_LOG_LEVEL_INFO
+#endif
+
     class Logger {
     public:
         virtual ~Logger() = default;
 
+        virtual void trace(const std::string& message) = 0;
+        virtual void debug(const std::string& message) = 0;
         virtual void info(const std::string& message) = 0;
-        virtual void warning(const std::string& message) = 0;
+        virtual void warn(const std::string& message) = 0;
         virtual void error(const std::string& message) = 0;
     };
 
     class SpdlogLogger : public Logger {
     public:
+        void trace(const std::string& message) override {
+            spdlog::trace(message);
+        }
+
+        void debug(const std::string& message) override {
+            spdlog::debug(message);
+        }
+
         void info(const std::string& message) override {
             spdlog::info(message);
         }
 
-        void warning(const std::string& message) override {
+        void warn(const std::string& message) override {
             spdlog::warn(message);
         }
 
@@ -31,22 +56,17 @@ namespace kengine {
     public:
         static Logger& getLogger() {
             static SpdlogLogger logger;
+            static bool isLoggerInitialized = false;
+
+            if (!isLoggerInitialized) {
+                spdlog::set_level(static_cast<spdlog::level::level_enum>(KE_ACTIVE_LOG_LEVEL));
+                isLoggerInitialized = true;
+            }
+
             return logger;
         }
     };
 }
-
-#define KE_LOG_LEVEL_TRACE 0
-#define KE_LOG_LEVEL_DEBUG 1
-#define KE_LOG_LEVEL_INFO 2
-#define KE_LOG_LEVEL_WARN 3
-#define KE_LOG_LEVEL_ERROR 4
-#define KE_LOG_LEVEL_OFF 5
-
-// Preprocessor directive to allow for overriding the log level at compile time
-#ifndef KE_ACTIVE_LOG_LEVEL
-#define KE_ACTIVE_LOG_LEVEL KE_LOG_LEVEL_INFO
-#endif
 
 #define KENGINE_LOGGER() kengine::LogManager::getLogger()
 

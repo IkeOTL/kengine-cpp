@@ -5,6 +5,10 @@ thread_local VkCommandPool CommandPool::gfxPool = VK_NULL_HANDLE;
 thread_local VkCommandPool CommandPool::xferPool = VK_NULL_HANDLE;
 thread_local VkCommandPool CommandPool::computePool = VK_NULL_HANDLE;
 
+CommandPool::~CommandPool() {
+    need to figure this out
+}
+
 void CommandPool::initThread(VulkanContext& vkContext) {
     auto gfx = createCommandPool(VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, vkContext.getGfxQueueFamilyIndex());
     gfxPool = gfx;

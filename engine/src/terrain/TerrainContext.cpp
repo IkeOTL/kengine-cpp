@@ -11,6 +11,8 @@
 #include <kengine/vulkan/material/AsyncMaterialCache.hpp>
 #include <kengine/vulkan/material/Material.hpp>
 #include <kengine/util/Random.hpp>
+#include <kengine/vulkan/SamplerCache.hpp>
+#include <kengine/terrain/OptimizedTerrain.hpp>
 
 
 const size_t TerrainContext::terrainDataBufAlignedFrameSize(VulkanContext& vkCxt) {
@@ -21,12 +23,12 @@ const size_t TerrainContext::drawInstanceBufAlignedFrameSize(VulkanContext& vkCx
     return vkCxt.alignSsboFrame(TerrainContext::MAX_CHUNKS * sizeof(uint32_t));
 }
 
-void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<DescriptorSetAllocator>>& descSetAllocators) {
-    auto tilesWidth = 512;
-    auto tilesLength = 512;
+void TerrainContext::init(VulkanContext& vkCxt) {
+    auto tilesWidth = 128;
+    auto tilesLength = 128;
     // terrain
 
-    terrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
+    terrain = std::make_unique<OptimizedTerrain>(tilesWidth, tilesLength, 16, 16);
 
     auto matConfig = TerrainPbrMaterialConfig::create();
     TextureConfig textureConfig("img/poke-tileset.png");
@@ -106,16 +108,86 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
         VMA_MEMORY_USAGE_AUTO,
         VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT);
 
+    // fill in tiledata
     {
-        auto* buf = static_cast<uint32_t*>(terrainDataBuf->getGpuBuffer().data());
-        for (auto i = 0; i < tilesWidth * tilesLength; i++) {
-            uint32_t d = 0;
+        auto i = 0;
+        for (auto chunkZ = 0; chunkZ < terrain->getChunkCountZ(); chunkZ++) {
+            for (auto chunkX = 0; chunkX < terrain->getChunkCountX(); chunkX++) {
+                auto startX = chunkX * terrain->getChunkWidth();
+                auto startZ = chunkZ * terrain->getChunkLength();
+                // set entire chunk to a single tile for visual verification
+                uint16_t tileId = random::randInt(0, 2); // id of the tile in the tilesheet
+                for (auto z = 0; z < terrain->getChunkLength(); z++) {
+                    for (auto x = 0; x < terrain->getChunkWidth(); x++) {
+                        i++;
+                        uint8_t matIdx = 0;
 
-            uint32_t matIdx = 0;
-            uint32_t tileId = random::randInt(0, 2); // id of the tile in the tilesheet
-
-            buf[i] = ((tileId & 0b111111111111) << 3) | (matIdx & 0b111);
+                        auto& tile = terrain->getTile(startX + x, startZ + z);
+                        tile.setMatIdx(0);
+                        tile.setTileId(tileId);
+                    }
+                }
+            }
         }
+
+        auto& tileData = terrain->getTileData();
+        auto* buf = static_cast<uint32_t*>(terrainDataBuf->getGpuBuffer().data());
+        memcpy(buf, terrain->getTileData().data(), terrain->getTileData().size() * sizeof(uint32_t));
+    }
+
+    // generate heights
+    {
+        auto vertexCountX = terrain->getTerrainHeightsWidth();
+        auto vertexCountZ = terrain->getTerrainHeightsLength();
+
+        // a "unit" will be 10 
+        float max = 0xFF;
+        auto randMax = .3f;
+        for (auto z = 0; z < terrain->getTerrainHeightsLength(); z++) {
+            for (auto x = 0; x < terrain->getTerrainHeightsWidth(); x++) {
+                auto f0 = random::randFloat(0, randMax);
+                terrain->setHeight(x, z, f0);
+            }
+        }
+
+        // set obvious points for visual confirmation
+        {
+            auto area = 6;
+            for (size_t z = 0; z < area; z++) {
+                for (auto x = 0; x < area; x++) {
+                    auto posX = x + (vertexCountX / 2) - (area / 2);
+                    auto posZ = z + (vertexCountZ / 2) - (area / 2);
+                    terrain->setHeight(posX, posZ, 1);
+                }
+            }
+
+            // depress center
+            area = 2;
+            for (size_t z = 0; z < area; z++) {
+                for (auto x = 0; x < area; x++) {
+                    auto posX = x + (vertexCountX / 2) - (area / 2);
+                    auto posZ = z + (vertexCountZ / 2) - (area / 2);
+                    terrain->setHeight(posX, posZ, 0);
+                }
+            }
+        }
+
+        /*  Texture2d(VulkanContext& vkCxt, const unsigned char* image, uint32_t width, uint32_t height,
+              VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
+              VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccesMask, bool generateMipMaps)*/
+        heightsTexture = std::make_unique<Texture2d>(
+            vkCxt,
+            terrain->getHeights().data(),
+            vertexCountX,
+            vertexCountZ,
+            VK_FORMAT_R8_UNORM,
+            VK_IMAGE_TYPE_2D,
+            VK_IMAGE_VIEW_TYPE_2D,
+            1,
+            VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+            VK_ACCESS_SHADER_READ_BIT,
+            false
+        );
     }
 
     drawInstanceBuf = &bufCache.create(
@@ -125,7 +197,7 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
         VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
         VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT);
 
-
+    auto& descSetAllocators = vkCxt.getDescSetAllocators();
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto& descSetAllocator = descSetAllocators[i];
 
@@ -134,7 +206,8 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
         std::vector<VkDescriptorImageInfo> imageInfos;
 
         // so they dont resize
-        setWrites.reserve(5);
+        setWrites.reserve(6);
+        imageInfos.reserve(1);
         bufferInfos.reserve(5);
 
         auto pushBuf = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, CachedGpuBuffer* gpuBuf) -> void {
@@ -158,6 +231,27 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
                 });
             };
 
+        auto pushImg = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, const VkImageView imgView, VkSampler sampler) -> void {
+            auto& img = imageInfos.emplace_back(VkDescriptorImageInfo{
+                    sampler,
+                    imgView,
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+                });
+
+            setWrites.emplace_back(VkWriteDescriptorSet{
+                    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    nullptr,
+                    vkDescSet,
+                    bindingCfg.bindingIndex,
+                    0,
+                    bindingCfg.descriptorCount,
+                    bindingCfg.descriptorType,
+                    &img,
+                    nullptr,
+                    nullptr
+                });
+            };
+
         {
             auto deferredDescriptorSet = descSetAllocator->getGlobalDescriptorSet("terrain-deferred-gbuffer", TerrainDeferredOffscreenPbrPipeline::objectLayout);
 
@@ -167,15 +261,41 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
                 terrainDataBuf
             );
 
+            {
+                auto samplerConfig = SamplerConfig(
+                    VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                    VK_FILTER_LINEAR,
+                    VK_FILTER_LINEAR,
+                    VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                    VK_COMPARE_OP_NEVER,
+                    VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+                    0,
+                    1,
+                    0,
+                    1.0f
+                );
+
+                auto sampler = vkCxt.getSamplerCache().getSampler(samplerConfig);
+
+                pushImg(
+                    deferredDescriptorSet,
+                    TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(1),
+                    heightsTexture->getImageView(),
+                    sampler
+                );
+            }
+
             pushBuf(
                 deferredDescriptorSet,
-                TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(1),
+                TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(2),
                 drawInstanceBuf
             );
 
             pushBuf(
                 deferredDescriptorSet,
-                TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(2),
+                TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(3),
                 materialsBuf
             );
         }
@@ -198,14 +318,6 @@ void TerrainContext::init(VulkanContext& vkCxt, std::vector<std::unique_ptr<Desc
 
         vkUpdateDescriptorSets(vkCxt.getVkDevice(), setWrites.size(), setWrites.data(), 0, nullptr);
     }
-}
-
-void TerrainContext::resetDrawBuf(uint32_t frameIdx) {
-    /* assert(frameIdx >= 0 && frameIdx <= VulkanContext::FRAME_OVERLAP);
-     auto cmd = reinterpret_cast<VkDrawIndexedIndirectCommand*>(
-         reinterpret_cast<char*>(drawIndirectCmdBuf->getGpuBuffer().data())
-         + drawIndirectCmdBuf->getFrameOffset(frameIdx));
-     cmd->instanceCount = 0;*/
 }
 
 // TODO: optimize this change to ref once we have it calced once
@@ -246,6 +358,12 @@ void TerrainContext::draw(VulkanContext& vkCxt, RenderPassContext& rpCtx, Descri
     pc.worldOffset = getWorldOffset();
     pc.tileUvSize = glm::vec2{ 16.0f / 96.0f, 16.0f / 80.0f };
     pc.tileDenom = static_cast<uint32_t>(96.0f / 16.0f);
+    pc.vertHeightFactor = glm::vec4{
+        terrain->getTerrainHeightsWidth() * 0.5f,
+        terrain->getTerrainHeightsLength() * 0.5f,
+        1.0f / terrain->getTerrainHeightsWidth(),
+        1.0f / terrain->getTerrainHeightsLength()
+    };
 
     vkCmdPushConstants(rpCtx.cmd, pl.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(TerrainDeferredOffscreenPbrPipeline::PushConstant), &pc);
 

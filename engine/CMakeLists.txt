@@ -8,7 +8,6 @@ target_compile_definitions(kengine_engine PUBLIC
     GLM_FORCE_DEPTH_ZERO_TO_ONE
     TINYGLTF_NO_STB_IMAGE
     TINYGLTF_NO_STB_IMAGE_WRITE
-    TRACY_ENABLE # need to be conditional
 )
 
 #include(CheckCXXCompilerFlag)
@@ -38,6 +37,7 @@ set(HEADERS
     include/public/kengine/terrain/TileTerrainChunk.hpp
     include/public/kengine/terrain/TileSheet.hpp
     include/public/kengine/terrain/TerrainContext.hpp
+    include/public/kengine/terrain/OptimizedTerrain.hpp
 
     include/public/kengine/io/AssetIO.hpp
     include/public/kengine/io/MemoryMappedFile.hpp
@@ -45,6 +45,7 @@ set(HEADERS
 
     include/public/kengine/EngineConfig.hpp
     include/public/kengine/Logger.hpp
+    include/public/kengine/Game.hpp
     include/public/kengine/Profiler.hpp
     include/public/kengine/DebugContext.hpp
     include/public/kengine/Math.hpp
@@ -60,9 +61,12 @@ set(HEADERS
     include/public/kengine/SpatialPartitioningManager.hpp
     include/public/kengine/FrustumIntersection.hpp
     include/public/kengine/DeferredJob.hpp
+    include/public/kengine/EventBus.hpp
+    include/public/kengine/BufferPool.hpp
     
     include/public/kengine/vulkan/ImGuiKEContext.hpp
     include/public/kengine/vulkan/VulkanContext.hpp
+    include/public/kengine/vulkan/VulkanObject.hpp
     include/public/kengine/vulkan/RenderContext.hpp
     include/public/kengine/vulkan/CullContext.hpp
     include/public/kengine/vulkan/ShadowContext.hpp
@@ -146,6 +150,7 @@ set(HEADERS
 
 set(SOURCES
     src/Window.cpp
+    src/EASTL_impl.cpp
     src/Transform.cpp
     src/Spatial.cpp
     src/SceneGraph.cpp
@@ -154,6 +159,7 @@ set(SOURCES
     src/FrustumIntersection.cpp
     src/DebugContext.cpp
     src/DeferredJobManager.cpp
+    src/EventBus.cpp
     
     src/io/FlieSystemAssetIO.cpp
     src/io/MemoryMappedFile.cpp
@@ -166,12 +172,14 @@ set(SOURCES
     src/terrain/DualGridTileTerrain.cpp
     src/terrain/TileTerrainChunk.cpp
     src/terrain/TerrainContext.cpp
+    src/terrain/OptimizedTerrain.cpp
 
     src/ecs/World.cpp
     
     src/vulkan/tinygltf_impl.cpp
     src/vulkan/ImGuiKEContext.cpp
     src/vulkan/VulkanContext.cpp
+    src/vulkan/VulkanObject.cpp
     src/vulkan/RenderContext.cpp
     src/vulkan/CullContext.cpp
     src/vulkan/ShadowContext.cpp
@@ -258,6 +266,8 @@ FetchContent_MakeAvailable(spdlog)
 set_target_properties(spdlog PROPERTIES FOLDER "thirdparty")
 
 # download tracy source
+set(TRACY_ENABLE ON CACHE BOOL "Enable profiling" FORCE)
+set(TRACY_ON_DEMAND ON CACHE BOOL "On-demand profiling" FORCE)
 FetchContent_Declare(
     tracy
     GIT_REPOSITORY https://github.com/wolfpld/tracy.git
@@ -265,6 +275,16 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tracy)
 set_target_properties(TracyClient PROPERTIES FOLDER "thirdparty")
+
+# EASTL
+add_compile_definitions(EASTL_DEBUG=0)
+FetchContent_Declare(
+    EASTL
+    GIT_REPOSITORY https://github.com/electronicarts/EASTL.git
+    GIT_TAG 3.21.23
+)
+FetchContent_MakeAvailable(EASTL)
+set_target_properties(EASTL PROPERTIES FOLDER "thirdparty")
 
 # download imgui source
 FetchContent_Declare(
@@ -298,8 +318,8 @@ set_target_properties(glfw PROPERTIES FOLDER "thirdparty/GLFW3")
 set_target_properties(update_mappings PROPERTIES FOLDER "thirdparty/GLFW3")
 
 # download JoltPhysics source
-#set(JPH_PROFILE_ENABLED ON CACHE BOOL "Enable internal profiling")
-#set(JPH_DEBUG_RENDERER ON CACHE BOOL "Enable debug rendering")
+#set(JPH_PROFILE_ENABLED OFF CACHE BOOL "Enable internal profiling")
+#set(JPH_DEBUG_RENDERER OFF CACHE BOOL "Enable debug rendering")
 #set(JPH_DOUBLE_PRECISION OFF CACHE BOOL "Use double precision for large worlds")
 set(JPH_CROSS_PLATFORM_DETERMINISTIC ON CACHE BOOL "Make simulation deterministic across different platforms")
 set(PHYSICS_REPO_ROOT ${CMAKE_BINARY_DIR}/_deps/joltphysics-src)
@@ -380,7 +400,8 @@ target_link_libraries(kengine_engine PUBLIC
     Threads::Threads
     Vulkan::Vulkan
     glfw
+    EASTL
     msgpack-cxx
-    #Jolt ## commented out to work on it when i need it, and ensure its linking correctly
+    Jolt ## commented out to work on it when i need it, and ensure its linking correctly
     GameNetworkingSockets::shared
 )

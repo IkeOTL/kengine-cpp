@@ -15,7 +15,7 @@ public:
     RenderTarget(VkDevice vkDevice)
         : vkDevice(vkDevice) { }
 
-    ~RenderTarget();
+    virtual ~RenderTarget();
 
     VkFramebuffer getVkFramebuffer() const {
         return vkFrameBuffer;

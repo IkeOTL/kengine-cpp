@@ -1,4 +1,5 @@
 #pragma once
+#include <Jolt/Jolt.h>
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <kengine/vulkan/mesh/GltfModelFactory.hpp>
 #include <kengine/vulkan/mesh/AsyncModelCache.hpp>
@@ -21,9 +22,14 @@
 #include <thirdparty/entt.hpp>
 
 #include <memory>
-#include "Game.hpp"
+#include <kengine/Game.hpp>
+#include <kengine/DeferredJob.hpp>
+#include <kengine/EventBus.hpp>
+#include <PlayerMovementManager.hpp>
+#include "MyPlayerContext.hpp"
+#include <PhysicsContext.hpp>
 
-class TestGui : public ImGuiKEContext {
+class TestGui : public ImGuiKEContext, public WorldService {
 private:
     DebugContext& debugCtx;
     SceneTime& sceneTime;
@@ -40,11 +46,14 @@ class BasicGameTest : Game {
 private:
     inline static std::unique_ptr<ExecutorService> threadPool;
 
+
+    std::unique_ptr<VulkanContext> vulkanCxt;
     std::unique_ptr<Window> window;
     std::unique_ptr<InputManager> inputManager;
     std::unique_ptr<DebugContext> debugContext;
-    std::unique_ptr<VulkanContext> vulkanCxt;
-    std::unique_ptr<ImGuiKEContext> imGuiContext;
+    std::unique_ptr<EventBus> eventBus;
+    std::unique_ptr<DeferredJobManager> djm;
+    std::unique_ptr<TestGui> imGuiContext;
     std::unique_ptr<TerrainContext> terrainContext;
     std::unique_ptr<RenderContext> renderContext;
     std::unique_ptr<AssetIO> assetIo;
@@ -54,6 +63,9 @@ private:
     std::unique_ptr<CameraController> cameraController;
     std::unique_ptr<SceneTime> sceneTime;
     std::unique_ptr<SpatialPartitioningManager> spatialPartitioningManager;
+    std::unique_ptr<MyPlayerContext> myPlayerContext;
+    std::unique_ptr<PlayerMovementManager> playerMovementManager;
+    std::unique_ptr<PhysicsContext> physicsContext;
 
     std::unique_ptr<GltfModelFactory> modelFactory;
     std::unique_ptr<AsyncModelCache> modelCache;
@@ -68,7 +80,6 @@ private:
     StateMachine<Game> sm;
 
     float delta = 0;
-    const bool isDebugRendering = true;
 
     std::unique_ptr<State<Game>> init();
     void initVulkan();
@@ -77,6 +88,7 @@ private:
 
 public:
     BasicGameTest() : sm(*this, nullptr, nullptr, nullptr) {}
+    ~BasicGameTest();
 
     float getDelta() override;
     void run() override;

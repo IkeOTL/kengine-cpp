@@ -7,16 +7,34 @@
 #include <memory>
 #include <stdexcept>
 
+class World;
+
+class WorldService {
+protected:
+    friend class World;
+    World* world;
+
+protected:
+    void setWorld(World* w) {
+        world = w;
+    }
+};
+
 class WorldConfig {
 protected:
     friend class World;
     std::unordered_map<std::type_index, void*> services;
+    std::unordered_map<std::type_index, WorldService*> worldServices;
     std::unordered_map<std::type_index, std::unique_ptr<BaseSystem>> systems;
 
 public:
     template<typename T>
-    WorldConfig& addService(void* service) {
+    WorldConfig& addService(T* service) {
         services[std::type_index(typeid(T))] = service;
+
+        if constexpr (std::is_base_of<WorldService, T>::value)
+            worldServices[std::type_index(typeid(T))] = static_cast<WorldService*>(service);
+
         return *this;
     }
 
@@ -36,6 +54,10 @@ private:
 public:
     World(WorldConfig& wc)
         : services(std::move(wc.services)), systems(std::move(wc.systems)) {
+
+        for (auto& entry : wc.worldServices)
+            entry.second->setWorld(this);
+
         for (auto& entry : this->systems) {
             auto& sys = entry.second;
             sys->world = this;

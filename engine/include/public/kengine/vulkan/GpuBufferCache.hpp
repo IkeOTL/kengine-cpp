@@ -54,6 +54,8 @@ public:
     GpuBufferCache(VulkanContext& vkContext)
         : vkContext(vkContext), runningId(0) {}
 
+    ~GpuBufferCache() = default;
+
     CachedGpuBuffer* get(GpuBufferId cacheKey);
     CachedGpuBuffer& createHostMapped(VkDeviceSize totalSize, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);
     CachedGpuBuffer& createHostMapped(VkDeviceSize frameSize, uint32_t frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags);

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <kengine/vulkan/VulkanInclude.hpp>
 
 #define VMA_VULKAN_VERSION 1003000

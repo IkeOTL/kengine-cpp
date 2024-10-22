@@ -1,5 +1,4 @@
 #pragma once
-#include <kengine/StateMachine.hpp>
 
 struct SceneTime {
 private:
@@ -28,7 +27,7 @@ public:
         return alpha;
     }
 
-    void setAlpha(float delta) {
+    void setAlpha(float alpha) {
         this->alpha = alpha;
     }
 };

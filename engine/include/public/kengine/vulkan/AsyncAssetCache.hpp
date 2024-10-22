@@ -13,7 +13,7 @@
 template <typename V>
 class AsyncCacheTask {
 private:
-    std::optional<std::shared_future<V>> task;
+    std::optional<std::shared_future<V>> task = std::nullopt;
     V result = nullptr;
 
 public:

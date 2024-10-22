@@ -35,6 +35,8 @@ public:
     DescriptorSetPool(VkDevice vkDevice, DescriptorSetLayoutCache& layoutCache)
         : vkDevice(vkDevice), layoutCache(layoutCache) {}
 
+    ~DescriptorSetPool();
+
     void init();
 
     VkDescriptorSet getGlobalDescriptorSet(std::string key, const DescriptorSetLayoutConfig& config);

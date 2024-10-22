@@ -23,6 +23,8 @@ public:
     CommandPool(VkDevice vkDevice)
         : vkDevice(vkDevice) {}
 
+    //~CommandPool();
+
     void initThread(VulkanContext& vkContext);
 
     std::unique_ptr<CommandBuffer> createGraphicsCmdBuf();

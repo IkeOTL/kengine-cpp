@@ -3,6 +3,7 @@
 
 class GpuBuffer {
 private:
+    const uint32_t id;
     const VmaAllocator vmaAllocator;
     const VmaAllocation vmaAllocation;
     const bool hostCoherent;
@@ -12,16 +13,12 @@ public:
     const VkBuffer vkBuffer;
 
     GpuBuffer(
+        uint32_t id,
         VmaAllocator vmaAllocator,
         VkBuffer vkBuffer,
         VmaAllocation vmaAllocation,
         bool hostCoherent
-    )
-        : vmaAllocator(vmaAllocator),
-        vkBuffer(vkBuffer),
-        vmaAllocation(vmaAllocation),
-        hostCoherent(hostCoherent)
-    { }
+    );
 
     ~GpuBuffer();
 

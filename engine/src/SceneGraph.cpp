@@ -27,7 +27,12 @@ std::shared_ptr<Spatial> SceneGraph::get(uint32_t id) {
     ZoneScoped;
 
     std::shared_lock<std::shared_mutex> lock(mtx); // allow multiple thread reads
-    return spatialCache[id];
+
+    auto it = spatialCache.find(id);
+    if (it == spatialCache.end())
+        return nullptr;
+
+    return it->second;
 }
 
 std::shared_ptr<Spatial> SceneGraph::remove(Spatial& s) {

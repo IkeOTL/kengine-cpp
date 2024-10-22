@@ -40,5 +40,4 @@ namespace Component {
 
         std::shared_ptr<Skeleton> generate(SceneGraph& sceneGraph, Model& model, Component::Spatials& spatials, std::string name);
     };
-
 }

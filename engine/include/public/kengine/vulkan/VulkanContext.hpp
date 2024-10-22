@@ -11,6 +11,8 @@
 #include <kengine/vulkan/CommandPool.hpp>
 #include <kengine/vulkan/QueueOwnerTransfer.hpp>
 #include <kengine/vulkan/pipelines/PipelineCache.hpp>
+#include <kengine/vulkan/descriptor/DescriptorSetAllocator.hpp>
+#include "VulkanObject.hpp"
 
 #include <glm/vec2.hpp>
 #include <functional>
@@ -111,6 +113,10 @@ public:
         return renderPasses;
     }
 
+    DescriptorSetAllocators& getDescSetAllocators() {
+        return descSetAllocators;
+    }
+
     template <typename R>
     R& getRenderPass(int i) {
         return static_cast<R&>(*renderPasses[i]);
@@ -170,14 +176,14 @@ public:
         return *graphicsQueue;
     }
 
-    VmaAllocator getVmaAllocator() {
-        return vmaAllocator;
+    VmaAllocator getVmaAllocator() const {
+        return vulkanAllocator->getVmaAllocator();
     }
 
     SamplerCache& getSamplerCache();
 
     VkInstance getVkInstance() {
-        return vkInstance;
+        return vulkanInstance->getVkInstance();
     }
 
     void setDebugContext(DebugContext* d) {
@@ -195,7 +201,7 @@ public:
     void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);
 
 private:
-    VkInstance vkInstance = VK_NULL_HANDLE;
+    std::unique_ptr<ke::VulkanInstance> vulkanInstance;
     VkDebugReportCallbackEXT debugCallbackHandle = VK_NULL_HANDLE;
 
     VkSurfaceKHR vkSurface = VK_NULL_HANDLE;
@@ -209,7 +215,7 @@ private:
     std::unique_ptr<Swapchain> swapchain;
 
     VmaVulkanFunctions vmaVkFunctions{};
-    VmaAllocator vmaAllocator = VK_NULL_HANDLE;
+    std::unique_ptr<ke::VulkanAllocator> vulkanAllocator;
 
     uint32_t gfxQueueFamilyIndex = 0;
     uint32_t compQueueFamilyIndex = 0;
@@ -234,12 +240,14 @@ private:
     std::queue<std::shared_ptr<QueueOwnerTransfer>> vkQueueTransfers;
 
     mutable std::mutex waitingFenceMtx{};
-    std::unordered_map<VkFence, std::function<void()>> vkFenceActions;
+    std::unordered_map<std::unique_ptr<ke::VulkanFence>, std::function<void()>> vkFenceActions;
     std::unique_ptr<GpuBufferCache> gpuBufferCache;
 
     std::unique_ptr<SamplerCache> samplerCache;
     std::unique_ptr<PipelineCache> pipelineCache;
     std::unique_ptr<DescriptorSetLayoutCache> descSetLayoutCache;
+
+    DescriptorSetAllocators descSetAllocators;
 
     uint64_t frameNumber = 0;
 
@@ -258,25 +266,31 @@ private:
 
 class FrameSyncObjects {
 private:
-    VkFence frameFences[VulkanContext::FRAME_OVERLAP];
-    VkSemaphore frameSemaphores[VulkanContext::FRAME_OVERLAP];
-    VkSemaphore imageAcquireSemaphores[VulkanContext::FRAME_OVERLAP];
+    const VkDevice vkDevice;
 
-    void createFences(VkDevice device, VkFence* fences);
-    void createSemaphores(VkDevice device, VkSemaphore* semaphores);
+    std::unique_ptr<ke::VulkanFence> frameFences[VulkanContext::FRAME_OVERLAP];
+    std::unique_ptr<ke::VulkanSemaphore> frameSemaphores[VulkanContext::FRAME_OVERLAP];
+    std::unique_ptr<ke::VulkanSemaphore> imageAcquireSemaphores[VulkanContext::FRAME_OVERLAP];
+
+    void createFences(VkDevice device, std::unique_ptr<ke::VulkanFence>* fences);
+    void createSemaphores(VkDevice device, std::unique_ptr<ke::VulkanSemaphore>* semaphores);
 
 public:
-    void init(VkDevice vkDevice);
+    FrameSyncObjects(VkDevice vkDevice) : vkDevice(vkDevice) {}
+
+    ~FrameSyncObjects() = default;
+
+    void init();
 
     VkFence getFrameFence(uint32_t i) const {
-        return frameFences[i];
+        return frameFences[i]->getVkFence();
     }
 
     VkSemaphore getFrameSemaphore(uint32_t i) const {
-        return frameSemaphores[i];
+        return frameSemaphores[i]->getVkSemaphore();
     }
 
     VkSemaphore getImageAcquireSemaphore(uint32_t i) const {
-        return imageAcquireSemaphores[i];
+        return imageAcquireSemaphores[i]->getVkSemaphore();
     }
 };

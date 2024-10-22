@@ -6,11 +6,10 @@
 
 class Transform {
 protected:
+    glm::mat4 transMatrix = glm::mat4(1.0f);
+    glm::quat rotation = glm::identity<glm::quat>();
     glm::vec3 position;
     glm::vec3 scale;
-    glm::quat rotation = glm::identity<glm::quat>();
-
-    glm::mat4 transMatrix = glm::mat4(1.0f);
 
     bool dirty = true;
 

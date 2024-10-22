@@ -44,6 +44,11 @@ bool DescriptorSetLayoutConfig::operator==(const DescriptorSetLayoutConfig& othe
     return this->bindings == other.bindings;
 }
 
+DescriptorSetLayoutCache::~DescriptorSetLayoutCache() {
+    for (auto& entry : descriptorSetLayouts)
+        vkDestroyDescriptorSetLayout(vulkanCxt.getVkDevice(), entry.second, nullptr);
+}
+
 VkDescriptorSetLayout DescriptorSetLayoutCache::getLayout(const DescriptorSetLayoutConfig& config) {
     auto it = descriptorSetLayouts.find(config);
 

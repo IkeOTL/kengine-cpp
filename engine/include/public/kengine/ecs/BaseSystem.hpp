@@ -8,9 +8,6 @@ private:
     World* world = nullptr;
 
 protected:
-    virtual void begin() {}
-    virtual void end() {}
-
     World& getWorld() const {
         return *world;
     }
@@ -37,8 +34,6 @@ public:
         if (!checkProcessing())
             return;
 
-        begin();
         processSystem(delta);
-        end();
     }
 };

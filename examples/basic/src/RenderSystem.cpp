@@ -1,6 +1,6 @@
 
 #include "RenderSystem.hpp"
-#include "Game.hpp"
+#include <kengine/Game.hpp>
 #include "components/Material.hpp"
 #include "components/Model.hpp"
 #include "components/Components.hpp"
@@ -36,143 +36,6 @@ void RenderSystem::init() {
     cameraController = getService<CameraController>();
     spatialPartitioning = getService<SpatialPartitioningManager>();
     skeletonManager = getService<SkeletonManager>();
-
-    // test obj
-    {
-        auto* ecs = getWorld().getService<entt::registry>();
-        auto modelConfig = std::make_shared<ModelConfig>("gltf/smallcube.glb",
-            VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
-            | VertexAttribute::TANGENTS
-        );
-
-        auto materialConfig = PbrMaterialConfig::create();
-        materialConfig->setHasShadow(true);
-
-
-        auto modelTask = modelCache->getAsync(modelConfig);
-        auto materialTask = materialCache->getAsync(materialConfig);
-
-        auto model = modelTask.get();
-        auto material = materialTask.get();
-
-        auto xCount = 20;
-        auto yCount = 20;
-        auto zCount = 20;
-        auto yOffset = 3;
-        auto zOffset = -5;
-        auto sIdx = renderCtx->startStaticBatch();
-        {
-            for (size_t k = 0; k < yCount; k++) {
-                for (size_t i = 0; i < xCount; i++) {
-                    for (size_t j = 0; j < zCount; j++) {
-                        //auto entity = ecs->create();
-                        //auto& renderable = ecs->emplace<Component::Renderable>(entity);
-                        //renderable.setStatic();
-                        //ecs->emplace<Component::ModelComponent>(entity, modelConfig);
-
-                        //auto& model = modelCache->get(modelConfig);
-                        //auto& spatials = ecs->emplace<Component::Spatials>(entity);
-                        //auto rootSpatial = spatials.generate(*sceneGraph, model, "player" + std::to_string(i), renderable.type);
-
-                        ////rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
-
-                        //rootSpatial->setLocalPosition(glm::vec3(
-                        //    (1.5f * i) - (1.5 * xCount * 0.5f),
-                        //    (1.5f * k) + yOffset,
-                        //    (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset
-                        //));
-
-                        //spatialPartitioning->getSpatialGrid()->setDirty(entity);
-
-                        //ecs->emplace<Component::Material>(entity, materialConfig);
-
-                        renderCtx->addStaticInstance(
-                            model->getMeshGroups()[0]->getMesh(0),
-                            *material,
-                            glm::translate(glm::mat4(1.0f), glm::vec3(
-                                (1.5f * i) - (1.5 * xCount * 0.5f),
-                                (1.5f * k) + yOffset,
-                                (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset
-                            )),
-                            model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
-                        );
-                    }
-                }
-            }
-        }
-        renderCtx->endStaticBatch(sIdx);
-    }
-
-    // test terrain
-    {
-        auto* ecs = getWorld().getService<entt::registry>();
-        auto tilesWidth = 64;
-        auto tilesLength = 64;
-        // terrain
-
-        auto tileTerrain = std::make_unique<DualGridTileTerrain>(tilesWidth, tilesLength, 16, 16);
-
-        for (int z = 0; z < tileTerrain->getTerrainHeightsLength(); z++) {
-            for (int x = 0; x < tileTerrain->getTerrainHeightsWidth(); x++) {
-                tileTerrain->setHeight(x, z, random::randFloat(-.1f, .15f));
-            }
-        }
-        tileTerrain->regenerate(*vulkanCtx, *modelCache);
-
-        auto matConfig = PbrMaterialConfig::create();
-        TextureConfig textureConfig("img/poke-tileset.png");
-        matConfig->setHasShadow(false);
-        matConfig->addAlbedoTexture(&textureConfig);
-        matConfig->setMetallicFactor(0.0f);
-        matConfig->setRoughnessFactor(0.5f);
-        tileTerrain->setMaterialConfig(matConfig);
-
-        // create entities 
-        for (int z = 0; z < tileTerrain->getChunkCountZ(); z++) {
-            for (int x = 0; x < tileTerrain->getChunkCountX(); x++) {
-                auto& chunk = tileTerrain->getChunk(x, z);
-
-                /*auto entity = ecs->create();
-                auto& renderable = ecs->emplace<Component::Renderable>(entity);
-                renderable.setStatic();
-
-                auto spatial = sceneGraph->create("terrain: x: " + std::to_string(x) + " z:" + std::to_string(z));
-                spatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
-                auto& spatialsComp = ecs->emplace<Component::Spatials>(entity);
-                spatialsComp.rootSpatialId = spatial->getSceneId();
-                spatialsComp.meshSpatialsIds.push_back(spatialsComp.rootSpatialId);
-
-                auto offset = chunk.getWorldOffset();
-                spatial->setLocalPosition(glm::vec3(offset.x, 0, offset.y));
-
-                auto& material = ecs->emplace<Component::Material>(entity, matConfig);
-                auto& model = ecs->emplace<Component::ModelComponent>(entity);
-                model.config = chunk.getModelConfig();*/
-
-                // need to profile if static batches are even worth it.
-                // since the drawcmd is always sent for them. the ebefit is that
-                // the mat and other details dont have to be uploaded again
-               /* auto sIdx = renderCtx->startStaticBatch();
-                {
-                    auto modelTask = modelCache->getAsync(chunk.getModelConfig());
-                    auto materialTask = materialCache->getAsync(matConfig);
-
-                    auto model = modelTask.get();
-                    auto material = materialTask.get();
-
-                    auto offset = chunk.getWorldOffset();
-
-                    renderCtx->addStaticInstance(
-                        model->getMeshGroups()[0]->getMesh(0),
-                        *material,
-                        glm::translate(glm::mat4(1.0f), glm::vec3(offset.x, 0, offset.y)),
-                        model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
-                    );
-                }
-                renderCtx->endStaticBatch(sIdx);*/
-            }
-        }
-    }
 }
 
 void RenderSystem::processSystem(float delta) {
@@ -184,17 +47,6 @@ void RenderSystem::processSystem(float delta) {
         drawEntities(*ctx, delta);
     }
     renderCtx->end();
-}
-
-static glm::vec3 intersectPoint(const glm::vec3& start, const glm::vec3& end) {
-    // ray never intersects with floor plane
-    // lets default the intersection happening at the end of the ray
-    if ((start.y > 0 && end.y > 0) || (start.y < 0 && end.y < 0))
-        return glm::vec3(end.x, 0, end.z);
-
-    auto factor = start.y / (start.y - end.y);
-
-    return glm::mix(start, end, factor);
 }
 
 void RenderSystem::integrate(Component::Renderable& renderable, Component::Spatials& spatials,
@@ -220,7 +72,6 @@ void RenderSystem::integrate(Component::Renderable& renderable, Component::Spati
 
 void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
     ZoneScoped;
-    //auto view = getEcs().view<Component::Renderable, Component::Spatials, Component::ModelComponent, Component::Material>();
 
     auto& ecs = getEcs();
 
@@ -268,8 +119,8 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
             skeletonManager->upload(*skeleton, skeleComp.bufId, ctx.frameIndex, delta);
         }
 
-        auto model = modelTask.get();
-        auto material = materialTask.get();
+        auto* model = modelTask.get();
+        auto* material = materialTask.get();
 
         glm::mat4 blendMat{};
         auto curIdx = 0;
@@ -282,6 +133,7 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
 
                 // need to calc in Model still
                 auto& bounds = m->getBounds();
+                // todo: spherebounds need to scale based on spatial!!
                 renderCtx->draw(*m, *material, blendMat, bounds.getSphereBounds());
 
                 if (EngineConfig::getInstance().isDebugRenderingEnabled()) {

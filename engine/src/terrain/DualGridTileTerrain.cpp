@@ -7,7 +7,7 @@
 DualGridTileTerrain::DualGridTileTerrain(uint32_t terrainTilesWidth, uint32_t terrainTilesLength, uint32_t chunkWidth, uint32_t chunkLength)
     : terrainTilesWidth(terrainTilesWidth), terrainTilesLength(terrainTilesLength),
     chunkWidth(chunkWidth), chunkLength(chunkLength),
-    terrainHeightsWidth(terrainTilesWidth + 2), terrainHeightsLength(terrainTilesLength + 2),
+    terrainHeightsWidth(terrainTilesWidth + 2), terrainHeightsLength(terrainTilesLength + 2), // adding 2 instead of 1 allows for .5tile offset to be fully centered
     worldOffsetX((-static_cast<float>(terrainTilesWidth) / 2.0f) - .5f), worldOffsetZ((-static_cast<float>(terrainTilesLength) / 2.0f) - .5f), // dual grid terrain: https://www.youtube.com/watch?v=Uxeo9c-PX-w&t=308s
     chunkCountX(terrainTilesWidth / chunkWidth), chunkCountZ(terrainTilesLength / chunkLength)
 {
@@ -72,25 +72,4 @@ void DualGridTileTerrain::regenerate(VulkanContext& vkContext, AsyncModelCache& 
             getChunk(x, z).regenerate(vkContext, modelCache);
         }
     }
-
-    // generate texture
-    //{
-    //    auto hL = getTerrainHeightsWidth() * getTerrainHeightsLength();
-    //    auto& h = getHeights();
-    //    std::vector<float> hImageBbBuf;
-    //    hImageBbBuf.reserve(hL);
-    //    for (auto n = 0; n < hL; n++)
-    //        hImageBbBuf.push_back(h[n]);
-
-    //    heightTexture = std::make_unique<Texture2d>(
-    //        vkContext,
-    //        reinterpret_cast<const unsigned char*>(hImageBbBuf.data()),
-    //        getTerrainHeightsWidth(),
-    //        getTerrainHeightsLength(),
-    //        VK_FORMAT_R32_SFLOAT,
-    //        VK_IMAGE_TYPE_2D, VK_IMAGE_VIEW_TYPE_2D,
-    //        4, // 4 bytes per point, overkill
-    //        VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT, VK_ACCESS_2_SHADER_SAMPLED_READ_BIT,
-    //        false);
-    //}
 }

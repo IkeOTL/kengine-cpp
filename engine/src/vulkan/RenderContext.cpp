@@ -22,12 +22,6 @@
 #include <kengine/vulkan/mesh/MeshBuilder.hpp>
 
 void RenderContext::init(TerrainContext* terrainContext) {
-    for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
-        auto ptr = std::make_unique<DescriptorSetAllocator>(vkContext.getVkDevice(), vkContext.getDescSetLayoutCache());
-        ptr->init();
-        descSetAllocators.push_back(std::move(ptr));
-    }
-
     auto lightDir = glm::normalize(glm::vec3(-.05f, -.4f, -.2f));
     sceneData = std::make_unique<SceneData>(cameraController, lightDir);
 
@@ -37,17 +31,17 @@ void RenderContext::init(TerrainContext* terrainContext) {
     // move?
     this->terrainContext = terrainContext;
     terrainContext->setMaterialBuf(materialsBuf);
-    terrainContext->init(vkContext, descSetAllocators);
+    terrainContext->init(vkContext);
 
     cullContext = std::make_unique<CullContext>(*indirectCmdBuf, *objectInstanceBuf,
         *drawObjectBuf, *drawInstanceBuffer);
     cullContext->setTerrainContext(terrainContext);
-    cullContext->init(vkContext, descSetAllocators);
+    cullContext->init(vkContext);
 
 
     auto& bufCache = vkContext.getGpuBufferCache();
     shadowContext = std::make_unique<ShadowContext>(bufCache, *indirectCmdBuf, cameraController, *sceneData);
-    shadowContext->init(vkContext, descSetAllocators, lightDir, *drawObjectBuf, *drawInstanceBuffer);
+    shadowContext->init(vkContext, lightDir, *drawObjectBuf, *drawInstanceBuffer);
 }
 
 void RenderContext::setViewportScissor(glm::uvec2 dim) {
@@ -257,6 +251,7 @@ void RenderContext::initDescriptors() {
     }
 #endif
 
+    auto& descSetAllocators = vkContext.getDescSetAllocators();
     for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
         auto& descSetAllocator = descSetAllocators[i];
 
@@ -641,6 +636,7 @@ void RenderContext::end() {
         }
     }
 
+    auto& descSetAllocators = vkContext.getDescSetAllocators();
     // submit to GPU
     {
         ZoneScopedN("RenderContext::end - Submit to GPU");

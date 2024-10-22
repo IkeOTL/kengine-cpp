@@ -15,20 +15,14 @@ public:
     virtual void executeThenFunc(World& world) = 0;
 };
 
-template<typename T>
+template<typename T, typename Func>
 class DeferredJob : public BaseDeferredJob {
 private:
-    using ThenFunc = std::conditional_t<
-        std::is_void_v<T>,
-        std::function<void(World&)>,
-        std::function<void(World&, T)>
-    >;
-
     std::shared_future<T> future;
-    ThenFunc thenFunc;
+    Func thenFunc;
 
 public:
-    DeferredJob(std::shared_future<T> future, ThenFunc&& thenFunc)
+    DeferredJob(std::shared_future<T> future, Func&& thenFunc)
         : future(std::move(future)), thenFunc(std::move(thenFunc)) {}
 
     bool isDone() const override {
@@ -49,9 +43,6 @@ public:
         catch (const std::exception& e) {
             KE_LOG_ERROR(std::format("Follow-up function failed: {}", e.what()));
         }
-        catch (...) {
-            KE_LOG_ERROR("Follow-up function failed due to an unknown exception.");
-        }
     }
 };
 
@@ -63,6 +54,11 @@ private:
     std::mutex newJobLock;
 
 public:
+
+    inline static std::unique_ptr<DeferredJobManager> create() {
+        return std::make_unique<DeferredJobManager>();
+    }
+
     template<typename T, typename Func>
     void submit(World& world, std::shared_future<T> task, Func&& thenFunc) {
         if constexpr (std::is_void_v<T>)
@@ -71,14 +67,8 @@ public:
             static_assert(std::is_invocable_v<Func, World&, T>, "`thenFunc` is missing `World&` and `T` parameter.");
 
         std::lock_guard<std::mutex> lock(newJobLock);
-        using DecayedFunc = std::conditional_t<
-            std::is_void_v<T>,
-            std::function<void(World&)>,
-            std::function<void(World&, T)>
-        >;
-
         newJobs.emplace_back(
-            std::make_unique<DeferredJob<T>>(std::move(task), DecayedFunc(std::forward<Func>(thenFunc)))
+            std::make_unique<DeferredJob<T, Func>>(std::move(task), std::forward<Func>(thenFunc))
         );
     }
 

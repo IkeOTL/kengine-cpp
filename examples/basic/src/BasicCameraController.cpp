@@ -28,8 +28,8 @@ void FreeCameraController::init() {
             glm::quat orientation = getCamera()->getRotation();
 
             // Calculate rotation quaternions
-            auto yaw = glm::angleAxis(glm::radians(0.1f * deltaX), glm::vec3(0.0f, 1.0f, 0.0f));
-            auto pitch = glm::angleAxis(glm::radians(0.1f * deltaY), glm::vec3(1.0f, 0.0f, 0.0f));
+            auto yaw = glm::angleAxis(glm::radians(0.3f * deltaX), glm::vec3(0.0f, 1.0f, 0.0f));
+            auto pitch = glm::angleAxis(glm::radians(0.3f * deltaY), glm::vec3(1.0f, 0.0f, 0.0f));
 
             // Combine the new rotations with the current orientation
             orientation = glm::normalize(pitch * orientation * yaw);
