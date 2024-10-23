@@ -28,8 +28,9 @@ VkDescriptorPool ImGuiKEContext::createDescriptorPool() {
     VKCHECK(vkCreateDescriptorPool(vkCtx.getVkDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS,
         "failed to create descriptor pool!");
 
-    descPool = descriptorPool;
-    return descPool;
+    descPool = std::make_unique<ke::VulkanDescriptorPool>(vkCtx.getVkDevice(), descriptorPool);
+
+    return descriptorPool;
 }
 
 void ImGuiKEContext::init(Window& window) {

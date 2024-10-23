@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/vulkan/VulkanObject.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
 #include <vector>
 #include <unordered_map>
@@ -21,7 +22,7 @@ private:
 
     VkDevice vkDevice;
     DescriptorSetLayoutCache& layoutCache;
-    VkDescriptorPool vkDescriptorPool = VK_NULL_HANDLE;
+    std::unique_ptr<ke::VulkanDescriptorPool> pool = nullptr;
 
     std::unordered_map<DescriptorSetLayoutConfig, std::vector<VkDescriptorSet>, DescriptorSetLayoutConfigHasher> availableDescSets;
     std::unordered_map<DescriptorSetLayoutConfig, std::vector<VkDescriptorSet>, DescriptorSetLayoutConfigHasher> unavailableDescSets;
@@ -35,8 +36,6 @@ public:
     DescriptorSetPool(VkDevice vkDevice, DescriptorSetLayoutCache& layoutCache)
         : vkDevice(vkDevice), layoutCache(layoutCache) {}
 
-    ~DescriptorSetPool();
-
     void init();
 
     VkDescriptorSet getGlobalDescriptorSet(std::string key, const DescriptorSetLayoutConfig& config);
@@ -44,6 +43,9 @@ public:
     void flip();
 
     bool operator==(const DescriptorSetPool& other) const {
-        return vkDescriptorPool == other.vkDescriptorPool;
+        if (!pool || !other.pool)
+            return false;
+
+        return pool->handle == other.pool->handle;
     }
 };

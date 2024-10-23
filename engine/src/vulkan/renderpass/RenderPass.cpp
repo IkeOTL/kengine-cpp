@@ -2,6 +2,10 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <glm/vec2.hpp>
 
+RenderPass::~RenderPass() {
+    vkDestroyRenderPass(vkDevice, vkRenderPass, nullptr);
+}
+
 // render target
 void RenderTarget::init(
     RenderPass& renderPass,

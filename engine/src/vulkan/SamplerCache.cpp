@@ -2,13 +2,14 @@
 #include <kengine/vulkan/VulkanContext.hpp>
 #include <bit>
 
+
 VkSampler SamplerCache::getSampler(SamplerConfig& config) {
     {
         std::shared_lock<std::shared_mutex> lock(this->lock);
 
         auto it = cache.find(config);
         if (it != cache.end())
-            return it->second;
+            return it->second->handle;
     }
 
     {
@@ -17,7 +18,7 @@ VkSampler SamplerCache::getSampler(SamplerConfig& config) {
         // double check
         auto it = cache.find(config);
         if (it != cache.end())
-            return it->second;
+            return it->second->handle;
 
         VkSamplerCreateInfo samplerInfo{};
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -40,7 +41,7 @@ VkSampler SamplerCache::getSampler(SamplerConfig& config) {
         VKCHECK(vkCreateSampler(vkCtx.getVkDevice(), &samplerInfo, nullptr, &sampler),
             "Failed to create sampler.");
 
-        cache[config] = sampler;
+        cache[config] = std::make_unique<ke::VulkanSampler>(vkCtx.getVkDevice(), sampler);
 
         return sampler;
     }

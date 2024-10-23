@@ -71,6 +71,7 @@ void BasicGameTest::run() {
         FrameMark;
 
         if (inputManager->isKeyDown(GLFW_KEY_ESCAPE)) {
+            threadPool.reset();
             vkDeviceWaitIdle(vulkanCxt->getVkDevice());
             break;
         }
@@ -388,7 +389,7 @@ void BasicGameTest::initVulkan() {
             return passes;
         },
         [](VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp) {
-            auto pc = PipelineCache::create();
+            auto pc = PipelineCache::create(vkCtx.getVkDevice());
 
             pc->createPipeline<DeferredOffscreenPbrPipeline>()
                 .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});

@@ -17,8 +17,11 @@ public:
         DescriptorSetLayoutBindingConfig{ 5, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT }
     };
 
-    inline static const std::unique_ptr<Pipeline> create() {
-        return std::make_unique<SkinnedOffscreenPbrPipeline>();
+    SkinnedOffscreenPbrPipeline(VkDevice vkDevice)
+        : Pipeline(vkDevice) {}
+
+    inline static const std::unique_ptr<Pipeline> create(VkDevice vkDevice) {
+        return std::make_unique<SkinnedOffscreenPbrPipeline>(vkDevice);
     }
 
     VkPipelineLayout createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) override;

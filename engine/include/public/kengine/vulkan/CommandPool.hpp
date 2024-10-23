@@ -1,7 +1,9 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
 #include <kengine/vulkan/CommandBuffer.hpp>
+#include <kengine/vulkan/VulkanObject.hpp>
 
+#include <functional>
 #include <mutex>
 #include <vector>
 
@@ -11,9 +13,9 @@ class CommandPool {
 private:
     VkDevice vkDevice;
 
-    static thread_local VkCommandPool gfxPool;
-    static thread_local VkCommandPool xferPool;
-    static thread_local VkCommandPool computePool;
+    static thread_local std::unique_ptr<ke::VulkanCommandPool> gfxPool;
+    static thread_local std::unique_ptr<ke::VulkanCommandPool> xferPool;
+    static thread_local std::unique_ptr<ke::VulkanCommandPool> computePool;
 
     std::unique_ptr<CommandBuffer> createCommandBuffer(VkCommandPool, VkCommandBufferLevel level);
     std::vector<std::unique_ptr<CommandBuffer>> createCommandBuffers(VkCommandPool, VkCommandBufferLevel level, uint32_t count);
@@ -23,7 +25,7 @@ public:
     CommandPool(VkDevice vkDevice)
         : vkDevice(vkDevice) {}
 
-    //~CommandPool();
+    ~CommandPool();
 
     void initThread(VulkanContext& vkContext);
 

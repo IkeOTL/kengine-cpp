@@ -55,7 +55,7 @@ public:
     RenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
         : vkDevice(vkDevice), colorFormatAndSpace(colorFormatAndSpace) { }
 
-    virtual ~RenderPass() = default;
+    virtual ~RenderPass();
 
     RenderPass(const RenderPass&) = delete;
     RenderPass& operator=(const RenderPass&) = delete;

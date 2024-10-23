@@ -6,6 +6,11 @@
 #include <fstream>
 #include <filesystem>
 
+Pipeline::~Pipeline() {
+    vkDestroyPipelineLayout(vkDevice, vkPipelineLayout, nullptr);
+    vkDestroyPipeline(vkDevice, vkPipeline, nullptr);
+}
+
 const DescriptorSetLayoutConfig& Pipeline::getDescSetLayoutConfig(int i) const {
     return descSetLayoutConfigs[i];
 }
@@ -36,7 +41,8 @@ void Pipeline::createVertexInputDescriptions(
     }
 }
 
-void Pipeline::loadShader(VkDevice device, std::string shaderFile, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest) {
+// need to move shader loading to a asset cache
+void Pipeline::loadShader(std::string shaderFile, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest) {
     auto assetPath = std::filesystem::path(EngineConfig::getInstance().getAssetRoot()) / shaderFile;
 
     std::ifstream file(assetPath.string(), std::ios::ate | std::ios::binary);
@@ -57,8 +63,10 @@ void Pipeline::loadShader(VkDevice device, std::string shaderFile, VkShaderStage
     moduleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
 
     VkShaderModule shaderModule;
-    VKCHECK(vkCreateShaderModule(device, &moduleCreateInfo, nullptr, &shaderModule),
+    VKCHECK(vkCreateShaderModule(vkDevice, &moduleCreateInfo, nullptr, &shaderModule),
         "Failed to create shader module");
+
+    shaderModules.push_back(std::make_unique<ke::VulkanShaderModule>(vkDevice, shaderModule));
 
     // Create the shader stage info
     VkPipelineShaderStageCreateInfo shaderStageInfo{};

@@ -16,8 +16,11 @@ public:
         DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_COMPUTE_BIT }
     };
 
-    inline static const std::unique_ptr<Pipeline> create() {
-        return std::make_unique<TerrainPreDrawCullingPipeline>();
+    TerrainPreDrawCullingPipeline(VkDevice vkDevice)
+        : Pipeline(vkDevice) {}
+
+    inline static const std::unique_ptr<Pipeline> create(VkDevice vkDevice) {
+        return std::make_unique<TerrainPreDrawCullingPipeline>(vkDevice);
     }
 
     VkPipelineLayout createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) override;

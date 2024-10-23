@@ -61,8 +61,8 @@ VkPipelineLayout DeferredOffscreenPbrPipeline::createPipelineLayout(VulkanContex
 
 VkPipeline DeferredOffscreenPbrPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
-    loadShader(device, "src/gbuffer.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
-    loadShader(device, "src/gbuffer.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
+    loadShader("src/gbuffer.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
+    loadShader("src/gbuffer.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
 
     // Specialization map entries
     std::array<VkSpecializationMapEntry, 2> specializationEntries{};

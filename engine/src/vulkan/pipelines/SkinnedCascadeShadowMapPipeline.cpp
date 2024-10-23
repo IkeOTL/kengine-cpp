@@ -68,8 +68,8 @@ VkPipelineLayout SkinnedCascadeShadowMapPipeline::createPipelineLayout(VulkanCon
 
 VkPipeline SkinnedCascadeShadowMapPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
-    loadShader(device, "src/cascade-shadow-skinned.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
-    loadShader(device, "src/cascade-shadow.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
+    loadShader("src/cascade-shadow-skinned.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
+    loadShader("src/cascade-shadow.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
 
     VkViewport viewport = {};
     viewport.x = 0.0f;

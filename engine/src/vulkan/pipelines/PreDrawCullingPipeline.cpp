@@ -55,7 +55,7 @@ VkPipelineLayout PreDrawCullingPipeline::createPipelineLayout(VulkanContext& vkC
 
 VkPipeline PreDrawCullingPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
-    loadShader(device, "src/pre-object-cull.comp.spv", VK_SHADER_STAGE_COMPUTE_BIT, shaderStagesCreateInfo);
+    loadShader("src/pre-object-cull.comp.spv", VK_SHADER_STAGE_COMPUTE_BIT, shaderStagesCreateInfo);
 
     VkComputePipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;

@@ -15,7 +15,7 @@
 #include <kengine/vulkan/pipelines/TerrainPreDrawCullingPipeline.hpp>
 
 VkSemaphore CullContext::getSemaphore(size_t frameIdx) {
-    return semaphores[frameIdx]->getVkSemaphore();
+    return semaphores[frameIdx]->handle;
 }
 
 void CullContext::init(VulkanContext& vkCxt) {
@@ -323,7 +323,7 @@ void CullContext::dispatch(VulkanContext& vkCxt, DescriptorSetAllocator& descSet
 
     VkSemaphoreSubmitInfo semaInfo{};
     semaInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
-    semaInfo.semaphore = semaphores[frameIdx]->getVkSemaphore();
+    semaInfo.semaphore = semaphores[frameIdx]->handle;
 
     VkSubmitInfo2 submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;

@@ -62,8 +62,8 @@ VkPipelineLayout DebugDeferredOffscreenPbrPipeline::createPipelineLayout(VulkanC
 
 VkPipeline DebugDeferredOffscreenPbrPipeline::createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo;
-    loadShader(device, "src/debug-geom.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
-    loadShader(device, "src/debug-geom.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
+    loadShader("src/debug-geom.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
+    loadShader("src/debug-geom.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
 
     // Viewport state
     VkPipelineViewportStateCreateInfo viewportState{};

@@ -1,9 +1,5 @@
 #include <kengine/vulkan/descriptor/DescriptorSetPool.hpp>
 
-DescriptorSetPool::~DescriptorSetPool() {
-    vkDestroyDescriptorPool(vkDevice, vkDescriptorPool, nullptr);
-}
-
 void DescriptorSetPool::init() {
     std::vector<VkDescriptorPoolSize> typeCounts(6);
     typeCounts[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -34,7 +30,7 @@ void DescriptorSetPool::init() {
     VKCHECK(vkCreateDescriptorPool(vkDevice, &descriptorPoolInfo, nullptr, &descriptorPool),
         "Failed to create descriptor pool");
 
-    vkDescriptorPool = descriptorPool;
+    pool = std::make_unique<ke::VulkanDescriptorPool>(vkDevice, descriptorPool);
 }
 
 VkDescriptorSet DescriptorSetPool::getGlobalDescriptorSet(std::string key, const DescriptorSetLayoutConfig& config) {
@@ -85,7 +81,7 @@ VkDescriptorSet DescriptorSetPool::createDescriptorSet(const DescriptorSetLayout
 
     VkDescriptorSetAllocateInfo dsInfo{};
     dsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    dsInfo.descriptorPool = vkDescriptorPool;
+    dsInfo.descriptorPool = pool->handle;
     dsInfo.descriptorSetCount = 1;
     dsInfo.pSetLayouts = &layout;
 

@@ -7,6 +7,7 @@
 
 class PipelineCache {
 private:
+    const VkDevice vkDevice;
     std::unordered_map<std::type_index, std::unique_ptr<Pipeline>> pipelines{};
 
 public:
@@ -14,13 +15,16 @@ public:
         DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT }
     };
 
-    inline static const std::unique_ptr<PipelineCache> create() {
-        return std::make_unique<PipelineCache>();
+    PipelineCache(VkDevice vkDevice)
+        : vkDevice(vkDevice) {}
+
+    inline static const std::unique_ptr<PipelineCache> create(VkDevice vkDevice) {
+        return std::make_unique<PipelineCache>(vkDevice);
     };
 
     template <typename T>
     T& createPipeline() {
-        auto pipeline = std::make_unique<T>();
+        auto pipeline = std::make_unique<T>(vkDevice);
         auto& outPipeline = pipelines[std::type_index(typeid(T))] = std::move(pipeline);
         return *static_cast<T*>(outPipeline.get());
     }

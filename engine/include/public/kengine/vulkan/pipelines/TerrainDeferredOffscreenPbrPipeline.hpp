@@ -8,7 +8,8 @@ protected:
     void loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) override;
 
 public:
-    struct PushConstant {;
+    struct PushConstant {
+        ;
         glm::uvec2 chunkDimensions;
         glm::uvec2 chunkCount;
         glm::uvec2 tilesheetDimensions;
@@ -50,8 +51,11 @@ public:
         DescriptorSetLayoutBindingConfig{ 4, 4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },
     };
 
-    inline static const std::unique_ptr<Pipeline> create() {
-        return std::make_unique<TerrainDeferredOffscreenPbrPipeline>();
+    TerrainDeferredOffscreenPbrPipeline(VkDevice vkDevice)
+        : Pipeline(vkDevice) {}
+
+    inline static const std::unique_ptr<Pipeline> create(VkDevice vkDevice) {
+        return std::make_unique<TerrainDeferredOffscreenPbrPipeline>(vkDevice);
     }
 
     VkPipelineLayout createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) override;

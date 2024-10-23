@@ -1,8 +1,10 @@
 #pragma once
 #include <kengine/Hashable.hpp>
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/vulkan/VulkanObject.hpp>
 #include <functional>
 #include <shared_mutex>
+#include <memory>
 
 class VulkanContext;
 
@@ -47,7 +49,7 @@ class SamplerCache {
 private:
     VulkanContext& vkCtx;
     std::shared_mutex lock{};
-    std::unordered_map<SamplerConfig, VkSampler> cache{};
+    std::unordered_map<SamplerConfig, std::unique_ptr<ke::VulkanSampler>> cache{};
 
 public:
     SamplerCache(VulkanContext& vkCtx) : vkCtx(vkCtx) {}

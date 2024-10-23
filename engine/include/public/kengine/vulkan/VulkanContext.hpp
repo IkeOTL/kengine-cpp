@@ -19,6 +19,7 @@
 #include <memory>
 #include <queue>
 #include <kengine/DebugContext.hpp>
+#include "VulkanObject.hpp"
 
 class SamplerCache;
 class VulkanContext;
@@ -90,7 +91,7 @@ public:
     }
 
     VkDevice getVkDevice() {
-        return vkDevice;
+        return vkDevice->handle;
     }
 
     VkPhysicalDevice getVkPhysicalDevice() {
@@ -177,13 +178,13 @@ public:
     }
 
     VmaAllocator getVmaAllocator() const {
-        return vulkanAllocator->getVmaAllocator();
+        return vulkanAllocator->handle;
     }
 
     SamplerCache& getSamplerCache();
 
-    VkInstance getVkInstance() {
-        return vulkanInstance->getVkInstance();
+    VkInstance getVkInstance() const {
+        return vulkanInstance->handle;
     }
 
     void setDebugContext(DebugContext* d) {
@@ -211,7 +212,7 @@ private:
     VkPhysicalDeviceProperties2 vkPhysicalDeviceProps{};
     VkPhysicalDeviceMemoryProperties2 vkPhysicalDeviceMemoryProps{};
     QueueFamilies queueFamilies{};
-    VkDevice vkDevice = VK_NULL_HANDLE;
+    std::unique_ptr<ke::VulkanDevice> vkDevice;
     std::unique_ptr<Swapchain> swapchain;
 
     VmaVulkanFunctions vmaVkFunctions{};
@@ -243,8 +244,8 @@ private:
     std::unordered_map<std::unique_ptr<ke::VulkanFence>, std::function<void()>> vkFenceActions;
     std::unique_ptr<GpuBufferCache> gpuBufferCache;
 
-    std::unique_ptr<SamplerCache> samplerCache;
     std::unique_ptr<PipelineCache> pipelineCache;
+    std::unique_ptr<SamplerCache> samplerCache;
     std::unique_ptr<DescriptorSetLayoutCache> descSetLayoutCache;
 
     DescriptorSetAllocators descSetAllocators;
@@ -283,14 +284,14 @@ public:
     void init();
 
     VkFence getFrameFence(uint32_t i) const {
-        return frameFences[i]->getVkFence();
+        return frameFences[i]->handle;
     }
 
     VkSemaphore getFrameSemaphore(uint32_t i) const {
-        return frameSemaphores[i]->getVkSemaphore();
+        return frameSemaphores[i]->handle;
     }
 
     VkSemaphore getImageAcquireSemaphore(uint32_t i) const {
-        return imageAcquireSemaphores[i]->getVkSemaphore();
+        return imageAcquireSemaphores[i]->handle;
     }
 };

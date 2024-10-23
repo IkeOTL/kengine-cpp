@@ -1,33 +1,38 @@
 #include <kengine/vulkan/CommandPool.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
 
-thread_local VkCommandPool CommandPool::gfxPool = VK_NULL_HANDLE;
-thread_local VkCommandPool CommandPool::xferPool = VK_NULL_HANDLE;
-thread_local VkCommandPool CommandPool::computePool = VK_NULL_HANDLE;
+thread_local std::unique_ptr<ke::VulkanCommandPool> CommandPool::gfxPool = VK_NULL_HANDLE;
+thread_local std::unique_ptr<ke::VulkanCommandPool> CommandPool::xferPool = VK_NULL_HANDLE;
+thread_local std::unique_ptr<ke::VulkanCommandPool> CommandPool::computePool = VK_NULL_HANDLE;
 
 CommandPool::~CommandPool() {
-    need to figure this out
+    gfxPool.reset(); 
+    xferPool.reset();
+    computePool.reset();
 }
 
 void CommandPool::initThread(VulkanContext& vkContext) {
     auto gfx = createCommandPool(VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, vkContext.getGfxQueueFamilyIndex());
-    gfxPool = gfx;
-    computePool = gfx;
+    gfxPool = std::make_unique<ke::VulkanCommandPool>(vkDevice, gfx);
+
+    auto compute = createCommandPool(VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, vkContext.getGfxQueueFamilyIndex());
+    computePool = std::make_unique<ke::VulkanCommandPool>(vkDevice, compute);
 
     // used for transfer operations, like staging data
-    xferPool = createCommandPool(VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, vkContext.getXferQueueFamilyIndex());
+    auto xfer = createCommandPool(VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, vkContext.getXferQueueFamilyIndex());
+    xferPool = std::make_unique<ke::VulkanCommandPool>(vkDevice, xfer);
 }
 
 std::unique_ptr<CommandBuffer> CommandPool::createGraphicsCmdBuf() {
-    return createCommandBuffer(gfxPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+    return createCommandBuffer(gfxPool->handle, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 }
 
 std::unique_ptr<CommandBuffer> CommandPool::createComputeCmdBuf() {
-    return createCommandBuffer(computePool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+    return createCommandBuffer(computePool->handle, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 }
 
 std::unique_ptr<CommandBuffer> CommandPool::createTransferCmdBuf() {
-    return createCommandBuffer(xferPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+    return createCommandBuffer(xferPool->handle, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 }
 
 VkCommandPool CommandPool::createCommandPool(VkCommandPoolCreateFlags flags, uint32_t fam) {

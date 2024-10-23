@@ -1,5 +1,18 @@
 #include <kengine/vulkan/Swapchain.hpp>
 
+Swapchain::~Swapchain() {
+    if (vkSwapchain == VK_NULL_HANDLE)
+        return;
+
+    vkDeviceWaitIdle(vkDevice);
+
+    for (auto iv : vkImageViews)
+        vkDestroyImageView(vkDevice, iv, VK_NULL_HANDLE);
+    vkImageViews.clear();
+
+    vkDestroySwapchainKHR(vkDevice, vkSwapchain, VK_NULL_HANDLE);
+}
+
 std::unique_ptr<Swapchain> Swapchain::replace(VkPhysicalDevice physicalDevice, VkDevice device,
     int newWidth, int newHeight, VkSurfaceKHR surface, ColorFormatAndSpace& colorFormatAndSpace) {
 
@@ -61,17 +74,8 @@ std::unique_ptr<Swapchain> Swapchain::replace(VkPhysicalDevice physicalDevice, V
     VKCHECK(vkCreateSwapchainKHR(device, &sci, VK_NULL_HANDLE, &newVkSwapchain),
         "Failed create swapchain.");
 
-    if (vkSwapchain != VK_NULL_HANDLE) {
-        vkDeviceWaitIdle(device);
-
-        //destroy image views then swapchain, ensure we destory all things in the right order
-        for (auto iv : vkImageViews)
-            vkDestroyImageView(device, iv, VK_NULL_HANDLE);
-
-        vkDestroySwapchainKHR(device, vkSwapchain, VK_NULL_HANDLE);
-
-        // set null ptr so the destructor can early exit in case of already disposed
-        vkSwapchain = VK_NULL_HANDLE;
+    {
+        /// note: used to destroy the old swapchain here, but moved it to the destructor
     }
 
     auto imageCount = 0u;

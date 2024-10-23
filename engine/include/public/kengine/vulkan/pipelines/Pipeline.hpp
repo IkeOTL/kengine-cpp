@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/vulkan/VulkanObject.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
 #include <vector>
 #include <glm/vec2.hpp>
@@ -22,8 +23,11 @@ struct VertexFormatDescriptor {
 
 class Pipeline {
 private:
-    VkPipeline vkPipeline;
-    VkPipelineLayout vkPipelineLayout;
+    const VkDevice vkDevice;
+    VkPipeline vkPipeline = VK_NULL_HANDLE;
+    VkPipelineLayout vkPipelineLayout = VK_NULL_HANDLE;
+
+    std::vector<std::unique_ptr<ke::VulkanShaderModule>> shaderModules;
 
 protected:
     std::vector<DescriptorSetLayoutConfig> descSetLayoutConfigs{};
@@ -35,10 +39,11 @@ protected:
         VkVertexInputBindingDescription& bindingDescription,
         std::vector<VkVertexInputAttributeDescription>& attributeDescriptions);
 
-    static void loadShader(VkDevice device, std::string filePath, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest);
+    void loadShader(std::string filePath, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest);
 
 public:
-    virtual ~Pipeline() = default;
+    Pipeline(VkDevice vkDevice) : vkDevice(vkDevice) {}
+    virtual ~Pipeline();
 
     VkPipeline getVkPipeline() const {
         return vkPipeline;

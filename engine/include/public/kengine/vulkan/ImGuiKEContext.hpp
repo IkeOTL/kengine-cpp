@@ -1,5 +1,6 @@
 #pragma once
 
+#include "VulkanObject.hpp"
 #include "imgui.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "backends/imgui_impl_glfw.h"
@@ -11,7 +12,7 @@ class RenderFrameContext;
 class ImGuiKEContext {
 private:
     VulkanContext& vkCtx;
-    VkDescriptorPool descPool = VK_NULL_HANDLE;
+    std::unique_ptr<ke::VulkanDescriptorPool> descPool = nullptr;
     bool isVisible = true;
 
     VkDescriptorPool createDescriptorPool();

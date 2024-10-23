@@ -21,8 +21,11 @@ public:
         DescriptorSetLayoutBindingConfig{ 4, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },
     };
 
-    inline static const std::unique_ptr<Pipeline> create() {
-        return std::make_unique<DeferredOffscreenPbrPipeline>();
+    DeferredOffscreenPbrPipeline(VkDevice vkDevice)
+        : Pipeline(vkDevice) {}
+
+    inline static const std::unique_ptr<Pipeline> create(VkDevice vkDevice) {
+        return std::make_unique<DeferredOffscreenPbrPipeline>(vkDevice);
     }
 
     VkPipelineLayout createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) override;

@@ -25,9 +25,9 @@ VulkanContext::~VulkanContext() {
     //    vmaFreeStatsString(vmaAllocator, statsString);
     //}
 
-    auto funcDestroyDebug = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vulkanInstance->getVkInstance(), "vkDestroyDebugReportCallbackEXT");
+    auto funcDestroyDebug = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vulkanInstance->handle, "vkDestroyDebugReportCallbackEXT");
     if (funcDestroyDebug)
-        funcDestroyDebug(vulkanInstance->getVkInstance(), debugCallbackHandle, nullptr);
+        funcDestroyDebug(vulkanInstance->handle, debugCallbackHandle, nullptr);
 }
 
 void VulkanContext::init(Window& window, bool validationOn) {
@@ -36,7 +36,7 @@ void VulkanContext::init(Window& window, bool validationOn) {
     if (validationOn)
         setupDebugging();
 
-    window.createSurface(vulkanInstance->getVkInstance(), vkSurface);
+    window.createSurface(vulkanInstance->handle, vkSurface);
     grabFirstPhysicalDevice();
     colorFormatAndSpace.init(vkPhysicalDevice, vkSurface);
 
@@ -48,6 +48,8 @@ void VulkanContext::init(Window& window, bool validationOn) {
     createDevice();
     createQueues();
     createVmaAllocator();
+
+    auto vkDevice = this->vkDevice->handle;
 
     frameSync = std::make_unique<FrameSyncObjects>(vkDevice);
     frameSync->init();
@@ -87,6 +89,8 @@ uint32_t VulkanContext::acquireImage(uint32_t& pImageIndex) {
         frameNumber = 0;
 
     auto idx = static_cast<uint32_t>(frameNumber % FRAME_OVERLAP);
+
+    auto vkDevice = this->vkDevice->handle;
 
     auto fence = frameSync->getFrameFence(idx);
     vkWaitForFences(vkDevice, 1, &fence, true, 0x7fffffffffffffffL);
@@ -226,7 +230,7 @@ void VulkanContext::processFinishedFences() {
         auto& fence = it->first;
 
         // Check the status of the fence
-        if (vkGetFenceStatus(vkDevice, fence->getVkFence()) != VK_SUCCESS) {
+        if (vkGetFenceStatus(vkDevice->handle, fence->handle) != VK_SUCCESS) {
             ++it;
             continue;
         }
@@ -287,7 +291,7 @@ void VulkanContext::createVkInstance(bool validationOn) {
         VkInstance newInstance;
         VKCHECK(vkCreateInstance(&createInfo, nullptr, &newInstance),
             "Failed to create Vulkan instance.");
-        vulkanInstance = ke::VulkanInstance::create(newInstance);
+        vulkanInstance = std::make_unique<ke::VulkanInstance>(newInstance);
         return;
     }
 
@@ -330,7 +334,7 @@ void VulkanContext::createVkInstance(bool validationOn) {
     VKCHECK(vkCreateInstance(&createInfo, nullptr, &newInstance),
         "Failed to create Vulkan instance.");
 
-    vulkanInstance = ke::VulkanInstance::create(newInstance);
+    vulkanInstance = std::make_unique<ke::VulkanInstance>(newInstance);
 }
 
 
@@ -353,24 +357,24 @@ void VulkanContext::setupDebugging() {
             return VK_FALSE;
         };
 
-    auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vulkanInstance->getVkInstance(), "vkCreateDebugReportCallbackEXT");
+    auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vulkanInstance->handle, "vkCreateDebugReportCallbackEXT");
 
     if (!func)
         throw std::runtime_error("Could not get address of vkCreateDebugReportCallbackEXT.");
 
-    if (func(vulkanInstance->getVkInstance(), &vkDebugCbCreateInfo, nullptr, &debugCallbackHandle) != VK_SUCCESS)
+    if (func(vulkanInstance->handle, &vkDebugCbCreateInfo, nullptr, &debugCallbackHandle) != VK_SUCCESS)
         throw std::runtime_error("Failed to set up debug callback.");
 }
 
 void VulkanContext::grabFirstPhysicalDevice() {
     auto deviceCnt = 0u;
-    vkEnumeratePhysicalDevices(vulkanInstance->getVkInstance(), &deviceCnt, VK_NULL_HANDLE);
+    vkEnumeratePhysicalDevices(vulkanInstance->handle, &deviceCnt, VK_NULL_HANDLE);
 
     if (!deviceCnt)
         throw std::runtime_error("No devices available.");
 
     std::vector<VkPhysicalDevice> availableDevices(deviceCnt);
-    vkEnumeratePhysicalDevices(vulkanInstance->getVkInstance(), &deviceCnt, availableDevices.data());
+    vkEnumeratePhysicalDevices(vulkanInstance->handle, &deviceCnt, availableDevices.data());
 
     for (const auto& device : availableDevices) {
         VkPhysicalDeviceProperties props{};
@@ -443,10 +447,13 @@ void VulkanContext::createDevice() {
     createDeviceInfo.ppEnabledExtensionNames = desiredLayers.data();
     createDeviceInfo.pEnabledFeatures = &deviceFeatures;
 
-    vkCreateDevice(vkPhysicalDevice, &createDeviceInfo, nullptr, &vkDevice);
+    VkDevice newVkDevice;
+    vkCreateDevice(vkPhysicalDevice, &createDeviceInfo, nullptr, &newVkDevice);
+    vkDevice = std::make_unique<ke::VulkanDevice>(newVkDevice);
 }
 
 void VulkanContext::createQueues() {
+    auto vkDevice = this->vkDevice->handle;
     graphicsQueue = std::make_shared<VulkanQueue>(vkDevice, gfxQueueFamilyIndex);
     computeQueue = graphicsQueue;
     transferQueue = std::make_unique<VulkanQueue>(vkDevice, xferQueueFamilyIndex);
@@ -456,7 +463,8 @@ void VulkanContext::createQueues() {
 }
 
 void VulkanContext::createVmaAllocator() {
-    auto vkInstance = vulkanInstance->getVkInstance();
+    auto vkInstance = vulkanInstance->handle;
+    auto vkDevice = this->vkDevice->handle;
 
     auto allocatorInfo = VmaAllocatorCreateInfo{};
     allocatorInfo.instance = vkInstance;
@@ -501,7 +509,7 @@ void VulkanContext::createVmaAllocator() {
     VKCHECK(vmaCreateAllocator(&allocatorInfo, &vmaAllocator),
         "Failed to initialize VMA allocator.");
 
-    vulkanAllocator = ke::VulkanAllocator::create(vmaAllocator);
+    vulkanAllocator = std::make_unique<ke::VulkanAllocator>(vmaAllocator);
 }
 
 VkDeviceSize VulkanContext::alignUboFrame(VkDeviceSize baseFrameSize) const {
@@ -664,6 +672,8 @@ void VulkanContext::recordAndSubmitTransferCmdBuf(CommandBufferRecordFunc func, 
 }
 
 void VulkanContext::recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence) {
+    auto vkDevice = this->vkDevice->handle;
+
     // record command buffer
     VkCommandBufferBeginInfo cmdBufBeginInfo{};
     cmdBufBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
