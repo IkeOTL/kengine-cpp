@@ -33,10 +33,10 @@ class SwapchainCreator {
 public:
     using OnSwapchainCreate = std::function<void(VulkanContext&, Swapchain&, std::vector<std::unique_ptr<RenderPass>>&)>;
 
-    SwapchainCreator(OnSwapchainCreate&& onSwapchainCreate)
-        : onSwapchainCreate(std::move(onSwapchainCreate)) {}
+    SwapchainCreator(Window& window, OnSwapchainCreate&& onSwapchainCreate)
+        : window(window), onSwapchainCreate(std::move(onSwapchainCreate)) {}
 
-    void init(Window& window);
+    void init();
 
     void setMustRecreate(bool mustRecreate) {
         this->mustRecreate = mustRecreate;
@@ -45,6 +45,7 @@ public:
     bool recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain);
 
 private:
+    Window& window;
     std::mutex lock{};
     int targetWidth = 0, targetHeight = 0;
     bool mustRecreate = true;
@@ -71,7 +72,7 @@ public:
     using PipelineCacheCreator = std::function<std::unique_ptr<PipelineCache>(VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp)>;
     using CommandBufferRecordFunc = std::function<std::function<void()>(const CommandBuffer&)>;
 
-    VulkanContext(RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate);
+    VulkanContext(Window& window, RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate);
     ~VulkanContext();
 
     static inline std::unique_ptr<VulkanContext> create(RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate) {
@@ -85,10 +86,6 @@ public:
     VulkanContext& operator=(VulkanContext&&) = default;
 
     void init(Window& window, bool validationOn);
-
-    VkSurfaceKHR getVkSurface() {
-        return vkSurface;
-    }
 
     VkDevice getVkDevice() {
         return vkDevice->handle;
@@ -204,8 +201,6 @@ public:
 private:
     std::unique_ptr<ke::VulkanInstance> vulkanInstance;
     VkDebugReportCallbackEXT debugCallbackHandle = VK_NULL_HANDLE;
-
-    VkSurfaceKHR vkSurface = VK_NULL_HANDLE;
 
     VkPhysicalDevice vkPhysicalDevice = VK_NULL_HANDLE;
     ColorFormatAndSpace colorFormatAndSpace{};

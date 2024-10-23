@@ -4,8 +4,6 @@ Swapchain::~Swapchain() {
     if (vkSwapchain == VK_NULL_HANDLE)
         return;
 
-    vkDeviceWaitIdle(vkDevice);
-
     for (auto iv : vkImageViews)
         vkDestroyImageView(vkDevice, iv, VK_NULL_HANDLE);
     vkImageViews.clear();

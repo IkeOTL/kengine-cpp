@@ -111,10 +111,13 @@ void Window::registerResizeListener(WindowResizeListener* listener) {
     resizeListeners.push_back(listener);
 }
 
-void Window::createSurface(VkInstance vkInstance, VkSurfaceKHR& surface)
+void Window::createSurface(VkInstance vkInstance)
 {
+    VkSurfaceKHR surface;
     VKCHECK(glfwCreateWindowSurface(vkInstance, getWindow(), nullptr, &surface),
         "Failed to create window surface.");
+
+    vkSurface = std::make_unique<ke::VulkanSurface>(vkInstance, surface);
 }
 
 Window::~Window() {

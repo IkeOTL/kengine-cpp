@@ -1,7 +1,8 @@
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
 #include <kengine/vulkan/VulkanContext.hpp>
-#include <glm/vec2.hpp>
 #include <kengine/vulkan/ShadowCascade.hpp>
+
+#include <glm/vec2.hpp>
 
 // render target
 VkFramebuffer CascadeShadowMapRenderTarget::createFramebuffer(RenderPass& renderPass, VmaAllocator vmaAllocator,
@@ -17,15 +18,21 @@ VkFramebuffer CascadeShadowMapRenderTarget::createFramebuffer(RenderPass& render
     viewCreateInfo.subresourceRange.baseArrayLayer = cascadeIndex;
     viewCreateInfo.subresourceRange.layerCount = 1;
 
-    VkImageView cascadeImageView;
-    VKCHECK(vkCreateImageView(vkDevice, &viewCreateInfo, nullptr, &cascadeImageView),
+    VkImageView newCascadeImageView;
+    VKCHECK(vkCreateImageView(vkDevice, &viewCreateInfo, nullptr, &newCascadeImageView),
         "Failed to create depth-stencil image view");
+
+    cascadeImageView = std::make_unique<GpuImageView>(
+        shadowMapDepthImage.gpuImage,
+        newCascadeImageView,
+        viewCreateInfo
+    );
 
     VkFramebufferCreateInfo fci{};
     fci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     fci.renderPass = renderPass.getVkRenderPass();
     fci.attachmentCount = 1;
-    VkImageView attachments[] = { cascadeImageView };
+    VkImageView attachments[] = { newCascadeImageView };
     fci.pAttachments = attachments;
     fci.width = extents.x;
     fci.height = extents.y;

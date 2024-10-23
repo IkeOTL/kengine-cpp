@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/vulkan/VulkanObject.hpp>
 #include <kengine/input/InputManager.hpp>
 #include <GLFW/glfw3.h>
 #include <string>
@@ -14,6 +15,8 @@ public:
 
 private:
     GLFWwindow* window;
+    std::unique_ptr<ke::VulkanSurface> vkSurface = nullptr;
+
     unsigned int width, height;
     uint64_t lastMouseMove = 0L;
 
@@ -31,13 +34,17 @@ public:
         return std::make_unique<Window>(title, width, height);
     }
 
-    void createSurface(VkInstance vkInstance, VkSurfaceKHR& surface);
+    void createSurface(VkInstance vkInstance);
     void registerResizeListener(WindowResizeListener* listener);
 
     void pollEvents();
 
     GLFWwindow* getWindow() {
         return window;
+    }
+
+    VkSurfaceKHR getVkSurface() {
+        return vkSurface->handle;
     }
 
     void setImGuiIO(ImGuiIO* ptr) {

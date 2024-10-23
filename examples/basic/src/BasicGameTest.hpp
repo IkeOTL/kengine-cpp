@@ -50,13 +50,22 @@ private:
     std::unique_ptr<VulkanContext> vulkanCxt;
     std::unique_ptr<Window> window;
     std::unique_ptr<InputManager> inputManager;
+
+    std::unique_ptr<AssetIO> assetIo;
+    std::unique_ptr<GltfModelFactory> modelFactory;
+    std::unique_ptr<AsyncModelCache> modelCache;
+    std::unique_ptr<GltfAnimationFactory> animationFactory;
+    std::unique_ptr<AsyncAnimationCache> animationCache;
+    std::unique_ptr<TextureFactory> textureFactory;
+    std::unique_ptr<AsyncTextureCache> textureCache;
+    std::unique_ptr<AsyncMaterialCache> materialCache;
+
     std::unique_ptr<DebugContext> debugContext;
     std::unique_ptr<EventBus> eventBus;
     std::unique_ptr<DeferredJobManager> djm;
     std::unique_ptr<TestGui> imGuiContext;
     std::unique_ptr<TerrainContext> terrainContext;
     std::unique_ptr<RenderContext> renderContext;
-    std::unique_ptr<AssetIO> assetIo;
     std::unique_ptr<SceneGraph> sceneGraph;
     std::unique_ptr<LightsManager> lightsManager;
     std::unique_ptr<SkeletonManager> skeletonManager;
@@ -66,14 +75,6 @@ private:
     std::unique_ptr<MyPlayerContext> myPlayerContext;
     std::unique_ptr<PlayerMovementManager> playerMovementManager;
     std::unique_ptr<PhysicsContext> physicsContext;
-
-    std::unique_ptr<GltfModelFactory> modelFactory;
-    std::unique_ptr<AsyncModelCache> modelCache;
-    std::unique_ptr<GltfAnimationFactory> animationFactory;
-    std::unique_ptr<AsyncAnimationCache> animationCache;
-    std::unique_ptr<TextureFactory> textureFactory;
-    std::unique_ptr<AsyncTextureCache> textureCache;
-    std::unique_ptr<AsyncMaterialCache> materialCache;
 
     entt::registry ecs;
     std::unique_ptr<World> world;

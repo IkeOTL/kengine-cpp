@@ -12,9 +12,9 @@
 #include <kengine/Logger.hpp>
 #include <tracy/Tracy.hpp>
 
-VulkanContext::VulkanContext(RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
+VulkanContext::VulkanContext(Window& window, RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
     : renderPassCreator(std::move(renderPassCreator)), pipelineCacheCreator(std::move(pipelineCacheCreator)),
-    swapchainCreator(SwapchainCreator(std::move(onSwapchainCreate))) {}
+    swapchainCreator(SwapchainCreator(window, std::move(onSwapchainCreate))) {}
 
 VulkanContext::~VulkanContext() {
     // print VMA stats
@@ -30,15 +30,15 @@ VulkanContext::~VulkanContext() {
         funcDestroyDebug(vulkanInstance->handle, debugCallbackHandle, nullptr);
 }
 
-void VulkanContext::init(Window& window, bool validationOn) {
+void VulkanContext::init(bool validationOn) {
     createVkInstance(validationOn);
 
     if (validationOn)
         setupDebugging();
 
-    window.createSurface(vulkanInstance->handle, vkSurface);
+    window.createSurface(vulkanInstance->handle);
     grabFirstPhysicalDevice();
-    colorFormatAndSpace.init(vkPhysicalDevice, vkSurface);
+    colorFormatAndSpace.init(vkPhysicalDevice, window.getVkSurface());
 
     queueFamilies.init(vkPhysicalDevice);
     gfxQueueFamilyIndex = queueFamilies.getGfxCompXferQueues()[0];
@@ -54,7 +54,7 @@ void VulkanContext::init(Window& window, bool validationOn) {
     frameSync = std::make_unique<FrameSyncObjects>(vkDevice);
     frameSync->init();
 
-    swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), vkSurface, colorFormatAndSpace);
+    swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), window.getVkSurface(), colorFormatAndSpace);
 
     swapchainCreator.init(window);
 
@@ -530,7 +530,7 @@ VkDeviceSize VulkanContext::alignSsboFrame(VkDeviceSize baseFrameSize) const {
     return (baseFrameSize + minSsboAlignment - 1) & ~(minSsboAlignment - 1);
 }
 
-void SwapchainCreator::init(Window& window) {
+void SwapchainCreator::init() {
     windowResizeListener = std::make_unique<Window::WindowResizeListener>([this](GLFWwindow* window, int newWidth, int newHeight) {
         std::lock_guard<std::mutex> lock(this->lock);
         targetWidth = newWidth;
@@ -557,7 +557,7 @@ bool SwapchainCreator::recreate(VulkanContext& vkCxt, bool force, Swapchain& old
         vkCxt.getVkDevice(),
         targetWidth,
         targetHeight,
-        vkCxt.getVkSurface(),
+        window.getVkSurface(),
         vkCxt.getColorFormatAndSpace()
     );
 

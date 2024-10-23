@@ -24,6 +24,18 @@ namespace ke {
         }
     };
 
+    class VulkanSurface : public HandleWrapper<VkSurfaceKHR> {
+    private:
+        const VkInstance vkInstance;
+    public:
+        VulkanSurface(VkInstance vkInstance, VkSurfaceKHR handle)
+            : HandleWrapper(handle), vkInstance(vkInstance) {}
+
+        ~VulkanSurface() {
+            vkDestroySurfaceKHR(vkInstance, handle, nullptr);
+        }
+    };
+
     class VulkanDevice : public HandleWrapper<VkDevice> {
     public:
         VulkanDevice(VkDevice handle)
