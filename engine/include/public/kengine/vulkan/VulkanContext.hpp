@@ -75,8 +75,8 @@ public:
     VulkanContext(Window& window, RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate);
     ~VulkanContext();
 
-    static inline std::unique_ptr<VulkanContext> create(RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate) {
-        return std::make_unique<VulkanContext>(std::move(renderPassCreator), std::move(pipelineCacheCreator), std::move(onSwapchainCreate));
+    static inline std::unique_ptr<VulkanContext> create(Window& window, RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate) {
+        return std::make_unique<VulkanContext>(window, std::move(renderPassCreator), std::move(pipelineCacheCreator), std::move(onSwapchainCreate));
     }
 
     VulkanContext(const VulkanContext&) = delete;
@@ -85,7 +85,7 @@ public:
     VulkanContext(VulkanContext&&) = default;
     VulkanContext& operator=(VulkanContext&&) = default;
 
-    void init(Window& window, bool validationOn);
+    void init(bool validationOn);
 
     VkDevice getVkDevice() {
         return vkDevice->handle;
@@ -200,6 +200,7 @@ public:
 
 private:
     std::unique_ptr<ke::VulkanInstance> vulkanInstance;
+    Window& window;
     VkDebugReportCallbackEXT debugCallbackHandle = VK_NULL_HANDLE;
 
     VkPhysicalDevice vkPhysicalDevice = VK_NULL_HANDLE;

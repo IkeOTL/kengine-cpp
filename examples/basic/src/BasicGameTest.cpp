@@ -49,7 +49,7 @@
 
 
 BasicGameTest::~BasicGameTest() {
-   // textureCache.reset();
+    // textureCache.reset();
 }
 
 float BasicGameTest::getDelta() {
@@ -95,7 +95,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     inputManager = InputManager::create();
     window->setInputManager(inputManager.get());
 
-    initVulkan();
+    initVulkan(*window);
 
     // review this usage
     threadPool.reset(new ExecutorService(4, [&]() {
@@ -380,8 +380,9 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     return std::make_unique<MainGameState>(*world);
 }
 
-void BasicGameTest::initVulkan() {
+void BasicGameTest::initVulkan(Window& window) {
     vulkanCxt = VulkanContext::create(
+        window,
         [](VkDevice vkDevice, ColorFormatAndSpace& cfs) {
             std::vector<std::unique_ptr<RenderPass>> passes;
             passes.emplace_back(DeferredPbrRenderPass::create(vkDevice, cfs));
@@ -436,7 +437,7 @@ void BasicGameTest::initVulkan() {
         }
     );
 
-    vulkanCxt->init(*window, true);
+    vulkanCxt->init(true);
 }
 
 void BasicGameTest::initCamera(InputManager& inputManager, DebugContext& dbg) {

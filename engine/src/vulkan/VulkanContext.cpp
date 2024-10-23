@@ -13,7 +13,7 @@
 #include <tracy/Tracy.hpp>
 
 VulkanContext::VulkanContext(Window& window, RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
-    : renderPassCreator(std::move(renderPassCreator)), pipelineCacheCreator(std::move(pipelineCacheCreator)),
+    : window(window), renderPassCreator(std::move(renderPassCreator)), pipelineCacheCreator(std::move(pipelineCacheCreator)),
     swapchainCreator(SwapchainCreator(window, std::move(onSwapchainCreate))) {}
 
 VulkanContext::~VulkanContext() {
@@ -56,7 +56,7 @@ void VulkanContext::init(bool validationOn) {
 
     swapchain = Swapchain(vkDevice).replace(vkPhysicalDevice, vkDevice, window.getWidth(), window.getHeight(), window.getVkSurface(), colorFormatAndSpace);
 
-    swapchainCreator.init(window);
+    swapchainCreator.init();
 
     // todo: where should this be initiated? need to try to get this into render thread
     commandPool = std::make_unique<CommandPool>(vkDevice);

@@ -17,7 +17,7 @@ GpuBuffer::GpuBuffer(
     vmaAllocation(vmaAllocation),
     hostCoherent(hostCoherent)
 {
-    KE_LOG_DEBUG(std::format("GpuBuffer created: {}", id));
+    KE_LOG_TRACE(std::format("GpuBuffer created: {}", id));
 }
 
 void* GpuBuffer::data() {
@@ -55,9 +55,9 @@ GpuBuffer::~GpuBuffer() {
     if (mappedBuffer) {
         vmaUnmapMemory(vmaAllocator, vmaAllocation);
         mappedBuffer = nullptr;
-        KE_LOG_DEBUG(std::format("GpuBuffer unmapped: {}", id));
+        KE_LOG_TRACE(std::format("GpuBuffer unmapped: {}", id));
     }
 
     vmaDestroyBuffer(vmaAllocator, vkBuffer, vmaAllocation);
-    KE_LOG_DEBUG(std::format("GpuBuffer destroyed: {}", id));
+    KE_LOG_TRACE(std::format("GpuBuffer destroyed: {}", id));
 };

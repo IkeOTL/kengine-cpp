@@ -83,7 +83,7 @@ private:
     float delta = 0;
 
     std::unique_ptr<State<Game>> init();
-    void initVulkan();
+    void initVulkan(Window& window);
     void initCamera(InputManager& inputManager, DebugContext& dbgCtx);
 
 
