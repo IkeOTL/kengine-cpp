@@ -4,13 +4,13 @@
 
 namespace ke {
     OptimizedTerrain::OptimizedTerrain(uint32_t terrainTilesWidth, uint32_t terrainTilesLength,
-        uint32_t chunkWidth, uint32_t chunkLength, uint8_t unitScale)
+        uint32_t chunkWidth, uint32_t chunkLength, uint8_t unitSize)
         : terrainTilesWidth(terrainTilesWidth), terrainTilesLength(terrainTilesLength),
         chunkWidth(chunkWidth), chunkLength(chunkLength),
         terrainHeightsWidth(terrainTilesWidth + 2), terrainHeightsLength(terrainTilesLength + 2), // adding 2 instead of 1 allows for .5tile offset to be fully centered
         worldOffsetX((-static_cast<float>(terrainTilesWidth) / 2.0f) - .5f), worldOffsetZ((-static_cast<float>(terrainTilesLength) / 2.0f) - .5f), // dual grid terrain: https://www.youtube.com/watch?v=Uxeo9c-PX-w&t=308s
         chunkCountX(terrainTilesWidth / chunkWidth), chunkCountZ(terrainTilesLength / chunkLength),
-        unitScale(unitScale)
+        unitSize(unitSize)
     {
         if (terrainTilesWidth % 2 != 0 || terrainTilesLength % 2 != 0
             || terrainTilesWidth % chunkWidth != 0 || terrainTilesLength % chunkLength != 0)

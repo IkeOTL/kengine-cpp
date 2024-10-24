@@ -44,6 +44,8 @@
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Math/Real.h>
 #include <Jolt/Math/Math.h>
+#include <Jolt/Math/Vec3.h>
+#include <Jolt/Physics/Collision/Shape/HeightFieldShape.cpp>
 #include <components/Physics.hpp>
 #include <PhysicsSyncSystem.hpp>
 
@@ -217,44 +219,79 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
     // physics experiment
     {
         // static platform
+        //{
+        //    glm::vec3 pos(0, 2, 0);
+        //    glm::vec3 size(15, .5f, 15);
+
+        //    // physics
+        //    JPH::BodyInterface& bodyInterface = physicsContext->getPhysics().GetBodyInterface();
+        //    JPH::BoxShapeSettings shapeSettings(JPH::Vec3(.5f, .5f, .5f) * JPH::Vec3(size.x, size.y, size.z));
+        //    shapeSettings.SetEmbedded();
+        //    JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
+        //    auto& shape = shapeResult.Get();
+        //    JPH::BodyCreationSettings bodySettings(shape, JPH::RVec3(pos.x, pos.y, pos.z), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::NON_MOVING);
+        //    JPH::Body* body = bodyInterface.CreateBody(bodySettings);
+        //    bodyInterface.AddBody(body->GetID(), JPH::EActivation::DontActivate);
+
+        //    //entity
+        //    auto* ecs = world->getService<entt::registry>();
+        //    auto modelConfig = ke::ModelConfig::create("gltf/smallcube.glb",
+        //        ke::VertexAttribute::POSITION | ke::VertexAttribute::NORMAL | ke::VertexAttribute::TEX_COORDS
+        //        | ke::VertexAttribute::TANGENTS
+        //    );
+
+        //    auto materialConfig = ke::PbrMaterialConfig::create();
+        //    materialConfig->setHasShadow(true);
+
+        //    auto entity = ecs->create();
+
+        //    auto& renderable = ecs->emplace<Component::Renderable>(entity);
+        //    auto& spatials = ecs->emplace<Component::Spatials>(entity);
+        //    ecs->emplace<Component::Rigidbody>(entity, body->GetID(), false);
+        //    ecs->emplace<Component::ModelComponent>(entity, modelConfig);
+        //    ecs->emplace<Component::Material>(entity, materialConfig);
+        //    //ecs->emplace<Component::LinearVelocity>(entity);
+
+        //    auto& model = modelCache->get(modelConfig);
+        //    auto rootSpatial = spatials.generate(*sceneGraph, model, "platform", renderable.type);
+        //    rootSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
+        //    rootSpatial->setLocalPosition(pos);
+        //    rootSpatial->setLocalScale(size);
+        //}
+
+        // terrain heightfield physics shape
         {
-            glm::vec3 pos(0, 2, 0);
-            glm::vec3 size(15, .5f, 15);
+            auto& terrain = terrainContext->getTerrain();
+            auto terrainWidth = terrain.getTerrainHeightsWidth();
+            auto terrainLength = terrain.getTerrainHeightsLength();
+            auto& terrainHeights = terrain.getHeights();
+            auto terrainUnitSize = terrain.getUnitSize();
 
-            // physics
+            std::vector<float> pHeights;
+            pHeights.reserve(terrainWidth * terrainLength);
+            // Convert compressed heights to floating point
+            for (size_t i = 0; i < terrainHeights.size(); ++i) {
+                float scaledHeight = terrainHeights[i] / terrainUnitSize;
+                pHeights.push_back(scaledHeight);
+            }
+
+            auto cellSize = 1.0f;
+            auto xStep = 1.0f;
+            auto zStep = 1.0f;
+            JPH::Vec3 pTerrainOffset(terrain.getWorldOffsetX(), 0, terrain.getWorldOffsetZ());
+            JPH::Vec3 pTerrainScale(cellSize, 1, cellSize);
+            JPH::uint pTerrainSize = terrainWidth; // Jolt only supports square terrain
+            JPH::PhysicsMaterialList pMaterials;
+
+            JPH::HeightFieldShapeSettings settings(
+                pHeights.data(), pTerrainOffset, pTerrainScale, pTerrainSize, nullptr, pMaterials);
+
+            settings.mBlockSize = 8;
+            settings.mBitsPerSample = 8;
+
             JPH::BodyInterface& bodyInterface = physicsContext->getPhysics().GetBodyInterface();
-            JPH::BoxShapeSettings shapeSettings(JPH::Vec3(.5f, .5f, .5f) * JPH::Vec3(size.x, size.y, size.z));
-            shapeSettings.SetEmbedded();
-            JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
-            auto& shape = shapeResult.Get();
-            JPH::BodyCreationSettings bodySettings(shape, JPH::RVec3(pos.x, pos.y, pos.z), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::NON_MOVING);
-            JPH::Body* body = bodyInterface.CreateBody(bodySettings);
-            bodyInterface.AddBody(body->GetID(), JPH::EActivation::DontActivate);
-
-            //entity
-            auto* ecs = world->getService<entt::registry>();
-            auto modelConfig = ke::ModelConfig::create("gltf/smallcube.glb",
-                ke::VertexAttribute::POSITION | ke::VertexAttribute::NORMAL | ke::VertexAttribute::TEX_COORDS
-                | ke::VertexAttribute::TANGENTS
-            );
-
-            auto materialConfig = ke::PbrMaterialConfig::create();
-            materialConfig->setHasShadow(true);
-
-            auto entity = ecs->create();
-
-            auto& renderable = ecs->emplace<Component::Renderable>(entity);
-            auto& spatials = ecs->emplace<Component::Spatials>(entity);
-            ecs->emplace<Component::Rigidbody>(entity, body->GetID(), false);
-            ecs->emplace<Component::ModelComponent>(entity, modelConfig);
-            ecs->emplace<Component::Material>(entity, materialConfig);
-            //ecs->emplace<Component::LinearVelocity>(entity);
-
-            auto& model = modelCache->get(modelConfig);
-            auto rootSpatial = spatials.generate(*sceneGraph, model, "platform", renderable.type);
-            rootSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
-            rootSpatial->setLocalPosition(pos);
-            rootSpatial->setLocalScale(size);
+            auto mHeightField = StaticCast<JPH::HeightFieldShape>(settings.Create().Get());
+            bodyInterface.CreateAndAddBody(JPH::BodyCreationSettings(mHeightField, JPH::RVec3::sZero(), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::NON_MOVING), JPH::EActivation::DontActivate);
         }
 
         // falling block
@@ -274,10 +311,10 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
             auto materialConfig = ke::PbrMaterialConfig::create();
             materialConfig->setHasShadow(true);
 
-            auto xCount = 4;
-            auto yCount = 4;
-            auto zCount = 4;
-            auto yOffset = 10;
+            auto xCount = 5;
+            auto yCount = 3;
+            auto zCount = 3;
+            auto yOffset = 20;
             auto zOffset = 0;
             auto padding = 0;
             for (size_t k = 0; k < yCount; k++) {
