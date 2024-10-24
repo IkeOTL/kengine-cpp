@@ -8,10 +8,10 @@
 #include <components/Components.hpp>
 
 void KinematicPlayerSystem::init() {
-    sceneGraph = getService<SceneGraph>();
-    inputManager = getService<InputManager>();
+    sceneGraph = getService<ke::SceneGraph>();
+    inputManager = getService<ke::InputManager>();
     playerMovementManager = getService<PlayerMovementManager>();
-    sceneTime = getService<SceneTime>();
+    sceneTime = getService<ke::SceneTime>();
 }
 
 

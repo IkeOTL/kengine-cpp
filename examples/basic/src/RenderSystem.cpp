@@ -26,16 +26,16 @@
 #include <kengine/EngineConfig.hpp>
 
 void RenderSystem::init() {
-    vulkanCtx = getService<VulkanContext>();
-    debugCtx = getService<DebugContext>();
-    renderCtx = getService<RenderContext>();
-    modelCache = getService<AsyncModelCache>();
-    materialCache = getService<AsyncMaterialCache>();
-    sceneGraph = getService<SceneGraph>();
-    sceneTime = getService<SceneTime>();
-    cameraController = getService<CameraController>();
-    spatialPartitioning = getService<SpatialPartitioningManager>();
-    skeletonManager = getService<SkeletonManager>();
+    vulkanCtx = getService<ke::VulkanContext>();
+    debugCtx = getService<ke::DebugContext>();
+    renderCtx = getService<ke::RenderContext>();
+    modelCache = getService<ke::AsyncModelCache>();
+    materialCache = getService<ke::AsyncMaterialCache>();
+    sceneGraph = getService<ke::SceneGraph>();
+    sceneTime = getService<ke::SceneTime>();
+    cameraController = getService<ke::CameraController>();
+    spatialPartitioning = getService<ke::SpatialPartitioningManager>();
+    skeletonManager = getService<ke::SkeletonManager>();
 }
 
 void RenderSystem::processSystem(float delta) {
@@ -50,7 +50,7 @@ void RenderSystem::processSystem(float delta) {
 }
 
 void RenderSystem::integrate(Component::Renderable& renderable, Component::Spatials& spatials,
-    Transform& curTranform, uint32_t meshIdx, float delta, glm::mat4& dest) {
+    ke::Transform& curTranform, uint32_t meshIdx, float delta, glm::mat4& dest) {
     ZoneScoped;
 
     if (!renderable.integrateRendering) {
@@ -70,7 +70,7 @@ void RenderSystem::integrate(Component::Renderable& renderable, Component::Spati
         glm::scale(glm::mat4(1.0f), scale);
 }
 
-void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
+void RenderSystem::drawEntities(ke::RenderFrameContext& ctx, float delta) {
     ZoneScoped;
 
     auto& ecs = getEcs();
@@ -115,7 +115,7 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
         // TODO: do this somewhere else, multithread it, and await finish before submitting frame
         if (materialComponent.config->hasSkeleton()) {
             auto& skeleComp = ecs.get<Component::SkeletonComp>(e);
-            auto skeleton = std::static_pointer_cast<Skeleton>(sceneGraph->get(skeleComp.skeletonId));
+            auto skeleton = std::static_pointer_cast<ke::Skeleton>(sceneGraph->get(skeleComp.skeletonId));
             skeletonManager->upload(*skeleton, skeleComp.bufId, ctx.frameIndex, delta);
         }
 
@@ -136,7 +136,7 @@ void RenderSystem::drawEntities(RenderFrameContext& ctx, float delta) {
                 // todo: spherebounds need to scale based on spatial!!
                 renderCtx->draw(*m, *material, blendMat, bounds.getSphereBounds());
 
-                if (EngineConfig::getInstance().isDebugRenderingEnabled()) {
+                if (ke::EngineConfig::getInstance().isDebugRenderingEnabled()) {
                     auto& aabb = m->getBounds().getAabb();
                     glm::vec3 min, max;
                     aabb.getMinMax(min, max);

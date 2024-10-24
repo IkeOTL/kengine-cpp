@@ -141,4 +141,4 @@ namespace ke {
             vkDestroyDescriptorPool(vkDevice, handle, nullptr);
         }
     };
-}
+} // namespace ke

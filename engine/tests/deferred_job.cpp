@@ -11,6 +11,8 @@
 #include <format>
 
 TEST_CASE("multithread::DJM. Basic DJM test", "[multithread]") {
+    using namespace ke;
+
     ExecutorService pool(2);
     DeferredJobManager djm;
     World world(WorldConfig()

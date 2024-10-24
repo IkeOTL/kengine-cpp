@@ -46,7 +46,6 @@ set(HEADERS
     include/public/kengine/EngineConfig.hpp
     include/public/kengine/Logger.hpp
     include/public/kengine/Game.hpp
-    include/public/kengine/Profiler.hpp
     include/public/kengine/DebugContext.hpp
     include/public/kengine/Math.hpp
     include/public/kengine/Window.hpp
@@ -255,7 +254,7 @@ set(SOURCES
 ####### Dependencies
 include(FetchContent)
 
-# download spdlog source
+# spdlog
 set(SPDLOG_ENABLE_PCH ON CACHE BOOL "Enable precompiled headers for spdlog" FORCE)
 FetchContent_Declare(
     spdlog
@@ -265,7 +264,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(spdlog)
 set_target_properties(spdlog PROPERTIES FOLDER "thirdparty")
 
-# download tracy source
+# tracy
 set(TRACY_ENABLE ON CACHE BOOL "Enable profiling" FORCE)
 set(TRACY_ON_DEMAND ON CACHE BOOL "On-demand profiling" FORCE)
 FetchContent_Declare(
@@ -286,7 +285,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(EASTL)
 set_target_properties(EASTL PROPERTIES FOLDER "thirdparty")
 
-# download imgui source
+# IMGUI
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
@@ -305,7 +304,7 @@ set(IMGUI
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
 )
 
-# download glfw source
+# GLFW
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW lib only")
 set(GLFW_INSTALL OFF CACHE BOOL "GLFW lib only")
 FetchContent_Declare(
@@ -317,7 +316,7 @@ FetchContent_MakeAvailable(glfw)
 set_target_properties(glfw PROPERTIES FOLDER "thirdparty/GLFW3")
 set_target_properties(update_mappings PROPERTIES FOLDER "thirdparty/GLFW3")
 
-# download JoltPhysics source
+# Joltphysics
 #set(JPH_PROFILE_ENABLED OFF CACHE BOOL "Enable internal profiling")
 #set(JPH_DEBUG_RENDERER OFF CACHE BOOL "Enable debug rendering")
 #set(JPH_DOUBLE_PRECISION OFF CACHE BOOL "Use double precision for large worlds")
@@ -333,7 +332,7 @@ FetchContent_MakeAvailable(JoltPhysics)
 include(${PHYSICS_REPO_ROOT}/Jolt/Jolt.cmake)
 set_target_properties(Jolt PROPERTIES FOLDER "thirdparty")
 
-# download msgpack-c source
+# msgpack-c 
 set(MSGPACK_CXX20 ON CACHE BOOL "Enforce use C++20")
 set(MSGPACK_USE_BOOST OFF CACHE BOOL "Remove Boost dependency")
 set(MSGPACK_BUILD_DOCS OFF CACHE BOOL "Dont build docs")

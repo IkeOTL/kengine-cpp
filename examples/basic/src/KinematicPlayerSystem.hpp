@@ -1,17 +1,20 @@
 #pragma once
 #include "MyPlayerSystem.hpp"
 
-class SceneGraph;
-class InputManager;
+namespace ke {
+    class SceneGraph;
+    class InputManager;
+    class SceneTime;
+}
+
 class PlayerMovementManager;
-class SceneTime;
 
 class KinematicPlayerSystem : public MyPlayerSystem {
 private:
-    SceneGraph* sceneGraph;
-    InputManager* inputManager;
+    ke::SceneGraph* sceneGraph;
+    ke::InputManager* inputManager;
     PlayerMovementManager* playerMovementManager;
-    SceneTime* sceneTime;
+    ke::SceneTime* sceneTime;
 
 protected:
     int getInput();

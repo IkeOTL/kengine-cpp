@@ -5,7 +5,7 @@
 #include <kengine/vulkan/mesh/Model.hpp>
 #include <memory>
 
-std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, Model& model, std::string name,
+std::shared_ptr<ke::Spatial> Component::Spatials::generate(ke::SceneGraph& sceneGraph, ke::Model& model, std::string name,
     Renderable::RenderableType renderType) {
     const auto& modelNodes = model.getNodes();
     const auto& parentIndices = model.getParentIndices();
@@ -14,7 +14,7 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
 
     spatialsIds.reserve(modelNodes.size());
 
-    std::vector<std::shared_ptr<Spatial>> nodes;
+    std::vector<std::shared_ptr<ke::Spatial>> nodes;
     nodes.reserve(modelNodes.size());
 
     std::unordered_map<uint32_t, uint32_t> boneMap;
@@ -40,8 +40,8 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
 
         // bone spatial
         {
-            auto ogBone = std::static_pointer_cast<Bone>(n);
-            auto s = std::make_shared<Bone>(ogBone->getBoneId(), n->getName());
+            auto ogBone = std::static_pointer_cast<ke::Bone>(n);
+            auto s = std::make_shared<ke::Bone>(ogBone->getBoneId(), n->getName());
 
             s->setLocalTransform(n->getPosition(), n->getScale(), n->getRotation());
             s->setInverseBindWorldMatrix(ogBone->getInverseBindWorldMatrix());
@@ -90,14 +90,14 @@ std::shared_ptr<Spatial> Component::Spatials::generate(SceneGraph& sceneGraph, M
 /// <summary>
 /// create a skeleton based on spatials from the generated model spatial hierarchy
 /// </summary>
-std::shared_ptr<Skeleton> Component::SkeletonComp::generate(SceneGraph& sceneGraph, Model& model, Component::Spatials& spatials, std::string name) {
+std::shared_ptr<ke::Skeleton> Component::SkeletonComp::generate(ke::SceneGraph& sceneGraph, ke::Model& model, Component::Spatials& spatials, std::string name) {
     auto& boneIndices = model.getBoneIndices();
 
-    std::vector<std::shared_ptr<Bone>> bones;
+    std::vector<std::shared_ptr<ke::Bone>> bones;
     bones.reserve(boneIndices.size());
 
     for (auto i : boneIndices)
-        bones.push_back(std::static_pointer_cast<Bone>(sceneGraph.get(spatials.spatialsIds[i])));
+        bones.push_back(std::static_pointer_cast<ke::Bone>(sceneGraph.get(spatials.spatialsIds[i])));
 
-    return std::make_shared<Skeleton>(name, std::move(bones));
+    return std::make_shared<ke::Skeleton>(name, std::move(bones));
 }

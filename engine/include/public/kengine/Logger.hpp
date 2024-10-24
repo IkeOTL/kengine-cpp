@@ -3,8 +3,6 @@
 #include <spdlog/spdlog.h>
 #include <format>
 
-namespace kengine {
-
 #define KE_LOG_LEVEL_TRACE 0
 #define KE_LOG_LEVEL_DEBUG 1
 #define KE_LOG_LEVEL_INFO 2
@@ -13,10 +11,12 @@ namespace kengine {
 #define KE_LOG_LEVEL_CRITICAL 5
 #define KE_LOG_LEVEL_OFF 6
 
-    // Preprocessor directive to allow for overriding the log level at compile time
+// Preprocessor directive to allow for overriding the log level at compile time
 #ifndef KE_ACTIVE_LOG_LEVEL
 #define KE_ACTIVE_LOG_LEVEL KE_LOG_LEVEL_INFO
 #endif
+
+namespace ke {
 
     class Logger {
     public:
@@ -66,9 +66,9 @@ namespace kengine {
             return logger;
         }
     };
-}
+} // namespace ke
 
-#define KENGINE_LOGGER() kengine::LogManager::getLogger()
+#define KENGINE_LOGGER() ke::LogManager::getLogger()
 
 #if KE_ACTIVE_LOG_LEVEL <= KE_LOG_LEVEL_TRACE
 #define KE_LOG_TRACE(...) KENGINE_LOGGER().trace(__VA_ARGS__)

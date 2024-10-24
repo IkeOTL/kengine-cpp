@@ -4,74 +4,76 @@
 #include <vector>
 #include <memory>
 
-class InputManager {
-private:
-    std::vector<MouseEventListener*> mouseEventListeners;
-    std::vector<KeyEventListener*> keyEventListeners;
+namespace ke {
+    class InputManager {
+    private:
+        std::vector<MouseEventListener*> mouseEventListeners;
+        std::vector<KeyEventListener*> keyEventListeners;
 
-    int mouseX = 0, mouseY = 0;
-    bool keyDown[GLFW_KEY_LAST + 1];
-    bool mouseButtonDown[GLFW_MOUSE_BUTTON_LAST + 1];
+        int mouseX = 0, mouseY = 0;
+        bool keyDown[GLFW_KEY_LAST + 1];
+        bool mouseButtonDown[GLFW_MOUSE_BUTTON_LAST + 1];
 
-    KeyEventListener* activeKeyListener = nullptr;
-    MouseEventListener* activeMouseListener = nullptr;
-    CharacterEventListener* activeCharEventListener = nullptr;
+        KeyEventListener* activeKeyListener = nullptr;
+        MouseEventListener* activeMouseListener = nullptr;
+        CharacterEventListener* activeCharEventListener = nullptr;
 
-public:
-    static inline std::unique_ptr<InputManager> create() {
-        return std::make_unique<InputManager>();
-    }
+    public:
+        static inline std::unique_ptr<InputManager> create() {
+            return std::make_unique<InputManager>();
+        }
 
-    void onMoveEvent(GLFWwindow* window, double xpos, double ypos);
-    void onButtonEvent(GLFWwindow* window, int button, int action, int mods);
-    void onKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
-    void onCharEvent(GLFWwindow* window, int codepoint);
+        void onMoveEvent(GLFWwindow* window, double xpos, double ypos);
+        void onButtonEvent(GLFWwindow* window, int button, int action, int mods);
+        void onKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
+        void onCharEvent(GLFWwindow* window, int codepoint);
 
-    bool isKeyDown(int key) const {
-        return keyDown[key];
-    }
+        bool isKeyDown(int key) const {
+            return keyDown[key];
+        }
 
-    bool isMouseButtonDown(int key) const {
-        return mouseButtonDown[key];
-    }
+        bool isMouseButtonDown(int key) const {
+            return mouseButtonDown[key];
+        }
 
-    int getMouseX() const {
-        return mouseX;
-    }
+        int getMouseX() const {
+            return mouseX;
+        }
 
-    int getMouseY() const {
-        return mouseY;
-    }
+        int getMouseY() const {
+            return mouseY;
+        }
 
-    MouseEventListener* getActiveMouseListener() {
-        return activeMouseListener;
-    }
+        MouseEventListener* getActiveMouseListener() {
+            return activeMouseListener;
+        }
 
-    void setActiveMouseListener(MouseEventListener* l) {
-        activeMouseListener = l;
-    }
+        void setActiveMouseListener(MouseEventListener* l) {
+            activeMouseListener = l;
+        }
 
-    void setActiveKeyListener(KeyEventListener* l) {
-        activeKeyListener = l;
-    }
+        void setActiveKeyListener(KeyEventListener* l) {
+            activeKeyListener = l;
+        }
 
-    CharacterEventListener* getActiveCharEventListener() {
-        return activeCharEventListener;
-    }
+        CharacterEventListener* getActiveCharEventListener() {
+            return activeCharEventListener;
+        }
 
-    void setActiveCharEventListener(CharacterEventListener* l) {
-        activeCharEventListener = l;
-    }
+        void setActiveCharEventListener(CharacterEventListener* l) {
+            activeCharEventListener = l;
+        }
 
-    void registerKeyEventListener(KeyEventListener* listener) {
-        keyEventListeners.push_back(listener);
-    }
+        void registerKeyEventListener(KeyEventListener* listener) {
+            keyEventListeners.push_back(listener);
+        }
 
-    void registerMouseEventListener(MouseEventListener* listener) {
-        mouseEventListeners.push_back(listener);
-    }
+        void registerMouseEventListener(MouseEventListener* listener) {
+            mouseEventListeners.push_back(listener);
+        }
 
-    void unregisterMouseEventListener(MouseEventListener* listener) {
-        //    mouseEventListeners.remove(listener);
-    }
-};
+        void unregisterMouseEventListener(MouseEventListener* listener) {
+            //    mouseEventListeners.remove(listener);
+        }
+    };
+} // namespace ke

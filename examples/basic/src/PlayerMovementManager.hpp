@@ -15,7 +15,7 @@ public:
         return std::make_unique<PlayerMovementManager>();
     }
 
-    void stepPlayer(float step, Spatial& spatial, Component::LinearVelocity& velComp, uint32_t input);
+    void stepPlayer(float step, ke::Spatial& spatial, Component::LinearVelocity& velComp, uint32_t input);
 
 
 };

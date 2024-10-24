@@ -8,98 +8,100 @@
 #include <vector>
 #include <memory>
 
-template <typename V>
-class VertexData {
-private:
-    static_assert(std::is_base_of<Vertex, V>::value, "V must be derived from Vertex");
+namespace ke {
+    template <typename V>
+    class VertexData {
+    private:
+        static_assert(std::is_base_of<Vertex, V>::value, "V must be derived from Vertex");
 
-    const std::vector<V> vertices;
+        const std::vector<V> vertices;
 
-    const int vertexAttributes;
-    const int indexCount;
-    const int vertexCount;
+        const int vertexAttributes;
+        const int indexCount;
+        const int vertexCount;
 
-    Bounds bounds{};
+        Bounds bounds{};
 
-public:
-    VertexData(std::vector<V>&& vertices, int vertexAttributes, uint32_t indexCount, uint32_t vertexCount)
-        : vertices(std::move(vertices)), vertexAttributes(vertexAttributes),
-        indexCount(indexCount), vertexCount(vertexCount) {}
+    public:
+        VertexData(std::vector<V>&& vertices, int vertexAttributes, uint32_t indexCount, uint32_t vertexCount)
+            : vertices(std::move(vertices)), vertexAttributes(vertexAttributes),
+            indexCount(indexCount), vertexCount(vertexCount) {}
 
-    int getVertexAttributes() const {
-        return vertexAttributes;
-    }
-
-    const std::vector<V>& getVertices() const {
-        return vertices;
-    }
-
-    const Bounds& getBounds() const {
-        return bounds;
-    }
-
-    int getIndexCount() const {
-        return indexCount;
-    }
-
-    int getVertexCount() const {
-        return vertexCount;
-    }
-
-    void calcBounds() {
-        glm::vec3 _min(9999999);
-        glm::vec3 _max(-9999999);
-
-        for (const V& vert : vertices) {
-            const auto& pos = vert.position;
-            _min = glm::min(pos, _min);
-            _max = glm::max(pos, _max);
+        int getVertexAttributes() const {
+            return vertexAttributes;
         }
 
-        bounds = Bounds::fromMinMax(_min, _max);
-    }
-};
+        const std::vector<V>& getVertices() const {
+            return vertices;
+        }
 
-class Mesh {
-private:
-    const int vertexAttributes;
+        const Bounds& getBounds() const {
+            return bounds;
+        }
 
-    const std::unique_ptr<GpuBuffer> indexBuf;
-    const std::unique_ptr<GpuBuffer> vertexBuf;
+        int getIndexCount() const {
+            return indexCount;
+        }
 
-    const uint32_t indexCount;
-    const uint32_t vertexCount;
+        int getVertexCount() const {
+            return vertexCount;
+        }
 
-    const Bounds bounds;
+        void calcBounds() {
+            glm::vec3 _min(9999999);
+            glm::vec3 _max(-9999999);
 
-public:
-    Mesh(int vertexAttributes, uint32_t indexCount, std::unique_ptr<GpuBuffer>&& indexBuf,
-        uint32_t vertexCount, std::unique_ptr<GpuBuffer>&& vertexBuf,
-        Bounds bounds)
-        : vertexAttributes(vertexAttributes),
-        indexCount(indexCount), indexBuf(std::move(indexBuf)),
-        vertexCount(vertexCount), vertexBuf(std::move(vertexBuf)),
-        bounds(bounds) {}
+            for (const V& vert : vertices) {
+                const auto& pos = vert.position;
+                _min = glm::min(pos, _min);
+                _max = glm::max(pos, _max);
+            }
 
-    ~Mesh() = default;
+            bounds = Bounds::fromMinMax(_min, _max);
+        }
+    };
 
-    const GpuBuffer& getIndexBuf() const {
-        return *indexBuf;
-    }
+    class Mesh {
+    private:
+        const int vertexAttributes;
 
-    const GpuBuffer& getVertexBuf() const {
-        return *vertexBuf;
-    }
+        const std::unique_ptr<GpuBuffer> indexBuf;
+        const std::unique_ptr<GpuBuffer> vertexBuf;
 
-    const Bounds& getBounds() const {
-        return bounds;
-    }
+        const uint32_t indexCount;
+        const uint32_t vertexCount;
 
-    uint32_t getIndexCount() const {
-        return indexCount;
-    }
+        const Bounds bounds;
 
-    uint32_t getVertexCount() const {
-        return vertexCount;
-    }
-};
+    public:
+        Mesh(int vertexAttributes, uint32_t indexCount, std::unique_ptr<GpuBuffer>&& indexBuf,
+            uint32_t vertexCount, std::unique_ptr<GpuBuffer>&& vertexBuf,
+            Bounds bounds)
+            : vertexAttributes(vertexAttributes),
+            indexCount(indexCount), indexBuf(std::move(indexBuf)),
+            vertexCount(vertexCount), vertexBuf(std::move(vertexBuf)),
+            bounds(bounds) {}
+
+        ~Mesh() = default;
+
+        const GpuBuffer& getIndexBuf() const {
+            return *indexBuf;
+        }
+
+        const GpuBuffer& getVertexBuf() const {
+            return *vertexBuf;
+        }
+
+        const Bounds& getBounds() const {
+            return bounds;
+        }
+
+        uint32_t getIndexCount() const {
+            return indexCount;
+        }
+
+        uint32_t getVertexCount() const {
+            return vertexCount;
+        }
+    };
+} // namespace ke

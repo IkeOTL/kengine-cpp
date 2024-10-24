@@ -1,17 +1,19 @@
 #pragma once
 #include <kengine/ecs/EcsSystem.hpp>
 
-class World;
-class CameraController;
-class SceneGraph;
-class Transform;
-class ExecutorService;
+namespace ke {
+    class World;
+    class CameraController;
+    class SceneGraph;
+    class Transform;
+    class ExecutorService;
+}
 
-class RenderablePreviousTransformSystem : public EcsSystem {
+class RenderablePreviousTransformSystem : public ke::EcsSystem {
 private:
-    ExecutorService* executorService;
-    SceneGraph* sceneGraph;
-    CameraController* cameraController;
+    ke::ExecutorService* executorService;
+    ke::SceneGraph* sceneGraph;
+    ke::CameraController* cameraController;
 
 public:
     RenderablePreviousTransformSystem() = default;

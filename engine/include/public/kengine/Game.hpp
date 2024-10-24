@@ -1,39 +1,41 @@
 #pragma once
 
-struct SceneTime {
-private:
-    float sceneTime = 0;
-    float delta = 0;
-    float alpha = 0;
+namespace ke {
+    struct SceneTime {
+    private:
+        float sceneTime = 0;
+        float delta = 0;
+        float alpha = 0;
 
-public:
-    void addSceneTime(float t) {
-        sceneTime += t;
-    }
+    public:
+        void addSceneTime(float t) {
+            sceneTime += t;
+        }
 
-    float getSceneTime() const {
-        return sceneTime;
-    }
+        float getSceneTime() const {
+            return sceneTime;
+        }
 
-    float getDelta() const {
-        return delta;
-    }
+        float getDelta() const {
+            return delta;
+        }
 
-    void setDelta(float delta) {
-        this->delta = delta;
-    }
+        void setDelta(float delta) {
+            this->delta = delta;
+        }
 
-    float getAlpha() const {
-        return alpha;
-    }
+        float getAlpha() const {
+            return alpha;
+        }
 
-    void setAlpha(float alpha) {
-        this->alpha = alpha;
-    }
-};
+        void setAlpha(float alpha) {
+            this->alpha = alpha;
+        }
+    };
 
-class Game {
-public:
-    virtual float getDelta() = 0;
-    virtual void run() = 0;
-};
+    class Game {
+    public:
+        virtual float getDelta() = 0;
+        virtual void run() = 0;
+    };
+} // namespace ke

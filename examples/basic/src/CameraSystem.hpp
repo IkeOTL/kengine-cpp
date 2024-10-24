@@ -3,11 +3,13 @@
 #include <thirdparty/entt.hpp>
 #include <memory>
 
-class CameraController;
+namespace ke {
+    class CameraController;
+}
 
-class CameraSystem : public EcsSystem {
+class CameraSystem : public ke::EcsSystem {
 private:
-    CameraController* cameraController;
+    ke::CameraController* cameraController;
 
 public:
     CameraSystem() = default;

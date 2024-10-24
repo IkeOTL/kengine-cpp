@@ -9,6 +9,8 @@
 #include <format>
 
 TEST_CASE("event-bus::EventBus. Basic process", "[event-bus]") {
+    using namespace ke;
+
     SceneTime time;
     BufferPool bufPool;
     EventBus evtBus(time);
@@ -51,6 +53,8 @@ TEST_CASE("event-bus::EventBus. Basic process", "[event-bus]") {
 }
 
 TEST_CASE("event-bus::EventBus. Data buf contents", "[event-bus]") {
+    using namespace ke;
+
     SceneTime time;
     BufferPool bufPool;
     EventBus evtBus(time);
@@ -82,6 +86,8 @@ TEST_CASE("event-bus::EventBus. Data buf contents", "[event-bus]") {
 }
 
 TEST_CASE("event-bus::EventBus. Delay test", "[event-bus]") {
+    using namespace ke;
+
     SceneTime time;
     BufferPool bufPool;
     EventBus evtBus(time);
@@ -117,6 +123,8 @@ TEST_CASE("event-bus::EventBus. Delay test", "[event-bus]") {
 }
 
 TEST_CASE("event-bus::EventBus. Large test", "[event-bus]") {
+    using namespace ke;
+
     SceneTime time;
     BufferPool bufPool;
     EventBus evtBus(time);

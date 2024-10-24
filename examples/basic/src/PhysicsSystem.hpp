@@ -2,7 +2,7 @@
 #include <kengine/ecs/BaseSystem.hpp>
 #include "PhysicsContext.hpp"
 
-class PhysicsSystem : public BaseSystem {
+class PhysicsSystem : public ke::BaseSystem {
 private:
     PhysicsContext* physicsContext;
 

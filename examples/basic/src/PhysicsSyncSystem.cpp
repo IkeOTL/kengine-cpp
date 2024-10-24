@@ -7,7 +7,7 @@
 
 void PhysicsSyncSystem::init() {
     physicsContext = getService<PhysicsContext>();
-    sceneGraph = getService<SceneGraph>();
+    sceneGraph = getService<ke::SceneGraph>();
 }
 
 void PhysicsSyncSystem::processSystem(float delta) {

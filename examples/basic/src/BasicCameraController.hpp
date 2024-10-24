@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <array>
 
-class BasicCameraController : public CameraController {
+class BasicCameraController : public ke::CameraController {
 private:
 
 public:
@@ -16,10 +16,10 @@ public:
     void setPosition(float x, float y, float z);
 };
 
-class FreeCameraController : public InputEventAdapter, public CameraController {
+class FreeCameraController : public ke::InputEventAdapter, public ke::CameraController {
 private:
     // move to abstract class
-    FrustumIntersection frustumTester{};
+    ke::FrustumIntersection frustumTester{};
     glm::vec3 frustumMin{}, frustumMax{};
     std::array<glm::vec3, 8> frustumCorners{};
     bool needsFrustumRecalc = true;
@@ -27,7 +27,7 @@ private:
     void init();
 
 public:
-    FreeCameraController(InputManager& inputManager);
+    FreeCameraController(ke::InputManager& inputManager);
 
     void update(float delta) override;
 
@@ -39,7 +39,7 @@ public:
         return frustumCorners;
     }
 
-    FrustumIntersection& getFrustumTester() {
+    ke::FrustumIntersection& getFrustumTester() {
         return frustumTester;
     }
 };

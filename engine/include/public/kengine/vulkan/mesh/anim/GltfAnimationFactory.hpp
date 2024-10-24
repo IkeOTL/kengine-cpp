@@ -4,25 +4,27 @@
 #include <thread>
 #include <memory>
 
-class VulkanContext;
-class AssetIO;
-class AnimationConfig;
-class Animation;
+namespace ke {
+    class VulkanContext;
+    class AssetIO;
+    class AnimationConfig;
+    class Animation;
 
-class GltfAnimationFactory : public AnimationFactory {
-private:
-    static thread_local tinygltf::TinyGLTF gltfLoader;
+    class GltfAnimationFactory : public AnimationFactory {
+    private:
+        static thread_local tinygltf::TinyGLTF gltfLoader;
 
-    VulkanContext& vkContext;
-    AssetIO& assetIo;
+        VulkanContext& vkContext;
+        AssetIO& assetIo;
 
-public:
-    GltfAnimationFactory(VulkanContext& vkContext, AssetIO& assetIo)
-        : vkContext(vkContext), assetIo(assetIo) {}
+    public:
+        GltfAnimationFactory(VulkanContext& vkContext, AssetIO& assetIo)
+            : vkContext(vkContext), assetIo(assetIo) {}
 
-    inline static std::unique_ptr<GltfAnimationFactory> create(VulkanContext& vkContext, AssetIO& assetIo) {
-        return std::make_unique<GltfAnimationFactory>(vkContext, assetIo);
-    }
+        inline static std::unique_ptr<GltfAnimationFactory> create(VulkanContext& vkContext, AssetIO& assetIo) {
+            return std::make_unique<GltfAnimationFactory>(vkContext, assetIo);
+        }
 
-    std::unique_ptr<Animation> loadAnimation(const AnimationConfig& config) override;
-};
+        std::unique_ptr<Animation> loadAnimation(const AnimationConfig& config) override;
+    };
+} // namespace ke

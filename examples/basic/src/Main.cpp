@@ -25,7 +25,7 @@ int main() {
     KE_LOG_INFO("Example started.");
 
     //EngineConfig::getInstance().setDebugRenderingEnabled(true);
-    EngineConfig::getInstance().setAssetRoot("../res/");
+    ke::EngineConfig::getInstance().setAssetRoot("../res/");
 
     bool running = true;
     while (running) {

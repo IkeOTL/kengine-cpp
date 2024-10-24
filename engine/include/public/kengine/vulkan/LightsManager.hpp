@@ -3,29 +3,31 @@
 #include <memory>
 #include <functional>
 
-class VulkanContext;
-class CachedGpuBuffer;
+namespace ke {
+    class VulkanContext;
+    class CachedGpuBuffer;
 
-class Light {
+    class Light {
 
-};
+    };
 
-class LightsManager {
-private:
-    CameraController& cameraController;
-    std::vector<std::unique_ptr<Light>> lights;
+    class LightsManager {
+    private:
+        CameraController& cameraController;
+        std::vector<std::unique_ptr<Light>> lights;
 
-public:
-    inline static const size_t MAX_LIGHTS = 64;
+    public:
+        inline static const size_t MAX_LIGHTS = 64;
 
-    LightsManager(CameraController& cameraController) : cameraController(cameraController) {}
+        LightsManager(CameraController& cameraController) : cameraController(cameraController) {}
 
-    inline static std::unique_ptr<LightsManager> create(CameraController& cameraController) {
-        return std::make_unique<LightsManager>(cameraController);
-    }
+        inline static std::unique_ptr<LightsManager> create(CameraController& cameraController) {
+            return std::make_unique<LightsManager>(cameraController);
+        }
 
-    void upload(VulkanContext& vkCxt, CachedGpuBuffer& buffer, float alpha, int frameIndex);
+        void upload(VulkanContext& vkCxt, CachedGpuBuffer& buffer, float alpha, int frameIndex);
 
-    static int alignedFrameSize(VulkanContext& vkCxt);
-    static int size();
-};
+        static int alignedFrameSize(VulkanContext& vkCxt);
+        static int size();
+    };
+} // namespace ke

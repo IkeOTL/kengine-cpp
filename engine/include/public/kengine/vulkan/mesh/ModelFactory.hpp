@@ -4,7 +4,9 @@
 #include <string>
 #include <memory>
 
-class ModelFactory {
-public:
-    virtual std::unique_ptr<Model> loadModel(const ModelConfig& config) = 0;
-};
+namespace ke {
+    class ModelFactory {
+    public:
+        virtual std::unique_ptr<Model> loadModel(const ModelConfig& config) = 0;
+    };
+} // namespace ke

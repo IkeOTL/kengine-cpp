@@ -7,29 +7,31 @@
 #include <mutex>
 #include <vector>
 
-class VulkanContext;
+namespace ke {
+    class VulkanContext;
 
-class CommandPool {
-private:
-    VkDevice vkDevice;
+    class CommandPool {
+    private:
+        VkDevice vkDevice;
 
-    static thread_local std::unique_ptr<ke::VulkanCommandPool> gfxPool;
-    static thread_local std::unique_ptr<ke::VulkanCommandPool> xferPool;
-    static thread_local std::unique_ptr<ke::VulkanCommandPool> computePool;
+        static thread_local std::unique_ptr<ke::VulkanCommandPool> gfxPool;
+        static thread_local std::unique_ptr<ke::VulkanCommandPool> xferPool;
+        static thread_local std::unique_ptr<ke::VulkanCommandPool> computePool;
 
-    std::unique_ptr<CommandBuffer> createCommandBuffer(VkCommandPool, VkCommandBufferLevel level);
-    std::vector<std::unique_ptr<CommandBuffer>> createCommandBuffers(VkCommandPool, VkCommandBufferLevel level, uint32_t count);
-    VkCommandPool createCommandPool(VkCommandPoolCreateFlags flags, uint32_t fam);
+        std::unique_ptr<CommandBuffer> createCommandBuffer(VkCommandPool, VkCommandBufferLevel level);
+        std::vector<std::unique_ptr<CommandBuffer>> createCommandBuffers(VkCommandPool, VkCommandBufferLevel level, uint32_t count);
+        VkCommandPool createCommandPool(VkCommandPoolCreateFlags flags, uint32_t fam);
 
-public:
-    CommandPool(VkDevice vkDevice)
-        : vkDevice(vkDevice) {}
+    public:
+        CommandPool(VkDevice vkDevice)
+            : vkDevice(vkDevice) {}
 
-    ~CommandPool();
+        ~CommandPool();
 
-    void initThread(VulkanContext& vkContext);
+        void initThread(VulkanContext& vkContext);
 
-    std::unique_ptr<CommandBuffer> createGraphicsCmdBuf();
-    std::unique_ptr<CommandBuffer> createComputeCmdBuf();
-    std::unique_ptr<CommandBuffer> createTransferCmdBuf();
-};
+        std::unique_ptr<CommandBuffer> createGraphicsCmdBuf();
+        std::unique_ptr<CommandBuffer> createComputeCmdBuf();
+        std::unique_ptr<CommandBuffer> createTransferCmdBuf();
+    };
+} // namespace ke

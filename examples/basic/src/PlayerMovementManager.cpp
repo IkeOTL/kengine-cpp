@@ -4,7 +4,7 @@
 #include <components/Physics.hpp>
 
 
-void PlayerMovementManager::stepPlayer(float step, Spatial& spatial, Component::LinearVelocity& velComp, uint32_t input) {
+void PlayerMovementManager::stepPlayer(float step, ke::Spatial& spatial, Component::LinearVelocity& velComp, uint32_t input) {
     calculateLinearVelocity(step, input, velComp.linearVelocity);
 }
 
@@ -35,7 +35,7 @@ void PlayerMovementManager::calculateLinearVelocity(float step, uint32_t input, 
     if (glm::dot(targetDir, targetDir) > 0)
         targetDir = glm::normalize(targetDir);
 
-    if (!vecutils::isFinite(targetDir))
+    if (!ke::vecutils::isFinite(targetDir))
         targetDir = glm::vec3{ 0 };
 
     auto gravity = currentVel.y + GRAVITY * step;

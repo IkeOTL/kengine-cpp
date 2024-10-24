@@ -15,7 +15,7 @@ void BasicCameraController::setPosition(float x, float y, float z) {
     camera->setPosition(glm::vec3(x, y, z));
 }
 
-FreeCameraController::FreeCameraController(InputManager& inputManager)
+FreeCameraController::FreeCameraController(ke::InputManager& inputManager)
     : InputEventAdapter(inputManager) {
     init();
 }
@@ -60,10 +60,10 @@ void FreeCameraController::update(float delta) {
     frustumTester.set(projViewMat, false);
 
     for (int i = 0; i < 8; i++)
-        matutils::frustumCorner(projViewMat, static_cast<matutils::FrustumCorner>(i), frustumCorners[i]);
+        ke::matutils::frustumCorner(projViewMat, static_cast<ke::matutils::FrustumCorner>(i), frustumCorners[i]);
 
     auto invProjview = glm::inverse(projViewMat);
-    matutils::frustumAabb(invProjview, frustumMin, frustumMax);
+    ke::matutils::frustumAabb(invProjview, frustumMin, frustumMax);
 
     needsFrustumRecalc = false;
 }
@@ -93,7 +93,7 @@ void FreeCameraController::applyMovement(float delta) {
     camMov.y += (inputManager.isKeyDown(GLFW_KEY_LEFT_SHIFT) ? -1 : 0) + (inputManager.isKeyDown(GLFW_KEY_SPACE) ? 1 : 0);
 
     camMov = glm::normalize(camMov);
-    if (!vecutils::isFinite(camMov))
+    if (!ke::vecutils::isFinite(camMov))
         return;
 
     auto boost = inputManager.isMouseButtonDown(GLFW_MOUSE_BUTTON_1) && inputManager.isMouseButtonDown(GLFW_MOUSE_BUTTON_2) ? 3 : 1;

@@ -21,273 +21,280 @@
 #include <kengine/DebugContext.hpp>
 #include "VulkanObject.hpp"
 
-class SamplerCache;
-class VulkanContext;
-class RenderPass;
-class RenderPassContext;
-class DescriptorSetLayoutCache;
+namespace ke {
+    class SamplerCache;
+    class VulkanContext;
+    class RenderPass;
+    class RenderPassContext;
+    class DescriptorSetLayoutCache;
 
-class FrameSyncObjects;
+    class FrameSyncObjects;
 
-class SwapchainCreator {
-public:
-    using OnSwapchainCreate = std::function<void(VulkanContext&, Swapchain&, std::vector<std::unique_ptr<RenderPass>>&)>;
+    class SwapchainCreator {
+    public:
+        using OnSwapchainCreate = std::function<void(VulkanContext&, Swapchain&, std::vector<std::unique_ptr<RenderPass>>&)>;
 
-    SwapchainCreator(Window& window, OnSwapchainCreate&& onSwapchainCreate)
-        : window(window), onSwapchainCreate(std::move(onSwapchainCreate)) {}
+        SwapchainCreator(Window& window, OnSwapchainCreate&& onSwapchainCreate)
+            : window(window), onSwapchainCreate(std::move(onSwapchainCreate)) {}
 
-    void init();
+        void init();
 
-    void setMustRecreate(bool mustRecreate) {
-        this->mustRecreate = mustRecreate;
-    }
+        void setMustRecreate(bool mustRecreate) {
+            this->mustRecreate = mustRecreate;
+        }
 
-    bool recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain);
+        bool recreate(VulkanContext& vkCxt, bool force, Swapchain& oldSwapchain);
 
-private:
-    Window& window;
-    std::mutex lock{};
-    int targetWidth = 0, targetHeight = 0;
-    bool mustRecreate = true;
-    std::unique_ptr<Window::WindowResizeListener> windowResizeListener;
-    OnSwapchainCreate onSwapchainCreate;
-};
+    private:
+        Window& window;
+        std::mutex lock{};
+        int targetWidth = 0, targetHeight = 0;
+        bool mustRecreate = true;
+        std::unique_ptr<Window::WindowResizeListener> windowResizeListener;
+        OnSwapchainCreate onSwapchainCreate;
+    };
 
-struct RenderFrameContext {
-    const uint32_t frameIndex;
-    const glm::uvec2 swapchainExtents;
-    const uint32_t swapchainIndex;
-    const VkSemaphore imageSemaphore;
-    VkSemaphore cullComputeSemaphore = VK_NULL_HANDLE;
-    const VkFence fence;
-    const VkCommandBuffer cmd;
-};
+    struct RenderFrameContext {
+        const uint32_t frameIndex;
+        const glm::uvec2 swapchainExtents;
+        const uint32_t swapchainIndex;
+        const VkSemaphore imageSemaphore;
+        VkSemaphore cullComputeSemaphore = VK_NULL_HANDLE;
+        const VkFence fence;
+        const VkCommandBuffer cmd;
+    };
 
-class VulkanContext {
+    class VulkanContext {
 
-public:
-    static const uint32_t FRAME_OVERLAP = 3;
+    public:
+        static const uint32_t FRAME_OVERLAP = 3;
 
-    using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>(VkDevice, ColorFormatAndSpace&)>;
-    using PipelineCacheCreator = std::function<std::unique_ptr<PipelineCache>(VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp)>;
-    using CommandBufferRecordFunc = std::function<std::function<void()>(const CommandBuffer&)>;
+        using RenderPassCreator = std::function<std::vector<std::unique_ptr<RenderPass>>(VkDevice, ColorFormatAndSpace&)>;
+        using PipelineCacheCreator = std::function<std::unique_ptr<PipelineCache>(VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp)>;
+        using CommandBufferRecordFunc = std::function<std::function<void()>(const CommandBuffer&)>;
 
-    VulkanContext(Window& window, RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate);
-    ~VulkanContext();
+        VulkanContext(Window& window, RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate);
+        ~VulkanContext();
 
-    static inline std::unique_ptr<VulkanContext> create(Window& window, RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate) {
-        return std::make_unique<VulkanContext>(window, std::move(renderPassCreator), std::move(pipelineCacheCreator), std::move(onSwapchainCreate));
-    }
+        static inline std::unique_ptr<VulkanContext> create(Window& window, RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate) {
+            return std::make_unique<VulkanContext>(window, std::move(renderPassCreator), std::move(pipelineCacheCreator), std::move(onSwapchainCreate));
+        }
 
-    VulkanContext(const VulkanContext&) = delete;
-    VulkanContext& operator=(const VulkanContext&) = delete;
+        VulkanContext(const VulkanContext&) = delete;
+        VulkanContext& operator=(const VulkanContext&) = delete;
 
-    VulkanContext(VulkanContext&&) = default;
-    VulkanContext& operator=(VulkanContext&&) = default;
+        VulkanContext(VulkanContext&&) = default;
+        VulkanContext& operator=(VulkanContext&&) = default;
 
-    void init(bool validationOn);
+        void init(bool validationOn);
 
-    VkDevice getVkDevice() {
-        return vkDevice->handle;
-    }
+        VkDevice getVkDevice() {
+            return vkDevice->handle;
+        }
 
-    VkPhysicalDevice getVkPhysicalDevice() {
-        return vkPhysicalDevice;
-    }
+        VkPhysicalDevice getVkPhysicalDevice() {
+            return vkPhysicalDevice;
+        }
 
-    Swapchain* getSwapchain() {
-        return swapchain.get();
-    }
+        Swapchain* getSwapchain() {
+            return swapchain.get();
+        }
 
-    void setSwapchain(std::unique_ptr<Swapchain>&& sc) {
-        swapchain = std::move(sc);
-    }
+        void setSwapchain(std::unique_ptr<Swapchain>&& sc) {
+            swapchain = std::move(sc);
+        }
 
-    ColorFormatAndSpace& getColorFormatAndSpace() {
-        return colorFormatAndSpace;
-    }
+        ColorFormatAndSpace& getColorFormatAndSpace() {
+            return colorFormatAndSpace;
+        }
 
-    std::vector<std::unique_ptr<RenderPass>>& getRenderPasses() {
-        return renderPasses;
-    }
+        std::vector<std::unique_ptr<RenderPass>>& getRenderPasses() {
+            return renderPasses;
+        }
 
-    DescriptorSetAllocators& getDescSetAllocators() {
-        return descSetAllocators;
-    }
+        DescriptorSetAllocators& getDescSetAllocators() {
+            return descSetAllocators;
+        }
 
-    template <typename R>
-    R& getRenderPass(int i) {
-        return static_cast<R&>(*renderPasses[i]);
-    }
+        template <typename R>
+        R& getRenderPass(int i) {
+            return static_cast<R&>(*renderPasses[i]);
+        }
 
-    RenderPass& getRenderPass(int i);
+        RenderPass& getRenderPass(int i);
 
-    std::unique_ptr<RenderFrameContext> createNextFrameContext();
-    void renderBegin(RenderFrameContext& cxt);
-    void renderEnd(RenderFrameContext& cxt);
+        std::unique_ptr<RenderFrameContext> createNextFrameContext();
+        void renderBegin(RenderFrameContext& cxt);
+        void renderEnd(RenderFrameContext& cxt);
 
-    void beginRenderPass(RenderPassContext& rpCxt);
-    void endRenderPass(RenderPassContext& rpCxt);
+        void beginRenderPass(RenderPassContext& rpCxt);
+        void endRenderPass(RenderPassContext& rpCxt);
 
-    std::unique_ptr<GpuBuffer> createBuffer(VkDeviceSize size, VkBufferUsageFlags usageFlags,
-        VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) const;
+        std::unique_ptr<GpuBuffer> createBuffer(VkDeviceSize size, VkBufferUsageFlags usageFlags,
+            VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) const;
 
-    VkDeviceSize alignUboFrame(VkDeviceSize baseFrameSize) const;
-    VkDeviceSize alignSsboFrame(VkDeviceSize baseFrameSize) const;
+        VkDeviceSize alignUboFrame(VkDeviceSize baseFrameSize) const;
+        VkDeviceSize alignSsboFrame(VkDeviceSize baseFrameSize) const;
 
-    std::unique_ptr<GpuBuffer> uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
-        VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, VkBufferUsageFlags usageFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
-    std::unique_ptr<GpuBuffer> uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
-        VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
+        std::unique_ptr<GpuBuffer> uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
+            VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, VkBufferUsageFlags usageFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
+        std::unique_ptr<GpuBuffer> uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
+            VkPipelineStageFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags, std::function<void(VkCommandBuffer)> beforeSubmit);
 
-    void recordAndSubmitTransferCmdBuf(CommandBufferRecordFunc func, bool awaitFence);
+        void recordAndSubmitTransferCmdBuf(CommandBufferRecordFunc func, bool awaitFence);
 
-    void recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence);
+        void recordAndSubmitCmdBuf(std::unique_ptr<CommandBuffer>&& cmd, VulkanQueue& queue, CommandBufferRecordFunc func, bool awaitFence);
 
-    uint32_t getGfxQueueFamilyIndex() const {
-        return gfxQueueFamilyIndex;
-    }
+        uint32_t getGfxQueueFamilyIndex() const {
+            return gfxQueueFamilyIndex;
+        }
 
-    uint32_t getCompQueueFamilyIndex() const {
-        return compQueueFamilyIndex;
-    }
+        uint32_t getCompQueueFamilyIndex() const {
+            return compQueueFamilyIndex;
+        }
 
-    uint32_t getXferQueueFamilyIndex() const {
-        return xferQueueFamilyIndex;
-    }
+        uint32_t getXferQueueFamilyIndex() const {
+            return xferQueueFamilyIndex;
+        }
 
-    CommandPool* getCommandPool() {
-        return commandPool.get();
-    }
+        CommandPool* getCommandPool() {
+            return commandPool.get();
+        }
 
-    PipelineCache& getPipelineCache() {
-        return *pipelineCache;
-    }
+        PipelineCache& getPipelineCache() {
+            return *pipelineCache;
+        }
 
-    DescriptorSetLayoutCache& getDescSetLayoutCache();
+        DescriptorSetLayoutCache& getDescSetLayoutCache();
 
-    VulkanQueue& getComputeQueue() {
-        return *computeQueue;
-    }
+        VulkanQueue& getComputeQueue() {
+            return *computeQueue;
+        }
 
-    VulkanQueue& getGraphicsQueue() {
-        return *graphicsQueue;
-    }
+        VulkanQueue& getGraphicsQueue() {
+            return *graphicsQueue;
+        }
 
-    VmaAllocator getVmaAllocator() const {
-        return vulkanAllocator->handle;
-    }
+        VmaAllocator getVmaAllocator() const {
+            return vulkanAllocator->handle;
+        }
 
-    SamplerCache& getSamplerCache();
+        SamplerCache& getSamplerCache();
 
-    VkInstance getVkInstance() const {
-        return vulkanInstance->handle;
-    }
+        VkInstance getVkInstance() const {
+            return vulkanInstance->handle;
+        }
 
-    void setDebugContext(DebugContext* d) {
-        debugContext = d;
-    }
+        VkSurfaceKHR getVkSurface() {
+            return vkSurface->handle;
+        }
 
-    DebugContext* getDebugContext() {
-        return debugContext;
-    }
+        void setDebugContext(DebugContext* d) {
+            debugContext = d;
+        }
 
-    GpuBufferCache& getGpuBufferCache() {
-        return *gpuBufferCache;
-    }
+        DebugContext* getDebugContext() {
+            return debugContext;
+        }
 
-    void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);
+        GpuBufferCache& getGpuBufferCache() {
+            return *gpuBufferCache;
+        }
 
-private:
-    std::unique_ptr<ke::VulkanInstance> vulkanInstance;
-    Window& window;
-    VkDebugReportCallbackEXT debugCallbackHandle = VK_NULL_HANDLE;
+        void submitQueueTransfer(std::shared_ptr<QueueOwnerTransfer> qXfer);
 
-    VkPhysicalDevice vkPhysicalDevice = VK_NULL_HANDLE;
-    ColorFormatAndSpace colorFormatAndSpace{};
-    VkPhysicalDeviceProperties2 vkPhysicalDeviceProps{};
-    VkPhysicalDeviceMemoryProperties2 vkPhysicalDeviceMemoryProps{};
-    QueueFamilies queueFamilies{};
-    std::unique_ptr<ke::VulkanDevice> vkDevice;
-    std::unique_ptr<Swapchain> swapchain;
+    private:
+        std::unique_ptr<ke::VulkanInstance> vulkanInstance;
+        std::unique_ptr<ke::VulkanSurface> vkSurface = nullptr;
+        Window& window;
+        VkDebugReportCallbackEXT debugCallbackHandle = VK_NULL_HANDLE;
 
-    VmaVulkanFunctions vmaVkFunctions{};
-    std::unique_ptr<ke::VulkanAllocator> vulkanAllocator;
+        VkPhysicalDevice vkPhysicalDevice = VK_NULL_HANDLE;
+        ColorFormatAndSpace colorFormatAndSpace{};
+        VkPhysicalDeviceProperties2 vkPhysicalDeviceProps{};
+        VkPhysicalDeviceMemoryProperties2 vkPhysicalDeviceMemoryProps{};
+        QueueFamilies queueFamilies{};
+        std::unique_ptr<ke::VulkanDevice> vkDevice;
+        std::unique_ptr<Swapchain> swapchain;
 
-    uint32_t gfxQueueFamilyIndex = 0;
-    uint32_t compQueueFamilyIndex = 0;
-    uint32_t xferQueueFamilyIndex = 0;
+        VmaVulkanFunctions vmaVkFunctions{};
+        std::unique_ptr<ke::VulkanAllocator> vulkanAllocator;
 
-    std::shared_ptr<VulkanQueue> graphicsQueue;
-    std::shared_ptr<VulkanQueue> computeQueue;
-    std::shared_ptr<VulkanQueue> transferQueue;
+        uint32_t gfxQueueFamilyIndex = 0;
+        uint32_t compQueueFamilyIndex = 0;
+        uint32_t xferQueueFamilyIndex = 0;
 
-    std::vector<std::unique_ptr<RenderPass>> renderPasses;
+        std::shared_ptr<VulkanQueue> graphicsQueue;
+        std::shared_ptr<VulkanQueue> computeQueue;
+        std::shared_ptr<VulkanQueue> transferQueue;
 
-    RenderPassCreator renderPassCreator;
-    PipelineCacheCreator pipelineCacheCreator;
-    SwapchainCreator swapchainCreator;
+        std::vector<std::unique_ptr<RenderPass>> renderPasses;
 
-    std::unique_ptr<CommandPool> commandPool;
-    std::vector<std::unique_ptr<CommandBuffer>> frameCmdBufs;
+        RenderPassCreator renderPassCreator;
+        PipelineCacheCreator pipelineCacheCreator;
+        SwapchainCreator swapchainCreator;
 
-    std::unique_ptr<FrameSyncObjects> frameSync;
+        std::unique_ptr<CommandPool> commandPool;
+        std::vector<std::unique_ptr<CommandBuffer>> frameCmdBufs;
 
-    mutable std::mutex qXferMtx{};
-    std::queue<std::shared_ptr<QueueOwnerTransfer>> vkQueueTransfers;
+        std::unique_ptr<FrameSyncObjects> frameSync;
 
-    mutable std::mutex waitingFenceMtx{};
-    std::unordered_map<std::unique_ptr<ke::VulkanFence>, std::function<void()>> vkFenceActions;
-    std::unique_ptr<GpuBufferCache> gpuBufferCache;
+        mutable std::mutex qXferMtx{};
+        std::queue<std::shared_ptr<QueueOwnerTransfer>> vkQueueTransfers;
 
-    std::unique_ptr<PipelineCache> pipelineCache;
-    std::unique_ptr<SamplerCache> samplerCache;
-    std::unique_ptr<DescriptorSetLayoutCache> descSetLayoutCache;
+        mutable std::mutex waitingFenceMtx{};
+        std::unordered_map<std::unique_ptr<ke::VulkanFence>, std::function<void()>> vkFenceActions;
+        std::unique_ptr<GpuBufferCache> gpuBufferCache;
 
-    DescriptorSetAllocators descSetAllocators;
+        std::unique_ptr<PipelineCache> pipelineCache;
+        std::unique_ptr<SamplerCache> samplerCache;
+        std::unique_ptr<DescriptorSetLayoutCache> descSetLayoutCache;
 
-    uint64_t frameNumber = 0;
+        DescriptorSetAllocators descSetAllocators;
 
-    DebugContext* debugContext = nullptr;
+        uint64_t frameNumber = 0;
 
-    void createVkInstance(bool validationOn);
-    void setupDebugging();
-    void grabFirstPhysicalDevice();
-    void createDevice();
-    void createQueues();
-    void createVmaAllocator();
+        DebugContext* debugContext = nullptr;
 
-    uint32_t acquireImage(uint32_t& pImageIndex);
-    void processFinishedFences();
-};
+        void createVkInstance(bool validationOn);
+        void setupDebugging();
+        void grabFirstPhysicalDevice();
+        void createDevice();
+        void createQueues();
+        void createVmaAllocator();
 
-class FrameSyncObjects {
-private:
-    const VkDevice vkDevice;
+        uint32_t acquireImage(uint32_t& pImageIndex);
+        void processFinishedFences();
+    };
 
-    std::unique_ptr<ke::VulkanFence> frameFences[VulkanContext::FRAME_OVERLAP];
-    std::unique_ptr<ke::VulkanSemaphore> frameSemaphores[VulkanContext::FRAME_OVERLAP];
-    std::unique_ptr<ke::VulkanSemaphore> imageAcquireSemaphores[VulkanContext::FRAME_OVERLAP];
+    class FrameSyncObjects {
+    private:
+        const VkDevice vkDevice;
 
-    void createFences(VkDevice device, std::unique_ptr<ke::VulkanFence>* fences);
-    void createSemaphores(VkDevice device, std::unique_ptr<ke::VulkanSemaphore>* semaphores);
+        std::unique_ptr<ke::VulkanFence> frameFences[VulkanContext::FRAME_OVERLAP];
+        std::unique_ptr<ke::VulkanSemaphore> frameSemaphores[VulkanContext::FRAME_OVERLAP];
+        std::unique_ptr<ke::VulkanSemaphore> imageAcquireSemaphores[VulkanContext::FRAME_OVERLAP];
 
-public:
-    FrameSyncObjects(VkDevice vkDevice) : vkDevice(vkDevice) {}
+        void createFences(VkDevice device, std::unique_ptr<ke::VulkanFence>* fences);
+        void createSemaphores(VkDevice device, std::unique_ptr<ke::VulkanSemaphore>* semaphores);
 
-    ~FrameSyncObjects() = default;
+    public:
+        FrameSyncObjects(VkDevice vkDevice) : vkDevice(vkDevice) {}
 
-    void init();
+        ~FrameSyncObjects() = default;
 
-    VkFence getFrameFence(uint32_t i) const {
-        return frameFences[i]->handle;
-    }
+        void init();
 
-    VkSemaphore getFrameSemaphore(uint32_t i) const {
-        return frameSemaphores[i]->handle;
-    }
+        VkFence getFrameFence(uint32_t i) const {
+            return frameFences[i]->handle;
+        }
 
-    VkSemaphore getImageAcquireSemaphore(uint32_t i) const {
-        return imageAcquireSemaphores[i]->handle;
-    }
-};
+        VkSemaphore getFrameSemaphore(uint32_t i) const {
+            return frameSemaphores[i]->handle;
+        }
+
+        VkSemaphore getImageAcquireSemaphore(uint32_t i) const {
+            return imageAcquireSemaphores[i]->handle;
+        }
+    };
+} // namespace ke

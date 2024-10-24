@@ -10,18 +10,18 @@
 #include <kengine/ecs/World.hpp>
 #include <kengine/vulkan/mesh/ModelConfig.hpp>
 
-MainGameState::MainGameState(World& world) :
+MainGameState::MainGameState(ke::World& world) :
     world(world),
-    window(*world.getService<Window>()),
-    workerPool(*world.getService<ExecutorService>()),
-    vkContext(*world.getService<VulkanContext>()),
-    renderContext(*world.getService<RenderContext>()),
-    sceneTime(*world.getService<SceneTime>()) {}
+    window(*world.getService<ke::Window>()),
+    workerPool(*world.getService<ke::ExecutorService>()),
+    vkContext(*world.getService<ke::VulkanContext>()),
+    renderContext(*world.getService<ke::RenderContext>()),
+    sceneTime(*world.getService<ke::SceneTime>()) {}
 
 void MainGameState::init() {
 }
 
-void MainGameState::enter(Game& parent) {
+void MainGameState::enter(ke::Game& parent) {
     glfwShowWindow(window.getWindow());
 }
 
@@ -64,7 +64,7 @@ void MainGameState::enter(Game& parent) {
 //    ecs->emplace<Component::Material>(entity, materialConfig);
 //}
 
-void MainGameState::update(Game& parent) {
+void MainGameState::update(ke::Game& parent) {
     auto delta = parent.getDelta();
 
     accumulator += delta;
@@ -91,5 +91,5 @@ void MainGameState::update(Game& parent) {
     world.getSystem<RenderSystem>()->processSystem(alpha);
 }
 
-void MainGameState::exit(Game& parent) {
+void MainGameState::exit(ke::Game& parent) {
 }

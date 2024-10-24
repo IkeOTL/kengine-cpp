@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <kengine/Logger.hpp>
 
-namespace kengine {
+namespace ke {
     class ProfileNode {
     public:
         ProfileNode(const std::string& name)

@@ -9,57 +9,55 @@
 
 class ImGuiIO;
 
-class Window {
-public:
-    using WindowResizeListener = std::function<void(GLFWwindow*, int, int)>;
+namespace ke {
 
-private:
-    GLFWwindow* window;
-    std::unique_ptr<ke::VulkanSurface> vkSurface = nullptr;
+    class Window {
+    public:
+        using WindowResizeListener = std::function<void(GLFWwindow*, int, int)>;
 
-    unsigned int width, height;
-    uint64_t lastMouseMove = 0L;
+    private:
+        GLFWwindow* window;
 
-    InputManager* inputManager = nullptr;
+        unsigned int width, height;
+        uint64_t lastMouseMove = 0L;
 
-    ImGuiIO* imGuiIO = nullptr;
+        InputManager* inputManager = nullptr;
 
-    std::vector<WindowResizeListener*> resizeListeners;
+        ImGuiIO* imGuiIO = nullptr;
 
-public:
-    Window(std::string title, unsigned int width, unsigned int height);
-    ~Window();
+        std::vector<WindowResizeListener*> resizeListeners;
 
-    static inline std::unique_ptr<Window> create(std::string title, unsigned int width, unsigned int height) {
-        return std::make_unique<Window>(title, width, height);
-    }
+    public:
+        Window(std::string title, unsigned int width, unsigned int height);
+        ~Window();
 
-    void createSurface(VkInstance vkInstance);
-    void registerResizeListener(WindowResizeListener* listener);
+        static inline std::unique_ptr<Window> create(std::string title, unsigned int width, unsigned int height) {
+            return std::make_unique<Window>(title, width, height);
+        }
 
-    void pollEvents();
+        std::unique_ptr<VulkanSurface> createSurface(VkInstance vkInstance);
+        void registerResizeListener(WindowResizeListener* listener);
 
-    GLFWwindow* getWindow() {
-        return window;
-    }
+        void pollEvents();
 
-    VkSurfaceKHR getVkSurface() {
-        return vkSurface->handle;
-    }
+        GLFWwindow* getWindow() {
+            return window;
+        }
 
-    void setImGuiIO(ImGuiIO* ptr) {
-        imGuiIO = ptr;
-    }
+        void setImGuiIO(ImGuiIO* ptr) {
+            imGuiIO = ptr;
+        }
 
-    void setInputManager(InputManager* im) {
-        inputManager = im;
-    }
+        void setInputManager(InputManager* im) {
+            inputManager = im;
+        }
 
-    unsigned int getWidth() const {
-        return width;
-    }
+        unsigned int getWidth() const {
+            return width;
+        }
 
-    unsigned int getHeight() const {
-        return height;
-    }
-};
+        unsigned int getHeight() const {
+            return height;
+        }
+    };
+} // namespace ke

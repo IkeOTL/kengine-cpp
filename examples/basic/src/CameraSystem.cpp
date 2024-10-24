@@ -3,7 +3,7 @@
 #include "BasicCameraController.hpp"
 
 void CameraSystem::init() {
-    cameraController = getService<CameraController>();
+    cameraController = getService<ke::CameraController>();
 }
 
 void CameraSystem::processSystem(float delta) {
