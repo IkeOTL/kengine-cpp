@@ -49,7 +49,7 @@
 
 
 BasicGameTest::~BasicGameTest() {
-   // textureCache.reset();
+    // textureCache.reset();
 }
 
 float BasicGameTest::getDelta() {
@@ -71,6 +71,7 @@ void BasicGameTest::run() {
         FrameMark;
 
         if (inputManager->isKeyDown(GLFW_KEY_ESCAPE)) {
+            threadPool.reset();
             vkDeviceWaitIdle(vulkanCxt->getVkDevice());
             break;
         }
@@ -80,7 +81,7 @@ void BasicGameTest::run() {
         lastFrame = newTime;
 
         // cap delta
-        delta = math::min(delta, .2f);
+        delta = ke::math::min(delta, .2f);
 
         sm.update();
     }
@@ -89,45 +90,45 @@ void BasicGameTest::run() {
     //renderThread.join();
 }
 
-std::unique_ptr<State<Game>> BasicGameTest::init() {
-    window = Window::create("rawr", 1920, 1080);
-    inputManager = InputManager::create();
+std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
+    window = ke::Window::create("rawr", 1920, 1080);
+    inputManager = ke::InputManager::create();
     window->setInputManager(inputManager.get());
 
-    initVulkan();
+    initVulkan(*window);
 
     // review this usage
-    threadPool.reset(new ExecutorService(4, [&]() {
+    threadPool.reset(new ke::ExecutorService(4, [&]() {
         vulkanCxt->getCommandPool()->initThread(*vulkanCxt);
         }));
 
-    debugContext = DebugContext::create();
+    debugContext = ke::DebugContext::create();
     initCamera(*inputManager, *debugContext);
 
     vulkanCxt->setDebugContext(debugContext.get());
 
-    djm = DeferredJobManager::create();
+    djm = ke::DeferredJobManager::create();
 
-    assetIo = FileSystemAssetIO::create();
-    lightsManager = LightsManager::create(*cameraController);
-    sceneTime = std::make_unique<SceneTime>();
-    sceneGraph = SceneGraph::create();
-    spatialPartitioningManager = SpatialPartitioningManager::create();
-    skeletonManager = SkeletonManager::create(*vulkanCxt);
+    assetIo = ke::FileSystemAssetIO::create();
+    lightsManager = ke::LightsManager::create(*cameraController);
+    sceneTime = std::make_unique<ke::SceneTime>();
+    sceneGraph = ke::SceneGraph::create();
+    spatialPartitioningManager = ke::SpatialPartitioningManager::create();
+    skeletonManager = ke::SkeletonManager::create(*vulkanCxt);
 
-    eventBus = EventBus::create(*sceneTime);
+    eventBus = ke::EventBus::create(*sceneTime);
     //eventBus->registerHandler([](const auto& evt, auto& w) {});
 
-    spatialPartitioningManager->setSpatialGrid(SpatialGrid::create(64, 64, 16));
+    spatialPartitioningManager->setSpatialGrid(ke::SpatialGrid::create(64, 64, 16));
 
-    modelFactory = GltfModelFactory::create(*vulkanCxt, *assetIo);
+    modelFactory = ke::GltfModelFactory::create(*vulkanCxt, *assetIo);
 
-    modelCache = AsyncModelCache::create(*modelFactory, *threadPool);
-    animationFactory = GltfAnimationFactory::create(*vulkanCxt, *assetIo);
-    animationCache = AsyncAnimationCache::create(*animationFactory, *threadPool);
-    textureFactory = TextureFactory::create(*vulkanCxt, *assetIo);
-    textureCache = AsyncTextureCache::create(*textureFactory, *threadPool);
-    materialCache = AsyncMaterialCache::create(vulkanCxt->getPipelineCache(), *textureCache, vulkanCxt->getGpuBufferCache(), *threadPool);
+    modelCache = ke::AsyncModelCache::create(*modelFactory, *threadPool);
+    animationFactory = ke::GltfAnimationFactory::create(*vulkanCxt, *assetIo);
+    animationCache = ke::AsyncAnimationCache::create(*animationFactory, *threadPool);
+    textureFactory = ke::TextureFactory::create(*vulkanCxt, *assetIo);
+    textureCache = ke::AsyncTextureCache::create(*textureFactory, *threadPool);
+    materialCache = ke::AsyncMaterialCache::create(vulkanCxt->getPipelineCache(), *textureCache, vulkanCxt->getGpuBufferCache(), *threadPool);
 
     myPlayerContext = MyPlayerContext::create();
     playerMovementManager = PlayerMovementManager::create();
@@ -135,16 +136,16 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
     imGuiContext->init(*window);
 
-    terrainContext = std::make_unique<TerrainContext>(*materialCache);
+    terrainContext = std::make_unique<ke::TerrainContext>(*materialCache);
 
-    renderContext = RenderContext::create(*vulkanCxt, *lightsManager, *cameraController);
+    renderContext = ke::RenderContext::create(*vulkanCxt, *lightsManager, *cameraController);
     renderContext->init(terrainContext.get());
     renderContext->setImGuiContext(imGuiContext.get());
 
     physicsContext = PhysicsContext::create();
     physicsContext->init();
 
-    world = World::create(WorldConfig()
+    world = ke::World::create(ke::WorldConfig()
         // injectable objects. order doesnt matter
         .addService(&ecs)
         .addService(debugContext.get())
@@ -232,12 +233,12 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
             //entity
             auto* ecs = world->getService<entt::registry>();
-            auto modelConfig = ModelConfig::create("gltf/smallcube.glb",
-                VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
-                | VertexAttribute::TANGENTS
+            auto modelConfig = ke::ModelConfig::create("gltf/smallcube.glb",
+                ke::VertexAttribute::POSITION | ke::VertexAttribute::NORMAL | ke::VertexAttribute::TEX_COORDS
+                | ke::VertexAttribute::TANGENTS
             );
 
-            auto materialConfig = PbrMaterialConfig::create();
+            auto materialConfig = ke::PbrMaterialConfig::create();
             materialConfig->setHasShadow(true);
 
             auto entity = ecs->create();
@@ -258,9 +259,9 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
 
         // falling block
         {
-            auto modelConfig = ModelConfig::create("gltf/smallcube.glb",
-                VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
-                | VertexAttribute::TANGENTS
+            auto modelConfig = ke::ModelConfig::create("gltf/smallcube.glb",
+                ke::VertexAttribute::POSITION | ke::VertexAttribute::NORMAL | ke::VertexAttribute::TEX_COORDS
+                | ke::VertexAttribute::TANGENTS
             );
 
             // physics
@@ -270,7 +271,7 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
             JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
             auto& shape = shapeResult.Get();
 
-            auto materialConfig = PbrMaterialConfig::create();
+            auto materialConfig = ke::PbrMaterialConfig::create();
             materialConfig->setHasShadow(true);
 
             auto xCount = 4;
@@ -379,69 +380,70 @@ std::unique_ptr<State<Game>> BasicGameTest::init() {
     return std::make_unique<MainGameState>(*world);
 }
 
-void BasicGameTest::initVulkan() {
-    vulkanCxt = VulkanContext::create(
-        [](VkDevice vkDevice, ColorFormatAndSpace& cfs) {
-            std::vector<std::unique_ptr<RenderPass>> passes;
-            passes.emplace_back(DeferredPbrRenderPass::create(vkDevice, cfs));
-            passes.emplace_back(CascadeShadowMapRenderPass::create(vkDevice, cfs));
+void BasicGameTest::initVulkan(ke::Window& window) {
+    vulkanCxt = ke::VulkanContext::create(
+        window,
+        [](VkDevice vkDevice, ke::ColorFormatAndSpace& cfs) {
+            std::vector<std::unique_ptr<ke::RenderPass>> passes;
+            passes.emplace_back(ke::DeferredPbrRenderPass::create(vkDevice, cfs));
+            passes.emplace_back(ke::CascadeShadowMapRenderPass::create(vkDevice, cfs));
             return passes;
         },
-        [](VulkanContext& vkCtx, std::vector<std::unique_ptr<RenderPass>>& rp) {
-            auto pc = PipelineCache::create();
+        [](ke::VulkanContext& vkCtx, std::vector<std::unique_ptr<ke::RenderPass>>& rp) {
+            auto pc = ke::PipelineCache::create(vkCtx.getVkDevice());
 
-            pc->createPipeline<DeferredOffscreenPbrPipeline>()
+            pc->createPipeline<ke::DeferredOffscreenPbrPipeline>()
                 .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            pc->createPipeline<SkinnedOffscreenPbrPipeline>()
+            pc->createPipeline<ke::SkinnedOffscreenPbrPipeline>()
                 .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            pc->createPipeline<DeferredCompositionPbrPipeline>()
+            pc->createPipeline<ke::DeferredCompositionPbrPipeline>()
                 .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            pc->createPipeline<CascadeShadowMapPipeline>()
+            pc->createPipeline<ke::CascadeShadowMapPipeline>()
                 .init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
 
-            pc->createPipeline<SkinnedCascadeShadowMapPipeline>()
+            pc->createPipeline<ke::SkinnedCascadeShadowMapPipeline>()
                 .init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
 
-            pc->createPipeline<PreDrawCullingPipeline>()
+            pc->createPipeline<ke::PreDrawCullingPipeline>()
                 .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            pc->createPipeline<DrawCullingPipeline>()
+            pc->createPipeline<ke::DrawCullingPipeline>()
                 .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
             // terrain
-            pc->createPipeline<TerrainPreDrawCullingPipeline>()
+            pc->createPipeline<ke::TerrainPreDrawCullingPipeline>()
                 .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            pc->createPipeline<TerrainDrawCullingPipeline>()
+            pc->createPipeline<ke::TerrainDrawCullingPipeline>()
                 .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
-            pc->createPipeline<TerrainDeferredOffscreenPbrPipeline>()
+            pc->createPipeline<ke::TerrainDeferredOffscreenPbrPipeline>()
                 .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
 #ifdef KE_DEBUG_RENDER
-            pc->createPipeline<DebugDeferredOffscreenPbrPipeline>()
+            pc->createPipeline<ke::DebugDeferredOffscreenPbrPipeline>()
                 .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 #endif
 
             return pc;
         },
-        [](VulkanContext& vkCxt, Swapchain& swapchain, std::vector<std::unique_ptr<RenderPass>>& renderPasses) {
+        [](ke::VulkanContext& vkCxt, ke::Swapchain& swapchain, std::vector<std::unique_ptr<ke::RenderPass>>& renderPasses) {
             auto& rp = renderPasses[0];
             auto sc = vkCxt.getSwapchain();
             rp->createRenderTargets(vkCxt.getVmaAllocator(), sc->getImageViews(), sc->getExtents());
         }
     );
 
-    vulkanCxt->init(*window, true);
+    vulkanCxt->init(true);
 }
 
-void BasicGameTest::initCamera(InputManager& inputManager, DebugContext& dbg) {
+void BasicGameTest::initCamera(ke::InputManager& inputManager, ke::DebugContext& dbg) {
     auto fov = glm::radians(60.0f);
     auto aspectRatio = (float)window->getWidth() / window->getHeight();
-    auto camera = Camera::create(fov, aspectRatio, Camera::NEAR_CLIP, Camera::FAR_CLIP);
+    auto camera = ke::Camera::create(fov, aspectRatio, ke::Camera::NEAR_CLIP, ke::Camera::FAR_CLIP);
 
     camera->setPosition(glm::vec3(5, 7, 5));
 
@@ -459,7 +461,7 @@ void TestGui::draw() {
     ImGui::Text(std::to_string(debugCtx.getIntValue("spatialGridVisibleEntities")).c_str());
 
     if (ImGui::Button("Toggle Debug Geometry"))
-        EngineConfig::getInstance().setDebugRenderingEnabled(!EngineConfig::getInstance().isDebugRenderingEnabled());
+        ke::EngineConfig::getInstance().setDebugRenderingEnabled(!ke::EngineConfig::getInstance().isDebugRenderingEnabled());
 
     // physics
     {

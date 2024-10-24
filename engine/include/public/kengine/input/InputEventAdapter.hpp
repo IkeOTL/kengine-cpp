@@ -4,152 +4,154 @@
 #include <vector>
 #include <functional>
 
-namespace EventHandler {
-    using KeyDownEventHandler = std::function<bool(GLFWwindow* window, int key, int action, int mods)>;
-    using KeyRepeatEventHandler = std::function<bool(GLFWwindow* window, int key, int action, int mods)>;
-    using KeyUpEventHandler = std::function<bool(GLFWwindow* window, int key, int action, int mods)>;
+namespace ke {
+    namespace EventHandler {
+        using KeyDownEventHandler = std::function<bool(GLFWwindow* window, int key, int action, int mods)>;
+        using KeyRepeatEventHandler = std::function<bool(GLFWwindow* window, int key, int action, int mods)>;
+        using KeyUpEventHandler = std::function<bool(GLFWwindow* window, int key, int action, int mods)>;
 
-    using ButtonDownEventHandler = std::function<bool(GLFWwindow* window, int button, int x, int y, int mods)>;
-    using ButtonUpEventHandler = std::function<bool(GLFWwindow* window, int button, int x, int y, int mods)>;
+        using ButtonDownEventHandler = std::function<bool(GLFWwindow* window, int button, int x, int y, int mods)>;
+        using ButtonUpEventHandler = std::function<bool(GLFWwindow* window, int button, int x, int y, int mods)>;
 
-    using MoveEventHandler = std::function<bool(GLFWwindow* window, int x, int y, int deltaX, int deltaY)>;
-    using DragEventHandler = std::function<bool(GLFWwindow* window, int x, int y, int deltaX, int deltaY)>;
-    using EnterEventHandler = std::function<bool(GLFWwindow* window, int x, int y)>;
-    using ExitEventHandler = std::function<bool(GLFWwindow* window, int x, int y)>;
-}
-
-using namespace EventHandler;
-class KeyEventAdapter : public KeyEventListener {
-private:
-    std::vector<KeyDownEventHandler> onKeyDownHandlers;
-    std::vector<KeyUpEventHandler> onKeyUpHandlers;
-    std::vector<KeyRepeatEventHandler> onKeyRepeatHandlers;
-
-protected:
-    InputManager& inputManager;
-
-public:
-    KeyEventAdapter(InputManager& inputManager) : inputManager(inputManager) {}
-
-    bool onKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) override;
-
-    bool onKeyDown(GLFWwindow* window, int key, int action, int mods);
-    bool onKeyUp(GLFWwindow* window, int key, int action, int mods);
-    bool onKeyRepeat(GLFWwindow* window, int key, int action, int mods);
-
-    void addKeyDownHandler(KeyDownEventHandler e) {
-        onKeyDownHandlers.push_back(e);
+        using MoveEventHandler = std::function<bool(GLFWwindow* window, int x, int y, int deltaX, int deltaY)>;
+        using DragEventHandler = std::function<bool(GLFWwindow* window, int x, int y, int deltaX, int deltaY)>;
+        using EnterEventHandler = std::function<bool(GLFWwindow* window, int x, int y)>;
+        using ExitEventHandler = std::function<bool(GLFWwindow* window, int x, int y)>;
     }
 
-    void addKeyUpHandler(KeyUpEventHandler e) {
-        onKeyUpHandlers.push_back(e);
-    }
+    using namespace EventHandler;
+    class KeyEventAdapter : public KeyEventListener {
+    private:
+        std::vector<KeyDownEventHandler> onKeyDownHandlers;
+        std::vector<KeyUpEventHandler> onKeyUpHandlers;
+        std::vector<KeyRepeatEventHandler> onKeyRepeatHandlers;
 
-    void addKeyRepeatHandler(KeyRepeatEventHandler e) {
-        onKeyRepeatHandlers.push_back(e);
-    }
-};
+    protected:
+        InputManager& inputManager;
 
-class MouseEventAdapter : public MouseEventListener {
-private:
-    std::vector<ButtonDownEventHandler> onButtonDownHandlers;
-    std::vector<ButtonUpEventHandler> onButtonUpHandlers;
-    std::vector<MoveEventHandler> onMoveHandlers;
-    std::vector<DragEventHandler> onDragHandlers;
+    public:
+        KeyEventAdapter(InputManager& inputManager) : inputManager(inputManager) {}
 
-protected:
-    InputManager& inputManager;
+        bool onKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) override;
 
-    bool dragging = false;
-    int lastMousePosX = 0, lastMousePosY = 0;
+        bool onKeyDown(GLFWwindow* window, int key, int action, int mods);
+        bool onKeyUp(GLFWwindow* window, int key, int action, int mods);
+        bool onKeyRepeat(GLFWwindow* window, int key, int action, int mods);
 
-public:
-    MouseEventAdapter(InputManager& inputManager) : inputManager(inputManager) {}
+        void addKeyDownHandler(KeyDownEventHandler e) {
+            onKeyDownHandlers.push_back(e);
+        }
 
-    bool onMoveEvent(GLFWwindow* window, double x, double y) override;
-    bool onButtonEvent(GLFWwindow* window, int button, int action, int mods) override;
+        void addKeyUpHandler(KeyUpEventHandler e) {
+            onKeyUpHandlers.push_back(e);
+        }
 
-    bool onDrag(GLFWwindow* window, int x, int y, int deltaX, int deltaY);
-    bool onMove(GLFWwindow* window, int x, int y, int deltaX, int deltaY);
-    bool onButtonDown(GLFWwindow* window, int button, int x, int y, int mods);
-    bool onButtonUp(GLFWwindow* window, int button, int x, int y, int mods);
+        void addKeyRepeatHandler(KeyRepeatEventHandler e) {
+            onKeyRepeatHandlers.push_back(e);
+        }
+    };
 
-    void addButtonDownHandler(ButtonDownEventHandler e) {
-        onButtonDownHandlers.push_back(e);
-    }
+    class MouseEventAdapter : public MouseEventListener {
+    private:
+        std::vector<ButtonDownEventHandler> onButtonDownHandlers;
+        std::vector<ButtonUpEventHandler> onButtonUpHandlers;
+        std::vector<MoveEventHandler> onMoveHandlers;
+        std::vector<DragEventHandler> onDragHandlers;
 
-    void addButtonUpHandler(ButtonUpEventHandler e) {
-        onButtonUpHandlers.push_back(e);
-    }
+    protected:
+        InputManager& inputManager;
 
-    void addMoveHandler(MoveEventHandler e) {
-        onMoveHandlers.push_back(e);
-    }
+        bool dragging = false;
+        int lastMousePosX = 0, lastMousePosY = 0;
 
-    void addDragHandler(DragEventHandler e) {
-        onDragHandlers.push_back(e);
-    }
-};
+    public:
+        MouseEventAdapter(InputManager& inputManager) : inputManager(inputManager) {}
 
-class InputEventAdapter : public MouseEventListener, public KeyEventListener {
-private:
-    std::vector<KeyDownEventHandler> onKeyDownHandlers;
-    std::vector<KeyUpEventHandler> onKeyUpHandlers;
-    std::vector<KeyRepeatEventHandler> onKeyRepeatHandlers;
+        bool onMoveEvent(GLFWwindow* window, double x, double y) override;
+        bool onButtonEvent(GLFWwindow* window, int button, int action, int mods) override;
 
-    std::vector<ButtonDownEventHandler> onButtonDownHandlers;
-    std::vector<ButtonUpEventHandler> onButtonUpHandlers;
-    std::vector<MoveEventHandler> onMoveHandlers;
-    std::vector<DragEventHandler> onDragHandlers;
+        bool onDrag(GLFWwindow* window, int x, int y, int deltaX, int deltaY);
+        bool onMove(GLFWwindow* window, int x, int y, int deltaX, int deltaY);
+        bool onButtonDown(GLFWwindow* window, int button, int x, int y, int mods);
+        bool onButtonUp(GLFWwindow* window, int button, int x, int y, int mods);
 
-protected:
-    InputManager& inputManager;
+        void addButtonDownHandler(ButtonDownEventHandler e) {
+            onButtonDownHandlers.push_back(e);
+        }
 
-    bool dragging = false;
-    int lastMousePosX = 0, lastMousePosY = 0;
+        void addButtonUpHandler(ButtonUpEventHandler e) {
+            onButtonUpHandlers.push_back(e);
+        }
 
-public:
-    InputEventAdapter(InputManager& inputManager) : inputManager(inputManager) {}
+        void addMoveHandler(MoveEventHandler e) {
+            onMoveHandlers.push_back(e);
+        }
 
-    bool onKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) override;
+        void addDragHandler(DragEventHandler e) {
+            onDragHandlers.push_back(e);
+        }
+    };
 
-    bool onMoveEvent(GLFWwindow* window, double x, double y) override;
-    bool onButtonEvent(GLFWwindow* window, int button, int action, int mods) override;
+    class InputEventAdapter : public MouseEventListener, public KeyEventListener {
+    private:
+        std::vector<KeyDownEventHandler> onKeyDownHandlers;
+        std::vector<KeyUpEventHandler> onKeyUpHandlers;
+        std::vector<KeyRepeatEventHandler> onKeyRepeatHandlers;
 
-    bool onKeyDown(GLFWwindow* window, int key, int action, int mods);
-    bool onKeyUp(GLFWwindow* window, int key, int action, int mods);
-    bool onKeyRepeat(GLFWwindow* window, int key, int action, int mods);
+        std::vector<ButtonDownEventHandler> onButtonDownHandlers;
+        std::vector<ButtonUpEventHandler> onButtonUpHandlers;
+        std::vector<MoveEventHandler> onMoveHandlers;
+        std::vector<DragEventHandler> onDragHandlers;
 
-    bool onDrag(GLFWwindow* window, int x, int y, int deltaX, int deltaY);
-    bool onMove(GLFWwindow* window, int x, int y, int deltaX, int deltaY);
-    bool onButtonDown(GLFWwindow* window, int button, int x, int y, int mods);
-    bool onButtonUp(GLFWwindow* window, int button, int x, int y, int mods);
+    protected:
+        InputManager& inputManager;
 
-    void addKeyDownHandler(KeyDownEventHandler e) {
-        onKeyDownHandlers.push_back(e);
-    }
+        bool dragging = false;
+        int lastMousePosX = 0, lastMousePosY = 0;
 
-    void addKeyUpHandler(KeyUpEventHandler e) {
-        onKeyUpHandlers.push_back(e);
-    }
+    public:
+        InputEventAdapter(InputManager& inputManager) : inputManager(inputManager) {}
 
-    void addKeyRepeatHandler(KeyRepeatEventHandler e) {
-        onKeyRepeatHandlers.push_back(e);
-    }
+        bool onKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) override;
 
-    void addButtonDownHandler(ButtonDownEventHandler e) {
-        onButtonDownHandlers.push_back(e);
-    }
+        bool onMoveEvent(GLFWwindow* window, double x, double y) override;
+        bool onButtonEvent(GLFWwindow* window, int button, int action, int mods) override;
 
-    void addButtonUpHandler(ButtonUpEventHandler e) {
-        onButtonUpHandlers.push_back(e);
-    }
+        bool onKeyDown(GLFWwindow* window, int key, int action, int mods);
+        bool onKeyUp(GLFWwindow* window, int key, int action, int mods);
+        bool onKeyRepeat(GLFWwindow* window, int key, int action, int mods);
 
-    void addMoveHandler(MoveEventHandler e) {
-        onMoveHandlers.push_back(e);
-    }
+        bool onDrag(GLFWwindow* window, int x, int y, int deltaX, int deltaY);
+        bool onMove(GLFWwindow* window, int x, int y, int deltaX, int deltaY);
+        bool onButtonDown(GLFWwindow* window, int button, int x, int y, int mods);
+        bool onButtonUp(GLFWwindow* window, int button, int x, int y, int mods);
 
-    void addDragHandler(DragEventHandler e) {
-        onDragHandlers.push_back(e);
-    }
-};
+        void addKeyDownHandler(KeyDownEventHandler e) {
+            onKeyDownHandlers.push_back(e);
+        }
+
+        void addKeyUpHandler(KeyUpEventHandler e) {
+            onKeyUpHandlers.push_back(e);
+        }
+
+        void addKeyRepeatHandler(KeyRepeatEventHandler e) {
+            onKeyRepeatHandlers.push_back(e);
+        }
+
+        void addButtonDownHandler(ButtonDownEventHandler e) {
+            onButtonDownHandlers.push_back(e);
+        }
+
+        void addButtonUpHandler(ButtonUpEventHandler e) {
+            onButtonUpHandlers.push_back(e);
+        }
+
+        void addMoveHandler(MoveEventHandler e) {
+            onMoveHandlers.push_back(e);
+        }
+
+        void addDragHandler(DragEventHandler e) {
+            onDragHandlers.push_back(e);
+        }
+    };
+} // namespace ke

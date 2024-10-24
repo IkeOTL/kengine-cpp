@@ -1,19 +1,21 @@
 #pragma once
 #include <kengine/ecs/EcsSystem.hpp>
 
-class World;
-class SceneGraph;
-class Transform;
-class ExecutorService;
-class AsyncModelCache;
-class SpatialPartitioningManager;
+namespace ke {
+    class World;
+    class SceneGraph;
+    class Transform;
+    class ExecutorService;
+    class AsyncModelCache;
+    class SpatialPartitioningManager;
+}
 
-class SpatialGridUpdateSystem : public EcsSystem {
+class SpatialGridUpdateSystem : public ke::EcsSystem {
 private:
-    ExecutorService* executorService = nullptr;
-    SceneGraph* sceneGraph = nullptr;
-    AsyncModelCache* modelCache = nullptr;
-    SpatialPartitioningManager* spatialPartitioning = nullptr;
+    ke::ExecutorService* executorService = nullptr;
+    ke::SceneGraph* sceneGraph = nullptr;
+    ke::AsyncModelCache* modelCache = nullptr;
+    ke::SpatialPartitioningManager* spatialPartitioning = nullptr;
 
 public:
     SpatialGridUpdateSystem() = default;

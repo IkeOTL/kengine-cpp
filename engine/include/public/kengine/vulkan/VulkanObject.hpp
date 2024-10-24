@@ -3,89 +3,142 @@
 #include <kengine/vulkan/VmaInclude.hpp>
 
 namespace ke {
-    class VulkanInstance {
-    private:
-        const VkInstance vkInstance;
-
+    template<class T>
+    class HandleWrapper {
     public:
-        VulkanInstance(VkInstance vkInstance)
-            : vkInstance(vkInstance) {}
+        const T handle;
 
-        inline static std::unique_ptr<VulkanInstance> create(VkInstance vkInstance) {
-            return std::make_unique<VulkanInstance>(vkInstance);
-        }
+        HandleWrapper(T handle)
+            : handle(handle) {}
 
-        VkInstance getVkInstance() const {
-            return vkInstance;
-        }
+        virtual ~HandleWrapper() = default;
+    };
+
+    class VulkanInstance : public HandleWrapper<VkInstance> {
+    public:
+        VulkanInstance(VkInstance handle)
+            : HandleWrapper(handle) {}
 
         ~VulkanInstance() {
-            vkDestroyInstance(vkInstance, nullptr);
+            vkDestroyInstance(handle, nullptr);
         }
     };
 
-    class VulkanAllocator {
+    class VulkanSurface : public HandleWrapper<VkSurfaceKHR> {
     private:
-        const VmaAllocator vmaAllocator;
-
+        const VkInstance vkInstance;
     public:
-        VulkanAllocator(VmaAllocator vmaAllocator)
-            : vmaAllocator(vmaAllocator) {}
+        VulkanSurface(VkInstance vkInstance, VkSurfaceKHR handle)
+            : HandleWrapper(handle), vkInstance(vkInstance) {}
 
-        inline static std::unique_ptr<VulkanAllocator> create(VmaAllocator vmaAllocator) {
-            return std::make_unique<VulkanAllocator>(vmaAllocator);
+        ~VulkanSurface() {
+            vkDestroySurfaceKHR(vkInstance, handle, nullptr);
         }
+    };
 
-        VmaAllocator getVmaAllocator() const {
-            return vmaAllocator;
+    class VulkanDevice : public HandleWrapper<VkDevice> {
+    public:
+        VulkanDevice(VkDevice handle)
+            : HandleWrapper(handle) {}
+
+        ~VulkanDevice() {
+            vkDestroyDevice(handle, nullptr);
         }
+    };
+
+    class VulkanAllocator : public HandleWrapper<VmaAllocator> {
+    public:
+        VulkanAllocator(VmaAllocator handle)
+            : HandleWrapper(handle) {}
 
         ~VulkanAllocator() {
-            vmaDestroyAllocator(vmaAllocator);
+            vmaDestroyAllocator(handle);
         }
     };
 
-    class VulkanSemaphore {
+    class VulkanSemaphore : public HandleWrapper<VkSemaphore> {
     private:
         const VkDevice vkDevice;
-        const VkSemaphore vkSemaphore;
 
     public:
-        VulkanSemaphore(VkDevice vkDevice, VkSemaphore vkSemaphore)
-            : vkDevice(vkDevice), vkSemaphore(vkSemaphore) {}
+        VulkanSemaphore(VkDevice vkDevice, VkSemaphore handle)
+            : HandleWrapper(handle), vkDevice(vkDevice) {}
 
-        inline static std::unique_ptr<VulkanSemaphore> create(VkDevice vkDevice, VkSemaphore vkSemaphore) {
-            return std::make_unique<VulkanSemaphore>(vkDevice, vkSemaphore);
-        }
-
-        VkSemaphore getVkSemaphore() const {
-            return vkSemaphore;
+        inline static std::unique_ptr<VulkanSemaphore> create(VkDevice vkDevice, VkSemaphore handle) {
+            return std::make_unique<VulkanSemaphore>(vkDevice, handle);
         }
 
         ~VulkanSemaphore() {
-            vkDestroySemaphore(vkDevice, vkSemaphore, nullptr);
+            vkDestroySemaphore(vkDevice, handle, nullptr);
         }
     };
 
-    class VulkanFence {
+    class VulkanFence : public HandleWrapper<VkFence> {
     private:
         const VkDevice vkDevice;
-        const VkFence vkFence;
 
     public:
-        VulkanFence(VkDevice vkDevice, VkFence vkFence)
-            : vkDevice(vkDevice), vkFence(vkFence) {}
+        VulkanFence(VkDevice vkDevice, VkFence handle)
+            : HandleWrapper(handle), vkDevice(vkDevice) {}
 
-        inline static std::unique_ptr<VulkanFence> create(VkDevice vkDevice, VkFence vkFence) {
-            return std::make_unique<VulkanFence>(vkDevice, vkFence);
-        }
-
-        VkFence getVkFence() const {
-            return vkFence;
+        inline static std::unique_ptr<VulkanFence> create(VkDevice vkDevice, VkFence handle) {
+            return std::make_unique<VulkanFence>(vkDevice, handle);
         }
 
         ~VulkanFence() {
-            vkDestroyFence(vkDevice, vkFence, nullptr);
+            vkDestroyFence(vkDevice, handle, nullptr);
         }
     };
-}
+
+    class VulkanCommandPool : public HandleWrapper<VkCommandPool> {
+    private:
+        const VkDevice vkDevice;
+
+    public:
+        VulkanCommandPool(VkDevice vkDevice, VkCommandPool handle)
+            : HandleWrapper(handle), vkDevice(vkDevice) {}
+
+        ~VulkanCommandPool() {
+            vkDestroyCommandPool(vkDevice, handle, nullptr);
+        }
+    };
+
+    class VulkanSampler : public HandleWrapper<VkSampler> {
+    private:
+        const VkDevice vkDevice;
+
+    public:
+        VulkanSampler(VkDevice vkDevice, VkSampler handle)
+            : HandleWrapper(handle), vkDevice(vkDevice) {}
+
+        ~VulkanSampler() {
+            vkDestroySampler(vkDevice, handle, nullptr);
+        }
+    };
+
+    class VulkanShaderModule : public HandleWrapper<VkShaderModule> {
+    private:
+        const VkDevice vkDevice;
+
+    public:
+        VulkanShaderModule(VkDevice vkDevice, VkShaderModule handle)
+            : HandleWrapper(handle), vkDevice(vkDevice) {}
+
+        ~VulkanShaderModule() {
+            vkDestroyShaderModule(vkDevice, handle, nullptr);
+        }
+    };
+
+    class VulkanDescriptorPool : public HandleWrapper<VkDescriptorPool> {
+    private:
+        const VkDevice vkDevice;
+
+    public:
+        VulkanDescriptorPool(VkDevice vkDevice, VkDescriptorPool handle)
+            : HandleWrapper(handle), vkDevice(vkDevice) {}
+
+        ~VulkanDescriptorPool() {
+            vkDestroyDescriptorPool(vkDevice, handle, nullptr);
+        }
+    };
+} // namespace ke

@@ -2,20 +2,22 @@
 #include <kengine/SpatialGrid.hpp>
 #include <memory>
 
-class SpatialPartitioningManager {
-private:
-    std::unique_ptr<SpatialGrid> spatialGrid;
+namespace ke {
+    class SpatialPartitioningManager {
+    private:
+        std::unique_ptr<SpatialGrid> spatialGrid;
 
-public:
-    inline static std::unique_ptr<SpatialPartitioningManager> create() {
-        return std::make_unique<SpatialPartitioningManager>();
-    }
+    public:
+        inline static std::unique_ptr<SpatialPartitioningManager> create() {
+            return std::make_unique<SpatialPartitioningManager>();
+        }
 
-    SpatialGrid* getSpatialGrid() {
-        return spatialGrid.get();
-    }
+        SpatialGrid* getSpatialGrid() {
+            return spatialGrid.get();
+        }
 
-    void setSpatialGrid(std::unique_ptr<SpatialGrid>&& g) {
-        spatialGrid = std::move(g);
-    }
-};
+        void setSpatialGrid(std::unique_ptr<SpatialGrid>&& g) {
+            spatialGrid = std::move(g);
+        }
+    };
+} // namespace ke

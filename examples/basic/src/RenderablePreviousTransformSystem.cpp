@@ -12,9 +12,9 @@
 #include <future>
 
 void RenderablePreviousTransformSystem::init() {
-    executorService = getService<ExecutorService>();
-    sceneGraph = getService<SceneGraph>();
-    cameraController = getService<CameraController>();
+    executorService = getService<ke::ExecutorService>();
+    sceneGraph = getService<ke::SceneGraph>();
+    cameraController = getService<ke::CameraController>();
 }
 
 void RenderablePreviousTransformSystem::processSystem(float delta) {
@@ -52,7 +52,7 @@ void RenderablePreviousTransformSystem::processSystem(float delta) {
         for (auto& e : view) {
             auto& skeletonComponent = view.get<Component::SkeletonComp>(e);
             auto s = sceneGraph->get(skeletonComponent.skeletonId);
-            auto skeleton = std::static_pointer_cast<Skeleton>(sceneGraph->get(skeletonComponent.skeletonId));
+            auto skeleton = std::static_pointer_cast<ke::Skeleton>(sceneGraph->get(skeletonComponent.skeletonId));
             skeleton->savePreviousTransforms();
         }
     }

@@ -5,22 +5,24 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-class SceneData {
+namespace ke {
+    class SceneData {
 
-private:
-    CameraController& cameraController;
-    glm::vec3 lightDir;
+    private:
+        CameraController& cameraController;
+        glm::vec3 lightDir;
 
-public:
-    SceneData(CameraController& cameraController, glm::vec3 lightDir)
-        : cameraController(cameraController), lightDir(lightDir) {}
+    public:
+        SceneData(CameraController& cameraController, glm::vec3 lightDir)
+            : cameraController(cameraController), lightDir(lightDir) {}
 
-    static size_t alignedFrameSize(VulkanContext& vkCxt);
-    static size_t size();
+        static size_t alignedFrameSize(VulkanContext& vkCxt);
+        static size_t size();
 
-    glm::vec3& getLightDir() {
-        return lightDir;
-    }
+        glm::vec3& getLightDir() {
+            return lightDir;
+        }
 
-    void upload(VulkanContext& vkCxt, CachedGpuBuffer& buffer, float time, float alpha, size_t frameIndex);
-};
+        void upload(VulkanContext& vkCxt, CachedGpuBuffer& buffer, float time, float alpha, size_t frameIndex);
+    };
+} // namespace ke

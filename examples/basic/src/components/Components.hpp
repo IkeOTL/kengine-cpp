@@ -5,7 +5,9 @@
 #include <memory>
 #include <vector>
 
-class Model;
+namespace ke {
+    class Model;
+}
 
 namespace Component {
     struct Renderable {
@@ -29,15 +31,15 @@ namespace Component {
         uint32_t rootSpatialId;
         std::vector<uint32_t> spatialsIds;
         std::vector<uint32_t> meshSpatialsIds;
-        std::vector<Transform> previousTransforms;
+        std::vector<ke::Transform> previousTransforms;
 
-        std::shared_ptr<Spatial> generate(SceneGraph& sceneGraph, Model& model, std::string name, Renderable::RenderableType renderType);
+        std::shared_ptr<ke::Spatial> generate(ke::SceneGraph& sceneGraph, ke::Model& model, std::string name, Renderable::RenderableType renderType);
     };
 
     struct SkeletonComp {
         uint32_t skeletonId;
         uint32_t bufId;
 
-        std::shared_ptr<Skeleton> generate(SceneGraph& sceneGraph, Model& model, Component::Spatials& spatials, std::string name);
+        std::shared_ptr<ke::Skeleton> generate(ke::SceneGraph& sceneGraph, ke::Model& model, Component::Spatials& spatials, std::string name);
     };
 }

@@ -4,22 +4,24 @@
 #include <kengine/vulkan/mesh/anim/AnimationConfig.hpp>
 #include <memory>
 
-class Model;
-class AnimationFactory;
-class ExecutorService;
+namespace ke {
+    class Model;
+    class AnimationFactory;
+    class ExecutorService;
 
-class AsyncAnimationCache : public AsyncAssetCache<Animation, AnimationConfig> {
-private:
-    AnimationFactory& factory;
+    class AsyncAnimationCache : public AsyncAssetCache<Animation, AnimationConfig> {
+    private:
+        AnimationFactory& factory;
 
-protected:
-    std::unique_ptr<Animation> create(std::shared_ptr<AnimationConfig> keyObj) override;
+    protected:
+        std::unique_ptr<Animation> create(std::shared_ptr<AnimationConfig> keyObj) override;
 
-public:
-    AsyncAnimationCache(AnimationFactory& factory, ExecutorService& workerPool)
-        : AsyncAssetCache(workerPool), factory(factory) {}
+    public:
+        AsyncAnimationCache(AnimationFactory& factory, ExecutorService& workerPool)
+            : AsyncAssetCache(workerPool), factory(factory) {}
 
-    inline static std::unique_ptr<AsyncAnimationCache> create(AnimationFactory& factory, ExecutorService& workerPool) {
-        return std::make_unique<AsyncAnimationCache>(factory, workerPool);
-    }
-};
+        inline static std::unique_ptr<AsyncAnimationCache> create(AnimationFactory& factory, ExecutorService& workerPool) {
+            return std::make_unique<AsyncAnimationCache>(factory, workerPool);
+        }
+    };
+} // namespace ke

@@ -3,10 +3,10 @@
 #include <kengine/SceneGraph.hpp>
 #include "PhysicsContext.hpp"
 
-class PhysicsSyncSystem : public EcsSystem {
+class PhysicsSyncSystem : public ke::EcsSystem {
 private:
     PhysicsContext* physicsContext;
-    SceneGraph* sceneGraph;
+    ke::SceneGraph* sceneGraph;
 
 public:
     void init() override;

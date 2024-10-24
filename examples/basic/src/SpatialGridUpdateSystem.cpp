@@ -12,10 +12,10 @@
 #include <kengine/Logger.hpp>
 
 void SpatialGridUpdateSystem::init() {
-    executorService = getService<ExecutorService>();
-    sceneGraph = getService<SceneGraph>();
-    modelCache = getService<AsyncModelCache>();
-    spatialPartitioning = getService<SpatialPartitioningManager>();
+    executorService = getService<ke::ExecutorService>();
+    sceneGraph = getService<ke::SceneGraph>();
+    modelCache = getService<ke::AsyncModelCache>();
+    spatialPartitioning = getService<ke::SpatialPartitioningManager>();
 }
 
 void SpatialGridUpdateSystem::processSystem(float delta) {
@@ -33,7 +33,7 @@ void SpatialGridUpdateSystem::processSystem(float delta) {
         // todo: try to async here, this means we have to keep the entity in the dirtyset in case of model not yet loaded
         auto& model = modelCache->get(modelComp.config);
 
-        return SpatialGrid::SpatialGridUpdate{
+        return ke::SpatialGrid::SpatialGridUpdate{
             e,
             current.getTransMatrix(),
             model.getBounds().getAabb()

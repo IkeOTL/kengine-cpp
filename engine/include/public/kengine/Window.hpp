@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/vulkan/VulkanObject.hpp>
 #include <kengine/input/InputManager.hpp>
 #include <GLFW/glfw3.h>
 #include <string>
@@ -8,51 +9,55 @@
 
 class ImGuiIO;
 
-class Window {
-public:
-    using WindowResizeListener = std::function<void(GLFWwindow*, int, int)>;
+namespace ke {
 
-private:
-    GLFWwindow* window;
-    unsigned int width, height;
-    uint64_t lastMouseMove = 0L;
+    class Window {
+    public:
+        using WindowResizeListener = std::function<void(GLFWwindow*, int, int)>;
 
-    InputManager* inputManager = nullptr;
+    private:
+        GLFWwindow* window;
 
-    ImGuiIO* imGuiIO = nullptr;
+        unsigned int width, height;
+        uint64_t lastMouseMove = 0L;
 
-    std::vector<WindowResizeListener*> resizeListeners;
+        InputManager* inputManager = nullptr;
 
-public:
-    Window(std::string title, unsigned int width, unsigned int height);
-    ~Window();
+        ImGuiIO* imGuiIO = nullptr;
 
-    static inline std::unique_ptr<Window> create(std::string title, unsigned int width, unsigned int height) {
-        return std::make_unique<Window>(title, width, height);
-    }
+        std::vector<WindowResizeListener*> resizeListeners;
 
-    void createSurface(VkInstance vkInstance, VkSurfaceKHR& surface);
-    void registerResizeListener(WindowResizeListener* listener);
+    public:
+        Window(std::string title, unsigned int width, unsigned int height);
+        ~Window();
 
-    void pollEvents();
+        static inline std::unique_ptr<Window> create(std::string title, unsigned int width, unsigned int height) {
+            return std::make_unique<Window>(title, width, height);
+        }
 
-    GLFWwindow* getWindow() {
-        return window;
-    }
+        std::unique_ptr<VulkanSurface> createSurface(VkInstance vkInstance);
+        void registerResizeListener(WindowResizeListener* listener);
 
-    void setImGuiIO(ImGuiIO* ptr) {
-        imGuiIO = ptr;
-    }
+        void pollEvents();
 
-    void setInputManager(InputManager* im) {
-        inputManager = im;
-    }
+        GLFWwindow* getWindow() {
+            return window;
+        }
 
-    unsigned int getWidth() const {
-        return width;
-    }
+        void setImGuiIO(ImGuiIO* ptr) {
+            imGuiIO = ptr;
+        }
 
-    unsigned int getHeight() const {
-        return height;
-    }
-};
+        void setInputManager(InputManager* im) {
+            inputManager = im;
+        }
+
+        unsigned int getWidth() const {
+            return width;
+        }
+
+        unsigned int getHeight() const {
+            return height;
+        }
+    };
+} // namespace ke

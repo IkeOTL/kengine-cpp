@@ -1,58 +1,65 @@
 #pragma once
 #include <kengine/vulkan/VulkanInclude.hpp>
+#include <kengine/vulkan/VulkanObject.hpp>
 #include <kengine/vulkan/descriptor/DescriptorSetLayout.hpp>
 #include <vector>
 #include <glm/vec2.hpp>
 
-class VulkanContext;
-class RenderPass;
-class DescriptorSetAllocator;
-class DescriptorSetLayoutCache;
+namespace ke {
+    class VulkanContext;
+    class RenderPass;
+    class DescriptorSetAllocator;
+    class DescriptorSetLayoutCache;
 
-struct VertexFormatAttribute {
-    uint32_t location;
-    VkFormat format;
-    size_t offset;
-};
+    struct VertexFormatAttribute {
+        uint32_t location;
+        VkFormat format;
+        size_t offset;
+    };
 
-struct VertexFormatDescriptor {
-    size_t stride;
-    std::vector<VertexFormatAttribute> attributes;
-};
+    struct VertexFormatDescriptor {
+        size_t stride;
+        std::vector<VertexFormatAttribute> attributes;
+    };
 
-class Pipeline {
-private:
-    VkPipeline vkPipeline;
-    VkPipelineLayout vkPipelineLayout;
+    class Pipeline {
+    private:
+        const VkDevice vkDevice;
+        VkPipeline vkPipeline = VK_NULL_HANDLE;
+        VkPipelineLayout vkPipelineLayout = VK_NULL_HANDLE;
 
-protected:
-    std::vector<DescriptorSetLayoutConfig> descSetLayoutConfigs{};
+        std::vector<std::unique_ptr<ke::VulkanShaderModule>> shaderModules;
 
-    virtual void loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) = 0;
+    protected:
+        std::vector<DescriptorSetLayoutConfig> descSetLayoutConfigs{};
 
-    static void createVertexInputDescriptions(
-        const VertexFormatDescriptor& descriptor,
-        VkVertexInputBindingDescription& bindingDescription,
-        std::vector<VkVertexInputAttributeDescription>& attributeDescriptions);
+        virtual void loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) = 0;
 
-    static void loadShader(VkDevice device, std::string filePath, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest);
+        static void createVertexInputDescriptions(
+            const VertexFormatDescriptor& descriptor,
+            VkVertexInputBindingDescription& bindingDescription,
+            std::vector<VkVertexInputAttributeDescription>& attributeDescriptions);
 
-public:
-    virtual ~Pipeline() = default;
+        void loadShader(std::string filePath, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest);
 
-    VkPipeline getVkPipeline() const {
-        return vkPipeline;
-    }
+    public:
+        Pipeline(VkDevice vkDevice) : vkDevice(vkDevice) {}
+        virtual ~Pipeline();
 
-    VkPipelineLayout getVkPipelineLayout() {
-        return vkPipelineLayout;
-    }
+        VkPipeline getVkPipeline() const {
+            return vkPipeline;
+        }
 
-    const DescriptorSetLayoutConfig& getDescSetLayoutConfig(int i) const;
+        VkPipelineLayout getVkPipelineLayout() {
+            return vkPipelineLayout;
+        }
 
-    void init(VulkanContext& vkCxt, RenderPass* renderPass, DescriptorSetLayoutCache& layoutCache, glm::uvec2 extents);
+        const DescriptorSetLayoutConfig& getDescSetLayoutConfig(int i) const;
 
-    virtual VkPipelineLayout createPipelineLayout(VulkanContext& vkCxt, DescriptorSetLayoutCache& layoutCache) = 0;
-    virtual VkPipeline createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2  extents) = 0;
-    virtual void bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) = 0;
-};
+        void init(VulkanContext& vkCxt, RenderPass* renderPass, DescriptorSetLayoutCache& layoutCache, glm::uvec2 extents);
+
+        virtual VkPipelineLayout createPipelineLayout(VulkanContext& vkCxt, DescriptorSetLayoutCache& layoutCache) = 0;
+        virtual VkPipeline createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2  extents) = 0;
+        virtual void bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) = 0;
+    };
+} // namespace ke

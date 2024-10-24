@@ -14,38 +14,40 @@ namespace Component {
     class Spatials;
 }
 
-class World;
-class DebugContext;
-class VulkanContext;
-class RenderContext;
-class RenderFrameContext;
-class AsyncModelCache;
-class AsyncMaterialCache;
-class CameraController;
-class SceneGraph;
-class SceneTime;
-class Transform;
-class SpatialPartitioningManager;
-class SkeletonManager;
+namespace ke {
+    class World;
+    class DebugContext;
+    class VulkanContext;
+    class RenderContext;
+    class RenderFrameContext;
+    class AsyncModelCache;
+    class AsyncMaterialCache;
+    class CameraController;
+    class SceneGraph;
+    class SceneTime;
+    class Transform;
+    class SpatialPartitioningManager;
+    class SkeletonManager;
+}
 
-class RenderSystem : public EcsSystem {
+class RenderSystem : public ke::EcsSystem {
 private:
-    DebugContext* debugCtx;
-    VulkanContext* vulkanCtx;
-    RenderContext* renderCtx;
-    AsyncModelCache* modelCache;
-    AsyncMaterialCache* materialCache;
-    SceneGraph* sceneGraph;
-    SceneTime* sceneTime;
-    CameraController* cameraController;
-    SpatialPartitioningManager* spatialPartitioning;
-    SkeletonManager* skeletonManager;
+    ke::DebugContext* debugCtx;
+    ke::VulkanContext* vulkanCtx;
+    ke::RenderContext* renderCtx;
+    ke::AsyncModelCache* modelCache;
+    ke::AsyncMaterialCache* materialCache;
+    ke::SceneGraph* sceneGraph;
+    ke::SceneTime* sceneTime;
+    ke::CameraController* cameraController;
+    ke::SpatialPartitioningManager* spatialPartitioning;
+    ke::SkeletonManager* skeletonManager;
 
     inline static const uint32_t maxVisibleEntities = 1024;
     std::vector<entt::entity> visibleEntities = std::vector<entt::entity>(maxVisibleEntities);
 
     void integrate(Component::Renderable& renderable, Component::Spatials& spatials,
-        Transform& curTranform, uint32_t meshIdx, float delta, glm::mat4& dest);
+        ke::Transform& curTranform, uint32_t meshIdx, float delta, glm::mat4& dest);
 
 public:
     RenderSystem() = default;
@@ -56,5 +58,5 @@ public:
 
     void init() override;
     void processSystem(float delta) override;
-    void drawEntities(RenderFrameContext& ctx, float delta);
+    void drawEntities(ke::RenderFrameContext& ctx, float delta);
 };

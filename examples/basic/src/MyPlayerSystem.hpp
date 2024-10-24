@@ -3,7 +3,7 @@
 #include <MyPlayerContext.hpp>
 
 
-class MyPlayerSystem : public EcsSystem {
+class MyPlayerSystem : public ke::EcsSystem {
 private:
     MyPlayerContext* playerCtx;
 
@@ -15,7 +15,7 @@ public:
 
         assert(playerCtx);
 
-        EcsSystem::initialize();
+        ke::EcsSystem::initialize();
     }
 
     virtual void processSystem(entt::entity playerEntity) = 0;

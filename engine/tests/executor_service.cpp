@@ -12,6 +12,8 @@
 
 
 TEST_CASE("multithread::ExecutorService. Basic", "[multithread]") {
+    using namespace ke;
+
     ExecutorService pool(2);
 
     const auto count = 1000;
@@ -31,6 +33,8 @@ TEST_CASE("multithread::ExecutorService. Basic", "[multithread]") {
 }
 
 TEST_CASE("multithread::ExecutorService. Basic yielding", "[multithread]") {
+    using namespace ke;
+
     ExecutorService pool(2);
 
     const auto count = 1000;
@@ -66,6 +70,8 @@ TEST_CASE("multithread::ExecutorService. Basic yielding", "[multithread]") {
 }
 
 TEST_CASE("multithread::ExecutorService. Basic yielding void return", "[multithread]") {
+    using namespace ke;
+
     ExecutorService pool(2);
 
     const auto count = 1000;
@@ -96,6 +102,8 @@ TEST_CASE("multithread::ExecutorService. Basic yielding void return", "[multithr
 }
 
 TEST_CASE("multithread::ExecutorService. Basic yielding exception", "[multithread]") {
+    using namespace ke;
+
     ExecutorService pool(2);
 
     auto yieldingTask = pool.submitYielding<void>(
