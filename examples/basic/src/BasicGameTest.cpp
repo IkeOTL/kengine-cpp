@@ -132,8 +132,6 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
     textureCache = ke::AsyncTextureCache::create(*textureFactory, *threadPool);
     materialCache = ke::AsyncMaterialCache::create(vulkanCxt->getPipelineCache(), *textureCache, vulkanCxt->getGpuBufferCache(), *threadPool);
 
-    myPlayerContext = MyPlayerContext::create();
-    playerMovementManager = PlayerMovementManager::create();
 
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
     imGuiContext->init(*window);
@@ -146,6 +144,9 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
 
     physicsContext = PhysicsContext::create();
     physicsContext->init();
+
+    myPlayerContext = MyPlayerContext::create(*physicsContext);
+    playerMovementManager = PlayerMovementManager::create();
 
     world = ke::World::create(ke::WorldConfig()
         // injectable objects. order doesnt matter
@@ -190,14 +191,14 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
     world->getSystem<PhysicsSystem>()->setPaused(true);
 
     // player dummy
-    /*{
+    {
         auto* ecs = world->getService<entt::registry>();
-        auto modelConfig = ModelConfig::create("gltf/smallcube.glb",
-            VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
-            | VertexAttribute::TANGENTS
+        auto modelConfig = ke::ModelConfig::create("gltf/smallcube.glb",
+            ke::VertexAttribute::POSITION | ke::VertexAttribute::NORMAL | ke::VertexAttribute::TEX_COORDS
+            | ke::VertexAttribute::TANGENTS
         );
 
-        auto materialConfig = PbrMaterialConfig::create();
+        auto materialConfig = ke::PbrMaterialConfig::create();
         materialConfig->setHasShadow(true);
 
         auto entity = ecs->create();
@@ -214,7 +215,7 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
         rootSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
         rootSpatial->setLocalPosition(glm::vec3(0, 2, 0));
         rootSpatial->setLocalScale(glm::vec3(5, .5f, 5));
-    }*/
+    }
 
     // physics experiment
     {

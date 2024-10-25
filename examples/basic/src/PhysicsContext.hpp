@@ -128,32 +128,32 @@ public:
 class MyContactListener : public JPH::ContactListener {
 public:
     virtual JPH::ValidateResult	OnContactValidate(const JPH::Body& inBody1, const JPH::Body& inBody2, JPH::RVec3Arg inBaseOffset, const JPH::CollideShapeResult& inCollisionResult) override {
-     //   KE_LOG_INFO("Contact validate callback");
-        // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
+        //   KE_LOG_INFO("Contact validate callback");
+           // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
         return JPH::ValidateResult::AcceptAllContactsForThisBodyPair;
     }
 
     virtual void OnContactAdded(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override {
-     //   KE_LOG_INFO("A contact was added");
+        //   KE_LOG_INFO("A contact was added");
     }
 
     virtual void OnContactPersisted(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override {
-     //   KE_LOG_INFO("A contact was persisted");
+        //   KE_LOG_INFO("A contact was persisted");
     }
 
     virtual void OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override {
-    //    KE_LOG_INFO("A contact was removed");
+        //    KE_LOG_INFO("A contact was removed");
     }
 };
 
 class MyBodyActivationListener : public JPH::BodyActivationListener {
 public:
     virtual void OnBodyActivated(const JPH::BodyID& inBodyID, JPH::uint64 inBodyUserData) override {
-      //  KE_LOG_INFO("A body got activated");
+        //  KE_LOG_INFO("A body got activated");
     }
 
     virtual void OnBodyDeactivated(const JPH::BodyID& inBodyID, JPH::uint64 inBodyUserData) override {
-    //    KE_LOG_INFO("A body went to sleep");
+        //    KE_LOG_INFO("A body went to sleep");
     }
 };
 
@@ -187,6 +187,10 @@ public:
 
     JPH::PhysicsSystem& getPhysics() {
         return *physicsSystem;
+    }
+
+    JPH::TempAllocator& getTempAllocator() {
+        return *tempAllocator;
     }
 
     void init();

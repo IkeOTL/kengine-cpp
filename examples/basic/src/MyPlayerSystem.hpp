@@ -4,7 +4,7 @@
 
 
 class MyPlayerSystem : public ke::EcsSystem {
-private:
+protected:
     MyPlayerContext* playerCtx;
 
 public:
