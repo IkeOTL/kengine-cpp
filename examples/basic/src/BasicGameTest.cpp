@@ -392,7 +392,8 @@ void BasicGameTest::initCamera(ke::InputManager& inputManager, ke::DebugContext&
     auto rot = glm::rotate(camRot, glm::radians(-45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     camera->setRotation(rot);
 
-    cameraController = std::make_unique<FreeCameraController>(inputManager);
+    //cameraController = std::make_unique<FreeCameraController>(inputManager);
+    cameraController = std::make_unique<PlayerCameraController>();
     cameraController->setCamera(std::move(camera));
 }
 

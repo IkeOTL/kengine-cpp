@@ -43,3 +43,25 @@ public:
         return frustumTester;
     }
 };
+
+class PlayerCameraController : public ke::CameraController {
+private:
+    // move to abstract class
+    ke::FrustumIntersection frustumTester{};
+    glm::vec3 frustumMin{}, frustumMax{};
+    std::array<glm::vec3, 8> frustumCorners{};
+    bool needsFrustumRecalc = true;
+
+public:
+    void update(float delta) override;
+
+    void setPosition(float x, float y, float z);
+
+    std::array<glm::vec3, 8>& getFrustumCorners() {
+        return frustumCorners;
+    }
+
+    ke::FrustumIntersection& getFrustumTester() {
+        return frustumTester;
+    }
+};

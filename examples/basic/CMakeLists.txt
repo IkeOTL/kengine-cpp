@@ -20,6 +20,7 @@ set(HEADERS
     src/KinematicPlayerSystem.hpp
     src/PhysicsSystem.hpp
     src/PhysicsSyncSystem.hpp
+    src/PlayerCameraSystem.hpp
 
     # components
     src/components/Components.hpp
@@ -48,6 +49,7 @@ set(SOURCES
     src/KinematicPlayerSystem.cpp
     src/PhysicsSystem.cpp
     src/PhysicsSyncSystem.cpp
+    src/PlayerCameraSystem.cpp
 
     src/components/Components.cpp
 )
