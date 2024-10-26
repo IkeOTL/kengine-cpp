@@ -24,6 +24,12 @@ public:
         return playerEntity;
     }
 
+    void setPhysicsCharacter(std::unique_ptr<JPH::CharacterVirtual>&& p, std::unique_ptr<JPH::CharacterVirtualSettings>&& s);
+
+    JPH::CharacterVirtual* getPhysicsCharacter() {
+        return physicsCharacter.get();
+    }
+
     JPH::CharacterVirtual& getPlayerPhysicsBody() {
         return *physicsCharacter;
     }

@@ -41,6 +41,6 @@ void PlayerMovementManager::calculateLinearVelocity(float step, uint32_t input, 
     auto gravity = currentVel.y + GRAVITY * step;
     currentVel = 2.75f * targetDir;
 
-    //currentVel.y = gravity;
-    currentVel.y = 0;
+    currentVel.y = gravity;
+    //currentVel.y = 0;
 }

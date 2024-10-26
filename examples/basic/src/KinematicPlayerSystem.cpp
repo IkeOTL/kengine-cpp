@@ -23,6 +23,9 @@ int KinematicPlayerSystem::getInput() {
 }
 
 void KinematicPlayerSystem::processSystem(entt::entity playerEntity) {
+    if (physicsContext->isPaused())
+        return;
+
     auto& ecs = getEcs();
 
     auto& linVelComp = ecs.get<Component::LinearVelocity>(playerEntity);
@@ -37,6 +40,17 @@ void KinematicPlayerSystem::processSystem(entt::entity playerEntity) {
     auto& body = playerCtx->getPlayerPhysicsBody();
     body.SetLinearVelocity(JPH::Vec3(linVel.x, linVel.y, linVel.z));
 
+    // stuff from demo
+    {
+        JPH::Quat character_up_rotation = JPH::Quat::sEulerAngles(JPH::Vec3(0, 0, 0));
+        body.SetUp(character_up_rotation.RotateAxisY());
+        body.SetRotation(character_up_rotation);
+
+        // A cheaper way to update the character's ground velocity,
+        // the platforms that the character is standing on may have changed velocity
+        body.UpdateGroundVelocity();
+    }
+
     auto& physics = physicsContext->getPhysics();
     JPH::CharacterVirtual::ExtendedUpdateSettings update_settings;
     body.ExtendedUpdate(sceneTime->getDelta(),
@@ -48,5 +62,7 @@ void KinematicPlayerSystem::processSystem(entt::entity playerEntity) {
         { },
         physicsContext->getTempAllocator());
 
+    auto bodyPos = body.GetPosition();
+    spatial->setLocalPosition(glm::vec3(bodyPos.GetX(), bodyPos.GetY(), bodyPos.GetZ()));
     int i = 0;
 }

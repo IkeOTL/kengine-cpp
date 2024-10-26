@@ -172,6 +172,8 @@ private:
     MyContactListener contactListener;
     MyBodyActivationListener activationListener;
 
+    bool paused = false;
+
     static constexpr JPH::uint cNumBodies = 10240;
     static constexpr JPH::uint cNumBodyMutexes = 0; // Autodetect
     static constexpr JPH::uint cMaxBodyPairs = 65536;
@@ -183,6 +185,14 @@ public:
 
     inline static std::unique_ptr<PhysicsContext> create() {
         return std::make_unique<PhysicsContext>();
+    }
+
+    void setPaused(bool b) {
+        paused = b;
+    }
+
+    bool isPaused() const {
+        return paused;
     }
 
     JPH::PhysicsSystem& getPhysics() {
