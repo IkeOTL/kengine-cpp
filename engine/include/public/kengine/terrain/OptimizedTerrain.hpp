@@ -103,8 +103,42 @@ namespace ke {
             return tileData;
         }
 
-        float getHeight(uint32_t x, uint32_t z) {
+        /// <summary>
+        /// gets the height at the given vert coord
+        /// </summary>
+        float getHeight(uint32_t x, uint32_t z) const {
             return heights[z * terrainHeightsWidth + x] / unitSize;
+        }
+
+        /// <summary>
+        /// gets the height at the given world coord
+        /// </summary>
+        float getHeightAt(float x, float z) const {
+            auto terrainX = x - worldOffsetX;
+            auto terrainZ = z - worldOffsetZ;
+
+            auto gridX = (int)std::floor(terrainX);
+            auto gridZ = (int)std::floor(terrainZ);
+
+            if (gridX >= terrainHeightsWidth - 1 || gridZ >= terrainHeightsLength - 1
+                || gridX < 0 || gridZ < 0) {
+                return 0;
+            }
+
+            auto xCoord = (std::fmod(terrainX, 1.0f)) / 1.0f;
+            auto zCoord = (std::fmod(terrainZ, 1.0f)) / 1.0f;
+
+            if (xCoord <= (1 - zCoord)) {
+                return barycentric(glm::vec3(0, getHeight(gridX, gridZ), 0),
+                    glm::vec3(1, getHeight(gridX + 1, gridZ), 0),
+                    glm::vec3(0, getHeight(gridX, gridZ + 1), 1),
+                    glm::vec2(xCoord, zCoord));
+            }
+
+            return barycentric(glm::vec3(1, getHeight(gridX + 1, gridZ), 0),
+                glm::vec3(1, getHeight(gridX + 1, gridZ + 1), 1),
+                glm::vec3(0, getHeight(gridX, gridZ + 1), 1),
+                glm::vec2(xCoord, zCoord));
         }
 
         /// <summary>
@@ -133,7 +167,7 @@ namespace ke {
             materialConfig = mConfig;
         }
 
-        inline static float barryCentric(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& pos) {
+        inline static float barycentric(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& pos) {
             float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
             float l1 = ((p2.z - p3.z) * (pos.x - p3.x) + (p3.x - p2.x) * (pos.y - p3.z)) / det;
             float l2 = ((p3.z - p1.z) * (pos.x - p3.x) + (p1.x - p3.x) * (pos.y - p3.z)) / det;

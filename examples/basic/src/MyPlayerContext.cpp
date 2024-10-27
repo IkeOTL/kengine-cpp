@@ -11,7 +11,7 @@ std::unique_ptr<MyPlayerContext> MyPlayerContext::create(PhysicsContext& physics
 
     // setup physics
     {
-        auto characterRadius = 0.5 / 2.0f;
+        auto characterRadius = 0.75 / 2.0f;
         auto characterHeight = 2.0f;
         auto shape = JPH::RotatedTranslatedShapeSettings(
             JPH::Vec3(0, characterHeight, 0),
@@ -22,7 +22,7 @@ std::unique_ptr<MyPlayerContext> MyPlayerContext::create(PhysicsContext& physics
         auto settings = std::make_unique<JPH::CharacterVirtualSettings>();
 
         settings->mMaxSlopeAngle = glm::radians(45.0f);
-        settings->mMaxStrength = 100.0f;
+        settings->mMaxStrength = 1000.0f;
         settings->mShape = shape;
         settings->mBackFaceMode = JPH::EBackFaceMode::CollideWithBackFaces;
         settings->mCharacterPadding = 0.02f;

@@ -5,16 +5,17 @@ namespace ke {
     class SceneGraph;
     class InputManager;
     class SceneTime;
+    class TerrainContext;
 }
 
 class PhysicsContext;
-
 class PlayerMovementManager;
 
 class KinematicPlayerSystem : public MyPlayerSystem {
 private:
     ke::SceneGraph* sceneGraph;
     ke::InputManager* inputManager;
+    ke::TerrainContext* terrainContext;
     PlayerMovementManager* playerMovementManager;
     PhysicsContext* physicsContext;
     ke::SceneTime* sceneTime;

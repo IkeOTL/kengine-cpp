@@ -38,9 +38,10 @@ void PlayerMovementManager::calculateLinearVelocity(float step, uint32_t input, 
     if (!ke::vecutils::isFinite(targetDir))
         targetDir = glm::vec3{ 0 };
 
-    auto gravity = currentVel.y + GRAVITY * step;
+    currentVel = glm::vec3{ 0 };
+
+    auto gravity = currentVel.y + GRAVITY;
     currentVel = 2.75f * targetDir;
 
     currentVel.y = gravity;
-    //currentVel.y = 0;
 }

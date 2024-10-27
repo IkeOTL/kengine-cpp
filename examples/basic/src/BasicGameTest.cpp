@@ -48,6 +48,7 @@
 #include <Jolt/Physics/Collision/Shape/HeightFieldShape.cpp>
 #include <components/Physics.hpp>
 #include <PhysicsSyncSystem.hpp>
+#include <PlayerCameraSystem.hpp>
 
 
 BasicGameTest::~BasicGameTest() {
@@ -164,12 +165,13 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
         .addService(myPlayerContext.get())
         .addService(inputManager.get())
         .addService(physicsContext.get())
+        .addService(cameraController.get())
+        .addService(terrainContext.get())
 
         .addService(threadPool.get())
         .addService(assetIo.get())
         .addService(lightsManager.get())
         .addService(skeletonManager.get())
-        .addService(cameraController.get())
 
         .addService(modelFactory.get())
         .addService(modelCache.get())
@@ -184,6 +186,7 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
         .setSystem<PhysicsSyncSystem>()
         .setSystem<CameraSystem>()
         .setSystem<SpatialGridUpdateSystem>()
+        .setSystem<PlayerCameraSystem>()
         .setSystem<RenderSystem>()
     );
 
@@ -209,6 +212,7 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
         ecs->emplace<Component::ModelComponent>(entity, modelConfig);
         ecs->emplace<Component::Material>(entity, materialConfig);
         ecs->emplace<Component::LinearVelocity>(entity);
+        ecs->emplace<Component::TerrainGrounded>(entity);
 
         auto& model = modelCache->get(modelConfig);
         auto playerSpatial = sceneGraph->create("player");
@@ -216,7 +220,7 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
         playerSpatial->addChild(modelSpatial);
         spatials.rootSpatialId = playerSpatial->getSceneId();
         modelSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
-        modelSpatial->setLocalPosition(glm::vec3(0, 0, 0));
+        modelSpatial->setLocalPosition(glm::vec3(0, 1, 0));
         modelSpatial->setLocalScale(glm::vec3(0.5f, 2.0f, 0.5f));
     }
 
@@ -254,7 +258,7 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
 
             JPH::BodyInterface& bodyInterface = physicsContext->getPhysics().GetBodyInterface();
             auto mHeightField = StaticCast<JPH::HeightFieldShape>(settings.Create().Get());
-            bodyInterface.CreateAndAddBody(JPH::BodyCreationSettings(mHeightField, JPH::RVec3::sZero(), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::NON_MOVING), JPH::EActivation::DontActivate);
+            bodyInterface.CreateAndAddBody(JPH::BodyCreationSettings(mHeightField, JPH::RVec3::sZero(), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::TERRAIN), JPH::EActivation::DontActivate);
         }
 
         // falling block
@@ -270,6 +274,10 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
             //shapeSettings.SetEmbedded();
             JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
             auto& shape = shapeResult.Get();
+
+            JPH::MassProperties msp;
+            msp.ScaleToMass(10.0f); //actual mass in kg
+
 
             auto materialConfig = ke::PbrMaterialConfig::create();
             materialConfig->setHasShadow(true);
@@ -290,9 +298,13 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
                         );
 
                         // physics
+
                         JPH::BodyCreationSettings bodySettings(shape,
                             JPH::RVec3(startingPos.x, startingPos.y, startingPos.z),
                             JPH::Quat::sIdentity(), JPH::EMotionType::Dynamic, Layers::MOVING);
+
+                        bodySettings.mMassPropertiesOverride = msp;
+                        bodySettings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
 
                         JPH::Body* body = bodyInterface.CreateBody(bodySettings);
                         bodyInterface.AddBody(body->GetID(), JPH::EActivation::Activate);

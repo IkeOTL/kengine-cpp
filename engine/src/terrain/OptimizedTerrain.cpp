@@ -37,12 +37,12 @@ namespace ke {
         auto zCoord = std::fmod(terrainZ, 1.0f) / 1.0f;
 
         if (xCoord <= (1 - zCoord))
-            return barryCentric(glm::vec3(0, getHeight(gridX, gridZ), 0),
+            return barycentric(glm::vec3(0, getHeight(gridX, gridZ), 0),
                 glm::vec3(1, getHeight(gridX + 1, gridZ), 0),
                 glm::vec3(0, getHeight(gridX, gridZ + 1), 1),
                 glm::vec2(xCoord, zCoord));
 
-        return barryCentric(glm::vec3(1, getHeight(gridX + 1, gridZ), 0),
+        return barycentric(glm::vec3(1, getHeight(gridX + 1, gridZ), 0),
             glm::vec3(1, getHeight(gridX + 1, gridZ + 1), 1),
             glm::vec3(0, getHeight(gridX, gridZ + 1), 1),
             glm::vec2(xCoord, zCoord));
