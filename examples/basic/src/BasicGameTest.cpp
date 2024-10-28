@@ -216,6 +216,7 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
 
         auto& model = modelCache->get(modelConfig);
         auto playerSpatial = sceneGraph->create("player");
+        playerSpatial->setLocalPosition(glm::vec3(5, 4, 5));
         auto modelSpatial = spatials.generate(*sceneGraph, model, "playerMesh", renderable.type);
         playerSpatial->addChild(modelSpatial);
         spatials.rootSpatialId = playerSpatial->getSceneId();

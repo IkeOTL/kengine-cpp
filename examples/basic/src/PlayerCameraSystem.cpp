@@ -11,10 +11,10 @@ void PlayerCameraSystem::init() {
 }
 
 void PlayerCameraSystem::processSystem(entt::entity playerEntity) {
-    auto spatials = getEcs().get<Component::Spatials>(playerEntity);
+    auto& spatials = getEcs().get<Component::Spatials>(playerEntity);
 
     auto spatial = sceneGraph->get(spatials.rootSpatialId);
-    auto pos = spatial->getPosition();
+    auto& pos = spatial->getPosition();
     cameraController->setPosition(pos.x + 5, pos.y + 7, pos.z + 5);
 
 }

@@ -40,9 +40,9 @@ namespace ke {
         void setRotation(float x, float y, float z, float w);
         void slerpRotation(const glm::quat& target, float alpha);
         void interpolate(const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scl, float factor);
-        const glm::vec3& getPosition();
-        const glm::vec3& getScale();
-        const glm::quat& getRotation();
+        glm::vec3& getPosition();
+        glm::vec3& getScale();
+        glm::quat& getRotation();
         void addPosition(const glm::vec3& v);
         void addPosition(float x, float y, float z);
         void rotate(float angle, const glm::vec3& axis);
