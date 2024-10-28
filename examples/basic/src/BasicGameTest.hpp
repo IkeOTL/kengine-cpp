@@ -6,7 +6,7 @@
 #include <kengine/SpatialPartitioningManager.hpp>
 #include <kengine/DebugContext.hpp>
 #include <kengine/StateMachine.hpp>
-#include <kengine/vulkan/CameraController.hpp>
+#include "BasicCameraController.hpp"
 #include <kengine/vulkan/RenderContext.hpp>
 #include <kengine/vulkan/mesh/anim/GltfAnimationFactory.hpp>
 #include <kengine/vulkan/mesh/anim/AsyncAnimationCache.hpp>

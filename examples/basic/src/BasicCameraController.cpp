@@ -15,6 +15,37 @@ void BasicCameraController::setPosition(float x, float y, float z) {
     camera->setPosition(glm::vec3(x, y, z));
 }
 
+// player cam
+void PlayerCameraController::update(float delta) {
+    if (!camera)
+        return;
+
+    // frustum update
+    if (!needsFrustumRecalc)
+        return;
+
+    // frustum recalc
+    glm::mat4 projViewMat;
+    camera->getViewMatrix(projViewMat);
+    projViewMat = camera->getProjectionMatrix() * projViewMat;
+
+    frustumTester.set(projViewMat, false);
+
+    for (int i = 0; i < 8; i++)
+        ke::matutils::frustumCorner(projViewMat, static_cast<ke::matutils::FrustumCorner>(i), frustumCorners[i]);
+
+    auto invProjview = glm::inverse(projViewMat);
+    ke::matutils::frustumAabb(invProjview, frustumMin, frustumMax);
+
+    needsFrustumRecalc = false;
+}
+
+void PlayerCameraController::setPosition(float x, float y, float z) {
+    camera->setPosition(glm::vec3(x, y, z));
+    needsFrustumRecalc = true;
+}
+
+//  free cam
 FreeCameraController::FreeCameraController(ke::InputManager& inputManager)
     : InputEventAdapter(inputManager) {
     init();

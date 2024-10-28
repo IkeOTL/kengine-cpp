@@ -10,7 +10,11 @@ void PhysicsSyncSystem::init() {
     sceneGraph = getService<ke::SceneGraph>();
 }
 
+// merge into PhysicSystem?
 void PhysicsSyncSystem::processSystem(float delta) {
+    if (physicsContext->isPaused())
+        return;
+
     auto& physics = physicsContext->getPhysics();
     auto& ecs = getEcs();
 

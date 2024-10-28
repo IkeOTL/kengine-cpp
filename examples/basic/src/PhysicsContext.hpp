@@ -21,9 +21,10 @@
 namespace Layers {
     static constexpr JPH::ObjectLayer NON_MOVING = 0;
     static constexpr JPH::ObjectLayer MOVING = 1;
-    static constexpr JPH::ObjectLayer DEBRIS = 2; // Example: Debris collides only with NON_MOVING
-    static constexpr JPH::ObjectLayer SENSOR = 3; // Sensors only collide with MOVING objects
-    static constexpr JPH::ObjectLayer NUM_LAYERS = 4;
+    static constexpr JPH::ObjectLayer PLAYER = 2;
+    static constexpr JPH::ObjectLayer TERRAIN = 3;
+    static constexpr JPH::ObjectLayer SENSOR = 4;
+    static constexpr JPH::ObjectLayer NUM_LAYERS = 5;
 };
 
 /// Class that determines if two object layers can collide
@@ -33,13 +34,14 @@ public:
         switch (inObject1)
         {
         case Layers::NON_MOVING:
-            return inObject2 == Layers::MOVING || inObject2 == Layers::DEBRIS;
-        case Layers::MOVING:
-            return inObject2 == Layers::NON_MOVING || inObject2 == Layers::MOVING || inObject2 == Layers::SENSOR;
-        case Layers::DEBRIS:
-            return inObject2 == Layers::NON_MOVING;
-        case Layers::SENSOR:
             return inObject2 == Layers::MOVING;
+        case Layers::MOVING:
+            return inObject2 == Layers::NON_MOVING || inObject2 == Layers::MOVING
+                || inObject2 == Layers::TERRAIN || inObject2 == Layers::SENSOR;
+        case Layers::TERRAIN:
+            return inObject2 == Layers::MOVING;
+        case Layers::PLAYER:
+            return inObject2 == Layers::MOVING || inObject2 == Layers::NON_MOVING;
         default:
             JPH_ASSERT(false);
             return false;
@@ -50,9 +52,10 @@ public:
 namespace BroadPhaseLayers {
     static constexpr JPH::BroadPhaseLayer NON_MOVING(0);
     static constexpr JPH::BroadPhaseLayer MOVING(1);
-    static constexpr JPH::BroadPhaseLayer DEBRIS(2);
-    static constexpr JPH::BroadPhaseLayer SENSOR(3);
-    static constexpr JPH::BroadPhaseLayer UNUSED(4);
+    static constexpr JPH::BroadPhaseLayer PLAYER(2);
+    static constexpr JPH::BroadPhaseLayer TERRAIN(3);
+    static constexpr JPH::BroadPhaseLayer SENSOR(4);
+    static constexpr JPH::BroadPhaseLayer UNUSED(5);
     static constexpr JPH::uint NUM_LAYERS(5);
 };
 
@@ -60,10 +63,11 @@ class BPLayerInterfaceImpl final : public JPH::BroadPhaseLayerInterface
 {
 public:
     BPLayerInterfaceImpl() {
-        mObjectToBroadPhase[Layers::NON_MOVING] = BroadPhaseLayers::NON_MOVING;
-        mObjectToBroadPhase[Layers::MOVING] = BroadPhaseLayers::MOVING;
-        mObjectToBroadPhase[Layers::DEBRIS] = BroadPhaseLayers::DEBRIS;
-        mObjectToBroadPhase[Layers::SENSOR] = BroadPhaseLayers::SENSOR;
+        objectToBroadPhase[Layers::NON_MOVING] = BroadPhaseLayers::NON_MOVING;
+        objectToBroadPhase[Layers::MOVING] = BroadPhaseLayers::MOVING;
+        objectToBroadPhase[Layers::PLAYER] = BroadPhaseLayers::PLAYER;
+        objectToBroadPhase[Layers::TERRAIN] = BroadPhaseLayers::TERRAIN;
+        objectToBroadPhase[Layers::SENSOR] = BroadPhaseLayers::SENSOR;
     }
 
     virtual JPH::uint GetNumBroadPhaseLayers() const override {
@@ -73,7 +77,7 @@ public:
     virtual JPH::BroadPhaseLayer GetBroadPhaseLayer(JPH::ObjectLayer inLayer) const override
     {
         assert(inLayer < Layers::NUM_LAYERS);
-        return mObjectToBroadPhase[inLayer];
+        return objectToBroadPhase[inLayer];
     }
 
 #if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
@@ -85,8 +89,10 @@ public:
             return "NON_MOVING";
         case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::MOVING:
             return "MOVING";
-        case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::DEBRIS:
-            return "DEBRIS";
+        case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::PLAYER:
+            return "PLAYER";
+        case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::TERRAIN:
+            return "TERRAIN";
         case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::SENSOR:
             return "SENSOR";
         case (JPH::BroadPhaseLayer::Type)BroadPhaseLayers::UNUSED:
@@ -99,7 +105,7 @@ public:
 #endif // JPH_EXTERNAL_PROFILE || JPH_PROFILE_ENABLED
 
 private:
-    JPH::BroadPhaseLayer mObjectToBroadPhase[Layers::NUM_LAYERS];
+    JPH::BroadPhaseLayer objectToBroadPhase[Layers::NUM_LAYERS];
 };
 
 /// Class that determines if an object layer can collide with a broadphase layer
@@ -111,13 +117,14 @@ public:
         switch (inLayer1)
         {
         case Layers::NON_MOVING:
-            return inLayer2 == BroadPhaseLayers::MOVING || inLayer2 == BroadPhaseLayers::DEBRIS;
-        case Layers::MOVING:
-            return inLayer2 == BroadPhaseLayers::NON_MOVING || inLayer2 == BroadPhaseLayers::MOVING || inLayer2 == BroadPhaseLayers::SENSOR;
-        case Layers::DEBRIS:
-            return inLayer2 == BroadPhaseLayers::NON_MOVING;
-        case Layers::SENSOR:
             return inLayer2 == BroadPhaseLayers::MOVING;
+        case Layers::MOVING:
+            return inLayer2 == BroadPhaseLayers::NON_MOVING || inLayer2 == BroadPhaseLayers::MOVING
+                || inLayer2 == BroadPhaseLayers::TERRAIN || inLayer2 == BroadPhaseLayers::SENSOR;
+        case Layers::TERRAIN:
+            return inLayer2 == BroadPhaseLayers::MOVING;
+        case Layers::PLAYER:
+            return inLayer2 == BroadPhaseLayers::MOVING || inLayer2 == BroadPhaseLayers::NON_MOVING;
         default:
             assert(false);
             return false;
@@ -128,32 +135,32 @@ public:
 class MyContactListener : public JPH::ContactListener {
 public:
     virtual JPH::ValidateResult	OnContactValidate(const JPH::Body& inBody1, const JPH::Body& inBody2, JPH::RVec3Arg inBaseOffset, const JPH::CollideShapeResult& inCollisionResult) override {
-     //   KE_LOG_INFO("Contact validate callback");
-        // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
+        //   KE_LOG_INFO("Contact validate callback");
+           // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
         return JPH::ValidateResult::AcceptAllContactsForThisBodyPair;
     }
 
     virtual void OnContactAdded(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override {
-     //   KE_LOG_INFO("A contact was added");
+        //   KE_LOG_INFO("A contact was added");
     }
 
     virtual void OnContactPersisted(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override {
-     //   KE_LOG_INFO("A contact was persisted");
+        //   KE_LOG_INFO("A contact was persisted");
     }
 
     virtual void OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override {
-    //    KE_LOG_INFO("A contact was removed");
+        //    KE_LOG_INFO("A contact was removed");
     }
 };
 
 class MyBodyActivationListener : public JPH::BodyActivationListener {
 public:
     virtual void OnBodyActivated(const JPH::BodyID& inBodyID, JPH::uint64 inBodyUserData) override {
-      //  KE_LOG_INFO("A body got activated");
+        //  KE_LOG_INFO("A body got activated");
     }
 
     virtual void OnBodyDeactivated(const JPH::BodyID& inBodyID, JPH::uint64 inBodyUserData) override {
-    //    KE_LOG_INFO("A body went to sleep");
+        //    KE_LOG_INFO("A body went to sleep");
     }
 };
 
@@ -172,6 +179,8 @@ private:
     MyContactListener contactListener;
     MyBodyActivationListener activationListener;
 
+    bool paused = false;
+
     static constexpr JPH::uint cNumBodies = 10240;
     static constexpr JPH::uint cNumBodyMutexes = 0; // Autodetect
     static constexpr JPH::uint cMaxBodyPairs = 65536;
@@ -185,8 +194,20 @@ public:
         return std::make_unique<PhysicsContext>();
     }
 
+    void setPaused(bool b) {
+        paused = b;
+    }
+
+    bool isPaused() const {
+        return paused;
+    }
+
     JPH::PhysicsSystem& getPhysics() {
         return *physicsSystem;
+    }
+
+    JPH::TempAllocator& getTempAllocator() {
+        return *tempAllocator;
     }
 
     void init();

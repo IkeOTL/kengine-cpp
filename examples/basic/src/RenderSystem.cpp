@@ -75,7 +75,7 @@ void RenderSystem::drawEntities(ke::RenderFrameContext& ctx, float delta) {
 
     auto& ecs = getEcs();
 
-    auto* c = static_cast<FreeCameraController*>(cameraController);
+    auto* c = static_cast<PlayerCameraController*>(cameraController);
     auto visibleCount = spatialPartitioning->getSpatialGrid()->getVisible(
         c->getCamera()->getPosition(),
         c->getFrustumCorners(),

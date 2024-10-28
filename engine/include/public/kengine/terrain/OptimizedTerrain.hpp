@@ -35,7 +35,9 @@ namespace ke {
         int chunkWidth, chunkLength;
         int chunkCountX, chunkCountZ;
         float worldOffsetX, worldOffsetZ;
-        uint8_t unitScale;
+
+        // how much of [0, 255] is considered 1unit in the world
+        uint8_t unitSize;
 
         std::shared_ptr<TerrainPbrMaterialConfig> materialConfig;
         std::unique_ptr<Texture2d> heightTexture;
@@ -44,60 +46,99 @@ namespace ke {
         std::vector<TileData> tileData; // sizes in "tiles"
 
     public:
-        OptimizedTerrain(uint32_t terrainTilesWidth, uint32_t terrainTilesLength, uint32_t chunkWidth, uint32_t chunkLength, uint8_t unitScale = 10);
+        OptimizedTerrain(uint32_t terrainTilesWidth, uint32_t terrainTilesLength, uint32_t chunkWidth, uint32_t chunkLength, uint8_t unitSize = 10);
 
         float getHeightAt(float x, float z);
 
-        uint32_t getTerrainTilesWidth() {
+
+        const uint8_t getUnitSize() const {
+            return unitSize;
+        }
+
+        uint32_t getTerrainTilesWidth() const {
             return terrainTilesWidth;
         }
 
-        uint32_t getTerrainTilesLength() {
+        uint32_t getTerrainTilesLength() const {
             return terrainTilesLength;
         }
 
-        uint32_t getTerrainHeightsWidth() {
+        uint32_t getTerrainHeightsWidth() const {
             return terrainHeightsWidth;
         }
 
-        uint32_t getTerrainHeightsLength() {
+        uint32_t getTerrainHeightsLength() const {
             return terrainHeightsLength;
         }
 
-        uint32_t getChunkCountX() {
+        uint32_t getChunkCountX() const {
             return chunkCountX;
         }
 
-        uint32_t getChunkCountZ() {
+        uint32_t getChunkCountZ() const {
             return chunkCountZ;
         }
 
-        uint32_t getChunkWidth() {
+        uint32_t getChunkWidth() const {
             return chunkWidth;
         }
 
-        uint32_t getChunkLength() {
+        uint32_t getChunkLength() const {
             return chunkLength;
         }
 
-        float getWorldOffsetX() {
+        float getWorldOffsetX() const {
             return worldOffsetX;
         }
 
-        float getWorldOffsetZ() {
+        float getWorldOffsetZ() const {
             return worldOffsetZ;
         }
 
-        const std::vector<uint8_t>& getHeights() {
+        const std::vector<uint8_t>& getHeights() const {
             return heights;
         }
 
-        const std::vector<TileData>& getTileData() {
+        const std::vector<TileData>& getTileData() const {
             return tileData;
         }
 
-        float getHeight(uint32_t x, uint32_t z) {
-            return heights[z * terrainHeightsWidth + x] / unitScale;
+        /// <summary>
+        /// gets the height at the given vert coord
+        /// </summary>
+        float getHeight(uint32_t x, uint32_t z) const {
+            return heights[z * terrainHeightsWidth + x] / unitSize;
+        }
+
+        /// <summary>
+        /// gets the height at the given world coord
+        /// </summary>
+        float getHeightAt(float x, float z) const {
+            auto terrainX = x - worldOffsetX;
+            auto terrainZ = z - worldOffsetZ;
+
+            auto gridX = (int)std::floor(terrainX);
+            auto gridZ = (int)std::floor(terrainZ);
+
+            if (gridX >= terrainHeightsWidth - 1 || gridZ >= terrainHeightsLength - 1
+                || gridX < 0 || gridZ < 0) {
+                return 0;
+            }
+
+            auto xCoord = (std::fmod(terrainX, 1.0f)) / 1.0f;
+            auto zCoord = (std::fmod(terrainZ, 1.0f)) / 1.0f;
+
+            if (xCoord <= (1 - zCoord)) {
+                return barycentric(glm::vec3(0, getHeight(gridX, gridZ), 0),
+                    glm::vec3(1, getHeight(gridX + 1, gridZ), 0),
+                    glm::vec3(0, getHeight(gridX, gridZ + 1), 1),
+                    glm::vec2(xCoord, zCoord));
+            }
+
+            return barycentric(glm::vec3(1, getHeight(gridX + 1, gridZ), 0),
+                glm::vec3(1, getHeight(gridX + 1, gridZ + 1), 1),
+                glm::vec3(0, getHeight(gridX, gridZ + 1), 1),
+                glm::vec2(xCoord, zCoord));
         }
 
         /// <summary>
@@ -105,7 +146,7 @@ namespace ke {
         /// hieght image is VK_FORMAT_R8_UNORM, so values are [0, 255] on CPU, and when reading in shader [0, 1]
         /// </summary>
         void setHeight(uint32_t x, uint32_t z, float h) {
-            uint8_t target = h * unitScale;
+            uint8_t target = h * unitSize;
             assert(target >= 0 && target <= 255);
             heights[z * terrainHeightsWidth + x] = target;
         }
@@ -126,7 +167,7 @@ namespace ke {
             materialConfig = mConfig;
         }
 
-        inline static float barryCentric(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& pos) {
+        inline static float barycentric(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& pos) {
             float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
             float l1 = ((p2.z - p3.z) * (pos.x - p3.x) + (p3.x - p2.x) * (pos.y - p3.z)) / det;
             float l2 = ((p3.z - p1.z) * (pos.x - p3.x) + (p1.x - p3.x) * (pos.y - p3.z)) / det;

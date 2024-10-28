@@ -52,6 +52,10 @@ namespace ke {
             return drawIndirectCmdBuf;
         }
 
+        const OptimizedTerrain& getTerrain() const {
+            return *terrain;
+        }
+
         static const size_t terrainDataBufAlignedFrameSize(VulkanContext& vkCxt);
         static const size_t drawInstanceBufAlignedFrameSize(VulkanContext& vkCxt);
 

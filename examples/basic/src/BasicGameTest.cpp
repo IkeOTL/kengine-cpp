@@ -44,8 +44,11 @@
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Math/Real.h>
 #include <Jolt/Math/Math.h>
+#include <Jolt/Math/Vec3.h>
+#include <Jolt/Physics/Collision/Shape/HeightFieldShape.cpp>
 #include <components/Physics.hpp>
 #include <PhysicsSyncSystem.hpp>
+#include <PlayerCameraSystem.hpp>
 
 
 BasicGameTest::~BasicGameTest() {
@@ -130,8 +133,6 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
     textureCache = ke::AsyncTextureCache::create(*textureFactory, *threadPool);
     materialCache = ke::AsyncMaterialCache::create(vulkanCxt->getPipelineCache(), *textureCache, vulkanCxt->getGpuBufferCache(), *threadPool);
 
-    myPlayerContext = MyPlayerContext::create();
-    playerMovementManager = PlayerMovementManager::create();
 
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
     imGuiContext->init(*window);
@@ -144,6 +145,9 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
 
     physicsContext = PhysicsContext::create();
     physicsContext->init();
+
+    myPlayerContext = MyPlayerContext::create(*physicsContext);
+    playerMovementManager = PlayerMovementManager::create();
 
     world = ke::World::create(ke::WorldConfig()
         // injectable objects. order doesnt matter
@@ -161,12 +165,13 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
         .addService(myPlayerContext.get())
         .addService(inputManager.get())
         .addService(physicsContext.get())
+        .addService(cameraController.get())
+        .addService(terrainContext.get())
 
         .addService(threadPool.get())
         .addService(assetIo.get())
         .addService(lightsManager.get())
         .addService(skeletonManager.get())
-        .addService(cameraController.get())
 
         .addService(modelFactory.get())
         .addService(modelCache.get())
@@ -181,21 +186,22 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
         .setSystem<PhysicsSyncSystem>()
         .setSystem<CameraSystem>()
         .setSystem<SpatialGridUpdateSystem>()
+        .setSystem<PlayerCameraSystem>()
         .setSystem<RenderSystem>()
     );
 
     // pause physics by defaut
-    world->getSystem<PhysicsSystem>()->setPaused(true);
+    physicsContext->setPaused(true);
 
     // player dummy
-    /*{
+    {
         auto* ecs = world->getService<entt::registry>();
-        auto modelConfig = ModelConfig::create("gltf/smallcube.glb",
-            VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
-            | VertexAttribute::TANGENTS
+        auto modelConfig = ke::ModelConfig::create("gltf/smallcube.glb",
+            ke::VertexAttribute::POSITION | ke::VertexAttribute::NORMAL | ke::VertexAttribute::TEX_COORDS
+            | ke::VertexAttribute::TANGENTS
         );
 
-        auto materialConfig = PbrMaterialConfig::create();
+        auto materialConfig = ke::PbrMaterialConfig::create();
         materialConfig->setHasShadow(true);
 
         auto entity = ecs->create();
@@ -206,55 +212,53 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
         ecs->emplace<Component::ModelComponent>(entity, modelConfig);
         ecs->emplace<Component::Material>(entity, materialConfig);
         ecs->emplace<Component::LinearVelocity>(entity);
+        ecs->emplace<Component::TerrainGrounded>(entity);
 
         auto& model = modelCache->get(modelConfig);
-        auto rootSpatial = spatials.generate(*sceneGraph, model, "player", renderable.type);
-        rootSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
-        rootSpatial->setLocalPosition(glm::vec3(0, 2, 0));
-        rootSpatial->setLocalScale(glm::vec3(5, .5f, 5));
-    }*/
+        auto playerSpatial = sceneGraph->create("player");
+        auto modelSpatial = spatials.generate(*sceneGraph, model, "playerMesh", renderable.type);
+        playerSpatial->addChild(modelSpatial);
+        spatials.rootSpatialId = playerSpatial->getSceneId();
+        modelSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
+        modelSpatial->setLocalPosition(glm::vec3(0, 1, 0));
+        modelSpatial->setLocalScale(glm::vec3(0.5f, 2.0f, 0.5f));
+    }
 
     // physics experiment
     {
-        // static platform
+        // terrain heightfield physics shape
         {
-            glm::vec3 pos(0, 2, 0);
-            glm::vec3 size(15, .5f, 15);
+            auto& terrain = terrainContext->getTerrain();
+            auto terrainWidth = terrain.getTerrainHeightsWidth();
+            auto terrainLength = terrain.getTerrainHeightsLength();
+            auto& terrainHeights = terrain.getHeights();
+            auto terrainUnitSize = terrain.getUnitSize();
 
-            // physics
+            std::vector<float> pHeights;
+            pHeights.reserve(terrainWidth * terrainLength);
+            // Convert compressed heights to floating point
+            for (size_t i = 0; i < terrainHeights.size(); ++i) {
+                float scaledHeight = terrainHeights[i] / terrainUnitSize;
+                pHeights.push_back(scaledHeight);
+            }
+
+            auto cellSize = 1.0f;
+            auto xStep = 1.0f;
+            auto zStep = 1.0f;
+            JPH::Vec3 pTerrainOffset(terrain.getWorldOffsetX(), 0, terrain.getWorldOffsetZ());
+            JPH::Vec3 pTerrainScale(cellSize, 1, cellSize);
+            JPH::uint pTerrainSize = terrainWidth; // Jolt only supports square terrain
+            JPH::PhysicsMaterialList pMaterials;
+
+            JPH::HeightFieldShapeSettings settings(
+                pHeights.data(), pTerrainOffset, pTerrainScale, pTerrainSize, nullptr, pMaterials);
+
+            settings.mBlockSize = 8;
+            settings.mBitsPerSample = 8;
+
             JPH::BodyInterface& bodyInterface = physicsContext->getPhysics().GetBodyInterface();
-            JPH::BoxShapeSettings shapeSettings(JPH::Vec3(.5f, .5f, .5f) * JPH::Vec3(size.x, size.y, size.z));
-            shapeSettings.SetEmbedded();
-            JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
-            auto& shape = shapeResult.Get();
-            JPH::BodyCreationSettings bodySettings(shape, JPH::RVec3(pos.x, pos.y, pos.z), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::NON_MOVING);
-            JPH::Body* body = bodyInterface.CreateBody(bodySettings);
-            bodyInterface.AddBody(body->GetID(), JPH::EActivation::DontActivate);
-
-            //entity
-            auto* ecs = world->getService<entt::registry>();
-            auto modelConfig = ke::ModelConfig::create("gltf/smallcube.glb",
-                ke::VertexAttribute::POSITION | ke::VertexAttribute::NORMAL | ke::VertexAttribute::TEX_COORDS
-                | ke::VertexAttribute::TANGENTS
-            );
-
-            auto materialConfig = ke::PbrMaterialConfig::create();
-            materialConfig->setHasShadow(true);
-
-            auto entity = ecs->create();
-
-            auto& renderable = ecs->emplace<Component::Renderable>(entity);
-            auto& spatials = ecs->emplace<Component::Spatials>(entity);
-            ecs->emplace<Component::Rigidbody>(entity, body->GetID(), false);
-            ecs->emplace<Component::ModelComponent>(entity, modelConfig);
-            ecs->emplace<Component::Material>(entity, materialConfig);
-            //ecs->emplace<Component::LinearVelocity>(entity);
-
-            auto& model = modelCache->get(modelConfig);
-            auto rootSpatial = spatials.generate(*sceneGraph, model, "platform", renderable.type);
-            rootSpatial->setChangeCb(spatialPartitioningManager->getSpatialGrid()->createCb(entity));
-            rootSpatial->setLocalPosition(pos);
-            rootSpatial->setLocalScale(size);
+            auto mHeightField = StaticCast<JPH::HeightFieldShape>(settings.Create().Get());
+            bodyInterface.CreateAndAddBody(JPH::BodyCreationSettings(mHeightField, JPH::RVec3::sZero(), JPH::Quat::sIdentity(), JPH::EMotionType::Static, Layers::TERRAIN), JPH::EActivation::DontActivate);
         }
 
         // falling block
@@ -271,13 +275,17 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
             JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
             auto& shape = shapeResult.Get();
 
+            JPH::MassProperties msp;
+            msp.ScaleToMass(10.0f); //actual mass in kg
+
+
             auto materialConfig = ke::PbrMaterialConfig::create();
             materialConfig->setHasShadow(true);
 
-            auto xCount = 4;
-            auto yCount = 4;
-            auto zCount = 4;
-            auto yOffset = 10;
+            auto xCount = 5;
+            auto yCount = 3;
+            auto zCount = 3;
+            auto yOffset = 20;
             auto zOffset = 0;
             auto padding = 0;
             for (size_t k = 0; k < yCount; k++) {
@@ -290,9 +298,13 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
                         );
 
                         // physics
+
                         JPH::BodyCreationSettings bodySettings(shape,
                             JPH::RVec3(startingPos.x, startingPos.y, startingPos.z),
                             JPH::Quat::sIdentity(), JPH::EMotionType::Dynamic, Layers::MOVING);
+
+                        bodySettings.mMassPropertiesOverride = msp;
+                        bodySettings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
 
                         JPH::Body* body = bodyInterface.CreateBody(bodySettings);
                         bodyInterface.AddBody(body->GetID(), JPH::EActivation::Activate);
@@ -316,66 +328,6 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
             }
         }
     }
-
-
-    //// cube array
-    //{
-    //    auto* ecs = world->getService<entt::registry>();
-    //    auto modelConfig = ModelConfig::create("gltf/smallcube.glb",
-    //        VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS
-    //        | VertexAttribute::TANGENTS
-    //    );
-
-    //    auto materialConfig = PbrMaterialConfig::create();
-    //    materialConfig->setHasShadow(true);
-
-    //    auto xCount = 10;
-    //    auto yCount = 10;
-    //    auto zCount = 10;
-    //    auto yOffset = 3;
-    //    auto zOffset = -5;
-    //    auto sIdx = renderContext->startStaticBatch();
-    //    {
-    //        for (size_t k = 0; k < yCount; k++) {
-    //            for (size_t i = 0; i < xCount; i++) {
-    //                for (size_t j = 0; j < zCount; j++) {
-    //                    auto entity = ecs->create();
-    //                    auto& renderable = ecs->emplace<Component::Renderable>(entity);
-    //                    renderable.setStatic();
-    //                    ecs->emplace<Component::ModelComponent>(entity, modelConfig);
-
-    //                    auto& model = modelCache->get(modelConfig);
-    //                    auto& spatials = ecs->emplace<Component::Spatials>(entity);
-    //                    auto rootSpatial = spatials.generate(*sceneGraph, model, "cube" + std::to_string(i), renderable.type);
-
-    //                    //rootSpatial->setChangeCb(spatialPartitioning->getSpatialGrid()->createCb(entity));
-
-    //                    rootSpatial->setLocalPosition(glm::vec3(
-    //                        (1.5f * i) - (1.5 * xCount * 0.5f),
-    //                        (1.5f * k) + yOffset,
-    //                        (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset
-    //                    ));
-
-    //                    spatialPartitioningManager->getSpatialGrid()->setDirty(entity);
-
-    //                    ecs->emplace<Component::Material>(entity, materialConfig);
-
-    //                    //renderContext->addStaticInstance(
-    //                    //    model->getMeshGroups()[0]->getMesh(0),
-    //                    //    *material,
-    //                    //    glm::translate(glm::mat4(1.0f), glm::vec3(
-    //                    //        (1.5f * i) - (1.5 * xCount * 0.5f),
-    //                    //        (1.5f * k) + yOffset,
-    //                    //        (1.5f * j) - (1.5 * zCount * 0.5f) + zOffset
-    //                    //    )),
-    //                    //    model->getMeshGroups()[0]->getMesh(0).getBounds().getSphereBounds()
-    //                    //);
-    //                }
-    //            }
-    //        }
-    //    }
-    //    renderContext->endStaticBatch(sIdx);
-    //}
 
     return std::make_unique<MainGameState>(*world);
 }
@@ -452,7 +404,8 @@ void BasicGameTest::initCamera(ke::InputManager& inputManager, ke::DebugContext&
     auto rot = glm::rotate(camRot, glm::radians(-45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     camera->setRotation(rot);
 
-    cameraController = std::make_unique<FreeCameraController>(inputManager);
+    //cameraController = std::make_unique<FreeCameraController>(inputManager);
+    cameraController = std::make_unique<PlayerCameraController>();
     cameraController->setCamera(std::move(camera));
 }
 
@@ -465,7 +418,7 @@ void TestGui::draw() {
 
     // physics
     {
-        auto* ws = world->getSystem<PhysicsSystem>();
+        auto* ws = world->getService<PhysicsContext>();
         if (ImGui::Button(ws->isPaused() ? "Unpause Physics" : "Pause Physics"))
             ws->setPaused(!ws->isPaused());
     }

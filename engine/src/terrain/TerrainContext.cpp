@@ -157,7 +157,7 @@ namespace ke {
                     for (auto x = 0; x < area; x++) {
                         auto posX = x + (vertexCountX / 2) - (area / 2);
                         auto posZ = z + (vertexCountZ / 2) - (area / 2);
-                        terrain->setHeight(posX, posZ, 1);
+                        terrain->setHeight(posX, posZ, 3);
                     }
                 }
 
