@@ -16,13 +16,15 @@ Tests:
 
 Build:
 - `cmake -DCMAKE_TOOLCHAIN_FILE=D:/git/vcpkg/scripts/buildsystems/vcpkg.cmake . -A x64 -B build`
+  - replace `DCMAKE_TOOLCHAIN_FILE` value with your vcpkg path
 - Copy contents of `examples/res` into `build/examples/res` (Todo: need to automate this)
 - your `build` dir should now have a runnable project
 - execute `example` project
 
 ![alt text](https://github.com/IkeOTL/kengine-cpp/blob/master/examples/res/example00.jpg?raw=true)
 
-assets purhcased:
-https://ovanisound.com/
-https://syntystore.com/
-https://gamedev.tv/
+Reminders for me:
+Assets:
+ - https://ovanisound.com/
+ - https://syntystore.com/
+ - https://gamedev.tv/

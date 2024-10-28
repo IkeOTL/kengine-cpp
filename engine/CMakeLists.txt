@@ -401,6 +401,6 @@ target_link_libraries(kengine_engine PUBLIC
     glfw
     EASTL
     msgpack-cxx
-    Jolt ## commented out to work on it when i need it, and ensure its linking correctly
+    Jolt
     GameNetworkingSockets::shared
 )
