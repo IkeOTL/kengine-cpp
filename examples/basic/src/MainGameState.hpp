@@ -19,7 +19,7 @@ private:
     ke::RenderContext& renderContext;
     ke::SceneTime& sceneTime;
 
-    static constexpr float GAME_UPDATE_TICK_INTERVAL = 1 / 60.0f;
+    static constexpr float GAME_UPDATE_TICK_INTERVAL = 1.0f / 60;
     float accumulator = 0;
 
 public:

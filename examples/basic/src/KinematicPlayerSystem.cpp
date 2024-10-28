@@ -29,7 +29,7 @@ void KinematicPlayerSystem::processSystem(entt::entity playerEntity) {
         return;
 
     auto& ecs = getEcs();
-
+    
     auto& linVelComp = ecs.get<Component::LinearVelocity>(playerEntity);
     auto& spatials = ecs.get<Component::Spatials>(playerEntity);
     auto spatial = sceneGraph->get(spatials.rootSpatialId);
@@ -55,6 +55,18 @@ void KinematicPlayerSystem::processSystem(entt::entity playerEntity) {
             body.UpdateGroundVelocity();
         }
 
+        // preemptively remove gravity to avoid weird physics resolutions in case player is underground
+        {
+            auto& nextPos = spatial->getWorldTransform().getPosition();
+            auto newY = nextPos.y + -10 * sceneTime->getDelta();
+            auto terrainHeight = terrainContext->getTerrain().getHeightAt(nextPos.x, nextPos.z);
+            if (newY <= terrainHeight) {
+                auto bodyPos = body.GetPosition();
+                body.SetPosition(JPH::Vec3(bodyPos.GetX(), terrainHeight, bodyPos.GetZ()));
+                linVelComp.linearVelocity.y = 0;
+            }
+        }
+
         auto& physics = physicsContext->getPhysics();
         JPH::CharacterVirtual::ExtendedUpdateSettings update_settings;
         body.ExtendedUpdate(sceneTime->getDelta(),
@@ -72,7 +84,7 @@ void KinematicPlayerSystem::processSystem(entt::entity playerEntity) {
         // terrain collision
         {
             auto terrainHeight = terrainContext->getTerrain().getHeightAt(newPos.x, newPos.z);
-            if (newPos.y < terrainHeight) {
+            if (newPos.y <= terrainHeight) {
                 newPos.y = terrainHeight;
                 linVelComp.linearVelocity.y = 0;
                 body.SetPosition(JPH::Vec3(newPos.x, newPos.y, newPos.z));

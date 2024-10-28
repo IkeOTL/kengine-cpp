@@ -58,21 +58,36 @@ namespace ke {
         dirty = true;
     }
 
-    const glm::vec3& Transform::getPosition() {
+    /// <summary>
+    /// Changing the values in this ref will not set the transform to dirty
+    /// If making changes to the transform members ensure you call setDirty(true)
+    /// In case of this transform belongs to a Spatial call spatial.forceUpdateTransform();
+    /// </summary>
+    glm::vec3& Transform::getPosition() {
         if (dirty)
             updateTransform();
 
         return position;
     }
 
-    const glm::vec3& Transform::getScale() {
+    /// <summary>
+    /// Changing the values in this ref will not set the transform to dirty
+    /// If making changes to the transform members ensure you call setDirty(true)
+    /// In case of this transform belongs to a Spatial call spatial.forceUpdateTransform();
+    /// </summary>
+    glm::vec3& Transform::getScale() {
         if (dirty)
             updateTransform();
 
         return scale;
     }
 
-    const glm::quat& Transform::getRotation() {
+    /// <summary>
+    /// Changing the values in this ref will not set the transform to dirty
+    /// If making changes to the transform members ensure you call setDirty(true)
+    /// In case of this transform belongs to a Spatial call spatial.forceUpdateTransform();
+    /// </summary>
+    glm::quat& Transform::getRotation() {
         if (dirty)
             updateTransform();
 
