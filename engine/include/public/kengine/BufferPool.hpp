@@ -41,23 +41,23 @@ namespace ke {
             ByteBuf buf{};
             buf.bufSize = LeasedBufferSize::NONE;
 
-            if (bufSize > 512) {
+            if (bufSize > LeasedBufferSize::XXLARGE) {
                 KE_LOG_ERROR("Max buf size supported is 512.");
                 return buf;
             }
 
-            if (bufSize >= LeasedBufferSize::XXLARGE)
-                buf.bufSize = LeasedBufferSize::XXLARGE;
-            else if (bufSize >= LeasedBufferSize::XLARGE)
-                buf.bufSize = LeasedBufferSize::XLARGE;
-            else if (bufSize >= LeasedBufferSize::LARGE)
-                buf.bufSize = LeasedBufferSize::LARGE;
-            else if (bufSize >= LeasedBufferSize::MEDIUM)
-                buf.bufSize = LeasedBufferSize::MEDIUM;
-            else if (bufSize >= LeasedBufferSize::SMALL)
-                buf.bufSize = LeasedBufferSize::SMALL;
-            else if (bufSize > 0)
+            if (bufSize <= LeasedBufferSize::TINY)
                 buf.bufSize = LeasedBufferSize::TINY;
+            if (bufSize <= LeasedBufferSize::SMALL)
+                buf.bufSize = LeasedBufferSize::SMALL;
+            else if (bufSize <= LeasedBufferSize::MEDIUM)
+                buf.bufSize = LeasedBufferSize::MEDIUM;
+            else if (bufSize <= LeasedBufferSize::LARGE)
+                buf.bufSize = LeasedBufferSize::LARGE;
+            else if (bufSize <= LeasedBufferSize::XLARGE)
+                buf.bufSize = LeasedBufferSize::XLARGE;
+            else if (bufSize <= LeasedBufferSize::XXLARGE)
+                buf.bufSize = LeasedBufferSize::XXLARGE;
 
             {
                 std::lock_guard<std::mutex> lock(mtx);
