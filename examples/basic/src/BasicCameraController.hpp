@@ -7,7 +7,6 @@
 
 class BasicCameraController : public ke::CameraController {
 private:
-
 public:
     BasicCameraController() {}
 

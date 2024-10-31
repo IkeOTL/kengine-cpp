@@ -2,7 +2,6 @@
 #include "PhysicsContext.hpp"
 #include <Jolt/RegisterTypes.h>
 
-
 void PhysicsContext::init() {
     // todo: implement our own allocator
     JPH::RegisterDefaultAllocator();
@@ -14,7 +13,7 @@ void PhysicsContext::init() {
 
     JPH::RegisterTypes();
 
-    //need to implement our own job system
+    // need to implement our own job system
     jobSystem = std::make_unique<JPH::JobSystemThreadPool>(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, std::thread::hardware_concurrency() - 1);
 
     physicsSystem = std::make_unique<JPH::PhysicsSystem>();

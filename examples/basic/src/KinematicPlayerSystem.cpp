@@ -29,7 +29,7 @@ void KinematicPlayerSystem::processSystem(entt::entity playerEntity) {
         return;
 
     auto& ecs = getEcs();
-    
+
     auto& linVelComp = ecs.get<Component::LinearVelocity>(playerEntity);
     auto& spatials = ecs.get<Component::Spatials>(playerEntity);
     auto spatial = sceneGraph->get(spatials.rootSpatialId);
@@ -74,8 +74,8 @@ void KinematicPlayerSystem::processSystem(entt::entity playerEntity) {
             update_settings,
             physics.GetDefaultBroadPhaseLayerFilter(Layers::PLAYER),
             physics.GetDefaultLayerFilter(Layers::PLAYER),
-            { },
-            { },
+            {},
+            {},
             physicsContext->getTempAllocator());
 
         auto bodyPos = body.GetPosition();

@@ -6,4 +6,4 @@ namespace Component {
     struct Material {
         std::shared_ptr<ke::MaterialConfig> config;
     };
-}
+} // namespace Component

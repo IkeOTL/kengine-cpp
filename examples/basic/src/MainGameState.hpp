@@ -8,7 +8,7 @@ namespace ke {
     class RenderContext;
     class World;
     class Window;
-}
+} // namespace ke
 
 class MainGameState : public ke::State<ke::Game> {
 private:

@@ -6,7 +6,7 @@ namespace ke {
     class InputManager;
     class SceneTime;
     class TerrainContext;
-}
+} // namespace ke
 
 class PhysicsContext;
 class PlayerMovementManager;

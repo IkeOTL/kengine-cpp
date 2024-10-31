@@ -36,7 +36,9 @@ private:
 
 public:
     TestGui(ke::VulkanContext& vkCtx, ke::SceneTime& sceneTime, ke::DebugContext& debugCtx)
-        : ke::ImGuiKEContext(vkCtx), sceneTime(sceneTime), debugCtx(debugCtx) {}
+        : ke::ImGuiKEContext(vkCtx),
+          sceneTime(sceneTime),
+          debugCtx(debugCtx) {}
 
 protected:
     void draw() override;
@@ -45,7 +47,6 @@ protected:
 class BasicGameTest : ke::Game {
 private:
     inline static std::unique_ptr<ke::ExecutorService> threadPool;
-
 
     std::unique_ptr<ke::VulkanContext> vulkanCxt;
     std::unique_ptr<ke::Window> window;
@@ -86,9 +87,9 @@ private:
     void initVulkan(ke::Window& window);
     void initCamera(ke::InputManager& inputManager, ke::DebugContext& dbgCtx);
 
-
 public:
-    BasicGameTest() : sm(*this, nullptr, nullptr, nullptr) {}
+    BasicGameTest()
+        : sm(*this, nullptr, nullptr, nullptr) {}
     ~BasicGameTest();
 
     float getDelta() override;

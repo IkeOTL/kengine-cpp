@@ -13,10 +13,10 @@ namespace Component {
     };
 
     struct LinearVelocity {
-        glm::vec3 linearVelocity{ 0 };
+        glm::vec3 linearVelocity{0};
     };
 
     struct TerrainGrounded {
         bool grounded = false;
     };
-}
+} // namespace Component

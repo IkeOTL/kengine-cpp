@@ -4,7 +4,7 @@
 #include <jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <jolt/Physics/Collision/BackFaceMode.h>
-//#include <glm/>
+// #include <glm/>
 
 std::unique_ptr<MyPlayerContext> MyPlayerContext::create(PhysicsContext& physicsContext) {
     auto playerCtx = std::make_unique<MyPlayerContext>(physicsContext);
@@ -16,8 +16,9 @@ std::unique_ptr<MyPlayerContext> MyPlayerContext::create(PhysicsContext& physics
         auto shape = JPH::RotatedTranslatedShapeSettings(
             JPH::Vec3(0, characterHeight, 0),
             JPH::Quat::sIdentity(),
-            new JPH::CapsuleShape(0.5f * (characterHeight - characterRadius * 2), characterRadius)
-        ).Create().Get();
+            new JPH::CapsuleShape(0.5f * (characterHeight - characterRadius * 2), characterRadius))
+                         .Create()
+                         .Get();
 
         auto settings = std::make_unique<JPH::CharacterVirtualSettings>();
 
@@ -39,8 +40,6 @@ std::unique_ptr<MyPlayerContext> MyPlayerContext::create(PhysicsContext& physics
 
     return playerCtx;
 }
-
-
 
 void MyPlayerContext::setPhysicsCharacter(std::unique_ptr<JPH::CharacterVirtual>&& p, std::unique_ptr<JPH::CharacterVirtualSettings>&& s) {
     physicsCharacter = std::move(p);

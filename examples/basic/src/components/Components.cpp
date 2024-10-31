@@ -86,7 +86,6 @@ std::shared_ptr<ke::Spatial> Component::Spatials::generate(ke::SceneGraph& scene
     return rootSpatial;
 }
 
-
 /// <summary>
 /// create a skeleton based on spatials from the generated model spatial hierarchy
 /// </summary>

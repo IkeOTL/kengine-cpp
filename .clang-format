@@ -17,5 +17,7 @@
   AllowAllArgumentsOnNextLine: true,
   AlignAfterOpenBracket: DontAlign,
   EmptyLineBeforeAccessModifier: LogicalBlock,
-  AlignOperands: DontAlign
+  AlignOperands: DontAlign,
+  SpaceAfterTemplateKeyword: false,
+  ContinuationIndentWidth: 4
 }

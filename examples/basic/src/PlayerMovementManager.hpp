@@ -3,7 +3,6 @@
 #include <components/Physics.hpp>
 #include <memory>
 
-
 class PlayerMovementManager {
 private:
     inline static const float GRAVITY = -10;
@@ -16,6 +15,4 @@ public:
     }
 
     void stepPlayer(float step, ke::Spatial& spatial, Component::LinearVelocity& velComp, uint32_t input);
-
-
 };

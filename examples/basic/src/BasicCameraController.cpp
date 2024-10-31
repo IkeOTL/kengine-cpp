@@ -53,24 +53,23 @@ FreeCameraController::FreeCameraController(ke::InputManager& inputManager)
 
 void FreeCameraController::init() {
     inputManager.registerMouseEventListener(this);
-    addDragHandler([this](GLFWwindow* window, int x, int y, int deltaX, int deltaY)
-        {
-            // this starts to roll the camera over time, need to find a fix
-            glm::quat orientation = getCamera()->getRotation();
+    addDragHandler([this](GLFWwindow* window, int x, int y, int deltaX, int deltaY) {
+        // this starts to roll the camera over time, need to find a fix
+        glm::quat orientation = getCamera()->getRotation();
 
-            // Calculate rotation quaternions
-            auto yaw = glm::angleAxis(glm::radians(0.3f * deltaX), glm::vec3(0.0f, 1.0f, 0.0f));
-            auto pitch = glm::angleAxis(glm::radians(0.3f * deltaY), glm::vec3(1.0f, 0.0f, 0.0f));
+        // Calculate rotation quaternions
+        auto yaw = glm::angleAxis(glm::radians(0.3f * deltaX), glm::vec3(0.0f, 1.0f, 0.0f));
+        auto pitch = glm::angleAxis(glm::radians(0.3f * deltaY), glm::vec3(1.0f, 0.0f, 0.0f));
 
-            // Combine the new rotations with the current orientation
-            orientation = glm::normalize(pitch * orientation * yaw);
+        // Combine the new rotations with the current orientation
+        orientation = glm::normalize(pitch * orientation * yaw);
 
-            getCamera()->setRotation(orientation);
+        getCamera()->setRotation(orientation);
 
-            needsFrustumRecalc = true;
+        needsFrustumRecalc = true;
 
-            return false;
-        });
+        return false;
+    });
 }
 
 void FreeCameraController::update(float delta) {
@@ -115,8 +114,7 @@ void FreeCameraController::applyMovement(float delta) {
     auto camMov = glm::vec3(
         (inputManager.isKeyDown(GLFW_KEY_A) ? -1 : 0) + (inputManager.isKeyDown(GLFW_KEY_D) ? 1 : 0),
         0,
-        (inputManager.isKeyDown(GLFW_KEY_W) ? -1 : 0) + (inputManager.isKeyDown(GLFW_KEY_S) ? 1 : 0)
-    );
+        (inputManager.isKeyDown(GLFW_KEY_W) ? -1 : 0) + (inputManager.isKeyDown(GLFW_KEY_S) ? 1 : 0));
 
     auto invRot = glm::inverse(camera->getRotation());
     camMov = invRot * camMov;

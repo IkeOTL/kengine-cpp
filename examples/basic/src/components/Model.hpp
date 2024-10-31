@@ -6,4 +6,4 @@ namespace Component {
     struct ModelComponent {
         std::shared_ptr<ke::ModelConfig> config;
     };
-}
+} // namespace Component

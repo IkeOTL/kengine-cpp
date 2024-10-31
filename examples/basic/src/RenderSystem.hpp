@@ -12,7 +12,7 @@
 namespace Component {
     class Renderable;
     class Spatials;
-}
+} // namespace Component
 
 namespace ke {
     class World;
@@ -28,7 +28,7 @@ namespace ke {
     class Transform;
     class SpatialPartitioningManager;
     class SkeletonManager;
-}
+} // namespace ke
 
 class RenderSystem : public ke::EcsSystem {
 private:
