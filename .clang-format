@@ -5,6 +5,7 @@
     NamespaceIndentation: All, 
     AllowShortIfStatementsOnASingleLine: true, 
     AccessModifierOffset: -4,
+    SpacesBeforeTrailingComments: 1,
     BinaryOperatorStyle: NonAssignment,
     BinPackArguments: true,
     BinPackParametersStyle: BinPack,
