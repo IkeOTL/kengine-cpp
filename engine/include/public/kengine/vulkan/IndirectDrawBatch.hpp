@@ -10,7 +10,6 @@ namespace ke {
     class CachedGpuBuffer;
 
     class IndirectDrawBatch {
-
     private:
         const Mesh* mesh;
         const Material* material;

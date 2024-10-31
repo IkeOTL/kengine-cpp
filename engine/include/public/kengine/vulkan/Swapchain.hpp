@@ -35,6 +35,5 @@ namespace ke {
         std::vector<VkImage> vkImages{};
         std::vector<VkImageView> vkImageViews{};
         glm::uvec2 imageExtents{};
-
     };
 } // namespace ke

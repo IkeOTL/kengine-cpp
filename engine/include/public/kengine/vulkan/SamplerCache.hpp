@@ -25,27 +25,34 @@ namespace ke {
             VkSamplerAddressMode addressModeU, VkSamplerAddressMode addressModeV, VkSamplerAddressMode addressModeW,
             VkCompareOp compareOp, VkBorderColor borderColor,
             float minLod, float maxLod,
-            float mipLodBias, float maxAnisotropy) :
-            mipmapMode(mipmapMode), minFilter(minFilter), magFilter(magFilter),
-            addressModeU(addressModeU), addressModeV(addressModeV), addressModeW(addressModeW),
-            compareOp(compareOp), borderColor(borderColor),
-            minLod(minLod), maxLod(maxLod),
-            mipLodBias(mipLodBias), maxAnisotropy(maxAnisotropy) {}
+            float mipLodBias, float maxAnisotropy)
+            : mipmapMode(mipmapMode),
+              minFilter(minFilter),
+              magFilter(magFilter),
+              addressModeU(addressModeU),
+              addressModeV(addressModeV),
+              addressModeW(addressModeW),
+              compareOp(compareOp),
+              borderColor(borderColor),
+              minLod(minLod),
+              maxLod(maxLod),
+              mipLodBias(mipLodBias),
+              maxAnisotropy(maxAnisotropy) {}
 
         size_t hashCode() const noexcept override;
         bool operator==(const SamplerConfig& other) const;
         bool operator!=(const SamplerConfig& other) const;
     };
-}
+} // namespace ke
 
 namespace std {
-    template<>
+    template <>
     struct hash<ke::SamplerConfig> {
         size_t operator()(const ke::SamplerConfig& p) const noexcept {
             return p.hashCode();
         }
     };
-}
+} // namespace std
 
 namespace ke {
     class SamplerCache {
@@ -55,7 +62,8 @@ namespace ke {
         std::unordered_map<SamplerConfig, std::unique_ptr<ke::VulkanSampler>> cache{};
 
     public:
-        SamplerCache(VulkanContext& vkCtx) : vkCtx(vkCtx) {}
+        SamplerCache(VulkanContext& vkCtx)
+            : vkCtx(vkCtx) {}
 
         VkSampler getSampler(SamplerConfig& config);
     };

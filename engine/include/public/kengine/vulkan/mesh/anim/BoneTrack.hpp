@@ -20,9 +20,12 @@ namespace ke {
     public:
         BoneTrack(uint32_t boneId, std::string name, std::vector<float>&& times,
             std::vector<glm::vec3>&& translation, std::vector<glm::quat>&& rotation, std::vector<glm::vec3>&& scale)
-            : boneId(boneId), name(name), times(std::move(times)),
-            translation(std::move(translation)), rotation(std::move(rotation)), scale(std::move(scale))
-        {}
+            : boneId(boneId),
+              name(name),
+              times(std::move(times)),
+              translation(std::move(translation)),
+              rotation(std::move(rotation)),
+              scale(std::move(scale)) {}
 
         uint32_t getBoneId() const {
             return boneId;

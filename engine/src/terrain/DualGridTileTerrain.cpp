@@ -6,12 +6,16 @@
 
 namespace ke {
     DualGridTileTerrain::DualGridTileTerrain(uint32_t terrainTilesWidth, uint32_t terrainTilesLength, uint32_t chunkWidth, uint32_t chunkLength)
-        : terrainTilesWidth(terrainTilesWidth), terrainTilesLength(terrainTilesLength),
-        chunkWidth(chunkWidth), chunkLength(chunkLength),
-        terrainHeightsWidth(terrainTilesWidth + 2), terrainHeightsLength(terrainTilesLength + 2), // adding 2 instead of 1 allows for .5tile offset to be fully centered
-        worldOffsetX((-static_cast<float>(terrainTilesWidth) / 2.0f) - .5f), worldOffsetZ((-static_cast<float>(terrainTilesLength) / 2.0f) - .5f), // dual grid terrain: https://www.youtube.com/watch?v=Uxeo9c-PX-w&t=308s
-        chunkCountX(terrainTilesWidth / chunkWidth), chunkCountZ(terrainTilesLength / chunkLength)
-    {
+        : terrainTilesWidth(terrainTilesWidth),
+          terrainTilesLength(terrainTilesLength),
+          chunkWidth(chunkWidth),
+          chunkLength(chunkLength),
+          terrainHeightsWidth(terrainTilesWidth + 2),
+          terrainHeightsLength(terrainTilesLength + 2), // adding 2 instead of 1 allows for .5tile offset to be fully centered
+          worldOffsetX((-static_cast<float>(terrainTilesWidth) / 2.0f) - .5f),
+          worldOffsetZ((-static_cast<float>(terrainTilesLength) / 2.0f) - .5f), // dual grid terrain: https://www.youtube.com/watch?v=Uxeo9c-PX-w&t=308s
+          chunkCountX(terrainTilesWidth / chunkWidth),
+          chunkCountZ(terrainTilesLength / chunkLength) {
         if (terrainTilesWidth % 2 != 0 || terrainTilesLength % 2 != 0
             || terrainTilesWidth % chunkWidth != 0 || terrainTilesLength % chunkLength != 0)
             throw std::runtime_error("TileTerrain params must be even, and chunk size must be a factor of terrain size.");
@@ -41,7 +45,7 @@ namespace ke {
             return 0;
 
         // 1.0f is typically the number of world units per tile (i tihnk i cant remember)
-        // but since our tiles are each one unit we neglect it 
+        // but since our tiles are each one unit we neglect it
         auto xCoord = std::fmod(terrainX, 1.0f) / 1.0f;
         auto zCoord = std::fmod(terrainZ, 1.0f) / 1.0f;
 

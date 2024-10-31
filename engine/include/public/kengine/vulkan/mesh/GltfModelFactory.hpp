@@ -19,7 +19,8 @@ namespace ke {
 
     public:
         GltfModelFactory(VulkanContext& vkContext, AssetIO& assetIo)
-            : vkContext(vkContext), assetIo(assetIo) {}
+            : vkContext(vkContext),
+              assetIo(assetIo) {}
 
         inline static std::unique_ptr<GltfModelFactory> create(VulkanContext& vkContext, AssetIO& assetIo) {
             return std::make_unique<GltfModelFactory>(vkContext, assetIo);
@@ -32,8 +33,7 @@ namespace ke {
             std::unordered_set<int>& meshIndices, std::unordered_map<int, std::unique_ptr<MeshGroup>>& meshGroups,
             std::vector<std::shared_ptr<Spatial>>& spatialNodes, std::vector<int16_t>& parentIndex) const;
 
-        void loadMeshGroup(const tinygltf::Model& model, int meshGroupIdx, std::unordered_map<int,
-            std::unique_ptr<MeshGroup>>&mesheGroups, int vertexAttributes) const;
+        void loadMeshGroup(const tinygltf::Model& model, int meshGroupIdx, std::unordered_map<int, std::unique_ptr<MeshGroup>>& mesheGroups, int vertexAttributes) const;
 
         const tinygltf::Accessor& getAccessor(const tinygltf::Model& model, const tinygltf::Primitive& primitive, const std::string attributeName) const {
             auto it = primitive.attributes.find(attributeName);
@@ -81,7 +81,7 @@ namespace ke {
 
             size_t vertCount = 0;
             size_t positionStride = 0, normalStride = 0, texCoordStride = 0,
-                tangentStride = 0, jointIndexStride = 0, jointWeightStride = 0;
+                   tangentStride = 0, jointIndexStride = 0, jointWeightStride = 0;
             int jointComponentType;
 
             auto vertexAttributes = mb.getVertexAttributes();
@@ -109,7 +109,7 @@ namespace ke {
                 jointWeightAttr = getAttrBuffer<glm::vec4>(model, primitive, "WEIGHTS_0", vertCount, jointWeightStride);
             }
 
-            // resize mesh builder            
+            // resize mesh builder
             mb.resize(idxAccessor.count, vertCount);
 
             // load indices
@@ -131,8 +131,7 @@ namespace ke {
                     const auto meshIndices = reinterpret_cast<const uint16_t*>(&(buffer.data[byteOffset]));
                     for (auto i = 0; i < idxAccessor.count; i++)
                         targetIndices[i] = meshIndices[i];
-                }
-                else if (idxAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
+                } else if (idxAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
                     memcpy(targetIndices.data(), &(buffer.data[byteOffset]), idxAccessor.count * sizeof(uint32_t));
             }
 
@@ -161,8 +160,7 @@ namespace ke {
                             glm::u8vec4 tmp;
                             memcpy(&tmp, jointIndexAttr + (i * jointIndexStride), sizeof(glm::u8vec4));
                             verts[i].blendIndex = glm::uvec4(tmp);
-                        }
-                        else if (jointIndexAttr && jointComponentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+                        } else if (jointIndexAttr && jointComponentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
                             glm::u16vec4 tmp;
                             memcpy(&tmp, jointIndexAttr + (i * jointIndexStride), sizeof(glm::u16vec4));
                             verts[i].blendIndex = glm::uvec4(tmp);
@@ -175,8 +173,7 @@ namespace ke {
             }
 
             meshGroup.addMesh(
-                mb.build(&vkContext)
-            );
+                mb.build(&vkContext));
         }
     };
 } // namespace ke

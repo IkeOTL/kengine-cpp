@@ -12,12 +12,13 @@ namespace ke {
             RenderPass& renderPass,
             VmaAllocator vmaAllocator,
             const std::vector<VkImageView>& sharedImageViews,
-            const glm::uvec2& extents
-        ) override;
+            const glm::uvec2& extents) override;
 
     public:
         CascadeShadowMapRenderTarget(VkDevice vkDevice, const GpuImageView& shadowMapDepthImage, uint32_t cascadeIndex)
-            : RenderTarget(vkDevice), shadowMapDepthImage(shadowMapDepthImage), cascadeIndex(cascadeIndex) {}
+            : RenderTarget(vkDevice),
+              shadowMapDepthImage(shadowMapDepthImage),
+              cascadeIndex(cascadeIndex) {}
 
         const GpuImageView& getCascadeImageView() const {
             return *cascadeImageView;
@@ -31,7 +32,7 @@ namespace ke {
     class CascadeShadowMapRenderPass : public RenderPass {
     public:
         CascadeShadowMapRenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
-            : RenderPass(vkDevice, colorFormatAndSpace) { }
+            : RenderPass(vkDevice, colorFormatAndSpace) {}
 
         static inline std::unique_ptr<RenderPass> create(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace) {
             return std::make_unique<CascadeShadowMapRenderPass>(vkDevice, colorFormatAndSpace);

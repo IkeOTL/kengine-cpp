@@ -4,7 +4,6 @@
 #include <thirdparty/entt.hpp>
 #include <memory>
 
-
 class MyPlayerContext {
 private:
     entt::entity playerEntity = entt::null;

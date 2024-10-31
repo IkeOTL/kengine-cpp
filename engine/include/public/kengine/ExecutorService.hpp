@@ -1,5 +1,6 @@
 #pragma once
 #include <kengine/Logger.hpp>
+#include <taskflow/taskflow.hpp>
 #include <thread>
 #include <queue>
 #include <future>
@@ -73,20 +74,19 @@ namespace ke {
             return false;
         }
 
-        template<typename R, typename F>
+        template <typename R, typename F>
         void yield(F task, std::shared_ptr<std::promise<R>> promise) {
             execute([this, task = std::move(task), promise]() mutable {
                 try {
                     if (!task(*promise))
                         this->yield(std::move(task), promise);
-                }
-                catch (...) {
+                } catch (...) {
                     try {
                         promise->set_exception(std::current_exception());
+                    } catch (...) {
                     }
-                    catch (...) {}
                 }
-                });
+            });
         }
 
         bool allQueuesEmpty() const {
@@ -112,11 +112,9 @@ namespace ke {
                         if (fetchTask(tIdx, task) || stealTask(tIdx, numThreads, task)) {
                             try {
                                 task();
-                            }
-                            catch (const std::exception& e) {
+                            } catch (const std::exception& e) {
                                 KE_LOG_ERROR(std::format("Exception in worker: {}", e.what()));
-                            }
-                            catch (...) {
+                            } catch (...) {
                                 KE_LOG_ERROR("Unknown exception in worker thread.");
                             }
 
@@ -127,16 +125,14 @@ namespace ke {
                             std::unique_lock<std::mutex> lock(this->mainMutex);
                             this->condition.wait(lock,
                                 [this, tIdx] {
-                                    return this->stop.load()
-                                        || !this->workerQueues[tIdx]->isEmpty.load()
-                                        || !this->allQueuesEmpty();
+                                    return this->stop.load() || !this->workerQueues[tIdx]->isEmpty.load() || !this->allQueuesEmpty();
                                 });
 
                             if (this->stop && this->allQueuesEmpty())
                                 return;
                         }
                     }
-                    });
+                });
             }
         }
 
@@ -154,12 +150,12 @@ namespace ke {
         }
 
         /// <summary>
-        /// executes a function. the executed function returns another function that will keep checking a condition, 
-        /// if it returns false the task is submitted back into the queue allowing other work to progress, 
+        /// executes a function. the executed function returns another function that will keep checking a condition,
+        /// if it returns false the task is submitted back into the queue allowing other work to progress,
         /// then it will try again until true is returned.
         /// Use case: loading lots of assets and executing an operation once all asset futures are ready.
         /// </summary>
-        template<typename R, typename F>
+        template <typename R, typename F>
         std::shared_future<R> submitYielding(F&& initTask) {
             auto promisePtr = std::make_shared<std::promise<R>>();
             auto future = promisePtr->get_future().share();
@@ -170,8 +166,7 @@ namespace ke {
             // Ensure that the initializer returns a valid step function
             static_assert(
                 std::is_invocable_r_v<bool, decltype(stepTask), std::promise<R>&>,
-                "The step function must be callable with std::promise<R>& and return bool."
-                );
+                "The step function must be callable with std::promise<R>& and return bool.");
 
             yield<R>(std::move(stepTask), promisePtr);
 
@@ -195,14 +190,14 @@ namespace ke {
             }
 
             // need to determine which works best
-            //condition.notify_all();
+            // condition.notify_all();
             condition.notify_one();
         }
 
         /// <summary>
         /// Submits to pool and returns a single use future.
         /// </summary>
-        template<typename F>
+        template <typename F>
         auto submit(F&& f) -> std::future<std::invoke_result_t<F>> {
             auto tIdx = targetIdx.fetch_add(1) % workerQueues.size();
 
@@ -226,7 +221,7 @@ namespace ke {
 
             // need to determine which works best
             condition.notify_all();
-            //condition.notify_one();
+            // condition.notify_one();
 
             return task->get_future();
         }
@@ -234,7 +229,7 @@ namespace ke {
         /// <summary>
         /// Submits to pool and returns a shared future.
         /// </summary>
-        template<typename F>
+        template <typename F>
         auto submitShared(F&& f) -> std::shared_future<decltype(f())> {
             auto future = submit(std::forward<F>(f));
             return future.share();

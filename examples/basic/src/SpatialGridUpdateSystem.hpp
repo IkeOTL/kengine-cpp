@@ -8,7 +8,7 @@ namespace ke {
     class ExecutorService;
     class AsyncModelCache;
     class SpatialPartitioningManager;
-}
+} // namespace ke
 
 class SpatialGridUpdateSystem : public ke::EcsSystem {
 private:

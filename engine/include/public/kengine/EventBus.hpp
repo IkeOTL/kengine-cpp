@@ -18,7 +18,9 @@ namespace ke {
     using EventHandlerId = uint32_t;
 
     enum EventReceiptMode {
-        RETURN_RECEIPT_UNNEEDED, RETURN_RECEIPT_NEEDED, RETURN_RECEIPT_SENT
+        RETURN_RECEIPT_UNNEEDED,
+        RETURN_RECEIPT_NEEDED,
+        RETURN_RECEIPT_SENT
     };
 
     struct Event {
@@ -40,7 +42,7 @@ namespace ke {
         }
     };
 
-    class EventBus : public  WorldService {
+    class EventBus : public WorldService {
     private:
         struct EventComparator {
             bool operator()(const Event* a, const Event* b) const {
@@ -50,7 +52,7 @@ namespace ke {
             }
         };
 
-        //using EventSubscription = entt::delegate<void(const void*, World&, const Event&)>;
+        // using EventSubscription = entt::delegate<void(const void*, World&, const Event&)>;
         using EventHandler = std::function<void(const Event&, World&)>;
 
         /// <summary>

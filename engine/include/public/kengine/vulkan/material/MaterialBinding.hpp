@@ -34,7 +34,8 @@ namespace ke {
 
     public:
         BufferBinding(std::shared_ptr<MaterialBindingConfig> bindingConfig, CachedGpuBuffer& gpuBuffer)
-            : MaterialBinding(bindingConfig), gpuBuffer(gpuBuffer) {}
+            : MaterialBinding(bindingConfig),
+              gpuBuffer(gpuBuffer) {}
 
         const CachedGpuBuffer& getGpuBuffer() const {
             return gpuBuffer;
@@ -51,7 +52,8 @@ namespace ke {
 
     public:
         ImageBinding(std::shared_ptr<MaterialBindingConfig> bindingConfig, Texture2d& texture)
-            : MaterialBinding(bindingConfig), texture(texture) {}
+            : MaterialBinding(bindingConfig),
+              texture(texture) {}
 
         const Texture2d& getTexture() const {
             return texture;
@@ -62,14 +64,14 @@ namespace ke {
             std::vector<std::vector<VkDescriptorBufferInfo>>& pBufferInfos, std::vector<std::vector<VkDescriptorImageInfo>>& pImageInfos, std::vector<uint32_t>& offsets) override;
     };
 
-
     class ImageArrayBinding : public MaterialBinding {
     private:
         std::vector<Texture2d*> textures;
 
     public:
         ImageArrayBinding(std::shared_ptr<MaterialBindingConfig> bindingConfig, std::vector<Texture2d*> textures)
-            : MaterialBinding(bindingConfig), textures(textures) {}
+            : MaterialBinding(bindingConfig),
+              textures(textures) {}
 
         const std::vector<Texture2d*> getTextures() const {
             return textures;

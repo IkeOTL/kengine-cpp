@@ -9,12 +9,11 @@
 #include <kengine/vulkan/renderpass/CascadeShadowMapRenderPass.hpp>
 #include <kengine/vulkan/material/PbrMaterialConfig.hpp>
 #include <kengine/Math.hpp>
-
 #include <tracy/Tracy.hpp>
+#include <taskflow/taskflow.hpp>
 #include <GLFW/glfw3.h>
 #include <utility>
 #include <kengine/vulkan/pipelines/DebugDeferredOffscreenPbrPipeline.hpp>
-
 
 #include "RenderablePreviousTransformSystem.hpp"
 #include "SpatialGridUpdateSystem.hpp"
@@ -31,7 +30,6 @@
 #include <kengine/vulkan/pipelines/TerrainDrawCullingPipeline.hpp>
 #include <kengine/vulkan/pipelines/TerrainDeferredOffscreenPbrPipeline.hpp>
 #include <kengine/vulkan/pipelines/TerrainPreDrawCullingPipeline.hpp>
-
 
 #include "components/Components.hpp"
 #include <components/Material.hpp>
@@ -50,7 +48,6 @@
 #include <PhysicsSyncSystem.hpp>
 #include <PlayerCameraSystem.hpp>
 
-
 BasicGameTest::~BasicGameTest() {
     // textureCache.reset();
 }
@@ -65,7 +62,7 @@ void BasicGameTest::run() {
     sm.setInitialState(gameState.get());
     gameState->enter(*this);
 
-    //std::thread renderThread([this]() {
+    // std::thread renderThread([this]() {
     using namespace std::chrono;
 
     auto lastFrame = high_resolution_clock::now();
@@ -90,7 +87,7 @@ void BasicGameTest::run() {
     }
     //    });
 
-    //renderThread.join();
+    // renderThread.join();
 }
 
 std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
@@ -103,7 +100,7 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
     // review this usage
     threadPool.reset(new ke::ExecutorService(4, [&]() {
         vulkanCxt->getCommandPool()->initThread(*vulkanCxt);
-        }));
+    }));
 
     debugContext = ke::DebugContext::create();
     initCamera(*inputManager, *debugContext);
@@ -120,7 +117,7 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
     skeletonManager = ke::SkeletonManager::create(*vulkanCxt);
 
     eventBus = ke::EventBus::create(*sceneTime);
-    //eventBus->registerHandler([](const auto& evt, auto& w) {});
+    // eventBus->registerHandler([](const auto& evt, auto& w) {});
 
     spatialPartitioningManager->setSpatialGrid(ke::SpatialGrid::create(64, 64, 16));
 
@@ -132,7 +129,6 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
     textureFactory = ke::TextureFactory::create(*vulkanCxt, *assetIo);
     textureCache = ke::AsyncTextureCache::create(*textureFactory, *threadPool);
     materialCache = ke::AsyncMaterialCache::create(vulkanCxt->getPipelineCache(), *textureCache, vulkanCxt->getGpuBufferCache(), *threadPool);
-
 
     imGuiContext = std::make_unique<TestGui>(*vulkanCxt, *sceneTime, *debugContext);
     imGuiContext->init(*window);
@@ -149,46 +145,46 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
     myPlayerContext = MyPlayerContext::create(*physicsContext);
     playerMovementManager = PlayerMovementManager::create();
 
-    world = ke::World::create(ke::WorldConfig()
-        // injectable objects. order doesnt matter
-        .addService(&ecs)
-        .addService(debugContext.get())
-        .addService(imGuiContext.get())
-        .addService(window.get())
-        .addService(vulkanCxt.get())
-        .addService(renderContext.get())
-        .addService(sceneGraph.get())
-        .addService(sceneTime.get())
-        .addService(spatialPartitioningManager.get())
-        .addService(eventBus.get())
-        .addService(playerMovementManager.get())
-        .addService(myPlayerContext.get())
-        .addService(inputManager.get())
-        .addService(physicsContext.get())
-        .addService(cameraController.get())
-        .addService(terrainContext.get())
+    world = ke::World::create(
+        ke::WorldConfig()
+            // injectable objects. order doesnt matter
+            .addService(&ecs)
+            .addService(debugContext.get())
+            .addService(imGuiContext.get())
+            .addService(window.get())
+            .addService(vulkanCxt.get())
+            .addService(renderContext.get())
+            .addService(sceneGraph.get())
+            .addService(sceneTime.get())
+            .addService(spatialPartitioningManager.get())
+            .addService(eventBus.get())
+            .addService(playerMovementManager.get())
+            .addService(myPlayerContext.get())
+            .addService(inputManager.get())
+            .addService(physicsContext.get())
+            .addService(cameraController.get())
+            .addService(terrainContext.get())
 
-        .addService(threadPool.get())
-        .addService(assetIo.get())
-        .addService(lightsManager.get())
-        .addService(skeletonManager.get())
+            .addService(threadPool.get())
+            .addService(assetIo.get())
+            .addService(lightsManager.get())
+            .addService(skeletonManager.get())
 
-        .addService(modelFactory.get())
-        .addService(modelCache.get())
-        .addService(textureFactory.get())
-        .addService(textureCache.get())
-        .addService(materialCache.get())
+            .addService(modelFactory.get())
+            .addService(modelCache.get())
+            .addService(textureFactory.get())
+            .addService(textureCache.get())
+            .addService(materialCache.get())
 
-        // systems. order matters.
-        .setSystem<RenderablePreviousTransformSystem>()
-        .setSystem<KinematicPlayerSystem>()
-        .setSystem<PhysicsSystem>()
-        .setSystem<PhysicsSyncSystem>()
-        .setSystem<CameraSystem>()
-        .setSystem<SpatialGridUpdateSystem>()
-        .setSystem<PlayerCameraSystem>()
-        .setSystem<RenderSystem>()
-    );
+            // systems. order matters.
+            .setSystem<RenderablePreviousTransformSystem>()
+            .setSystem<KinematicPlayerSystem>()
+            .setSystem<PhysicsSystem>()
+            .setSystem<PhysicsSyncSystem>()
+            .setSystem<SpatialGridUpdateSystem>()
+            .setSystem<CameraSystem>()
+            .setSystem<PlayerCameraSystem>()
+            .setSystem<RenderSystem>());
 
     // pause physics by defaut
     physicsContext->setPaused(true);
@@ -197,9 +193,8 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
     {
         auto* ecs = world->getService<entt::registry>();
         auto modelConfig = ke::ModelConfig::create("gltf/smallcube.glb",
-            ke::VertexAttribute::POSITION | ke::VertexAttribute::NORMAL | ke::VertexAttribute::TEX_COORDS
-            | ke::VertexAttribute::TANGENTS
-        );
+            ke::VertexAttribute::POSITION | ke::VertexAttribute::NORMAL
+                | ke::VertexAttribute::TEX_COORDS | ke::VertexAttribute::TANGENTS);
 
         auto materialConfig = ke::PbrMaterialConfig::create();
         materialConfig->setHasShadow(true);
@@ -266,19 +261,17 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
         {
             auto modelConfig = ke::ModelConfig::create("gltf/smallcube.glb",
                 ke::VertexAttribute::POSITION | ke::VertexAttribute::NORMAL | ke::VertexAttribute::TEX_COORDS
-                | ke::VertexAttribute::TANGENTS
-            );
+                    | ke::VertexAttribute::TANGENTS);
 
             // physics
             JPH::BodyInterface& bodyInterface = physicsContext->getPhysics().GetBodyInterface();
             JPH::BoxShapeSettings shapeSettings(JPH::Vec3(.5f, .5f, .5f));
-            //shapeSettings.SetEmbedded();
+            // shapeSettings.SetEmbedded();
             JPH::ShapeSettings::ShapeResult shapeResult = shapeSettings.Create();
             auto& shape = shapeResult.Get();
 
             JPH::MassProperties msp;
-            msp.ScaleToMass(10.0f); //actual mass in kg
-
+            msp.ScaleToMass(10.0f); // actual mass in kg
 
             auto materialConfig = ke::PbrMaterialConfig::create();
             materialConfig->setHasShadow(true);
@@ -295,8 +288,7 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
                         glm::vec3 startingPos = glm::vec3(
                             ((1 + padding) * i) - ((1 + padding) * xCount * 0.5f),
                             ((1 + padding) * k) + yOffset,
-                            ((1 + padding) * j) - ((1 + padding) * zCount * 0.5f) + zOffset
-                        );
+                            ((1 + padding) * j) - ((1 + padding) * zCount * 0.5f) + zOffset);
 
                         // physics
 
@@ -310,7 +302,7 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
                         JPH::Body* body = bodyInterface.CreateBody(bodySettings);
                         bodyInterface.AddBody(body->GetID(), JPH::EActivation::Activate);
 
-                        //entity
+                        // entity
                         auto* ecs = world->getService<entt::registry>();
                         auto entity = ecs->create();
 
@@ -355,10 +347,10 @@ void BasicGameTest::initVulkan(ke::Window& window) {
                 .init(vkCtx, rp[0].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{});
 
             pc->createPipeline<ke::CascadeShadowMapPipeline>()
-                .init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
+                .init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{4096, 4096});
 
             pc->createPipeline<ke::SkinnedCascadeShadowMapPipeline>()
-                .init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{ 4096 , 4096 });
+                .init(vkCtx, rp[1].get(), vkCtx.getDescSetLayoutCache(), glm::vec2{4096, 4096});
 
             pc->createPipeline<ke::PreDrawCullingPipeline>()
                 .init(vkCtx, nullptr, vkCtx.getDescSetLayoutCache(), glm::vec2{});
@@ -387,8 +379,7 @@ void BasicGameTest::initVulkan(ke::Window& window) {
             auto& rp = renderPasses[0];
             auto sc = vkCxt.getSwapchain();
             rp->createRenderTargets(vkCxt.getVmaAllocator(), sc->getImageViews(), sc->getExtents());
-        }
-    );
+        });
 
     vulkanCxt->init(true);
 }
@@ -401,11 +392,11 @@ void BasicGameTest::initCamera(ke::InputManager& inputManager, ke::DebugContext&
     camera->setPosition(glm::vec3(5, 7, 5));
 
     glm::quat camRot = camera->getRotation();
-    camRot = glm::rotate(camRot, glm::radians(35.0f), glm::vec3{ 1.0f, 0.0f, 0.0f });
+    camRot = glm::rotate(camRot, glm::radians(35.0f), glm::vec3{1.0f, 0.0f, 0.0f});
     auto rot = glm::rotate(camRot, glm::radians(-45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     camera->setRotation(rot);
 
-    //cameraController = std::make_unique<FreeCameraController>(inputManager);
+    // cameraController = std::make_unique<FreeCameraController>(inputManager);
     cameraController = std::make_unique<PlayerCameraController>();
     cameraController->setCamera(std::move(camera));
 }

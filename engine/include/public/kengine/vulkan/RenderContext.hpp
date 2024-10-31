@@ -53,9 +53,8 @@ namespace ke {
 
         CachedGpuBuffer* indirectCmdBuf = nullptr;
         CachedGpuBuffer* drawObjectBuf = nullptr;
-        CachedGpuBuffer* objectInstanceBuf = nullptr; // all instances submitted before GPU culling
+        CachedGpuBuffer* objectInstanceBuf = nullptr;  // all instances submitted before GPU culling
         CachedGpuBuffer* drawInstanceBuffer = nullptr; // all instances after GPU culling
-
 
         uint32_t staticInstances = 0;
         uint32_t staticBatches = 0;
@@ -100,8 +99,10 @@ namespace ke {
 
     public:
         RenderContext(VulkanContext& vkCtx, LightsManager& lightsManager, CameraController& cameraController)
-            : vkContext(vkCtx), lightsManager(lightsManager),
-            cameraController(cameraController), bindManager(MaterialBindManager(vkCtx)) {}
+            : vkContext(vkCtx),
+              lightsManager(lightsManager),
+              cameraController(cameraController),
+              bindManager(MaterialBindManager(vkCtx)) {}
 
         inline static std::unique_ptr<RenderContext> create(VulkanContext& vkCtx, LightsManager& lightsManager, CameraController& cameraController) {
             return std::make_unique<RenderContext>(vkCtx, lightsManager, cameraController);

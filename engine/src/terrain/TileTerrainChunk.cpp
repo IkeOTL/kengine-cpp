@@ -8,25 +8,26 @@
 namespace ke {
     TileTerrainChunk::TileTerrainChunk(TileTerrain& parent, uint32_t chunkIdxX, uint32_t chunkIdxZ)
         : parent(parent),
-        chunkWidth(parent.getChunkWidth()), chunkLength(parent.getChunkLength()),
-        chunkIdxX(chunkIdxX), chunkIdxZ(chunkIdxZ) {
-
+          chunkWidth(parent.getChunkWidth()),
+          chunkLength(parent.getChunkLength()),
+          chunkIdxX(chunkIdxX),
+          chunkIdxZ(chunkIdxZ) {
         modelConfig = std::make_shared<ModelConfig>(
             "Custom:Terrain:" + std::to_string(chunkIdxX) + "| " + std::to_string(chunkIdxZ),
-            VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS | VertexAttribute::TANGENTS
-        );
+            VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS | VertexAttribute::TANGENTS);
 
         tiles.reserve(chunkWidth * chunkLength);
         for (int i = 0; i < chunkWidth * chunkLength; i++) {
             tiles.push_back(TileTerrainChunkTile(*this));
             tiles[i].textureTileId = static_cast<uint16_t>(random::randInt(0, 2));
-            //tiles[z * chunkWidth + x].setTextureTileId((short) 0);        
+            // tiles[z * chunkWidth + x].setTextureTileId((short) 0);
         }
     }
 
     glm::vec2 TileTerrainChunk::getWorldOffset() {
         auto worldOffsetX = parent.getWorldOffsetX() + (chunkIdxX * chunkWidth);
-        auto worldOffsetZ = parent.getWorldOffsetZ() + (chunkIdxZ * chunkLength);;
+        auto worldOffsetZ = parent.getWorldOffsetZ() + (chunkIdxZ * chunkLength);
+        ;
         return glm::vec2(worldOffsetX, worldOffsetZ);
     }
 
@@ -56,31 +57,27 @@ namespace ke {
                 TexturedVertex v3{};
 
                 v0.position = glm::vec3(
-                    /* worldOffsetX + */x,
+                    /* worldOffsetX + */ x,
                     parent.getHeight(x + worldChunkIdxX, z + worldChunkIdxZ),
-                    /* worldOffsetZ + */ z
-                );
+                    /* worldOffsetZ + */ z);
                 v0.texCoords = glm::vec2(tileSheet->getUv(tile.textureTileId, TileSheet::TileCorner::TOP_LEFT));
 
                 v1.position = glm::vec3(
-                    /* worldOffsetX + */x,
+                    /* worldOffsetX + */ x,
                     parent.getHeight(x + worldChunkIdxX, z + worldChunkIdxZ + 1),
-                    /* worldOffsetZ + */ z + 1
-                );
+                    /* worldOffsetZ + */ z + 1);
                 v1.texCoords = glm::vec2(tileSheet->getUv(tile.textureTileId, TileSheet::TileCorner::BOTTOM_LEFT));
 
                 v2.position = glm::vec3(
-                    /* worldOffsetX + */x + 1,
+                    /* worldOffsetX + */ x + 1,
                     parent.getHeight(x + worldChunkIdxX + 1, z + worldChunkIdxZ + 1),
-                    /* worldOffsetZ + */ z + 1
-                );
+                    /* worldOffsetZ + */ z + 1);
                 v2.texCoords = glm::vec2(tileSheet->getUv(tile.textureTileId, TileSheet::TileCorner::BOTTOM_RIGHT));
 
                 v3.position = glm::vec3(
-                    /* worldOffsetX + */x + 1,
+                    /* worldOffsetX + */ x + 1,
                     parent.getHeight(x + worldChunkIdxX + 1, z + worldChunkIdxZ),
-                    /* worldOffsetZ + */ +z
-                );
+                    /* worldOffsetZ + */ +z);
                 v3.texCoords = glm::vec2(tileSheet->getUv(tile.textureTileId, TileSheet::TileCorner::TOP_RIGHT));
 
                 auto i0 = mb.pushVertex(std::move(v0));

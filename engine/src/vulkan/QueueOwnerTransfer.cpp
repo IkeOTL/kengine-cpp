@@ -75,20 +75,17 @@ namespace ke {
             0,
             VK_REMAINING_MIP_LEVELS,
             0,
-            VK_REMAINING_ARRAY_LAYERS
-        };
+            VK_REMAINING_ARRAY_LAYERS};
 
         VkDependencyInfo depsInfo{};
         depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
         depsInfo.imageMemoryBarrierCount = 1;
         depsInfo.pImageMemoryBarriers = &barrier;
 
-
-
         vkCmdPipelineBarrier2(cmd, &depsInfo);
     }
-    //https://discord.com/channels/427551838099996672/427833316536746005/1217868728130207784
-    //https://discord.com/channels/427551838099996672/427833316536746005/1217868952550506556
+    // https://discord.com/channels/427551838099996672/427833316536746005/1217868728130207784
+    // https://discord.com/channels/427551838099996672/427833316536746005/1217868952550506556
     void ImageQueueOwnerTransfer::applyAcquireBarrier(VkCommandBuffer cmd) {
         auto shouldGenerateMipmaps = mipLevels > 1;
         auto shouldTransferOwnership = srcQueueFamily != dstQueueFamily;
@@ -109,8 +106,7 @@ namespace ke {
             barrier.subresourceRange = {
                 VK_IMAGE_ASPECT_COLOR_BIT,
                 0, VK_REMAINING_MIP_LEVELS,
-                0, VK_REMAINING_ARRAY_LAYERS
-            };
+                0, VK_REMAINING_ARRAY_LAYERS};
 
             VkDependencyInfo depsInfo{};
             depsInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
@@ -157,21 +153,19 @@ namespace ke {
             // blit
             {
                 VkImageBlit blit{};
-                blit.srcOffsets[0] = { 0, 0, 0 };
-                blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
+                blit.srcOffsets[0] = {0, 0, 0};
+                blit.srcOffsets[1] = {mipWidth, mipHeight, 1};
                 blit.srcSubresource = {
                     VK_IMAGE_ASPECT_COLOR_BIT,
                     level - 1,
-                    0, 1
-                };
+                    0, 1};
 
-                blit.dstOffsets[0] = { 0, 0, 0 };
-                blit.dstOffsets[1] = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 };
+                blit.dstOffsets[0] = {0, 0, 0};
+                blit.dstOffsets[1] = {mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1};
                 blit.dstSubresource = {
                     VK_IMAGE_ASPECT_COLOR_BIT,
                     level,
-                    0,  1
-                };
+                    0, 1};
 
                 vkCmdBlitImage(
                     cmd,

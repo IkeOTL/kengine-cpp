@@ -7,7 +7,7 @@ namespace ke {
     class SceneGraph;
     class Transform;
     class ExecutorService;
-}
+} // namespace ke
 
 class RenderablePreviousTransformSystem : public ke::EcsSystem {
 private:

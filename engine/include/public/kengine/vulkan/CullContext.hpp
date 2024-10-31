@@ -28,7 +28,10 @@ namespace ke {
         VkSemaphore getSemaphore(size_t frameIdx);
 
         CullContext(CachedGpuBuffer& indirectBuf, CachedGpuBuffer& objectInstanceBuf, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer)
-            : indirectBuf(indirectBuf), objectInstanceBuf(objectInstanceBuf), drawObjectBuf(drawObjectBuf), drawInstanceBuffer(drawInstanceBuffer) {}
+            : indirectBuf(indirectBuf),
+              objectInstanceBuf(objectInstanceBuf),
+              drawObjectBuf(drawObjectBuf),
+              drawInstanceBuffer(drawInstanceBuffer) {}
 
         void setTerrainContext(TerrainContext* ctx) {
             terrainContext = ctx;

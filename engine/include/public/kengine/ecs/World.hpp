@@ -29,7 +29,7 @@ namespace ke {
         std::unordered_map<std::type_index, std::unique_ptr<BaseSystem>> systems;
 
     public:
-        template<typename T>
+        template <typename T>
         WorldConfig& addService(T* service) {
             services[std::type_index(typeid(T))] = service;
 
@@ -39,7 +39,7 @@ namespace ke {
             return *this;
         }
 
-        template<typename T, typename... Args>
+        template <typename T, typename... Args>
         WorldConfig& setSystem(Args&&... args) {
             static_assert(std::is_base_of<BaseSystem, T>::value, "T must be derived from BaseSystem");
             systems[std::type_index(typeid(T))] = std::make_unique<T>(std::forward<Args>(args)...);
@@ -54,8 +54,8 @@ namespace ke {
 
     public:
         World(WorldConfig& wc)
-            : services(std::move(wc.services)), systems(std::move(wc.systems)) {
-
+            : services(std::move(wc.services)),
+              systems(std::move(wc.systems)) {
             for (auto& entry : wc.worldServices)
                 entry.second->setWorld(this);
 
@@ -75,7 +75,7 @@ namespace ke {
                 sys.second->process(delta);
         }
 
-        template<typename T>
+        template <typename T>
         T* getService() const {
             std::type_index typeIndex = std::type_index(typeid(T));
             auto it = services.find(typeIndex);
@@ -86,7 +86,7 @@ namespace ke {
             return static_cast<T*>(it->second);
         }
 
-        template<typename T>
+        template <typename T>
         T* getSystem() const {
             std::type_index typeIndex = std::type_index(typeid(T));
             auto it = systems.find(typeIndex);

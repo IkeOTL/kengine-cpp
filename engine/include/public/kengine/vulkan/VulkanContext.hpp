@@ -35,7 +35,8 @@ namespace ke {
         using OnSwapchainCreate = std::function<void(VulkanContext&, Swapchain&, std::vector<std::unique_ptr<RenderPass>>&)>;
 
         SwapchainCreator(Window& window, OnSwapchainCreate&& onSwapchainCreate)
-            : window(window), onSwapchainCreate(std::move(onSwapchainCreate)) {}
+            : window(window),
+              onSwapchainCreate(std::move(onSwapchainCreate)) {}
 
         void init();
 
@@ -65,7 +66,6 @@ namespace ke {
     };
 
     class VulkanContext {
-
     public:
         static const uint32_t FRAME_OVERLAP = 3;
 
@@ -279,7 +279,8 @@ namespace ke {
         void createSemaphores(VkDevice device, std::unique_ptr<ke::VulkanSemaphore>* semaphores);
 
     public:
-        FrameSyncObjects(VkDevice vkDevice) : vkDevice(vkDevice) {}
+        FrameSyncObjects(VkDevice vkDevice)
+            : vkDevice(vkDevice) {}
 
         ~FrameSyncObjects() = default;
 

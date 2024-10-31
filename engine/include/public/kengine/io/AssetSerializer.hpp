@@ -11,31 +11,29 @@ namespace ke {
             return *(reinterpret_cast<unsigned char*>(&number)) == 1;
         }
 
-        template<typename T>
+        template <typename T>
         T swapEndian(T value) {
             static_assert(sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8, "Cannot swap endianess.");
 
             if constexpr (sizeof(T) == 2) {
                 return static_cast<T>((value << 8) | (value >> 8));
-            }
-            else if constexpr (sizeof(T) == 4) {
+            } else if constexpr (sizeof(T) == 4) {
                 auto temp = *reinterpret_cast<uint32_t*>(&value);
-                temp = ((temp >> 24) & 0x000000FF) |
-                    ((temp >> 8) & 0x0000FF00) |
-                    ((temp << 8) & 0x00FF0000) |
-                    ((temp << 24) & 0xFF000000);
+                temp = ((temp >> 24) & 0x000000FF)
+                    | ((temp >> 8) & 0x0000FF00)
+                    | ((temp << 8) & 0x00FF0000)
+                    | ((temp << 24) & 0xFF000000);
                 return *reinterpret_cast<T*>(&temp);
-            }
-            else if constexpr (sizeof(T) == 8) {
+            } else if constexpr (sizeof(T) == 8) {
                 auto temp = *reinterpret_cast<uint64_t*>(&value);
-                temp = ((temp >> 56) & 0x00000000000000FF) |
-                    ((temp >> 40) & 0x000000000000FF00) |
-                    ((temp >> 24) & 0x0000000000FF0000) |
-                    ((temp >> 8) & 0x00000000FF000000) |
-                    ((temp << 8) & 0x000000FF00000000) |
-                    ((temp << 24) & 0x0000FF0000000000) |
-                    ((temp << 40) & 0x00FF000000000000) |
-                    ((temp << 56) & 0xFF00000000000000);
+                temp = ((temp >> 56) & 0x00000000000000FF)
+                    | ((temp >> 40) & 0x000000000000FF00)
+                    | ((temp >> 24) & 0x0000000000FF0000)
+                    | ((temp >> 8) & 0x00000000FF000000)
+                    | ((temp << 8) & 0x000000FF00000000)
+                    | ((temp << 24) & 0x0000FF0000000000)
+                    | ((temp << 40) & 0x00FF000000000000)
+                    | ((temp << 56) & 0xFF00000000000000);
                 return *reinterpret_cast<T*>(&temp);
             }
         }

@@ -37,7 +37,8 @@ namespace ke {
         std::vector<std::unique_ptr<ModelMesh>> meshes;
 
     public:
-        ModelNode(std::string name) : Spatial(name) {}
+        ModelNode(std::string name)
+            : Spatial(name) {}
 
         void addMesh(std::unique_ptr<ModelMesh>&& m) {
             m->setParent(this);

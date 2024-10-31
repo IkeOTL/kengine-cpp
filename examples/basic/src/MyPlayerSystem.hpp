@@ -2,7 +2,6 @@
 #include <kengine/ecs/EcsSystem.hpp>
 #include <MyPlayerContext.hpp>
 
-
 class MyPlayerSystem : public ke::EcsSystem {
 protected:
     MyPlayerContext* playerCtx;

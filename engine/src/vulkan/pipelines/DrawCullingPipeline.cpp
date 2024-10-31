@@ -15,8 +15,7 @@ namespace ke {
             frameIndex * RenderContext::MAX_INSTANCES * sizeof(VkDrawIndexedIndirectCommand),
             frameIndex * RenderContext::MAX_INSTANCES * (2 * sizeof(uint32_t)),
             frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
-            frameIndex * RenderContext::MAX_INSTANCES * sizeof(uint32_t)
-        };
+            frameIndex * RenderContext::MAX_INSTANCES * sizeof(uint32_t)};
 
         vkCmdBindDescriptorSets(
             cmd,
@@ -24,10 +23,8 @@ namespace ke {
             getVkPipelineLayout(),
             0,
             1, &set0,
-            4, dynamicOffsets
-        );
+            4, dynamicOffsets);
     }
-
 
     void DrawCullingPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
         dst.push_back(cullingLayout);

@@ -104,7 +104,6 @@ namespace ke {
             child.second->forceUpdateTransform();
     }
 
-
     const glm::vec3& Spatial::getPosition() {
         return localTransform.getPosition();
     }
@@ -131,7 +130,6 @@ namespace ke {
         localTransform.setRotation(q);
         forceUpdateTransform();
     }
-
 
     void Spatial::updateWorldTransforms() {
         if (parent == nullptr) {

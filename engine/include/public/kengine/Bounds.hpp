@@ -11,9 +11,12 @@ namespace ke {
 
         Aabb() {};
         Aabb(const glm::vec3& position, const glm::vec3& size)
-            : pos(position), extents(size) {}
+            : pos(position),
+              extents(size) {}
 
-        Aabb(const Aabb& other) : pos(other.pos), extents(other.extents) { }
+        Aabb(const Aabb& other)
+            : pos(other.pos),
+              extents(other.extents) {}
 
         Aabb& operator=(const Aabb& other) {
             if (this != &other) { // protect against invalid self-assignment
@@ -40,7 +43,9 @@ namespace ke {
         Bounds(const glm::vec3& pos, const glm::vec3& extents);
         Bounds(const Aabb& aabb);
 
-        Bounds(const Bounds& other) : aabb(other.aabb), sphereBounds(other.sphereBounds) { }
+        Bounds(const Bounds& other)
+            : aabb(other.aabb),
+              sphereBounds(other.sphereBounds) {}
 
         Bounds& operator=(const Bounds& other) {
             if (this != &other) { // protect against invalid self-assignment

@@ -9,12 +9,14 @@ namespace ke {
     class Bone : public Spatial {
     private:
         Transform bindTransform{};
-        glm::mat4 boneOffset{ 1 };
+        glm::mat4 boneOffset{1};
 
         const uint32_t boneId;
+
     public:
         Bone(uint32_t boneId, std::string name)
-            : Spatial(name), boneId(boneId) {}
+            : Spatial(name),
+              boneId(boneId) {}
 
         void setInverseBindWorldMatrix(const glm::mat4& boneOffset);
 
@@ -26,7 +28,7 @@ namespace ke {
             return boneId;
         }
 
-        const Transform& getBindPose()const {
+        const Transform& getBindPose() const {
             return bindTransform;
         }
 
@@ -43,7 +45,8 @@ namespace ke {
 
     public:
         Skeleton(std::string name, std::vector<std::shared_ptr<Bone>>&& bones)
-            : Spatial(name), bones(std::move(bones)) {
+            : Spatial(name),
+              bones(std::move(bones)) {
             attachRootBones();
             prevTransforms.resize(this->bones.size());
         };

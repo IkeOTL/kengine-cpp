@@ -17,7 +17,8 @@ namespace ke {
         std::vector<V> vertices;
 
     public:
-        MeshBuilder(int vertexAttributes) : vertexAttributes(vertexAttributes) {}
+        MeshBuilder(int vertexAttributes)
+            : vertexAttributes(vertexAttributes) {}
 
         /// <summary>
         /// will NOT add/init verts
@@ -114,8 +115,7 @@ namespace ke {
                 VK_ACCESS_2_INDEX_READ_BIT,
                 VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                 0,
-                nullptr
-            );
+                nullptr);
 
             auto vertBuffer = vkContext->uploadBuffer(
                 [&lol = vertices](VulkanContext& vkCxt, void* data) {
@@ -126,8 +126,7 @@ namespace ke {
                 VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT,
                 VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                 0,
-                nullptr
-            );
+                nullptr);
 
             // todo: no need for vertdata, just calcuate bounds without it
             auto vertData = std::make_unique<VertexData<V>>(std::move(vertices), getVertexAttributes(), getIndexCount(), getVertexCount());

@@ -16,7 +16,8 @@ namespace ke {
 
     public:
         AsyncModelCache(ModelFactory& factory, ExecutorService& workerPool)
-            : AsyncAssetCache(workerPool), factory(factory) {}
+            : AsyncAssetCache(workerPool),
+              factory(factory) {}
 
         inline static std::unique_ptr<AsyncModelCache> create(ModelFactory& factory, ExecutorService& workerPool) {
             return std::make_unique<AsyncModelCache>(factory, workerPool);

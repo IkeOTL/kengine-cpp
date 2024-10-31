@@ -15,7 +15,7 @@ namespace Component {
             DYNAMIC_MODEL,
             //  DYNAMIC_MESH,
             STATIC_MODEL,
-            //STATIC_MESH
+            // STATIC_MESH
         };
 
         RenderableType type = DYNAMIC_MODEL;
@@ -42,4 +42,4 @@ namespace Component {
 
         std::shared_ptr<ke::Skeleton> generate(ke::SceneGraph& sceneGraph, ke::Model& model, Component::Spatials& spatials, std::string name);
     };
-}
+} // namespace Component

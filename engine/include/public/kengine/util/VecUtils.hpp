@@ -33,5 +33,5 @@ namespace ke {
                 v0.z > v1.z ? v0.z : v1.z,
             };
         }
-    }
+    } // namespace vecutils
 } // namespace ke

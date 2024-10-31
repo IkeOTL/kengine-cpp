@@ -7,17 +7,17 @@
 #include <future>
 
 namespace ke {
-    PbrMaterialConfig::PbrMaterialConfig(int skeletonBufferId) :
-        PbrMaterialConfig(typeid(SkinnedOffscreenPbrPipeline)) {
+    PbrMaterialConfig::PbrMaterialConfig(int skeletonBufferId)
+        : PbrMaterialConfig(typeid(SkinnedOffscreenPbrPipeline)) {
         addSkeleton(skeletonBufferId);
     }
 
-    PbrMaterialConfig::PbrMaterialConfig() :
-        PbrMaterialConfig(typeid(DeferredOffscreenPbrPipeline)) {
+    PbrMaterialConfig::PbrMaterialConfig()
+        : PbrMaterialConfig(typeid(DeferredOffscreenPbrPipeline)) {
     }
 
-    PbrMaterialConfig::PbrMaterialConfig(std::type_index type) :
-        MaterialConfig(type) {
+    PbrMaterialConfig::PbrMaterialConfig(std::type_index type)
+        : MaterialConfig(type) {
         addAlbedoTexture(nullptr);
         addNormalsTexture(nullptr);
         addMetallicRoughnessTexture(nullptr);
@@ -31,8 +31,7 @@ namespace ke {
             emissiveFactor,
             metallicFactor,
             roughnessFactor,
-            textureSetFlags
-        };
+            textureSetFlags};
 
         auto pos = gpuBuffer.getFrameOffset(frameIndex) + materialId * sizeof(PbrMaterialData);
         auto buf = static_cast<unsigned char*>(gpuBuffer.getGpuBuffer().data());

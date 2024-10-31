@@ -15,8 +15,9 @@ namespace ke {
         uint32_t bindingIndex;
 
     public:
-        MaterialBindingConfig(uint32_t descriptorSetIndex, uint32_t bindingIndex) :
-            descriptorSetIndex(descriptorSetIndex), bindingIndex(bindingIndex) {}
+        MaterialBindingConfig(uint32_t descriptorSetIndex, uint32_t bindingIndex)
+            : descriptorSetIndex(descriptorSetIndex),
+              bindingIndex(bindingIndex) {}
 
         virtual ~MaterialBindingConfig() = default;
 
@@ -41,7 +42,8 @@ namespace ke {
 
     public:
         BufferBindingConfig(uint32_t descriptorSetIndex, uint32_t bindingIndex, GpuBufferId bufferCacheKey)
-            : MaterialBindingConfig(descriptorSetIndex, bindingIndex), bufferCacheKey(bufferCacheKey) {}
+            : MaterialBindingConfig(descriptorSetIndex, bindingIndex),
+              bufferCacheKey(bufferCacheKey) {}
 
         std::unique_ptr<MaterialBinding> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) override;
 
@@ -55,7 +57,8 @@ namespace ke {
 
     public:
         ImageBindingConfig(uint32_t descriptorSetIndex, uint32_t bindingIndex, std::shared_ptr<TextureConfig> textureConfig)
-            : MaterialBindingConfig(descriptorSetIndex, bindingIndex), textureConfig(textureConfig) {}
+            : MaterialBindingConfig(descriptorSetIndex, bindingIndex),
+              textureConfig(textureConfig) {}
 
         std::unique_ptr<MaterialBinding> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) override;
 
@@ -69,11 +72,11 @@ namespace ke {
 
     public:
         ImageArrayBindingConfig(uint32_t descriptorSetIndex, uint32_t bindingIndex, std::vector<std::shared_ptr<TextureConfig>> textureConfigs)
-            : MaterialBindingConfig(descriptorSetIndex, bindingIndex), textureConfigs(textureConfigs) {}
+            : MaterialBindingConfig(descriptorSetIndex, bindingIndex),
+              textureConfigs(textureConfigs) {}
 
         std::unique_ptr<MaterialBinding> getBinding(AsyncTextureCache& textureCache, GpuBufferCache& bufferCache) override;
 
         size_t hash() const override;
     };
 } // namespace ke
-

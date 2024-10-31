@@ -14,17 +14,15 @@ namespace ke {
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
 
         VkDescriptorSet descriptorSets[] = {
-           descSetAllocator.getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
-           descSetAllocator.getGlobalDescriptorSet("deferred-gbuffer", DeferredOffscreenPbrPipeline::objectLayout)
-        };
+            descSetAllocator.getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
+            descSetAllocator.getGlobalDescriptorSet("deferred-gbuffer", DeferredOffscreenPbrPipeline::objectLayout)};
 
         // TODO: check alignments
         uint32_t dynamicOffsets[] = {
             frameIndex * SceneData::alignedFrameSize(vkCxt),
             frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
             frameIndex * RenderContext::MAX_INSTANCES * sizeof(uint32_t),
-            frameIndex * MaterialsBuffer::alignedFrameSize(vkCxt)
-        };
+            frameIndex * MaterialsBuffer::alignedFrameSize(vkCxt)};
 
         // Single vkCmdBindDescriptorSets call
         vkCmdBindDescriptorSets(
@@ -33,8 +31,7 @@ namespace ke {
             getVkPipelineLayout(),
             0,
             2, descriptorSets,
-            4, dynamicOffsets
-        );
+            4, dynamicOffsets);
     }
 
     void SkinnedOffscreenPbrPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
@@ -65,7 +62,6 @@ namespace ke {
         loadShader("src/skinned.vert.spv", VK_SHADER_STAGE_VERTEX_BIT, shaderStagesCreateInfo);
         loadShader("src/gbuffer.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, shaderStagesCreateInfo);
 
-
         VkPipelineViewportStateCreateInfo viewportState = {};
         viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         viewportState.viewportCount = 1;
@@ -74,15 +70,12 @@ namespace ke {
         // vertex input info
         auto texturedVertexFormat = VertexFormatDescriptor{
             sizeof(RiggedTexturedVertex),
-            {
-                {0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(RiggedTexturedVertex, position)},
+            {{0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(RiggedTexturedVertex, position)},
                 {1, VK_FORMAT_R32G32_SFLOAT, offsetof(RiggedTexturedVertex, texCoords)},
                 {2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(RiggedTexturedVertex, normal)},
                 {3, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(RiggedTexturedVertex, tangent)},
                 {4, VK_FORMAT_R32G32B32A32_UINT, offsetof(RiggedTexturedVertex, blendIndex)},
-                {5, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(RiggedTexturedVertex, blendWeight)}
-            }
-        };
+                {5, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(RiggedTexturedVertex, blendWeight)}}};
 
         VkVertexInputBindingDescription bindingDescription;
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
@@ -113,8 +106,7 @@ namespace ke {
 
         VkPipelineColorBlendAttachmentState colorAttachment[6]{};
         for (int i = 0; i < 6; ++i) {
-            colorAttachment[i].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+            colorAttachment[i].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
             colorAttachment[i].blendEnable = VK_FALSE;
         }
 
@@ -135,7 +127,7 @@ namespace ke {
         depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
         depthStencilState.front = depthStencilState.back;
 
-        VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+        VkDynamicState dynamicStates[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
         VkPipelineDynamicStateCreateInfo dynamicState = {};
         dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;

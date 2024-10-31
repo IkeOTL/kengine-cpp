@@ -12,8 +12,7 @@ namespace ke {
 
         // TODO: check alignments
         uint32_t dynamicOffsets[] = {
-            frameIndex * vkCxt.alignSsboFrame(RenderContext::MAX_INSTANCES * sizeof(VkDrawIndexedIndirectCommand))
-        };
+            frameIndex * vkCxt.alignSsboFrame(RenderContext::MAX_INSTANCES * sizeof(VkDrawIndexedIndirectCommand))};
 
         vkCmdBindDescriptorSets(
             cmd,
@@ -21,10 +20,8 @@ namespace ke {
             getVkPipelineLayout(),
             0,
             1, &set0,
-            1, dynamicOffsets
-        );
+            1, dynamicOffsets);
     }
-
 
     void PreDrawCullingPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
         dst.push_back(preCullingLayout);

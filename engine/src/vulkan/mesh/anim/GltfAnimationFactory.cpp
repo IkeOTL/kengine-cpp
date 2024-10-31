@@ -48,7 +48,7 @@ namespace ke {
             boneNames[boneId] = node.name;
         }
 
-        // map samplers so we can load 
+        // map samplers so we can load
         struct BoneChannels {
             std::vector<float> translationTime;
             std::vector<glm::vec3> translation;
@@ -101,8 +101,7 @@ namespace ke {
                     for (auto i = 0; i < accessor.count; i++)
                         memcpy(&mapping.translation[i], data + (i * stride), sizeof(glm::vec3));
                 }
-            }
-            else if (ch.target_path == "rotation") {
+            } else if (ch.target_path == "rotation") {
                 // load times
                 {
                     const auto& accessor = model.accessors[sampler.input];
@@ -138,8 +137,7 @@ namespace ke {
                     for (auto i = 0; i < accessor.count; i++)
                         memcpy(&mapping.rotation[i], data + (i * stride), sizeof(glm::quat));
                 }
-            }
-            else if (ch.target_path == "scale") {
+            } else if (ch.target_path == "scale") {
                 // load times
                 {
                     const auto& accessor = model.accessors[sampler.input];

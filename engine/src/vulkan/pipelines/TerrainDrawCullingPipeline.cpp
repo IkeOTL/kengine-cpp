@@ -12,8 +12,7 @@ namespace ke {
 
         uint32_t dynamicOffsets[] = {
             frameIndex * vkCxt.alignSsboFrame(sizeof(VkDrawIndexedIndirectCommand)),
-            frameIndex * TerrainContext::drawInstanceBufAlignedFrameSize(vkCxt)
-        };
+            frameIndex * TerrainContext::drawInstanceBufAlignedFrameSize(vkCxt)};
 
         vkCmdBindDescriptorSets(
             cmd,
@@ -21,10 +20,8 @@ namespace ke {
             getVkPipelineLayout(),
             0,
             1, &set0,
-            2, dynamicOffsets
-        );
+            2, dynamicOffsets);
     }
-
 
     void TerrainDrawCullingPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
         dst.push_back(cullingLayout);

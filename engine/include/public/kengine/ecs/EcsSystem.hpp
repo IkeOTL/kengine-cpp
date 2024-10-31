@@ -26,7 +26,7 @@ namespace ke {
             init();
         }
 
-        template<typename T>
+        template <typename T>
         T* getService() const {
             return getWorld().getService<T>();
         }

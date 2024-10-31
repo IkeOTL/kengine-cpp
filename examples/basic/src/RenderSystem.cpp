@@ -65,9 +65,7 @@ void RenderSystem::integrate(Component::Renderable& renderable, Component::Spati
     auto scale = glm::mix(prevTransform.getScale(), curTranform.getScale(), delta);
 
     rotation = glm::normalize(rotation);
-    dest = glm::translate(glm::mat4(1.0f), position) *
-        glm::mat4_cast(rotation) *
-        glm::scale(glm::mat4(1.0f), scale);
+    dest = glm::translate(glm::mat4(1.0f), position) * glm::mat4_cast(rotation) * glm::scale(glm::mat4(1.0f), scale);
 }
 
 void RenderSystem::drawEntities(ke::RenderFrameContext& ctx, float delta) {
@@ -81,8 +79,7 @@ void RenderSystem::drawEntities(ke::RenderFrameContext& ctx, float delta) {
         c->getFrustumCorners(),
         c->getFrustumTester(),
         visibleEntities,
-        maxVisibleEntities
-    );
+        maxVisibleEntities);
 
     debugCtx->storeIntValue("spatialGridVisibleEntities", visibleCount);
 
@@ -106,8 +103,8 @@ void RenderSystem::drawEntities(ke::RenderFrameContext& ctx, float delta) {
 
         auto& renderableComponent = ecs.get<Component::Renderable>(e);
 
-        //if (renderableComponent.type == Component::Renderable::STATIC_MODEL)
-        //    continue;
+        // if (renderableComponent.type == Component::Renderable::STATIC_MODEL)
+        //     continue;
 
         auto& spatialsComponent = ecs.get<Component::Spatials>(e);
 
@@ -144,7 +141,7 @@ void RenderSystem::drawEntities(ke::RenderFrameContext& ctx, float delta) {
                     auto debugMat4 = glm::translate(blendMat, aabb.pos);
 
                     auto scale = max - min;
-                    renderCtx->drawDebug(glm::scale(debugMat4, scale), glm::vec4{ 1, 0, 0, 1 });
+                    renderCtx->drawDebug(glm::scale(debugMat4, scale), glm::vec4{1, 0, 0, 1});
                 }
 
                 curIdx++;

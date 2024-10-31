@@ -36,8 +36,6 @@ void SpatialGridUpdateSystem::processSystem(float delta) {
         return ke::SpatialGrid::SpatialGridUpdate{
             e,
             current.getTransMatrix(),
-            model.getBounds().getAabb()
-        };
-        });
+            model.getBounds().getAabb()};
+    });
 }
-

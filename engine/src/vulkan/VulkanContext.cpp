@@ -15,8 +15,10 @@
 namespace ke {
 
     VulkanContext::VulkanContext(Window& window, RenderPassCreator&& renderPassCreator, PipelineCacheCreator&& pipelineCacheCreator, SwapchainCreator::OnSwapchainCreate&& onSwapchainCreate)
-        : window(window), renderPassCreator(std::move(renderPassCreator)), pipelineCacheCreator(std::move(pipelineCacheCreator)),
-        swapchainCreator(SwapchainCreator(window, std::move(onSwapchainCreate))) {}
+        : window(window),
+          renderPassCreator(std::move(renderPassCreator)),
+          pipelineCacheCreator(std::move(pipelineCacheCreator)),
+          swapchainCreator(SwapchainCreator(window, std::move(onSwapchainCreate))) {}
 
     VulkanContext::~VulkanContext() {
         // print VMA stats
@@ -75,7 +77,6 @@ namespace ke {
         descSetLayoutCache = std::make_unique<DescriptorSetLayoutCache>(*this);
         pipelineCache = pipelineCacheCreator(*this, renderPasses);
 
-
         for (int i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
             auto ptr = std::make_unique<DescriptorSetAllocator>(vkDevice, *descSetLayoutCache);
             ptr->init();
@@ -127,14 +128,13 @@ namespace ke {
         auto fence = frameSync->getFrameFence(idx);
 
         return std::make_unique<RenderFrameContext>(RenderFrameContext{
-                idx,
-                swapchain->getExtents(),
-                pImageIndex,
-                imgSemaphore,
-                VK_NULL_HANDLE,
-                fence,
-                cmd
-            });
+            idx,
+            swapchain->getExtents(),
+            pImageIndex,
+            imgSemaphore,
+            VK_NULL_HANDLE,
+            fence,
+            cmd});
     }
 
     void VulkanContext::renderBegin(RenderFrameContext& cxt) {
@@ -228,7 +228,7 @@ namespace ke {
     }
 
     void VulkanContext::processFinishedFences() {
-        for (auto it = vkFenceActions.begin(); it != vkFenceActions.end(); ) {
+        for (auto it = vkFenceActions.begin(); it != vkFenceActions.end();) {
             auto& fence = it->first;
 
             // Check the status of the fence
@@ -238,15 +238,13 @@ namespace ke {
             }
 
             // Fence is finished; destroy it and run the associated action
-            //vkDestroyFence(vkDevice, fence, nullptr);
+            // vkDestroyFence(vkDevice, fence, nullptr);
 
             try {
                 it->second(); // Execute the action associated with the fence
-            }
-            catch (const std::runtime_error& e) {
+            } catch (const std::runtime_error& e) {
                 KE_LOG_ERROR(std::format("Failed execting fence action: {}", e.what()));
-            }
-            catch (...) {
+            } catch (...) {
                 KE_LOG_ERROR(std::format("Failed execting fence action"));
             }
 
@@ -276,8 +274,7 @@ namespace ke {
         const char* myExts[] = {
             VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
             VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME,
-            VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
-        };
+            VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME};
         const auto myExtCnt = sizeof(myExts) / sizeof(myExts[0]);
 
         auto allExts = std::vector<const char*>(glfwExts, glfwExts + glfwExtCnt);
@@ -308,18 +305,17 @@ namespace ke {
             "Failed to get instance layers properties.");
 
         std::vector<const char*> desiredLayers = {
-              "VK_LAYER_LUNARG_standard_validation",
-              "VK_LAYER_KHRONOS_validation"
-        };
+            "VK_LAYER_LUNARG_standard_validation",
+            "VK_LAYER_KHRONOS_validation"};
 
         std::vector<const char*> layersToEnable;
 
         // find layers that we want
         for (const auto& layerProperties : availableLayers) {
             if (std::any_of(desiredLayers.begin(), desiredLayers.end(),
-                [&layerProperties](const char* desiredLayerName) {
-                    return strcmp(layerProperties.layerName, desiredLayerName) == 0;
-                })) {
+                    [&layerProperties](const char* desiredLayerName) {
+                        return strcmp(layerProperties.layerName, desiredLayerName) == 0;
+                    })) {
                 layersToEnable.push_back(layerProperties.layerName);
             }
         }
@@ -339,7 +335,6 @@ namespace ke {
         vulkanInstance = std::make_unique<ke::VulkanInstance>(newInstance);
     }
 
-
     void VulkanContext::setupDebugging() {
         auto flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
 
@@ -347,17 +342,16 @@ namespace ke {
         vkDebugCbCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
         vkDebugCbCreateInfo.flags = flags;
         vkDebugCbCreateInfo.pfnCallback = +[](VkDebugReportFlagsEXT flags,
-            VkDebugReportObjectTypeEXT objType,
-            uint64_t obj,
-            size_t location,
-            int32_t code,
-            const char* layerPrefix,
-            const char* msg,
-            void* userData) -> VkBool32
-            {
-                KE_LOG_ERROR(std::format("vkDebug: {}", msg));
-                return VK_FALSE;
-            };
+                                               VkDebugReportObjectTypeEXT objType,
+                                               uint64_t obj,
+                                               size_t location,
+                                               int32_t code,
+                                               const char* layerPrefix,
+                                               const char* msg,
+                                               void* userData) -> VkBool32 {
+            KE_LOG_ERROR(std::format("vkDebug: {}", msg));
+            return VK_FALSE;
+        };
 
         auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vulkanInstance->handle, "vkCreateDebugReportCallbackEXT");
 
@@ -424,11 +418,11 @@ namespace ke {
         features11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
         features11.pNext = &features12;
 
-        VkDeviceQueueCreateInfo queueCreateInfos[2] = { graphicsQueueCreateInfo, transferQueueCreateInfo };
+        VkDeviceQueueCreateInfo queueCreateInfos[2] = {graphicsQueueCreateInfo, transferQueueCreateInfo};
 
         std::vector<const char*> desiredLayers = {
-             VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-             //   VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+            //   VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME
         };
 
         VkPhysicalDeviceFeatures supportedFeatures;
@@ -495,7 +489,7 @@ namespace ke {
         vmaVkFunctions.vkDestroyImage = (PFN_vkDestroyImage)vkGetDeviceProcAddr(vkDevice, "vkDestroyImage");
         vmaVkFunctions.vkCmdCopyBuffer = (PFN_vkCmdCopyBuffer)vkGetDeviceProcAddr(vkDevice, "vkCmdCopyBuffer");
 
-        //optional
+        // optional
         vmaVkFunctions.vkGetPhysicalDeviceMemoryProperties2KHR = (PFN_vkGetPhysicalDeviceMemoryProperties2)vkGetInstanceProcAddr(vkInstance, "vkGetPhysicalDeviceMemoryProperties2");
 
         vmaVkFunctions.vkGetBufferMemoryRequirements2KHR = (PFN_vkGetBufferMemoryRequirements2)vkGetDeviceProcAddr(vkDevice, "vkGetBufferMemoryRequirements2");
@@ -538,7 +532,7 @@ namespace ke {
             targetWidth = newWidth;
             targetHeight = newHeight;
             setMustRecreate(true);
-            });
+        });
 
         window.registerResizeListener(windowResizeListener.get());
     }
@@ -560,8 +554,7 @@ namespace ke {
             targetWidth,
             targetHeight,
             vkCxt.getVkSurface(),
-            vkCxt.getColorFormatAndSpace()
-        );
+            vkCxt.getColorFormatAndSpace());
 
         vkCxt.setSwapchain(std::move(newSwapchain));
 
@@ -573,7 +566,6 @@ namespace ke {
     std::unique_ptr<GpuBuffer> VulkanContext::createBuffer(
         VkDeviceSize size, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) const {
         static std::atomic<uint32_t> runningId = 0;
-
 
         VkBufferCreateInfo bufCreateInfo{};
         bufCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -607,21 +599,18 @@ namespace ke {
     std::unique_ptr<GpuBuffer> VulkanContext::uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
         const VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
         VkBufferUsageFlags usageFlags, std::function<void(VkCommandBuffer)> beforeSubmit) {
-
         return uploadBuffer(dataProvider, dstBufSize, dstStageMask, dstAccessMask, usageFlags, 0, beforeSubmit);
     }
 
     std::unique_ptr<GpuBuffer> VulkanContext::uploadBuffer(std::function<void(VulkanContext& vkCxt, void* data)> dataProvider, VkDeviceSize dstBufSize,
         const VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask, VkBufferUsageFlags dvcUsageFlags,
         VmaAllocationCreateFlags dvcAllocFlags, std::function<void(VkCommandBuffer)> beforeSubmit) {
-
         // create staging buffer
         auto stagingBuf = createBuffer(
             dstBufSize,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VMA_MEMORY_USAGE_AUTO,
-            VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT
-        );
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT);
 
         // copy to staging buffer
         {
@@ -634,8 +623,7 @@ namespace ke {
             dstBufSize,
             dvcUsageFlags | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
             VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
-            dvcAllocFlags
-        );
+            dvcAllocFlags);
 
         auto cmdBuf = commandPool->createTransferCmdBuf();
 
@@ -649,11 +637,10 @@ namespace ke {
                 auto qXfer = std::make_shared<BufferQueueOwnerTransfer>(
                     deviceBuf->getVkBuffer(), dstBufSize,
                     xferQueueFamilyIndex, gfxQueueFamilyIndex,
-                    dstStageMask, dstAccessMask
-                );
+                    dstStageMask, dstAccessMask);
                 qXfer->applyReleaseBarrier(cmdBuf.vkCmdBuf);
 
-                VkBufferCopy copy{ 0, 0, dstBufSize };
+                VkBufferCopy copy{0, 0, dstBufSize};
                 vkCmdCopyBuffer(cmdBuf.vkCmdBuf, sStagingBuf->vkBuffer, deviceBuf->vkBuffer, 1, &copy);
 
                 if (beforeSubmit)
@@ -662,7 +649,7 @@ namespace ke {
                 // executes on fence signaled
                 return [this, sStagingBuf, qXfer]() {
                     this->submitQueueTransfer(qXfer);
-                    };
+                };
             },
             true);
 
@@ -718,7 +705,7 @@ namespace ke {
                 // cmd.dispose(); // smart ptr takes care of this for us
                 if (followUp)
                     followUp();
-                };
+            };
 
             return;
         }

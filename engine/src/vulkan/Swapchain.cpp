@@ -14,7 +14,6 @@ namespace ke {
 
     std::unique_ptr<Swapchain> Swapchain::replace(VkPhysicalDevice physicalDevice, VkDevice device,
         int newWidth, int newHeight, VkSurfaceKHR surface, ColorFormatAndSpace& colorFormatAndSpace) {
-
         auto presentModeCount = 0u;
         VKCHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, VK_NULL_HANDLE),
             "Failed to get number of physical device surface presentation modes");
@@ -27,13 +26,13 @@ namespace ke {
         VKCHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities),
             "Failed to get physical device surface capabilities");
 
-        //auto swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+        // auto swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
         auto swapchainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-        //for (int i = 0; i < presentModeCount; i++) {
-        //    if (pPresentModes.get(i) == VK_PRESENT_MODE_MAILBOX_KHR) {
-        //        swapchainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-        //        break;
-        //    }
+        // for (int i = 0; i < presentModeCount; i++) {
+        //     if (pPresentModes.get(i) == VK_PRESENT_MODE_MAILBOX_KHR) {
+        //         swapchainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+        //         break;
+        //     }
 
         //    if (swapchainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR && pPresentModes.get(i) == VK_PRESENT_MODE_IMMEDIATE_KHR) {
         //        swapchainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
@@ -47,7 +46,7 @@ namespace ke {
         auto currentExtent = surfaceCapabilities.currentExtent;
         imageExtents = glm::uvec2(currentExtent.width, currentExtent.height);
         if (imageExtents.x == -1 || imageExtents.y == -1)
-            imageExtents = { newWidth, newHeight };
+            imageExtents = {newWidth, newHeight};
 
         auto preTransform = surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR
             ? VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR
@@ -67,7 +66,7 @@ namespace ke {
         sci.oldSwapchain = vkSwapchain;
         sci.clipped = true;
         sci.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        sci.imageExtent = { imageExtents.x, imageExtents.y };
+        sci.imageExtent = {imageExtents.x, imageExtents.y};
 
         VkSwapchainKHR newVkSwapchain;
         VKCHECK(vkCreateSwapchainKHR(device, &sci, VK_NULL_HANDLE, &newVkSwapchain),

@@ -12,7 +12,8 @@ namespace ke {
 
     public:
         TextureFactory(VulkanContext& vkContext, AssetIO& assetIo)
-            : vkContext(vkContext), assetIo(assetIo) {};
+            : vkContext(vkContext),
+              assetIo(assetIo) {};
 
         inline static std::unique_ptr<TextureFactory> create(VulkanContext& vkContext, AssetIO& assetIo) {
             return std::make_unique<TextureFactory>(vkContext, assetIo);

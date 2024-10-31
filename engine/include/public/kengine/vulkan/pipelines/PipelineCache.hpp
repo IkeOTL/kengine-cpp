@@ -12,8 +12,7 @@ namespace ke {
 
     public:
         inline static const DescriptorSetLayoutConfig globalLayout = {
-            DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT }
-        };
+            DescriptorSetLayoutBindingConfig{0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, VK_SHADER_STAGE_VERTEX_BIT}};
 
         PipelineCache(VkDevice vkDevice)
             : vkDevice(vkDevice) {}

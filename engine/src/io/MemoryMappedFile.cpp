@@ -15,12 +15,12 @@ namespace ke {
     void MemoryMappedFile::map() {
         fileHandle = CreateFile(
             fileName.c_str(),
-            GENERIC_READ, // Desired access
-            FILE_SHARE_READ, // Share mode
-            NULL, // Security attributes
-            OPEN_EXISTING, // Creation disposition
+            GENERIC_READ,          // Desired access
+            FILE_SHARE_READ,       // Share mode
+            NULL,                  // Security attributes
+            OPEN_EXISTING,         // Creation disposition
             FILE_ATTRIBUTE_NORMAL, // Flags and attributes
-            NULL); // Template file
+            NULL);                 // Template file
 
         if (fileHandle == INVALID_HANDLE_VALUE)
             throw std::runtime_error("Failed to create file handle.");
@@ -29,11 +29,11 @@ namespace ke {
 
         mapHandle = CreateFileMapping(
             fileHandle,
-            NULL, // Default security
+            NULL,          // Default security
             PAGE_READONLY, // Read/write access control
-            0, // Maximum object size (high-order DWORD)
-            0, // Maximum object size (low-order DWORD)
-            NULL); // Name of mapping object
+            0,             // Maximum object size (high-order DWORD)
+            0,             // Maximum object size (low-order DWORD)
+            NULL);         // Name of mapping object
 
         if (mapHandle == NULL) {
             CloseHandle(fileHandle);
@@ -43,9 +43,9 @@ namespace ke {
         mappedView = MapViewOfFile(
             mapHandle,
             FILE_MAP_READ, // Read/write permission
-            0, // File offset high
-            0, // File offset low
-            0); // Number of bytes to map to the view
+            0,             // File offset high
+            0,             // File offset low
+            0);            // Number of bytes to map to the view
 
         if (mappedView == NULL) {
             CloseHandle(mapHandle);

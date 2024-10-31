@@ -19,7 +19,10 @@ namespace ke {
 
     public:
         TileSheet(uint32_t textureWidth, uint32_t textureHeight, uint32_t tileWidth, uint32_t tileHeight)
-            : textureWidth(textureWidth), textureHeight(textureHeight), tileWidth(tileWidth), tileHeight(tileHeight) {}
+            : textureWidth(textureWidth),
+              textureHeight(textureHeight),
+              tileWidth(tileWidth),
+              tileHeight(tileHeight) {}
 
         /*
            UV coords
@@ -38,14 +41,14 @@ namespace ke {
             auto height = tileHeight / static_cast<float>(textureHeight);
 
             switch (corner) {
-            case TileSheet::TileCorner::TOP_LEFT:
-                return glm::vec2(offsetX, offsetY);
-            case TileSheet::TileCorner::BOTTOM_LEFT:
-                return  glm::vec2(offsetX, offsetY + height);
-            case TileSheet::TileCorner::BOTTOM_RIGHT:
-                return  glm::vec2(offsetX + width, offsetY + height);
-            default:
-                return  glm::vec2(offsetX + width, offsetY);
+                case TileSheet::TileCorner::TOP_LEFT:
+                    return glm::vec2(offsetX, offsetY);
+                case TileSheet::TileCorner::BOTTOM_LEFT:
+                    return glm::vec2(offsetX, offsetY + height);
+                case TileSheet::TileCorner::BOTTOM_RIGHT:
+                    return glm::vec2(offsetX + width, offsetY + height);
+                default:
+                    return glm::vec2(offsetX + width, offsetY);
             };
         }
     };

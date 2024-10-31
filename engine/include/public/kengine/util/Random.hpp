@@ -22,5 +22,5 @@ namespace ke {
             std::uniform_real_distribution<float> dist(from, to);
             return dist(rng);
         }
-    }
+    } // namespace random
 } // namespace ke

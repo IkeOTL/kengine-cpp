@@ -33,7 +33,7 @@ namespace ke {
         auto matConfig = TerrainPbrMaterialConfig::create();
         TextureConfig textureConfig("img/poke-tileset.png");
         matConfig->setHasShadow(false);
-        matConfig->addAlbedoTextures({ textureConfig });
+        matConfig->addAlbedoTextures({textureConfig});
         matConfig->setMetallicFactor(0.0f);
         matConfig->setRoughnessFactor(0.5f);
 
@@ -41,7 +41,7 @@ namespace ke {
 
         auto& bufCache = vkCxt.getGpuBufferCache();
 
-        //chunkIndicesBuf;
+        // chunkIndicesBuf;
         {
             std::vector<uint32_t> indices;
 
@@ -97,8 +97,7 @@ namespace ke {
                 VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR,
                 VK_ACCESS_2_INDEX_READ_BIT,
                 VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                0
-            );
+                0);
         }
 
         // probably change to a device only buffer?
@@ -140,7 +139,7 @@ namespace ke {
             auto vertexCountX = terrain->getTerrainHeightsWidth();
             auto vertexCountZ = terrain->getTerrainHeightsLength();
 
-            // a "unit" will be 10 
+            // a "unit" will be 10
             float max = 0xFF;
             auto randMax = .3f;
             for (auto z = 0; z < terrain->getTerrainHeightsLength(); z++) {
@@ -186,8 +185,7 @@ namespace ke {
                 1,
                 VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
                 VK_ACCESS_SHADER_READ_BIT,
-                false
-            );
+                false);
         }
 
         drawInstanceBuf = &bufCache.create(
@@ -212,45 +210,41 @@ namespace ke {
 
             auto pushBuf = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, CachedGpuBuffer* gpuBuf) -> void {
                 auto& buf = bufferInfos.emplace_back(VkDescriptorBufferInfo{
-                        gpuBuf->getGpuBuffer().vkBuffer,
-                        0,
-                        gpuBuf->getFrameSize()
-                    });
+                    gpuBuf->getGpuBuffer().vkBuffer,
+                    0,
+                    gpuBuf->getFrameSize()});
 
                 setWrites.emplace_back(VkWriteDescriptorSet{
-                        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                        nullptr,
-                        vkDescSet,
-                        bindingCfg.bindingIndex,
-                        0,
-                        bindingCfg.descriptorCount,
-                        bindingCfg.descriptorType,
-                        nullptr,
-                        &buf,
-                        nullptr
-                    });
-                };
+                    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    nullptr,
+                    vkDescSet,
+                    bindingCfg.bindingIndex,
+                    0,
+                    bindingCfg.descriptorCount,
+                    bindingCfg.descriptorType,
+                    nullptr,
+                    &buf,
+                    nullptr});
+            };
 
             auto pushImg = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, const VkImageView imgView, VkSampler sampler) -> void {
                 auto& img = imageInfos.emplace_back(VkDescriptorImageInfo{
-                        sampler,
-                        imgView,
-                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                    });
+                    sampler,
+                    imgView,
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL});
 
                 setWrites.emplace_back(VkWriteDescriptorSet{
-                        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                        nullptr,
-                        vkDescSet,
-                        bindingCfg.bindingIndex,
-                        0,
-                        bindingCfg.descriptorCount,
-                        bindingCfg.descriptorType,
-                        &img,
-                        nullptr,
-                        nullptr
-                    });
-                };
+                    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    nullptr,
+                    vkDescSet,
+                    bindingCfg.bindingIndex,
+                    0,
+                    bindingCfg.descriptorCount,
+                    bindingCfg.descriptorType,
+                    &img,
+                    nullptr,
+                    nullptr});
+            };
 
             {
                 auto deferredDescriptorSet = descSetAllocator->getGlobalDescriptorSet("terrain-deferred-gbuffer", TerrainDeferredOffscreenPbrPipeline::objectLayout);
@@ -258,8 +252,7 @@ namespace ke {
                 pushBuf(
                     deferredDescriptorSet,
                     TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(0),
-                    terrainDataBuf
-                );
+                    terrainDataBuf);
 
                 {
                     auto samplerConfig = SamplerConfig(
@@ -274,8 +267,7 @@ namespace ke {
                         0,
                         1,
                         0,
-                        1.0f
-                    );
+                        1.0f);
 
                     auto sampler = vkCxt.getSamplerCache().getSampler(samplerConfig);
 
@@ -283,21 +275,18 @@ namespace ke {
                         deferredDescriptorSet,
                         TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(1),
                         heightsTexture->getImageView(),
-                        sampler
-                    );
+                        sampler);
                 }
 
                 pushBuf(
                     deferredDescriptorSet,
                     TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(2),
-                    drawInstanceBuf
-                );
+                    drawInstanceBuf);
 
                 pushBuf(
                     deferredDescriptorSet,
                     TerrainDeferredOffscreenPbrPipeline::objectLayout.getBinding(3),
-                    materialsBuf
-                );
+                    materialsBuf);
             }
 
             {
@@ -306,14 +295,12 @@ namespace ke {
                 pushBuf(
                     set0,
                     TerrainDrawCullingPipeline::cullingLayout.getBinding(0),
-                    drawIndirectCmdBuf
-                );
+                    drawIndirectCmdBuf);
 
                 pushBuf(
                     set0,
                     TerrainDrawCullingPipeline::cullingLayout.getBinding(1),
-                    drawInstanceBuf
-                );
+                    drawInstanceBuf);
             }
 
             vkUpdateDescriptorSets(vkCxt.getVkDevice(), setWrites.size(), setWrites.data(), 0, nullptr);
@@ -321,25 +308,25 @@ namespace ke {
     }
 
     // TODO: optimize this change to ref once we have it calced once
-    //const glm::vec4& TerrainContext::getChunkBoundingSphere() {
+    // const glm::vec4& TerrainContext::getChunkBoundingSphere() {
     const glm::vec4 TerrainContext::getChunkBoundingSphere() {
-        glm::vec3 offset = glm::vec3{ terrain->getChunkWidth() * 0.5f, 0, terrain->getChunkLength() * 0.5f };
+        glm::vec3 offset = glm::vec3{terrain->getChunkWidth() * 0.5f, 0, terrain->getChunkLength() * 0.5f};
         float radius = glm::length(offset);
-        return glm::vec4{ offset, radius };
+        return glm::vec4{offset, radius};
     }
 
     // TODO: optimize this change to ref once we have it calced once
     // need to update tileterrain to return ref to vecs for dimensions and stuff
     const glm::uvec2 TerrainContext::getChunkCount() {
-        return glm::uvec2{ terrain->getChunkCountX() ,terrain->getChunkCountZ() };
+        return glm::uvec2{terrain->getChunkCountX(), terrain->getChunkCountZ()};
     }
 
     const glm::uvec2 TerrainContext::getChunkDimensions() {
-        return glm::uvec2{ terrain->getChunkWidth(), terrain->getChunkLength() };
+        return glm::uvec2{terrain->getChunkWidth(), terrain->getChunkLength()};
     }
 
     const glm::vec2 TerrainContext::getWorldOffset() {
-        return glm::vec2{ terrain->getWorldOffsetX() ,terrain->getWorldOffsetZ() };
+        return glm::vec2{terrain->getWorldOffsetX(), terrain->getWorldOffsetZ()};
     }
     void TerrainContext::draw(VulkanContext& vkCxt, RenderPassContext& rpCtx, DescriptorSetAllocator& descSetAllocator) {
         auto& pl = vkCxt.getPipelineCache().getPipeline<TerrainDeferredOffscreenPbrPipeline>();
@@ -352,18 +339,17 @@ namespace ke {
         auto pc = TerrainDeferredOffscreenPbrPipeline::PushConstant{};
         pc.chunkDimensions = getChunkDimensions();
         pc.chunkCount = getChunkCount();
-        pc.tilesheetDimensions = glm::uvec2{ 96, 80 };
-        pc.tileDimensions = glm::uvec2{ 16, 16 };
-        pc.materialIds = glm::uvec4{ material->getId() };
+        pc.tilesheetDimensions = glm::uvec2{96, 80};
+        pc.tileDimensions = glm::uvec2{16, 16};
+        pc.materialIds = glm::uvec4{material->getId()};
         pc.worldOffset = getWorldOffset();
-        pc.tileUvSize = glm::vec2{ 16.0f / 96.0f, 16.0f / 80.0f };
+        pc.tileUvSize = glm::vec2{16.0f / 96.0f, 16.0f / 80.0f};
         pc.tileDenom = static_cast<uint32_t>(96.0f / 16.0f);
         pc.vertHeightFactor = glm::vec4{
             terrain->getTerrainHeightsWidth() * 0.5f,
             terrain->getTerrainHeightsLength() * 0.5f,
             1.0f / terrain->getTerrainHeightsWidth(),
-            1.0f / terrain->getTerrainHeightsLength()
-        };
+            1.0f / terrain->getTerrainHeightsLength()};
 
         vkCmdPushConstants(rpCtx.cmd, pl.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(TerrainDeferredOffscreenPbrPipeline::PushConstant), &pc);
 

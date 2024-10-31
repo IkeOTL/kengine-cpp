@@ -97,5 +97,5 @@ namespace ke {
 #if KE_ACTIVE_LOG_LEVEL <= KE_LOG_LEVEL_ERROR
 #define KE_LOG_ERROR(...) KENGINE_LOGGER().error(__VA_ARGS__)
 #else
-#define KE_LOG_ERROR(...) (void)0 
+#define KE_LOG_ERROR(...) (void)0
 #endif

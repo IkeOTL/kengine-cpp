@@ -34,7 +34,8 @@ namespace ke {
 
     public:
         DescriptorSetPool(VkDevice vkDevice, DescriptorSetLayoutCache& layoutCache)
-            : vkDevice(vkDevice), layoutCache(layoutCache) {}
+            : vkDevice(vkDevice),
+              layoutCache(layoutCache) {}
 
         void init();
 

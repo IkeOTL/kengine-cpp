@@ -65,7 +65,6 @@ namespace ke {
     public:
         DualGridTileTerrain(uint32_t terrainTilesWidth, uint32_t terrainTilesLength, uint32_t chunkWidth, uint32_t chunkLength);
 
-
         float getHeightAt(float x, float z) override;
         TileTerrainChunkTile& getTile(uint32_t x, uint32_t z) override;
         void regenerate(VulkanContext& vkContext, AsyncModelCache& modelCache) override;

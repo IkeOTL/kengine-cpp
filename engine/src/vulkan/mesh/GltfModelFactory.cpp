@@ -89,7 +89,7 @@ namespace ke {
                 }
 
                 auto boneSpatial = std::make_shared<Bone>(boneIdx->second, model.nodes[i].name);
-                //make sure right bind matrix is going to right bone!
+                // make sure right bind matrix is going to right bone!
                 boneSpatial->setInverseBindWorldMatrix(inverseBindMatrices[boneSpatial->getBoneId()]);
 
                 if (!node.translation.empty()) {
@@ -188,4 +188,3 @@ namespace ke {
         }
     }
 } // namespace ke
-

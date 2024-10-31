@@ -38,4 +38,4 @@ namespace ke {
             processSystem(delta);
         }
     };
-} //namespace ke
+} // namespace ke

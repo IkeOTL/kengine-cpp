@@ -4,14 +4,14 @@ namespace ke {
     // KeyEventAdapter
     bool KeyEventAdapter::onKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) {
         switch (action) {
-        case GLFW_PRESS:
-            return onKeyDown(window, key, action, mods);
-        case GLFW_RELEASE:
-            return onKeyUp(window, key, action, mods);
-        case GLFW_REPEAT:
-            return onKeyRepeat(window, key, action, mods);
-        default:
-            return false;
+            case GLFW_PRESS:
+                return onKeyDown(window, key, action, mods);
+            case GLFW_RELEASE:
+                return onKeyUp(window, key, action, mods);
+            case GLFW_REPEAT:
+                return onKeyRepeat(window, key, action, mods);
+            default:
+                return false;
         };
     }
 
@@ -100,14 +100,14 @@ namespace ke {
     // InputEventAdapter
     bool InputEventAdapter::onKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) {
         switch (action) {
-        case GLFW_PRESS:
-            return onKeyDown(window, key, action, mods);
-        case GLFW_RELEASE:
-            return onKeyUp(window, key, action, mods);
-        case GLFW_REPEAT:
-            return onKeyRepeat(window, key, action, mods);
-        default:
-            return false;
+            case GLFW_PRESS:
+                return onKeyDown(window, key, action, mods);
+            case GLFW_RELEASE:
+                return onKeyUp(window, key, action, mods);
+            case GLFW_REPEAT:
+                return onKeyRepeat(window, key, action, mods);
+            default:
+                return false;
         };
     }
 

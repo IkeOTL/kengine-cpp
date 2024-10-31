@@ -35,8 +35,7 @@ void RenderablePreviousTransformSystem::processSystem(float delta) {
             auto& spatialsComponent = view.get<Component::Spatials>(e);
 
             auto cnt = spatialsComponent.meshSpatialsIds.size();
-            for (auto i = 0; i < cnt; i++)
-            {
+            for (auto i = 0; i < cnt; i++) {
                 auto spatial = sceneGraph->get(spatialsComponent.meshSpatialsIds[i]);
                 auto& current = spatial->getWorldTransform();
 
@@ -57,4 +56,3 @@ void RenderablePreviousTransformSystem::processSystem(float delta) {
         }
     }
 }
-

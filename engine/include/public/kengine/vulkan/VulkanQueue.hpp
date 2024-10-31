@@ -4,7 +4,6 @@
 
 namespace ke {
     class VulkanQueue {
-
     private:
         const VkDevice vkDevice;
         const unsigned int famIdx;
@@ -15,7 +14,8 @@ namespace ke {
 
     public:
         VulkanQueue(VkDevice vkDevice, unsigned int famIdx)
-            : vkDevice(vkDevice), famIdx(famIdx) {}
+            : vkDevice(vkDevice),
+              famIdx(famIdx) {}
 
         ~VulkanQueue() {}
 

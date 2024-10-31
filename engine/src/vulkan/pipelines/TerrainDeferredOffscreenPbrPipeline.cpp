@@ -15,16 +15,14 @@ namespace ke {
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
 
         VkDescriptorSet descriptorSets[] = {
-           descSetAllocator.getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
-           descSetAllocator.getGlobalDescriptorSet("terrain-deferred-gbuffer", TerrainDeferredOffscreenPbrPipeline::objectLayout)
-        };
+            descSetAllocator.getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
+            descSetAllocator.getGlobalDescriptorSet("terrain-deferred-gbuffer", TerrainDeferredOffscreenPbrPipeline::objectLayout)};
 
         // TODO: check alignments
         uint32_t dynamicOffsets[] = {
             frameIndex * SceneData::alignedFrameSize(vkCxt),
             frameIndex * TerrainContext::drawInstanceBufAlignedFrameSize(vkCxt),
-            frameIndex * MaterialsBuffer::alignedFrameSize(vkCxt)
-        };
+            frameIndex * MaterialsBuffer::alignedFrameSize(vkCxt)};
 
         // Single vkCmdBindDescriptorSets call
         vkCmdBindDescriptorSets(
@@ -33,8 +31,7 @@ namespace ke {
             getVkPipelineLayout(),
             0,
             2, descriptorSets,
-            3, dynamicOffsets
-        );
+            3, dynamicOffsets);
     }
 
     void TerrainDeferredOffscreenPbrPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
@@ -82,7 +79,7 @@ namespace ke {
         specializationEntries[1].size = sizeof(float);
 
         // Specialization data
-        float specializationData[] = { Camera::NEAR_CLIP, Camera::FAR_CLIP };
+        float specializationData[] = {Camera::NEAR_CLIP, Camera::FAR_CLIP};
 
         VkSpecializationInfo specializationInfo{};
         specializationInfo.mapEntryCount = static_cast<uint32_t>(specializationEntries.size());
@@ -128,8 +125,7 @@ namespace ke {
         // Color blend attachment states
         std::array<VkPipelineColorBlendAttachmentState, 6> colorBlendAttachments{};
         for (auto& attachment : colorBlendAttachments) {
-            attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+            attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
             attachment.blendEnable = VK_FALSE;
         }
 
@@ -153,7 +149,7 @@ namespace ke {
         depthStencilState.front = depthStencilState.back;
 
         // Dynamic state
-        std::array<VkDynamicState, 2> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+        std::array<VkDynamicState, 2> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
         VkPipelineDynamicStateCreateInfo dynamicState{};
         dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());

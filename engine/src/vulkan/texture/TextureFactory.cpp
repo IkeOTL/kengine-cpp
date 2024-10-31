@@ -12,8 +12,7 @@ namespace ke {
         int width, height, channels;
         auto imageData = stbi_load_from_memory(
             assetData->data(), assetData->length(),
-            &width, &height, &channels, config.getChannels()
-        );
+            &width, &height, &channels, config.getChannels());
 
         if (!imageData)
             throw std::runtime_error("Failed to load image.");

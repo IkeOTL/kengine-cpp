@@ -41,8 +41,7 @@ namespace ke {
             else
                 // might leak data if `evt->data != nullptr`, and it never gets returned to pool or disposed
                 KE_LOG_WARN(std::format("Event was dispatched to non-existent recipient. Might leak data."));
-        }
-        else { // target all subscribers of the opcode
+        } else { // target all subscribers of the opcode
             std::lock_guard<std::mutex> lock(busMtx);
             auto subscriptionsIt = subscriptions.find(evt->opcode);
 
@@ -52,7 +51,7 @@ namespace ke {
             auto& evtSubs = subscriptionsIt->second;
 
             // send to all subs
-            for (auto* evtSubIdIt = evtSubs.begin(); evtSubIdIt != evtSubs.end(); ) {
+            for (auto* evtSubIdIt = evtSubs.begin(); evtSubIdIt != evtSubs.end();) {
                 auto subsIt = handlers.find(*evtSubIdIt);
 
                 // subscriber is not in the map, its been removed.
@@ -164,7 +163,6 @@ namespace ke {
     void EventBus::publish(const EventOpcode opcode, ByteBuf* dataBuf) {
         publish(opcode, 0, 0, 0, dataBuf);
     }
-
 
     void EventBus::process() {
         if (queue.empty())

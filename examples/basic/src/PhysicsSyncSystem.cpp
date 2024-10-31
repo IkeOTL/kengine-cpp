@@ -45,7 +45,7 @@ void PhysicsSyncSystem::processSystem(float delta) {
         }
 
         // maybe??
-        //if (!bodyInterface.IsActive(rbC.bodyId))
+        // if (!bodyInterface.IsActive(rbC.bodyId))
         //    continue;
 
         bodyInterface.GetPositionAndRotation(rbC.bodyId, pos, rot);

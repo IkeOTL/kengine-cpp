@@ -183,4 +183,3 @@ void GltfModelFactory::loadMeshGroup(const tinygltf::Model& model, int meshGroup
         loadMesh<SimpleTexturedVertex>(model, mb, meshGroupData.primitives[i], *meshGroup);
     }
 }
-

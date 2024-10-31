@@ -10,8 +10,9 @@ namespace ke {
         const std::string animationName;
 
     public:
-        AnimationConfig(std::string animationSet, std::string animationName) :
-            animationSet(animationSet), animationName(animationName) {}
+        AnimationConfig(std::string animationSet, std::string animationName)
+            : animationSet(animationSet),
+              animationName(animationName) {}
 
         inline static std::shared_ptr<AnimationConfig> create(std::string animationSet, std::string animationName) {
             return std::make_shared<AnimationConfig>(animationSet, animationName);

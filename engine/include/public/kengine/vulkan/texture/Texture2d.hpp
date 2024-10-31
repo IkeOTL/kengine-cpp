@@ -37,7 +37,7 @@ namespace ke {
             return height;
         }
 
-        uint32_t getMipLevels()const {
+        uint32_t getMipLevels() const {
             return mipLevels;
         }
     };

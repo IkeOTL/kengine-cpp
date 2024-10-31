@@ -12,7 +12,8 @@ namespace ke {
 
     public:
         ModelConfig(std::string modelKey, int32_t attributes)
-            : modelKey(modelKey), attributes(attributes) {}
+            : modelKey(modelKey),
+              attributes(attributes) {}
 
         ModelConfig(std::string modelKey)
             : ModelConfig(modelKey, VertexAttribute::POSITION | VertexAttribute::NORMAL | VertexAttribute::TEX_COORDS) {}

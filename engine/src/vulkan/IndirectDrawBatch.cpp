@@ -26,6 +26,6 @@ namespace ke {
             1,
             sizeof(VkDrawIndexedIndirectCommand));
 
-        //postdraw();
+        // postdraw();
     }
 } // namespace ke

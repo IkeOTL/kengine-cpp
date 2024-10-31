@@ -8,7 +8,7 @@ namespace ke {
     VkResult VulkanQueue::submit(unsigned int submitCnt, VkSubmitInfo2* submits, VkFence fence) {
         std::lock_guard<std::mutex> lock(mtx);
         return vkQueueSubmit2(queue, submitCnt, submits, fence);
-        //return vkQueueSubmit2KHR(queue, submitCnt, submits, fence);
+        // return vkQueueSubmit2KHR(queue, submitCnt, submits, fence);
     }
 
     VkResult VulkanQueue::present(VkPresentInfoKHR* presentInfo) {

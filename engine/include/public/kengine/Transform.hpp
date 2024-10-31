@@ -16,13 +16,19 @@ namespace ke {
 
     public:
         Transform()
-            : position(0.0f), scale(1.0f), rotation(glm::identity<glm::quat>()) {}
+            : position(0.0f),
+              scale(1.0f),
+              rotation(glm::identity<glm::quat>()) {}
 
         Transform(const glm::vec3 p)
-            : position(p), scale(1.0f), rotation(glm::identity<glm::quat>()) {}
+            : position(p),
+              scale(1.0f),
+              rotation(glm::identity<glm::quat>()) {}
 
         Transform(const glm::vec3 p, const glm::vec3 s, const glm::quat r)
-            : position(p), scale(s), rotation(r) {}
+            : position(p),
+              scale(s),
+              rotation(r) {}
 
         Transform(const Transform& t) {
             set(t);

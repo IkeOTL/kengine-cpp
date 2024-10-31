@@ -3,13 +3,17 @@
 
 namespace ke {
     Animation::Animation(std::string name, float ticksPerSecond, float duration, std::vector<BoneTrack>&& tracks)
-        : name(name), ticksPerSecond(ticksPerSecond), duration(duration), tracks(std::move(tracks)) {
+        : name(name),
+          ticksPerSecond(ticksPerSecond),
+          duration(duration),
+          tracks(std::move(tracks)) {
         calculateMaxRange();
         updateSamples();
     }
 
     float Animation::apply(Skeleton& skeleton, float time, bool loop) {
-        auto clamp = [](int input, int min, int max) { return (input < min) ? min : (input > max) ? max : input; };
+        auto clamp = [](int input, int min, int max) { return (input < min) ? min : (input > max) ? max
+                                                                                                  : input; };
 
         time = adjustTime(time, loop);
 
@@ -32,10 +36,8 @@ namespace ke {
 
                 if (guessedInterval > 0.0f)
                     blend = (time - times[startFrameIdx]) / guessedInterval;
-            }
-            else
+            } else
                 blend = (time - times[startFrameIdx]) / (times[startFrameIdx + 1] - times[startFrameIdx]);
-
 
             // NOTE: for some reason blend is coming out to under 0 and over 1
             // in this case setFrame and start or finish?
@@ -107,8 +109,7 @@ namespace ke {
         return sampledFrames[index];
     }
 
-    void Animation::calculateMaxRange()
-    {
+    void Animation::calculateMaxRange() {
         startTime = 0.0f;
         endTime = 0.0f;
         auto startSet = false;

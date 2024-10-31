@@ -24,8 +24,10 @@ namespace ke {
 
     public:
         VertexData(std::vector<V>&& vertices, int vertexAttributes, uint32_t indexCount, uint32_t vertexCount)
-            : vertices(std::move(vertices)), vertexAttributes(vertexAttributes),
-            indexCount(indexCount), vertexCount(vertexCount) {}
+            : vertices(std::move(vertices)),
+              vertexAttributes(vertexAttributes),
+              indexCount(indexCount),
+              vertexCount(vertexCount) {}
 
         int getVertexAttributes() const {
             return vertexAttributes;
@@ -78,9 +80,11 @@ namespace ke {
             uint32_t vertexCount, std::unique_ptr<GpuBuffer>&& vertexBuf,
             Bounds bounds)
             : vertexAttributes(vertexAttributes),
-            indexCount(indexCount), indexBuf(std::move(indexBuf)),
-            vertexCount(vertexCount), vertexBuf(std::move(vertexBuf)),
-            bounds(bounds) {}
+              indexCount(indexCount),
+              indexBuf(std::move(indexBuf)),
+              vertexCount(vertexCount),
+              vertexBuf(std::move(vertexBuf)),
+              bounds(bounds) {}
 
         ~Mesh() = default;
 

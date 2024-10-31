@@ -1,5 +1,5 @@
 #pragma once
-#include<kengine/input/InputManager.hpp>
+#include <kengine/input/InputManager.hpp>
 #include <GLFW/glfw3.h>
 #include <vector>
 #include <functional>
@@ -17,7 +17,7 @@ namespace ke {
         using DragEventHandler = std::function<bool(GLFWwindow* window, int x, int y, int deltaX, int deltaY)>;
         using EnterEventHandler = std::function<bool(GLFWwindow* window, int x, int y)>;
         using ExitEventHandler = std::function<bool(GLFWwindow* window, int x, int y)>;
-    }
+    } // namespace EventHandler
 
     using namespace EventHandler;
     class KeyEventAdapter : public KeyEventListener {
@@ -30,7 +30,8 @@ namespace ke {
         InputManager& inputManager;
 
     public:
-        KeyEventAdapter(InputManager& inputManager) : inputManager(inputManager) {}
+        KeyEventAdapter(InputManager& inputManager)
+            : inputManager(inputManager) {}
 
         bool onKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) override;
 
@@ -65,7 +66,8 @@ namespace ke {
         int lastMousePosX = 0, lastMousePosY = 0;
 
     public:
-        MouseEventAdapter(InputManager& inputManager) : inputManager(inputManager) {}
+        MouseEventAdapter(InputManager& inputManager)
+            : inputManager(inputManager) {}
 
         bool onMoveEvent(GLFWwindow* window, double x, double y) override;
         bool onButtonEvent(GLFWwindow* window, int button, int action, int mods) override;
@@ -110,7 +112,8 @@ namespace ke {
         int lastMousePosX = 0, lastMousePosY = 0;
 
     public:
-        InputEventAdapter(InputManager& inputManager) : inputManager(inputManager) {}
+        InputEventAdapter(InputManager& inputManager)
+            : inputManager(inputManager) {}
 
         bool onKeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods) override;
 

@@ -23,8 +23,9 @@ namespace ke {
 
     public:
         DescriptorSetAllocator(VkDevice vkDevice, DescriptorSetLayoutCache& layoutCache)
-            : vkDevice(vkDevice), layoutCache(layoutCache), globalPool(vkDevice, layoutCache)
-        {}
+            : vkDevice(vkDevice),
+              layoutCache(layoutCache),
+              globalPool(vkDevice, layoutCache) {}
 
         void init();
         void reset();

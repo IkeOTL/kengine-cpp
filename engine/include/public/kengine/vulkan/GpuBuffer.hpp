@@ -18,8 +18,7 @@ namespace ke {
             VmaAllocator vmaAllocator,
             VkBuffer vkBuffer,
             VmaAllocation vmaAllocation,
-            bool hostCoherent
-        );
+            bool hostCoherent);
 
         ~GpuBuffer();
 
@@ -34,8 +33,10 @@ namespace ke {
 
         class ScopedMap {
             GpuBuffer& buf;
+
         public:
-            ScopedMap(GpuBuffer& buffer) : buf(buffer) {
+            ScopedMap(GpuBuffer& buffer)
+                : buf(buffer) {
                 buf.map();
             }
 
