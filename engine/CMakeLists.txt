@@ -343,6 +343,16 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(msgpack)
 
+# taskflow
+set(TF_BUILD_TESTS OFF CACHE BOOL "Enables builds of tests")
+set(TF_BUILD_EXAMPLES OFF CACHE BOOL "Enables builds of examples")
+FetchContent_Declare(
+    Taskflow
+    GIT_REPOSITORY https://github.com/taskflow/taskflow.git
+    GIT_TAG v3.8.0
+)
+FetchContent_MakeAvailable(Taskflow)
+
 ## GameNetworkingSockets - gave up trying to build from source...
 #FetchContent_Declare(
 #    GameNetworkingSockets
@@ -397,6 +407,7 @@ find_package(GameNetworkingSockets CONFIG REQUIRED)
 target_link_libraries(kengine_engine PUBLIC
     spdlog::spdlog
     Tracy::TracyClient
+    Taskflow
     Threads::Threads
     Vulkan::Vulkan
     glfw
