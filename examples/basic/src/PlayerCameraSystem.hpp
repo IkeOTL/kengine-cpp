@@ -5,8 +5,13 @@
 #include "MyPlayerSystem.hpp"
 #include "BasicCameraController.hpp"
 
+namespace ke {
+    class SceneTime;
+}
+
 class PlayerCameraSystem : public MyPlayerSystem {
 private:
+    ke::SceneTime* sceneTime;
     ke::SceneGraph* sceneGraph;
     PlayerCameraController* cameraController;
 

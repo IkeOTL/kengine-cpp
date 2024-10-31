@@ -18,8 +18,6 @@ namespace ke {
             std::atomic<bool> isEmpty = true;
         };
 
-        tf::Executor executor;
-
         std::atomic<uint32_t> totalTaskCount = 0;
         std::vector<std::thread> workers;
         std::vector<std::unique_ptr<WorkerQueue>> workerQueues;
@@ -237,4 +235,4 @@ namespace ke {
             return future.share();
         }
     };
-}  // namespace ke
+} // namespace ke

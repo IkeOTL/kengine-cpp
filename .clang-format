@@ -3,12 +3,12 @@
     IndentWidth: 4, 
     ColumnLimit: 0, 
     NamespaceIndentation: All, 
-    AllowShortIfStatementsOnASingleLine: true, 
+    AllowShortIfStatementsOnASingleLine: true,
+    AllowAllParametersOfDeclarationOnNextLine: true,
     AccessModifierOffset: -4,
     SpacesBeforeTrailingComments: 1,
-    BinaryOperatorStyle: NonAssignment,
+    BinaryOperator: NonAssignment,
     BinPackArguments: true,
-    BinPackParametersStyle: BinPack,
     AllowAllArgumentsOnNextLine: true,
     AlignAfterOpenBracket: DontAlign
 }
