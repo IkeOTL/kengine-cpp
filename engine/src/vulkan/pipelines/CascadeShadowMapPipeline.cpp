@@ -13,15 +13,13 @@ namespace ke {
 
         VkDescriptorSet descriptorSets[] = {
             descSetAllocator.getGlobalDescriptorSet("cascade", cascadeViewProjLayout),
-            descSetAllocator.getGlobalDescriptorSet("shadow-pass0", shadowPassLayout)
-        };
+            descSetAllocator.getGlobalDescriptorSet("shadow-pass0", shadowPassLayout)};
 
         // TODO: check alignments
         uint32_t dynamicOffsets[] = {
             frameIndex * ShadowCascadeData::SHADOW_CASCADE_COUNT * 16 * sizeof(float),
             frameIndex * DrawObjectBuffer::alignedFrameSize(vkCxt),
-            frameIndex * RenderContext::MAX_INSTANCES * sizeof(int)
-        };
+            frameIndex * RenderContext::MAX_INSTANCES * sizeof(int)};
 
         // Single vkCmdBindDescriptorSets call
         vkCmdBindDescriptorSets(
@@ -30,8 +28,7 @@ namespace ke {
             getVkPipelineLayout(),
             0,
             2, descriptorSets,
-            3, dynamicOffsets
-        );
+            3, dynamicOffsets);
     }
 
     void CascadeShadowMapPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
@@ -78,8 +75,8 @@ namespace ke {
         viewport.maxDepth = 1.0f;
 
         VkRect2D scissor = {};
-        scissor.offset = { 0, 0 };
-        scissor.extent = { extents.x, extents.y };
+        scissor.offset = {0, 0};
+        scissor.extent = {extents.x, extents.y};
 
         VkPipelineViewportStateCreateInfo viewportState = {};
         viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -91,13 +88,10 @@ namespace ke {
         // vertex input info
         auto texturedVertexFormat = VertexFormatDescriptor{
             sizeof(TexturedVertex),
-            {
-                {0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(TexturedVertex, position)},
+            {{0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(TexturedVertex, position)},
                 {1, VK_FORMAT_R32G32_SFLOAT, offsetof(TexturedVertex, texCoords)},
                 {2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(TexturedVertex, normal)},
-                {3, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(TexturedVertex, tangent)}
-            }
-        };
+                {3, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(TexturedVertex, tangent)}}};
 
         VkVertexInputBindingDescription bindingDescription;
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;

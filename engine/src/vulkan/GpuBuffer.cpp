@@ -9,14 +9,12 @@ namespace ke {
         VmaAllocator vmaAllocator,
         VkBuffer vkBuffer,
         VmaAllocation vmaAllocation,
-        bool hostCoherent
-    )
+        bool hostCoherent)
         : id(id),
-        vmaAllocator(vmaAllocator),
-        vkBuffer(vkBuffer),
-        vmaAllocation(vmaAllocation),
-        hostCoherent(hostCoherent)
-    {
+          vmaAllocator(vmaAllocator),
+          vkBuffer(vkBuffer),
+          vmaAllocation(vmaAllocation),
+          hostCoherent(hostCoherent) {
         KE_LOG_TRACE(std::format("GpuBuffer created: {}", id));
     }
 

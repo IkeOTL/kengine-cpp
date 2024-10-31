@@ -26,14 +26,13 @@ namespace ke {
         cascadeImageView = std::make_unique<GpuImageView>(
             shadowMapDepthImage.gpuImage,
             newCascadeImageView,
-            viewCreateInfo
-        );
+            viewCreateInfo);
 
         VkFramebufferCreateInfo fci{};
         fci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         fci.renderPass = renderPass.getVkRenderPass();
         fci.attachmentCount = 1;
-        VkImageView attachments[] = { newCascadeImageView };
+        VkImageView attachments[] = {newCascadeImageView};
         fci.pAttachments = attachments;
         fci.width = extents.x;
         fci.height = extents.y;
@@ -73,8 +72,8 @@ namespace ke {
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearValues;
 
-        renderPassInfo.renderArea.offset = { 0, 0 };
-        renderPassInfo.renderArea.extent = { cxt.extents.x, cxt.extents.y };
+        renderPassInfo.renderArea.offset = {0, 0};
+        renderPassInfo.renderArea.extent = {cxt.extents.x, cxt.extents.y};
 
         vkCmdBeginRenderPass(cxt.cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
@@ -165,8 +164,7 @@ namespace ke {
             vmaAllocator,
             vkImage,
             vmaImageAllocation,
-            imageCreateInfo
-        );
+            imageCreateInfo);
 
         VkImageViewCreateInfo depthViewCreateInfo{};
         depthViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -186,7 +184,6 @@ namespace ke {
         return std::make_unique<GpuImageView>(
             depthImage,
             depthImageView,
-            depthViewCreateInfo
-        );
+            depthViewCreateInfo);
     }
 } // namespace ke

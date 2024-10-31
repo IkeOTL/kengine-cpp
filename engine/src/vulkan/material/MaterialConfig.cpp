@@ -22,8 +22,7 @@ namespace ke {
         bindingConfigs[std::make_pair(descriptorSetIndex, bindingIndex)] = ptr;
     }
 
-    void MaterialConfig::addSkeleton(int skeletonBufferId)
-    {
+    void MaterialConfig::addSkeleton(int skeletonBufferId) {
     }
 
     size_t MaterialConfig::hashCode() const noexcept {

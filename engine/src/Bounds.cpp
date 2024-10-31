@@ -22,12 +22,12 @@ namespace ke {
     }
 
     // bounds
-    Bounds::Bounds(const glm::vec3& pos, const glm::vec3& extents) :
-        aabb(pos, extents),
-        sphereBounds(pos, glm::length(extents)) {}
+    Bounds::Bounds(const glm::vec3& pos, const glm::vec3& extents)
+        : aabb(pos, extents),
+          sphereBounds(pos, glm::length(extents)) {}
 
-    Bounds::Bounds(const Aabb& aabb) :
-        Bounds(aabb.pos, aabb.extents) {}
+    Bounds::Bounds(const Aabb& aabb)
+        : Bounds(aabb.pos, aabb.extents) {}
 
     Bounds Bounds::transform(const glm::mat4& mat) {
         return Bounds(aabb.transform(mat));

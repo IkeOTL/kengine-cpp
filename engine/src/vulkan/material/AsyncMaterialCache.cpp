@@ -8,8 +8,7 @@
 #include <memory>
 
 namespace ke {
-    std::unique_ptr<Material> AsyncMaterialCache::create(std::shared_ptr<MaterialConfig> keyObj)
-    {
+    std::unique_ptr<Material> AsyncMaterialCache::create(std::shared_ptr<MaterialConfig> keyObj) {
         auto newMat = std::make_unique<Material>(runningId.fetch_add(1), keyObj, pipelineCache.getPipeline(keyObj->getPipeline()));
 
         auto& tConfigs = keyObj->getBindingConfigs();

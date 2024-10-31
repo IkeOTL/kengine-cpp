@@ -14,9 +14,9 @@ namespace ke {
         auto camera = cameraController.getCamera();
         ToUpload data{};
         data.proj = camera->getProjectionMatrix();
-        //camera->getViewMatrix(data.view);
+        // camera->getViewMatrix(data.view);
         camera->getIntegratedViewMatrix(alpha, data.view);
-        data.lightDir = { lightDir, time };
+        data.lightDir = {lightDir, time};
 
         auto startPos = buffer.getFrameOffset(frameIndex);
         memcpy(static_cast<char*>(buffer.getGpuBuffer().data()) + startPos, &data, sizeof(ToUpload));

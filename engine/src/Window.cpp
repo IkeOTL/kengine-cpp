@@ -6,7 +6,8 @@
 
 namespace ke {
     Window::Window(std::string title, unsigned int width, unsigned int height)
-        : width(width), height(height) {
+        : width(width),
+          height(height) {
         if (!glfwInit())
             throw std::runtime_error("Failed to initialize GLFW.");
 
@@ -27,81 +28,76 @@ namespace ke {
 
         glfwSetWindowUserPointer(window, this);
 
-        glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int newWidth, int newHeight)
-            {
-                if (newWidth <= 0 || newHeight <= 0)
-                    return;
+        glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int newWidth, int newHeight) {
+            if (newWidth <= 0 || newHeight <= 0)
+                return;
 
-                auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+            auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
-                myWindow->width = newWidth;
-                myWindow->height = newHeight;
+            myWindow->width = newWidth;
+            myWindow->height = newHeight;
 
-                // need to parallelize
-                for (auto* l : myWindow->resizeListeners)
-                    (*l)(window, newWidth, newHeight);
-            });
+            // need to parallelize
+            for (auto* l : myWindow->resizeListeners)
+                (*l)(window, newWidth, newHeight);
+        });
 
-        glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos)
-            {
-                auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos) {
+            auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
-                if (!myWindow->inputManager)
-                    return;
+            if (!myWindow->inputManager)
+                return;
 
-                auto now = std::chrono::high_resolution_clock::now();
-                auto nowNano = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+            auto now = std::chrono::high_resolution_clock::now();
+            auto nowNano = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
 
-                if (nowNano - myWindow->lastMouseMove >= 1000000) {
-                    myWindow->inputManager->onMoveEvent(window, xpos, ypos);
-                    myWindow->lastMouseMove = nowNano;
-                }
-            });
+            if (nowNano - myWindow->lastMouseMove >= 1000000) {
+                myWindow->inputManager->onMoveEvent(window, xpos, ypos);
+                myWindow->lastMouseMove = nowNano;
+            }
+        });
 
-        glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods)
-            {
-                auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
+            auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
-                if (!myWindow->inputManager)
-                    return;
+            if (!myWindow->inputManager)
+                return;
 
-                auto* imGuiIo = myWindow->imGuiIO;
-                if (imGuiIo && (imGuiIo->WantCaptureMouse))
-                    return;
+            auto* imGuiIo = myWindow->imGuiIO;
+            if (imGuiIo && (imGuiIo->WantCaptureMouse))
+                return;
 
-                myWindow->inputManager->onButtonEvent(window, button, action, mods);
-            });
+            myWindow->inputManager->onButtonEvent(window, button, action, mods);
+        });
 
-        glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
-            {
-                auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+            auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
-                if (!myWindow->inputManager)
-                    return;
+            if (!myWindow->inputManager)
+                return;
 
-                auto* imGuiIo = myWindow->imGuiIO;
-                if (imGuiIo && (imGuiIo->WantCaptureKeyboard))
-                    return;
+            auto* imGuiIo = myWindow->imGuiIO;
+            if (imGuiIo && (imGuiIo->WantCaptureKeyboard))
+                return;
 
-                if (action == GLFW_REPEAT)
-                    return;
+            if (action == GLFW_REPEAT)
+                return;
 
-                myWindow->inputManager->onKeyEvent(window, key, scancode, action, mods);
-            });
+            myWindow->inputManager->onKeyEvent(window, key, scancode, action, mods);
+        });
 
-        glfwSetCharCallback(window, [](GLFWwindow* window, unsigned int codepoint)
-            {
-                auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+        glfwSetCharCallback(window, [](GLFWwindow* window, unsigned int codepoint) {
+            auto* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
-                if (!myWindow->inputManager)
-                    return;
+            if (!myWindow->inputManager)
+                return;
 
-                auto* imGuiIo = myWindow->imGuiIO;
-                if (imGuiIo && (imGuiIo->WantCaptureKeyboard))
-                    return;
+            auto* imGuiIo = myWindow->imGuiIO;
+            if (imGuiIo && (imGuiIo->WantCaptureKeyboard))
+                return;
 
-                myWindow->inputManager->onCharEvent(window, codepoint);
-            });
+            myWindow->inputManager->onCharEvent(window, codepoint);
+        });
     }
 
     void Window::pollEvents() {
@@ -112,8 +108,7 @@ namespace ke {
         resizeListeners.push_back(listener);
     }
 
-    std::unique_ptr<VulkanSurface> Window::createSurface(VkInstance vkInstance)
-    {
+    std::unique_ptr<VulkanSurface> Window::createSurface(VkInstance vkInstance) {
         VkSurfaceKHR surface;
         VKCHECK(glfwCreateWindowSurface(vkInstance, getWindow(), nullptr, &surface),
             "Failed to create window surface.");

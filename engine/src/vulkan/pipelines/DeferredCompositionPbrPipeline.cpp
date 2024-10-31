@@ -20,8 +20,7 @@ namespace ke {
         uint32_t dynamicOffsets[] = {
             frameIndex * LightsManager::alignedFrameSize(vkCxt),
             frameIndex * ShadowCascadeData::alignedFrameSize(vkCxt),
-            frameIndex * MaterialsBuffer::alignedFrameSize(vkCxt)
-        };
+            frameIndex * MaterialsBuffer::alignedFrameSize(vkCxt)};
 
         vkCmdBindDescriptorSets(
             cmd,
@@ -29,8 +28,7 @@ namespace ke {
             getVkPipelineLayout(),
             0,
             1, &descSet,
-            3, dynamicOffsets
-        );
+            3, dynamicOffsets);
     }
 
     void DeferredCompositionPbrPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
@@ -73,9 +71,8 @@ namespace ke {
 
         shaderStagesCreateInfo[1].pSpecializationInfo = &specializationInfo;
 
-
         VkPipelineDynamicStateCreateInfo dynamicState{};
-        std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+        std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
         dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
         dynamicState.pDynamicStates = dynamicStates.data();

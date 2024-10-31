@@ -14,13 +14,12 @@ namespace ke {
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, getVkPipeline());
 
         VkDescriptorSet descriptorSets[] = {
-           descSetAllocator.getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
+            descSetAllocator.getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
         };
 
         // TODO: check alignments
         uint32_t dynamicOffsets[] = {
-            frameIndex * SceneData::alignedFrameSize(vkCxt)
-        };
+            frameIndex * SceneData::alignedFrameSize(vkCxt)};
 
         // Single vkCmdBindDescriptorSets call
         vkCmdBindDescriptorSets(
@@ -29,8 +28,7 @@ namespace ke {
             getVkPipelineLayout(),
             0,
             1, descriptorSets,
-            1, dynamicOffsets
-        );
+            1, dynamicOffsets);
     }
 
     void DebugDeferredOffscreenPbrPipeline::loadDescriptorSetLayoutConfigs(std::vector<DescriptorSetLayoutConfig>& dst) {
@@ -77,8 +75,7 @@ namespace ke {
             sizeof(DebugVertex),
             {
                 {0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(DebugVertex, position)},
-            }
-        };
+            }};
 
         VkVertexInputBindingDescription bindingDescription;
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
@@ -112,8 +109,7 @@ namespace ke {
 
         // Color blend attachment states
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-            VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
         colorBlendAttachment.blendEnable = VK_TRUE;
         colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
         colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
@@ -121,7 +117,6 @@ namespace ke {
         colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
         colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
         colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-
 
         // Color blending state
         VkPipelineColorBlendStateCreateInfo colorBlending{};
@@ -143,7 +138,7 @@ namespace ke {
         depthStencilState.front = depthStencilState.back;
 
         // Dynamic state
-        std::array<VkDynamicState, 2> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+        std::array<VkDynamicState, 2> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
         VkPipelineDynamicStateCreateInfo dynamicState{};
         dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());

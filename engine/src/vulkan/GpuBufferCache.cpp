@@ -3,7 +3,10 @@
 
 namespace ke {
     CachedGpuBuffer::CachedGpuBuffer(GpuBufferId id, std::unique_ptr<GpuBuffer>&& gpuBuffer, VkDeviceSize frameSize, VkDeviceSize totalSize)
-        : id(id), gpuBuffer(std::move(gpuBuffer)), frameSize(frameSize), totalSize(totalSize) {}
+        : id(id),
+          gpuBuffer(std::move(gpuBuffer)),
+          frameSize(frameSize),
+          totalSize(totalSize) {}
 
     CachedGpuBuffer* GpuBufferCache::get(GpuBufferId cacheKey) {
         std::shared_lock<std::shared_mutex> lock(this->mtx);
@@ -31,7 +34,7 @@ namespace ke {
 
     CachedGpuBuffer& GpuBufferCache::create(VkDeviceSize frameSize, uint32_t frameCount, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage, VmaAllocationCreateFlags allocFlags) {
         // only align if we have frames? or align everytgin just in case
-        //if (frameCount != 0)
+        // if (frameCount != 0)
         if (usageFlags & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
             frameSize = vkContext.alignUboFrame(frameSize);
         else if (usageFlags & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)
@@ -57,7 +60,7 @@ namespace ke {
         VkPipelineStageFlags2 dstStageMask, const VkAccessFlags2 dstAccessMask,
         VkBufferUsageFlags usageFlags, VmaAllocationCreateFlags allocFlags) {
         // only align if we have frames? or align everytgin just in case
-        //if (frameCount != 0)
+        // if (frameCount != 0)
         if (usageFlags & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
             frameSize = vkContext.alignUboFrame(frameSize);
         else if (usageFlags & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT)

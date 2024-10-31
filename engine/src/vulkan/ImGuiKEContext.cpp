@@ -58,7 +58,7 @@ namespace ke {
         init_info.Subpass = 3;
 #endif
 
-        //init_info.CheckVkResultFn = check_vk_result;
+        // init_info.CheckVkResultFn = check_vk_result;
         ImGui_ImplVulkan_Init(&init_info);
 
         // to allow imgui to stop event propagation
@@ -73,7 +73,7 @@ namespace ke {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        //ImGui::ShowDemoWindow(&showDemoWindow);
+        // ImGui::ShowDemoWindow(&showDemoWindow);
 
         draw();
 

@@ -42,8 +42,7 @@ namespace ke {
                 VK_FORMAT_D32_SFLOAT,
                 VK_FORMAT_D24_UNORM_S8_UINT,
                 VK_FORMAT_D16_UNORM_S8_UINT,
-                VK_FORMAT_D16_UNORM
-            };
+                VK_FORMAT_D16_UNORM};
 
             for (VkFormat format : depthFormats) {
                 VkFormatProperties formatProps;

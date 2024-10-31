@@ -12,8 +12,7 @@ namespace ke {
             emissiveFactor,
             metallicFactor,
             roughnessFactor,
-            textureSetFlags
-        };
+            textureSetFlags};
 
         auto pos = gpuBuffer.getFrameOffset(frameIndex) + materialId * sizeof(PbrMaterialData);
         auto buf = static_cast<unsigned char*>(gpuBuffer.getGpuBuffer().data());

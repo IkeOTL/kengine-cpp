@@ -39,7 +39,7 @@ namespace ke {
     std::shared_ptr<Spatial> SceneGraph::remove(Spatial& s) {
         std::lock_guard<std::shared_mutex> lock(mtx);
         if (s.getSceneId() == -1)
-            throw  std::runtime_error("This is not a scene graph spatial.");
+            throw std::runtime_error("This is not a scene graph spatial.");
 
         auto it = spatialCache.find(s.getSceneId());
         if (it == spatialCache.end())
@@ -62,6 +62,5 @@ namespace ke {
             remove(*c);
 
         return removed;
-
     }
 } // namespace ke

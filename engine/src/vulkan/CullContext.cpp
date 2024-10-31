@@ -38,22 +38,21 @@ namespace ke {
         // init descriptorsets with buffers
         {
             auto descSetInit = [](size_t idx, VkDescriptorSet descSet, CachedGpuBuffer& buf,
-                std::vector<VkWriteDescriptorSet>& setWrites, std::vector<VkDescriptorBufferInfo>& bufferInfos) {
-                    auto& binding = DrawCullingPipeline::cullingLayout.bindings[idx];
-                    auto& write = setWrites[idx];
-                    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                    write.dstSet = descSet;
-                    write.dstBinding = binding.bindingIndex;
-                    write.descriptorCount = binding.descriptorCount;
-                    write.descriptorType = binding.descriptorType;
+                                   std::vector<VkWriteDescriptorSet>& setWrites, std::vector<VkDescriptorBufferInfo>& bufferInfos) {
+                auto& binding = DrawCullingPipeline::cullingLayout.bindings[idx];
+                auto& write = setWrites[idx];
+                write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                write.dstSet = descSet;
+                write.dstBinding = binding.bindingIndex;
+                write.descriptorCount = binding.descriptorCount;
+                write.descriptorType = binding.descriptorType;
 
-                    auto& bufferInfo = bufferInfos[idx];
-                    bufferInfo.buffer = buf.getGpuBuffer().getVkBuffer();
-                    bufferInfo.offset = 0;
-                    bufferInfo.range = buf.getFrameSize();
-                    write.pBufferInfo = &bufferInfo;
-                };
-
+                auto& bufferInfo = bufferInfos[idx];
+                bufferInfo.buffer = buf.getGpuBuffer().getVkBuffer();
+                bufferInfo.offset = 0;
+                bufferInfo.range = buf.getFrameSize();
+                write.pBufferInfo = &bufferInfo;
+            };
 
             for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
                 auto& descSetAllo = *descSetAllocators[i];
@@ -74,21 +73,21 @@ namespace ke {
 
         {
             auto descSetInit = [](size_t idx, VkDescriptorSet descSet, const CachedGpuBuffer& buf,
-                std::vector<VkWriteDescriptorSet>& setWrites, std::vector<VkDescriptorBufferInfo>& bufferInfos) {
-                    auto& binding = PreDrawCullingPipeline::preCullingLayout.bindings[idx];
-                    auto& write = setWrites[idx];
-                    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                    write.dstSet = descSet;
-                    write.dstBinding = binding.bindingIndex;
-                    write.descriptorCount = binding.descriptorCount;
-                    write.descriptorType = binding.descriptorType;
+                                   std::vector<VkWriteDescriptorSet>& setWrites, std::vector<VkDescriptorBufferInfo>& bufferInfos) {
+                auto& binding = PreDrawCullingPipeline::preCullingLayout.bindings[idx];
+                auto& write = setWrites[idx];
+                write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                write.dstSet = descSet;
+                write.dstBinding = binding.bindingIndex;
+                write.descriptorCount = binding.descriptorCount;
+                write.descriptorType = binding.descriptorType;
 
-                    auto& bufferInfo = bufferInfos[idx];
-                    bufferInfo.buffer = buf.getGpuBuffer().getVkBuffer();
-                    bufferInfo.offset = 0;
-                    bufferInfo.range = buf.getFrameSize();
-                    write.pBufferInfo = &bufferInfo;
-                };
+                auto& bufferInfo = bufferInfos[idx];
+                bufferInfo.buffer = buf.getGpuBuffer().getVkBuffer();
+                bufferInfo.offset = 0;
+                bufferInfo.range = buf.getFrameSize();
+                write.pBufferInfo = &bufferInfo;
+            };
 
             for (size_t i = 0; i < VulkanContext::FRAME_OVERLAP; i++) {
                 auto& descSetAllo = *descSetAllocators[i];
@@ -131,7 +130,6 @@ namespace ke {
                 auto localSizeX = 32; // must match compute shader
                 auto localSizeY = 32; // must match compute shader
 
-
                 // terrain
                 if (terrainContext) {
                     auto chunkCount = terrainContext->getChunkCount().x * terrainContext->getChunkCount().y;
@@ -163,7 +161,6 @@ namespace ke {
                     vkCmdPushConstants(cmdBuf, pl.getVkPipelineLayout(), VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(PreDrawCullingPipeline::PushConstant), &pc);
                     vkCmdDispatch(cmdBuf, dispatchSizeX, dispatchSizeY, 1);
                 }
-
 
                 std::vector<VkBufferMemoryBarrier2> barriers;
                 barriers.reserve(2);

@@ -39,7 +39,6 @@ namespace ke {
         cullContext->setTerrainContext(terrainContext);
         cullContext->init(vkContext);
 
-
         auto& bufCache = vkContext.getGpuBufferCache();
         shadowContext = std::make_unique<ShadowContext>(bufCache, *indirectCmdBuf, cameraController, *sceneData);
         shadowContext->init(vkContext, lightDir, *drawObjectBuf, *drawInstanceBuffer);
@@ -50,14 +49,12 @@ namespace ke {
         auto vp = VkViewport{
             0, 0,
             static_cast<float>(dim.x), static_cast<float>(dim.y),
-            0, 1
-        };
+            0, 1};
         vkCmdSetViewport(vkCmd, 0, 1, &vp);
 
         auto rect = VkRect2D{
             {0, 0},
-            {dim.x, dim.y}
-        };
+            {dim.x, dim.y}};
         vkCmdSetScissor(vkCmd, 0, 1, &rect);
     }
 
@@ -116,136 +113,135 @@ namespace ke {
 
     // simplify this further
     void RenderContext::initDescriptors() {
-
         // move somewhere else
 #ifdef KE_DEBUG_RENDER
         {
             auto mb = MeshBuilder<DebugVertex>(VertexAttribute::POSITION);
 
-            //0
+            // 0
             auto v0 = mb.createVertex();
-            v0.position = { -.5f, .5f, -.5f };
+            v0.position = {-.5f, .5f, -.5f};
             mb.pushIndex(mb.pushVertex(std::move(v0)));
             auto v2 = mb.createVertex();
-            v2.position = { -.5, .5, .5 };
+            v2.position = {-.5, .5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v2)));
             auto v1 = mb.createVertex();
-            v1.position = { .5, .5, -.5 };
+            v1.position = {.5, .5, -.5};
             mb.pushIndex(mb.pushVertex(std::move(v1)));
 
             v0 = mb.createVertex();
-            v0.position = { .5, .5, -.5 };
+            v0.position = {.5, .5, -.5};
             mb.pushIndex(mb.pushVertex(std::move(v0)));
             v2 = mb.createVertex();
-            v2.position = { -.5, .5, .5 };
+            v2.position = {-.5, .5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v2)));
             v1 = mb.createVertex();
-            v1.position = { .5, .5, .5 };
+            v1.position = {.5, .5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v1)));
 
-            //1
+            // 1
             v0 = mb.createVertex();
-            v0.position = { .5, -.5, -.5 };
+            v0.position = {.5, -.5, -.5};
             mb.pushIndex(mb.pushVertex(std::move(v0)));
             v1 = mb.createVertex();
-            v1.position = { .5, -.5, .5 };
+            v1.position = {.5, -.5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v1)));
             v2 = mb.createVertex();
-            v2.position = { -.5, -.5, .5 };
+            v2.position = {-.5, -.5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v2)));
 
             v0 = mb.createVertex();
-            v0.position = { -.5, -.5, -.5 };
+            v0.position = {-.5, -.5, -.5};
             mb.pushIndex(mb.pushVertex(std::move(v0)));
             v1 = mb.createVertex();
-            v1.position = { .5, -.5, -.5 };
+            v1.position = {.5, -.5, -.5};
             mb.pushIndex(mb.pushVertex(std::move(v1)));
             v2 = mb.createVertex();
-            v2.position = { -.5, -.5, .5 };
+            v2.position = {-.5, -.5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v2)));
 
-            //2
+            // 2
             v0 = mb.createVertex();
-            v0.position = { -.5, .5, .5 };
+            v0.position = {-.5, .5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v0)));
             v2 = mb.createVertex();
-            v2.position = { -.5, -.5, .5 };
+            v2.position = {-.5, -.5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v2)));
             v1 = mb.createVertex();
-            v1.position = { .5, .5, .5 };
-            mb.pushIndex(mb.pushVertex(std::move(v1)));
-
-            v0 = mb.createVertex();
-            v0.position = { -.5, -.5, .5 };
-            mb.pushIndex(mb.pushVertex(std::move(v0)));
-            v2 = mb.createVertex();
-            v2.position = { .5, -.5, .5 };
-            mb.pushIndex(mb.pushVertex(std::move(v2)));
-            v1 = mb.createVertex();
-            v1.position = { .5, .5, .5 };
-            mb.pushIndex(mb.pushVertex(std::move(v1)));
-
-            //3
-            v0 = mb.createVertex();
-            v0.position = { .5, .5, .5 };
-            mb.pushIndex(mb.pushVertex(std::move(v0)));
-            v2 = mb.createVertex();
-            v2.position = { .5, -.5, -.5 };
-            mb.pushIndex(mb.pushVertex(std::move(v2)));
-            v1 = mb.createVertex();
-            v1.position = { .5, .5, -.5 };
+            v1.position = {.5, .5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v1)));
 
             v0 = mb.createVertex();
-            v0.position = { .5, .5, .5 };
+            v0.position = {-.5, -.5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v0)));
             v2 = mb.createVertex();
-            v2.position = { .5, -.5, .5 };
+            v2.position = {.5, -.5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v2)));
             v1 = mb.createVertex();
-            v1.position = { .5, -.5, -.5 };
+            v1.position = {.5, .5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v1)));
 
-            //4
+            // 3
             v0 = mb.createVertex();
-            v0.position = { .5, .5, -.5 };
+            v0.position = {.5, .5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v0)));
             v2 = mb.createVertex();
-            v2.position = { -.5, -.5, -.5 };
+            v2.position = {.5, -.5, -.5};
             mb.pushIndex(mb.pushVertex(std::move(v2)));
             v1 = mb.createVertex();
-            v1.position = { -.5, .5, -.5 };
-            mb.pushIndex(mb.pushVertex(std::move(v1)));
-
-            v0 = mb.createVertex();
-            v0.position = { .5, .5, -.5 };
-            mb.pushIndex(mb.pushVertex(std::move(v0)));
-            v2 = mb.createVertex();
-            v2.position = { .5, -.5, -.5 };
-            mb.pushIndex(mb.pushVertex(std::move(v2)));
-            v1 = mb.createVertex();
-            v1.position = { -.5, -.5, -.5 };
-            mb.pushIndex(mb.pushVertex(std::move(v1)));
-
-            //5
-            v0 = mb.createVertex();
-            v0.position = { -.5, .5, .5 };
-            mb.pushIndex(mb.pushVertex(std::move(v0)));
-            v2 = mb.createVertex();
-            v2.position = { -.5, .5, -.5 };
-            mb.pushIndex(mb.pushVertex(std::move(v2)));
-            v1 = mb.createVertex();
-            v1.position = { -.5, -.5, -.5 };
+            v1.position = {.5, .5, -.5};
             mb.pushIndex(mb.pushVertex(std::move(v1)));
 
             v0 = mb.createVertex();
-            v0.position = { -.5, .5, .5 };
+            v0.position = {.5, .5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v0)));
             v2 = mb.createVertex();
-            v2.position = { -.5, -.5, -.5 };
+            v2.position = {.5, -.5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v2)));
             v1 = mb.createVertex();
-            v1.position = { -.5, -.5, .5 };
+            v1.position = {.5, -.5, -.5};
+            mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+            // 4
+            v0 = mb.createVertex();
+            v0.position = {.5, .5, -.5};
+            mb.pushIndex(mb.pushVertex(std::move(v0)));
+            v2 = mb.createVertex();
+            v2.position = {-.5, -.5, -.5};
+            mb.pushIndex(mb.pushVertex(std::move(v2)));
+            v1 = mb.createVertex();
+            v1.position = {-.5, .5, -.5};
+            mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+            v0 = mb.createVertex();
+            v0.position = {.5, .5, -.5};
+            mb.pushIndex(mb.pushVertex(std::move(v0)));
+            v2 = mb.createVertex();
+            v2.position = {.5, -.5, -.5};
+            mb.pushIndex(mb.pushVertex(std::move(v2)));
+            v1 = mb.createVertex();
+            v1.position = {-.5, -.5, -.5};
+            mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+            // 5
+            v0 = mb.createVertex();
+            v0.position = {-.5, .5, .5};
+            mb.pushIndex(mb.pushVertex(std::move(v0)));
+            v2 = mb.createVertex();
+            v2.position = {-.5, .5, -.5};
+            mb.pushIndex(mb.pushVertex(std::move(v2)));
+            v1 = mb.createVertex();
+            v1.position = {-.5, -.5, -.5};
+            mb.pushIndex(mb.pushVertex(std::move(v1)));
+
+            v0 = mb.createVertex();
+            v0.position = {-.5, .5, .5};
+            mb.pushIndex(mb.pushVertex(std::move(v0)));
+            v2 = mb.createVertex();
+            v2.position = {-.5, -.5, -.5};
+            mb.pushIndex(mb.pushVertex(std::move(v2)));
+            v1 = mb.createVertex();
+            v1.position = {-.5, -.5, .5};
             mb.pushIndex(mb.pushVertex(std::move(v1)));
 
             debugMesh = mb.build(&vkContext);
@@ -267,52 +263,47 @@ namespace ke {
 
             auto pushBuf = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, CachedGpuBuffer* gpuBuf) -> void {
                 auto& buf = bufferInfos.emplace_back(VkDescriptorBufferInfo{
-                        gpuBuf->getGpuBuffer().vkBuffer,
-                        0,
-                        gpuBuf->getFrameSize()
-                    });
+                    gpuBuf->getGpuBuffer().vkBuffer,
+                    0,
+                    gpuBuf->getFrameSize()});
 
                 setWrites.emplace_back(VkWriteDescriptorSet{
-                        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                        nullptr,
-                        vkDescSet,
-                        bindingCfg.bindingIndex,
-                        0,
-                        bindingCfg.descriptorCount,
-                        bindingCfg.descriptorType,
-                        nullptr,
-                        &buf,
-                        nullptr
-                    });
-                };
+                    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    nullptr,
+                    vkDescSet,
+                    bindingCfg.bindingIndex,
+                    0,
+                    bindingCfg.descriptorCount,
+                    bindingCfg.descriptorType,
+                    nullptr,
+                    &buf,
+                    nullptr});
+            };
 
             auto pushImg = [&](VkDescriptorSet vkDescSet, const DescriptorSetLayoutBindingConfig& bindingCfg, const GpuImageView& gpuImg, VkSampler sampler) -> void {
                 auto& img = imageInfos.emplace_back(VkDescriptorImageInfo{
-                        sampler,
-                        gpuImg.imageView,
-                        VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
-                    });
+                    sampler,
+                    gpuImg.imageView,
+                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL});
 
                 setWrites.emplace_back(VkWriteDescriptorSet{
-                        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                        nullptr,
-                        vkDescSet,
-                        bindingCfg.bindingIndex,
-                        0,
-                        bindingCfg.descriptorCount,
-                        bindingCfg.descriptorType,
-                        &img,
-                        nullptr,
-                        nullptr
-                    });
-                };
+                    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    nullptr,
+                    vkDescSet,
+                    bindingCfg.bindingIndex,
+                    0,
+                    bindingCfg.descriptorCount,
+                    bindingCfg.descriptorType,
+                    &img,
+                    nullptr,
+                    nullptr});
+            };
 
             // Scene data
             pushBuf(
                 descSetAllocator->getGlobalDescriptorSet("deferred-global-layout", PipelineCache::globalLayout),
                 PipelineCache::globalLayout.getBinding(0),
-                sceneBuf
-            );
+                sceneBuf);
 
             // model data
             {
@@ -321,20 +312,17 @@ namespace ke {
                 pushBuf(
                     modelMatDescriptorSet,
                     DeferredOffscreenPbrPipeline::objectLayout.getBinding(0),
-                    drawObjectBuf
-                );
+                    drawObjectBuf);
 
                 pushBuf(
                     modelMatDescriptorSet,
                     DeferredOffscreenPbrPipeline::objectLayout.getBinding(1),
-                    drawInstanceBuffer
-                );
+                    drawInstanceBuffer);
 
                 pushBuf(
                     modelMatDescriptorSet,
                     DeferredOffscreenPbrPipeline::objectLayout.getBinding(2),
-                    materialsBuf
-                );
+                    materialsBuf);
             }
 
             {
@@ -344,15 +332,13 @@ namespace ke {
                 pushBuf(
                     compositionDescriptorSet,
                     DeferredCompositionPbrPipeline::compositionLayout.getBinding(5),
-                    lightBuf
-                );
+                    lightBuf);
 
                 // dynamic materials buf
                 pushBuf(
                     compositionDescriptorSet,
                     DeferredCompositionPbrPipeline::compositionLayout.getBinding(8),
-                    materialsBuf
-                );
+                    materialsBuf);
 
                 // shadows
                 {
@@ -368,8 +354,7 @@ namespace ke {
                         0,
                         1,
                         0,
-                        1.0f
-                    );
+                        1.0f);
 
                     auto shadowSampler = vkContext.getSamplerCache().getSampler(samplerConfig);
 
@@ -380,8 +365,7 @@ namespace ke {
                         compositionDescriptorSet,
                         DeferredCompositionPbrPipeline::compositionLayout.getBinding(6),
                         rt.getShadowMapDepthImage(),
-                        shadowSampler
-                    );
+                        shadowSampler);
                 }
             }
 
@@ -399,8 +383,7 @@ namespace ke {
         if (startBatchIndex == staticBatches)
             return;
 
-        for (auto fIdx = 0; fIdx < VulkanContext::FRAME_OVERLAP; fIdx++)
-        {
+        for (auto fIdx = 0; fIdx < VulkanContext::FRAME_OVERLAP; fIdx++) {
             auto indCmdFrameOffset = static_cast<uint32_t>(indirectCmdBuf->getFrameOffset(fIdx));
             auto indCmdFrameIdx = static_cast<uint32_t>(indCmdFrameOffset * invIndCmdSize);
             auto buf = indirectCmdBuf->getGpuBuffer().data();
@@ -418,7 +401,6 @@ namespace ke {
         }
     }
 
-
     void RenderContext::addStaticInstance(const Mesh& mesh, const Material& material, const glm::mat4& transform, const glm::vec4& boundingSphere) {
         auto instanceIdx = staticInstances++;
 
@@ -433,8 +415,7 @@ namespace ke {
                 auto obj = DrawObject{
                     transform,
                     boundingSphere,
-                    material.getId()
-                };
+                    material.getId()};
 
                 auto modelBufStartPos = (int)drawObjectBuf->getFrameOffset(frameIdx);
                 auto pos = modelBufStartPos + (instanceIdx * sizeof(DrawObject));
@@ -442,12 +423,11 @@ namespace ke {
                 memcpy(buf + pos, &obj, sizeof(DrawObject));
             }
 
-            // buf upload   
+            // buf upload
             {
                 auto objInstance = ObjectInstance{
                     draw.getCmdId(),
-                    instanceIdx
-                };
+                    instanceIdx};
 
                 auto objInstanceStartPos = (int)objectInstanceBuf->getFrameOffset(frameIdx);
                 auto pos = objInstanceStartPos + (instanceIdx * sizeof(ObjectInstance));
@@ -464,8 +444,7 @@ namespace ke {
 
         debugObjects[totalDebugObjects++] = DebugObject{
             transform,
-            color
-        };
+            color};
     }
 #endif
 
@@ -477,7 +456,6 @@ namespace ke {
         auto hasShadow = material.hasShadow();
         auto hasSkeleton = material.hasSkeleton();
 
-
         // upload model specific details
         {
             // material: todo: only upload once per material id
@@ -486,8 +464,7 @@ namespace ke {
             auto obj = DrawObject{
                 transform,
                 boundingSphere,
-                material.getId()
-            };
+                material.getId()};
 
             auto modelBufStartPos = (int)drawObjectBuf->getFrameOffset(frameIdx);
             auto pos = modelBufStartPos + (instanceIdx * sizeof(DrawObject));
@@ -523,8 +500,7 @@ namespace ke {
             {
                 auto objInstance = ObjectInstance{
                     newDraw.getCmdId(),
-                    instanceIdx
-                };
+                    instanceIdx};
 
                 auto buf = static_cast<unsigned char*>(objectInstanceBuf->getGpuBuffer().data());
                 memcpy(buf + curObjInstancePos, &objInstance, sizeof(ObjectInstance));
@@ -543,8 +519,7 @@ namespace ke {
                 // buf upload
                 auto objInstance = ObjectInstance{
                     last.getCmdId(),
-                    instanceIdx
-                };
+                    instanceIdx};
 
                 auto buf = static_cast<unsigned char*>(objectInstanceBuf->getGpuBuffer().data());
                 memcpy(buf + curObjInstancePos, &objInstance, sizeof(ObjectInstance));
@@ -575,8 +550,7 @@ namespace ke {
             {
                 auto objInstance = ObjectInstance{
                     newDraw.getCmdId(),
-                    instanceIdx
-                };
+                    instanceIdx};
 
                 auto buf = static_cast<unsigned char*>(objectInstanceBuf->getGpuBuffer().data());
                 memcpy(buf + curObjInstancePos, &objInstance, sizeof(ObjectInstance));
@@ -719,7 +693,7 @@ namespace ke {
         auto frameIdx = frameCxt->frameIndex;
         auto vkCmd = frameCxt->cmd;
 
-        auto rpCxt = RenderPassContext{ 0, frameIdx, vkCmd, frameCxt->swapchainExtents };
+        auto rpCxt = RenderPassContext{0, frameIdx, vkCmd, frameCxt->swapchainExtents};
 
         vkContext.beginRenderPass(rpCxt);
         {
@@ -752,14 +726,14 @@ namespace ke {
             vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
 
 #ifdef KE_DEBUG_RENDER
-            //subpass 4 debug
+            // subpass 4 debug
             debugSubpass(rpCxt, descSetAllocator);
 #endif
 
-            //subpass 4 or 5 GUI (depends on is debug rendering is enabled)
-            //guiManager.subpass(vkContext, rpCxt, frameCxt, descSetAllocator);
-            // since guimanager isnt implemented yet we need to push to next subpass manually
-            // we'll remove this line once the guimanager is working
+            // subpass 4 or 5 GUI (depends on is debug rendering is enabled)
+            // guiManager.subpass(vkContext, rpCxt, frameCxt, descSetAllocator);
+            //  since guimanager isnt implemented yet we need to push to next subpass manually
+            //  we'll remove this line once the guimanager is working
             vkCmdNextSubpass(vkCmd, VK_SUBPASS_CONTENTS_INLINE);
 
             if (imGuiContext)
@@ -767,7 +741,6 @@ namespace ke {
         }
         vkContext.endRenderPass(rpCxt);
     }
-
 
 #ifdef KE_DEBUG_RENDER
     void RenderContext::debugSubpass(RenderPassContext& rpCxt, DescriptorSetAllocator& descSetAllocator) {
@@ -789,8 +762,7 @@ namespace ke {
         vkCmdBindIndexBuffer(vkCmd, indexBuf.vkBuffer, 0, VK_INDEX_TYPE_UINT32);
 
         // change to instancing
-        for (auto i = 0; i < totalDebugObjects; i++)
-        {
+        for (auto i = 0; i < totalDebugObjects; i++) {
             vkCmdPushConstants(vkCmd, p1.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(DebugObject), &debugObjects[i]);
             vkCmdDrawIndexed(vkCmd, indexCount, 1, 0, 0, 0);
         }
@@ -819,37 +791,31 @@ namespace ke {
             auto& rt = rp.getRenderTarget<DeferredPbrRenderTarget>(rpCxt.renderTargetIndex);
 
             std::vector<VkDescriptorImageInfo> deskImgInfos = {
-                VkDescriptorImageInfo {
+                VkDescriptorImageInfo{
                     sampler,
                     rt.getAlbedoImage().imageView,
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                },
-                VkDescriptorImageInfo {
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+                VkDescriptorImageInfo{
                     sampler,
                     rt.getPositionImage().imageView,
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                },
-                VkDescriptorImageInfo {
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+                VkDescriptorImageInfo{
                     sampler,
                     rt.getNormalImage().imageView,
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                },
-                VkDescriptorImageInfo {
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+                VkDescriptorImageInfo{
                     sampler,
                     rt.getOrmImage().imageView,
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                },
-                VkDescriptorImageInfo {
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL},
+                VkDescriptorImageInfo{
                     sampler,
                     rt.getEmissiveImage().imageView,
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                }
-            };
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}};
 
             auto& layout = DeferredCompositionPbrPipeline::compositionLayout;
             auto pDescSet = d.getGlobalDescriptorSet("deferred-composition", layout);
 
-            std::vector<uint32_t> bindingIdxs = { 0, 1, 2, 3, 4 };
+            std::vector<uint32_t> bindingIdxs = {0, 1, 2, 3, 4};
             std::vector<VkWriteDescriptorSet> pWriteDesc(bindingIdxs.size());
             for (auto i = 0; i < bindingIdxs.size(); i++) {
                 auto& binding = layout.getBinding(bindingIdxs[i]);

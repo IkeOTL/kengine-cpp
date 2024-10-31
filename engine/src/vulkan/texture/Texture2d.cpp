@@ -3,8 +3,7 @@
 namespace ke {
     void Texture2d::init(VulkanContext& vkCxt, const unsigned char* image, uint32_t width, uint32_t height,
         VkFormat format, VkImageType imageType, VkImageViewType imageViewType, int channels,
-        VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, bool generateMipMaps)
-    {
+        VkAccessFlags2 dstStageMask, VkAccessFlags2 dstAccessMask, bool generateMipMaps) {
         this->width = width;
         this->height = height;
 
@@ -25,7 +24,7 @@ namespace ke {
         }
 
         // Create image
-        VkExtent3D imageExtent = { width, height, 1 };
+        VkExtent3D imageExtent = {width, height, 1};
 
         VkImageCreateInfo imgCreateInfo{};
         imgCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -50,15 +49,13 @@ namespace ke {
             vkCxt.getVmaAllocator(),
             imageHandle,
             imageAllocation,
-            imgCreateInfo
-        );
+            imgCreateInfo);
 
         // Transition image to transfer-receiver
         std::shared_ptr<GpuBuffer> sStagingBuf = std::move(stagingBuffer);
         vkCxt.recordAndSubmitTransferCmdBuf([&](const CommandBuffer& cmdBuf) {
             auto qXfer = std::make_shared<ImageQueueOwnerTransfer>(
-                imageHandle, vkCxt.getXferQueueFamilyIndex(), vkCxt.getGfxQueueFamilyIndex(), dstStageMask, dstAccessMask
-            );
+                imageHandle, vkCxt.getXferQueueFamilyIndex(), vkCxt.getGfxQueueFamilyIndex(), dstStageMask, dstAccessMask);
 
             qXfer->setMips(mipLevels, width, height);
 
@@ -67,7 +64,7 @@ namespace ke {
             imageBarrierToTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             imageBarrierToTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             imageBarrierToTransfer.image = imageHandle;
-            imageBarrierToTransfer.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS };
+            imageBarrierToTransfer.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS};
             imageBarrierToTransfer.srcAccessMask = 0;
             imageBarrierToTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
@@ -77,7 +74,7 @@ namespace ke {
             copyRegion.bufferOffset = 0;
             copyRegion.bufferRowLength = 0;
             copyRegion.bufferImageHeight = 0;
-            copyRegion.imageSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+            copyRegion.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
             copyRegion.imageExtent = imageExtent;
 
             vkCmdCopyBufferToImage(cmdBuf.vkCmdBuf, sStagingBuf->getVkBuffer(), imageHandle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
@@ -86,8 +83,9 @@ namespace ke {
 
             return [&vkCxt, sStagingBuf, qXfer]() {
                 vkCxt.submitQueueTransfer(qXfer);
-                };
-            }, true);
+            };
+        },
+            true);
 
         // Create image view
         VkImageViewCreateInfo viewCreateInfo{};
@@ -95,7 +93,7 @@ namespace ke {
         viewCreateInfo.image = imageHandle;
         viewCreateInfo.viewType = imageViewType;
         viewCreateInfo.format = format;
-        viewCreateInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, mipLevels, 0, 1 };
+        viewCreateInfo.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, mipLevels, 0, 1};
 
         VkImageView imageView;
         VKCHECK(vkCreateImageView(vkCxt.getVkDevice(), &viewCreateInfo, nullptr, &imageView),
@@ -104,7 +102,6 @@ namespace ke {
         gpuImageView = std::make_unique<GpuImageView>(
             gpuImage,
             imageView,
-            viewCreateInfo
-        );
+            viewCreateInfo);
     }
 } // namespace ke

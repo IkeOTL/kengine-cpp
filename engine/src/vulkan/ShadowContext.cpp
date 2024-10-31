@@ -43,7 +43,6 @@ namespace ke {
             auto& descSetAllocator = *descSetAllocators[i];
             std::vector<VkWriteDescriptorSet> setWrites(4);
 
-
             VkDescriptorSet modelMatDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
                 "shadow-pass0", CascadeShadowMapPipeline::shadowPassLayout);
             // Model matrix descriptor write
@@ -74,8 +73,6 @@ namespace ke {
             setWrites[1].descriptorType = drawInstanceBinding.descriptorType;
             setWrites[1].pBufferInfo = &drawInstanceBufferInfo;
 
-
-
             VkDescriptorSet cascadeDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
                 "cascade", CascadeShadowMapPipeline::cascadeViewProjLayout);
             // Cascade UBO descriptor write
@@ -92,8 +89,6 @@ namespace ke {
             setWrites[2].descriptorType = cascadeUboBinding.descriptorType;
             setWrites[2].pBufferInfo = &cascadeBufferInfo;
 
-
-
             VkDescriptorSet compositionDescriptorSet = descSetAllocator.getGlobalDescriptorSet(
                 "deferred-composition", DeferredCompositionPbrPipeline::compositionLayout);
             // Composition descriptor write
@@ -109,7 +104,6 @@ namespace ke {
             setWrites[3].descriptorCount = cascadesUboBinding.descriptorCount;
             setWrites[3].descriptorType = cascadesUboBinding.descriptorType;
             setWrites[3].pBufferInfo = &compositionBufferInfo;
-
 
             vkUpdateDescriptorSets(vkContext.getVkDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
         }
@@ -158,7 +152,7 @@ namespace ke {
         cascadesData.uploadCompositionPass(vkContext, *compositePassCascadeBuf, cxt.frameIndex);
 
         for (uint32_t i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
-            auto rp1Cxt = RenderPassContext{ 1, i, cxt.cmd, glm::uvec2(SHADOWDIM) };
+            auto rp1Cxt = RenderPassContext{1, i, cxt.cmd, glm::uvec2(SHADOWDIM)};
             vkContext.beginRenderPass(rp1Cxt);
             {
                 auto& pipeline = vkContext.getPipelineCache().getPipeline<CascadeShadowMapPipeline>();
@@ -181,8 +175,7 @@ namespace ke {
 
         auto vkCmd = cxt.cmd;
         CascadeShadowMapPipeline::PushConstant psCst{
-            cascadeIdx
-        };
+            cascadeIdx};
         p1.bind(vkContext, dAllocator, vkCmd, cxt.frameIndex);
 
         vkCmdPushConstants(vkCmd, p1.getVkPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(psCst), &psCst);
@@ -230,7 +223,6 @@ namespace ke {
                 textureWrite.descriptorType = textureBinding.descriptorType;
                 textureWrite.pImageInfo = &descImgBufInfo;
 
-
                 // todo: simplify
                 if (!skinned) {
                     vkUpdateDescriptorSets(vkContext.getVkDevice(), static_cast<uint32_t>(setWrites.size()), setWrites.data(), 0, nullptr);
@@ -243,10 +235,8 @@ namespace ke {
                         1,
                         &pTexSet,
                         0,
-                        nullptr
-                    );
-                }
-                else {
+                        nullptr);
+                } else {
                     auto& bindingSkele = static_cast<const BufferBinding&>(indirectBatch.getMaterial()->getBinding(2, 5)).getGpuBuffer();
                     auto& skeletonBinding = layout.getBinding(1);
                     VkDescriptorBufferInfo bufferInfo = {};
@@ -274,8 +264,7 @@ namespace ke {
                         1,
                         &pTexSet,
                         1,
-                        &offset
-                    );
+                        &offset);
                 }
             }
 
@@ -290,8 +279,7 @@ namespace ke {
                 indirectCmdBuf.getGpuBuffer().getVkBuffer(),
                 indirectCmdBuf.getFrameOffset(cxt.frameIndex) + indirectBatch.getCmdId() * sizeof(VkDrawIndexedIndirectCommand),
                 1,
-                sizeof(VkDrawIndexedIndirectCommand)
-            );
+                sizeof(VkDrawIndexedIndirectCommand));
         }
     }
 } // namespace ke

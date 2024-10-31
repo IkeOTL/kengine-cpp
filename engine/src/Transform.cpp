@@ -111,9 +111,7 @@ namespace ke {
 
     void Transform::updateTransform() {
         rotation = glm::normalize(rotation);
-        transMatrix = glm::translate(glm::mat4(1.0f), position) *
-            glm::mat4_cast(rotation) *
-            glm::scale(glm::mat4(1.0f), scale);
+        transMatrix = glm::translate(glm::mat4(1.0f), position) * glm::mat4_cast(rotation) * glm::scale(glm::mat4(1.0f), scale);
         dirty = false;
     }
 

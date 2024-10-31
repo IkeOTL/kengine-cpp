@@ -25,8 +25,7 @@ namespace ke {
     void Pipeline::createVertexInputDescriptions(
         const VertexFormatDescriptor& descriptor,
         VkVertexInputBindingDescription& bindingDescription,
-        std::vector<VkVertexInputAttributeDescription>& attributeDescriptions)
-    {
+        std::vector<VkVertexInputAttributeDescription>& attributeDescriptions) {
         bindingDescription.binding = 0;
         bindingDescription.stride = descriptor.stride;
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;

@@ -68,18 +68,7 @@ namespace ke {
         if (this == &other)
             return true;
 
-        return mipmapMode == other.mipmapMode &&
-            minFilter == other.minFilter &&
-            magFilter == other.magFilter &&
-            addressModeU == other.addressModeU &&
-            addressModeV == other.addressModeV &&
-            addressModeW == other.addressModeW &&
-            compareOp == other.compareOp &&
-            borderColor == other.borderColor &&
-            std::bit_cast<int>(minLod) == std::bit_cast<int>(other.minLod) &&
-            std::bit_cast<int>(maxLod) == std::bit_cast<int>(other.maxLod) &&
-            std::bit_cast<int>(mipLodBias) == std::bit_cast<int>(other.mipLodBias) &&
-            std::bit_cast<int>(maxAnisotropy) == std::bit_cast<int>(other.maxAnisotropy);
+        return mipmapMode == other.mipmapMode && minFilter == other.minFilter && magFilter == other.magFilter && addressModeU == other.addressModeU && addressModeV == other.addressModeV && addressModeW == other.addressModeW && compareOp == other.compareOp && borderColor == other.borderColor && std::bit_cast<int>(minLod) == std::bit_cast<int>(other.minLod) && std::bit_cast<int>(maxLod) == std::bit_cast<int>(other.maxLod) && std::bit_cast<int>(mipLodBias) == std::bit_cast<int>(other.mipLodBias) && std::bit_cast<int>(maxAnisotropy) == std::bit_cast<int>(other.maxAnisotropy);
     }
 
     bool SamplerConfig::operator!=(const SamplerConfig& other) const {

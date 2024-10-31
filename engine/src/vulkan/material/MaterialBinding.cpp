@@ -78,7 +78,6 @@ namespace ke {
     void ImageArrayBinding::apply(VulkanContext& cxt, int frameIdx, VkWriteDescriptorSet& setWrite,
         VkDescriptorSet dstSet, const DescriptorSetLayoutConfig& layoutConfig,
         std::vector<std::vector<VkDescriptorBufferInfo>>& pBufferInfos, std::vector<std::vector<VkDescriptorImageInfo>>& pImageInfos, std::vector<uint32_t>& offsets) {
-
         auto& imageInfos = pImageInfos.emplace_back(std::vector<VkDescriptorImageInfo>{});
         imageInfos.reserve(textures.size());
 
@@ -97,7 +96,6 @@ namespace ke {
                 0,
                 1.0f);
             auto sampler = cxt.getSamplerCache().getSampler(samplerConfig);
-
 
             // i dont like this, need to think of a more effecient way
             auto& imageInfo = imageInfos.emplace_back(VkDescriptorImageInfo{});

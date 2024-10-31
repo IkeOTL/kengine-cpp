@@ -12,8 +12,7 @@ namespace ke {
         RenderPass& renderPass,
         VmaAllocator vmaAllocator,
         const std::vector<VkImageView>& sharedImageViews,
-        const glm::uvec2& extents
-    ) {
+        const glm::uvec2& extents) {
         vkFrameBuffer = createFramebuffer(renderPass, vmaAllocator, sharedImageViews, extents);
     }
 

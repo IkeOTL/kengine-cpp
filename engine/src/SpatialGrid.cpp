@@ -5,10 +5,13 @@
 
 namespace ke {
     SpatialGrid::SpatialGrid(uint32_t worldWidth, uint32_t worldLength, uint32_t cellSize)
-        : worldWidth(worldWidth), worldLength(worldLength), cellSize(cellSize),
-        cellCountX(worldWidth / cellSize), cellCountZ(worldLength / cellSize),
-        worldOffsetX(-static_cast<int32_t>(worldWidth) / 2), worldOffsetZ(-static_cast<int32_t>(worldLength) / 2)
-    {
+        : worldWidth(worldWidth),
+          worldLength(worldLength),
+          cellSize(cellSize),
+          cellCountX(worldWidth / cellSize),
+          cellCountZ(worldLength / cellSize),
+          worldOffsetX(-static_cast<int32_t>(worldWidth) / 2),
+          worldOffsetZ(-static_cast<int32_t>(worldLength) / 2) {
         if (worldWidth % 2 != 0 || worldLength % 2 != 0)
             throw std::runtime_error("Grid dimensions must be even.");
 
@@ -66,10 +69,10 @@ namespace ke {
         endCellZ = math::max(0, math::min(endCellZ, cellCountZ - 1));
 
         std::unordered_set<entt::entity> set;
-        //set.reserve(maximumVisible);
+        // set.reserve(maximumVisible);
 
         // disabled grid culling
-        //for (auto z = 0; z <= cellCountZ - 1; z++) {
+        // for (auto z = 0; z <= cellCountZ - 1; z++) {
         //    int32_t minWorldZ = cellSize * z + worldOffsetZ;
         //    int32_t maxWorldZ = minWorldZ + cellSize;
 
@@ -136,7 +139,6 @@ namespace ke {
         return set.size();
     }
 
-
     void SpatialGrid::updateEntity(entt::entity entityId, const glm::mat4& xform, const Aabb& aabb) {
         removeEntity(entityId);
         addEntity(entityId, xform, aabb);
@@ -177,7 +179,7 @@ namespace ke {
                 auto cellIndex = z * cellCountX + x;
                 cells[cellIndex].push_back(entityId);
 
-                // add to index for fast access in opposite direction            
+                // add to index for fast access in opposite direction
                 index[curIdx++] = cellIndex;
             }
 

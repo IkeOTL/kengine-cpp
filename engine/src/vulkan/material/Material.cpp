@@ -13,11 +13,11 @@ namespace ke {
         return config->hasShadow();
     }
 
-    bool Material::hasSkeleton()  const {
+    bool Material::hasSkeleton() const {
         return config->hasSkeleton();
     }
 
-    const  MaterialBinding& Material::getBinding(int descSetIdx, int bindingIdx) const {
+    const MaterialBinding& Material::getBinding(int descSetIdx, int bindingIdx) const {
         auto it = materialBindings.find(descSetIdx);
 
         if (it == materialBindings.end())
@@ -73,8 +73,7 @@ namespace ke {
                 1,
                 &pDescSet,
                 offsets.size(),
-                offsets.data()
-            );
+                offsets.data());
         }
     }
 } // namespace ke

@@ -10,25 +10,28 @@ namespace ke {
         meshes.push_back(std::move(mesh));
     }
 
-    //Model::Model(std::unique_ptr<Mesh>&& mesh) {
-    //    auto node = std::make_shared<ModelNode>("Main Node");
-    //    rootNode = node;
+    // Model::Model(std::unique_ptr<Mesh>&& mesh) {
+    //     auto node = std::make_shared<ModelNode>("Main Node");
+    //     rootNode = node;
     //
-    //    bounds = mesh->getBounds();
+    //     bounds = mesh->getBounds();
     //
-    //    auto modelMesh = std::make_unique<ModelMesh>(std::move(mesh));
+    //     auto modelMesh = std::make_unique<ModelMesh>(std::move(mesh));
     //
-    //    // add to quick access
-    //   // meshes.push_back(modelMesh.get());
+    //     // add to quick access
+    //    // meshes.push_back(modelMesh.get());
     //
-    //    node->addMesh(std::move(modelMesh));
-    //}
+    //     node->addMesh(std::move(modelMesh));
+    // }
 
     Model::Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
         std::vector<int16_t>&& parentIndices,
         std::vector<std::unique_ptr<MeshGroup>>&& meshGroups,
         std::vector<uint32_t>&& bones)
-        : nodes(std::move(nodes)), parentIndices(std::move(parentIndices)), meshGroups(std::move(meshGroups)), bones(std::move(bones)) {
+        : nodes(std::move(nodes)),
+          parentIndices(std::move(parentIndices)),
+          meshGroups(std::move(meshGroups)),
+          bones(std::move(bones)) {
         rootNode = std::make_shared<ModelNode>("Main Node");
         fillRoot(rootNode, this->nodes);
 

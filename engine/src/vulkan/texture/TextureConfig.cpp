@@ -5,14 +5,7 @@ namespace ke {
         if (this == &other)
             return true;
 
-        return format == other.format &&
-            imageType == other.imageType &&
-            imageViewType == other.imageViewType &&
-            channels == other.channels &&
-            dstStageMask == other.dstStageMask &&
-            dstAccessMask == other.dstAccessMask &&
-            mipmaps == other.mipmaps &&
-            textureKey == other.textureKey;
+        return format == other.format && imageType == other.imageType && imageViewType == other.imageViewType && channels == other.channels && dstStageMask == other.dstStageMask && dstAccessMask == other.dstAccessMask && mipmaps == other.mipmaps && textureKey == other.textureKey;
     }
 
     bool TextureConfig::operator!=(const TextureConfig& other) const {

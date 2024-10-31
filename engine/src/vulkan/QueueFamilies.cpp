@@ -17,15 +17,12 @@ namespace ke {
             const auto& queueFamily = allQueueFamilies[i].queueFamilyProperties;
             const auto flags = queueFamily.queueFlags;
 
-            if ((flags & VK_QUEUE_GRAPHICS_BIT) &&
-                (flags & VK_QUEUE_COMPUTE_BIT) &&
-                (flags & VK_QUEUE_TRANSFER_BIT)) {
+            if ((flags & VK_QUEUE_GRAPHICS_BIT) && (flags & VK_QUEUE_COMPUTE_BIT) && (flags & VK_QUEUE_TRANSFER_BIT)) {
                 gfxCompXfer.push_back(i);
                 continue;
             }
 
-            if ((flags & VK_QUEUE_TRANSFER_BIT) &&
-                !(flags & VK_QUEUE_GRAPHICS_BIT))
+            if ((flags & VK_QUEUE_TRANSFER_BIT) && !(flags & VK_QUEUE_GRAPHICS_BIT))
                 transfer.push_back(i);
         }
     }

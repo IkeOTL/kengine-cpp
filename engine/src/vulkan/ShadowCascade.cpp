@@ -6,16 +6,15 @@
 namespace ke {
     void ShadowCascade::updateViewProj(const glm::mat4& invCam, float camNear, const glm::vec3& lightDir,
         float lastSplitDist, float splitDist, float clipRange) {
-
         glm::vec3 frustumCorners[8] = {
-            glm::vec3(-1.0f,  1.0f, 0.0f),
-            glm::vec3(1.0f,  1.0f, 0.0f),
+            glm::vec3(-1.0f, 1.0f, 0.0f),
+            glm::vec3(1.0f, 1.0f, 0.0f),
             glm::vec3(1.0f, -1.0f, 0.0f),
             glm::vec3(-1.0f, -1.0f, 0.0f),
-            glm::vec3(-1.0f,  1.0f,  1.0f),
-            glm::vec3(1.0f,  1.0f,  1.0f),
-            glm::vec3(1.0f, -1.0f,  1.0f),
-            glm::vec3(-1.0f, -1.0f,  1.0f),
+            glm::vec3(-1.0f, 1.0f, 1.0f),
+            glm::vec3(1.0f, 1.0f, 1.0f),
+            glm::vec3(1.0f, -1.0f, 1.0f),
+            glm::vec3(-1.0f, -1.0f, 1.0f),
         };
 
         /* glm::vec3 frustumCorners[8] = {
@@ -29,7 +28,7 @@ namespace ke {
                 matutils::transformProject(invCam, baseCorners[7])
          };*/
 
-         // transformProject
+        // transformProject
         for (auto i = 0; i < 8; i++) {
             glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
             frustumCorners[i] = invCorner / invCorner.w;
@@ -96,13 +95,13 @@ namespace ke {
         ToUpload data{};
         {
             for (auto i = 0; i < ShadowCascadeData::SHADOW_CASCADE_COUNT; i++) {
-                //data.viewProj[i] = cascades[i].getViewProj();
+                // data.viewProj[i] = cascades[i].getViewProj();
                 memcpy(&data.viewProj[i], &cascades[i].getViewProj(), sizeof(glm::mat4));
                 data.splits[i] = cascades[i].getSplitDepth();
             }
 
             data.lightDir = lightDir;
-            //memcpy(&data.lightDir, &lightDir, sizeof(glm::vec3));
+            // memcpy(&data.lightDir, &lightDir, sizeof(glm::vec3));
         }
 
         auto size = sizeof(ToUpload);
@@ -118,7 +117,7 @@ namespace ke {
     }
 
     size_t ShadowCascadeData::size() {
-        return(ShadowCascadeData::SHADOW_CASCADE_COUNT * sizeof(float))
+        return (ShadowCascadeData::SHADOW_CASCADE_COUNT * sizeof(float))
             + (ShadowCascadeData::SHADOW_CASCADE_COUNT * 16 * sizeof(float))
             + (3 * sizeof(float));
     }
