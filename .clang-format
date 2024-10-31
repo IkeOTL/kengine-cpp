@@ -7,7 +7,7 @@
     AllowAllParametersOfDeclarationOnNextLine: true,
     AccessModifierOffset: -4,
     SpacesBeforeTrailingComments: 1,
-    BinaryOperator: NonAssignment,
+    BreakBeforeBinaryOperators: NonAssignment,
     BinPackArguments: true,
     AllowAllArgumentsOnNextLine: true,
     AlignAfterOpenBracket: DontAlign
