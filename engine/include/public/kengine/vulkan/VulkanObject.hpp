@@ -3,7 +3,7 @@
 #include <kengine/vulkan/VmaInclude.hpp>
 
 namespace ke {
-    template<class T>
+    template <class T>
     class HandleWrapper {
     public:
         const T handle;
@@ -27,9 +27,11 @@ namespace ke {
     class VulkanSurface : public HandleWrapper<VkSurfaceKHR> {
     private:
         const VkInstance vkInstance;
+
     public:
         VulkanSurface(VkInstance vkInstance, VkSurfaceKHR handle)
-            : HandleWrapper(handle), vkInstance(vkInstance) {}
+            : HandleWrapper(handle),
+              vkInstance(vkInstance) {}
 
         ~VulkanSurface() {
             vkDestroySurfaceKHR(vkInstance, handle, nullptr);
@@ -62,7 +64,8 @@ namespace ke {
 
     public:
         VulkanSemaphore(VkDevice vkDevice, VkSemaphore handle)
-            : HandleWrapper(handle), vkDevice(vkDevice) {}
+            : HandleWrapper(handle),
+              vkDevice(vkDevice) {}
 
         inline static std::unique_ptr<VulkanSemaphore> create(VkDevice vkDevice, VkSemaphore handle) {
             return std::make_unique<VulkanSemaphore>(vkDevice, handle);
@@ -79,7 +82,8 @@ namespace ke {
 
     public:
         VulkanFence(VkDevice vkDevice, VkFence handle)
-            : HandleWrapper(handle), vkDevice(vkDevice) {}
+            : HandleWrapper(handle),
+              vkDevice(vkDevice) {}
 
         inline static std::unique_ptr<VulkanFence> create(VkDevice vkDevice, VkFence handle) {
             return std::make_unique<VulkanFence>(vkDevice, handle);
@@ -96,7 +100,8 @@ namespace ke {
 
     public:
         VulkanCommandPool(VkDevice vkDevice, VkCommandPool handle)
-            : HandleWrapper(handle), vkDevice(vkDevice) {}
+            : HandleWrapper(handle),
+              vkDevice(vkDevice) {}
 
         ~VulkanCommandPool() {
             vkDestroyCommandPool(vkDevice, handle, nullptr);
@@ -109,7 +114,8 @@ namespace ke {
 
     public:
         VulkanSampler(VkDevice vkDevice, VkSampler handle)
-            : HandleWrapper(handle), vkDevice(vkDevice) {}
+            : HandleWrapper(handle),
+              vkDevice(vkDevice) {}
 
         ~VulkanSampler() {
             vkDestroySampler(vkDevice, handle, nullptr);
@@ -122,7 +128,8 @@ namespace ke {
 
     public:
         VulkanShaderModule(VkDevice vkDevice, VkShaderModule handle)
-            : HandleWrapper(handle), vkDevice(vkDevice) {}
+            : HandleWrapper(handle),
+              vkDevice(vkDevice) {}
 
         ~VulkanShaderModule() {
             vkDestroyShaderModule(vkDevice, handle, nullptr);
@@ -135,7 +142,8 @@ namespace ke {
 
     public:
         VulkanDescriptorPool(VkDevice vkDevice, VkDescriptorPool handle)
-            : HandleWrapper(handle), vkDevice(vkDevice) {}
+            : HandleWrapper(handle),
+              vkDevice(vkDevice) {}
 
         ~VulkanDescriptorPool() {
             vkDestroyDescriptorPool(vkDevice, handle, nullptr);

@@ -6,7 +6,6 @@
 
 namespace ke {
     class Camera {
-
     private:
         glm::vec3 prevPosition{};
         glm::quat prevRotation = glm::identity<glm::quat>();

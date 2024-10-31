@@ -18,8 +18,10 @@ namespace ke {
         V result = nullptr;
 
     public:
-        AsyncCacheTask(std::shared_future<V> future) : task(std::move(future)) {}
-        AsyncCacheTask(V result) : result(result) {}
+        AsyncCacheTask(std::shared_future<V> future)
+            : task(std::move(future)) {}
+        AsyncCacheTask(V result)
+            : result(result) {}
 
         bool isDone() const {
             if (task.has_value())
@@ -56,7 +58,8 @@ namespace ke {
         virtual std::unique_ptr<V> create(std::shared_ptr<K> keyObj) = 0;
 
     public:
-        AsyncAssetCache(ExecutorService& workerPool) : workerPool(workerPool) {}
+        AsyncAssetCache(ExecutorService& workerPool)
+            : workerPool(workerPool) {}
 
         V* unsafeAdd(K& keyObj, std::unique_ptr<V>&& value) {
             size_t key = keyObj.hashCode();
@@ -178,7 +181,7 @@ namespace ke {
 
                         return storedAsset.get();
                     }
-                    });
+                });
 
                 return AsyncCacheTask<V*>(task);
             }

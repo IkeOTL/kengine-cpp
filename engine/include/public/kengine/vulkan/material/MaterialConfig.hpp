@@ -16,7 +16,7 @@ namespace ke {
     private:
         struct IntPairHash {
             template <class T1, class T2>
-            std::size_t operator () (const std::pair<T1, T2>& pair) const {
+            std::size_t operator()(const std::pair<T1, T2>& pair) const {
                 const std::size_t prime = 31;
                 std::size_t hash1 = std::hash<T1>{}(pair.first);
                 std::size_t hash2 = std::hash<T2>{}(pair.second);
@@ -31,7 +31,8 @@ namespace ke {
         bool _hasSkeleton = false;
 
     public:
-        MaterialConfig(std::type_index type) : pipelineTypeIndex(type) {}
+        MaterialConfig(std::type_index type)
+            : pipelineTypeIndex(type) {}
 
         const std::type_index getPipeline() const {
             return pipelineTypeIndex;
@@ -84,10 +85,10 @@ namespace ke {
 } // namespace ke
 
 namespace std {
-    template<>
+    template <>
     struct hash<ke::MaterialConfig> {
         size_t operator()(const ke::MaterialConfig& p) const noexcept {
             return p.hashCode();
         }
     };
-}
+} // namespace std

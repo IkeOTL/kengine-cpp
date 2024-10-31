@@ -37,26 +37,26 @@ namespace ke {
         inline static glm::vec4 frustumPlane(const glm::mat4& matrix, FrustumPlane plane) {
             glm::vec4 dest;
             switch (plane) {
-            case PLANE_NX:
-                dest = glm::vec4(matrix[0][3] + matrix[0][0], matrix[1][3] + matrix[1][0], matrix[2][3] + matrix[2][0], matrix[3][3] + matrix[3][0]);
-                break;
-            case PLANE_PX:
-                dest = glm::vec4(matrix[0][3] - matrix[0][0], matrix[1][3] - matrix[1][0], matrix[2][3] - matrix[2][0], matrix[3][3] - matrix[3][0]);
-                break;
-            case PLANE_NY:
-                dest = glm::vec4(matrix[0][3] + matrix[0][1], matrix[1][3] + matrix[1][1], matrix[2][3] + matrix[2][1], matrix[3][3] + matrix[3][1]);
-                break;
-            case PLANE_PY:
-                dest = glm::vec4(matrix[0][3] - matrix[0][1], matrix[1][3] - matrix[1][1], matrix[2][3] - matrix[2][1], matrix[3][3] - matrix[3][1]);
-                break;
-            case PLANE_NZ:
-                dest = glm::vec4(matrix[0][3] + matrix[0][2], matrix[1][3] + matrix[1][2], matrix[2][3] + matrix[2][2], matrix[3][3] + matrix[3][2]);
-                break;
-            case PLANE_PZ:
-                dest = glm::vec4(matrix[0][3] - matrix[0][2], matrix[1][3] - matrix[1][2], matrix[2][3] - matrix[2][2], matrix[3][3] - matrix[3][2]);
-                break;
-            default:
-                throw std::runtime_error("Invalid plane index");
+                case PLANE_NX:
+                    dest = glm::vec4(matrix[0][3] + matrix[0][0], matrix[1][3] + matrix[1][0], matrix[2][3] + matrix[2][0], matrix[3][3] + matrix[3][0]);
+                    break;
+                case PLANE_PX:
+                    dest = glm::vec4(matrix[0][3] - matrix[0][0], matrix[1][3] - matrix[1][0], matrix[2][3] - matrix[2][0], matrix[3][3] - matrix[3][0]);
+                    break;
+                case PLANE_NY:
+                    dest = glm::vec4(matrix[0][3] + matrix[0][1], matrix[1][3] + matrix[1][1], matrix[2][3] + matrix[2][1], matrix[3][3] + matrix[3][1]);
+                    break;
+                case PLANE_PY:
+                    dest = glm::vec4(matrix[0][3] - matrix[0][1], matrix[1][3] - matrix[1][1], matrix[2][3] - matrix[2][1], matrix[3][3] - matrix[3][1]);
+                    break;
+                case PLANE_NZ:
+                    dest = glm::vec4(matrix[0][3] + matrix[0][2], matrix[1][3] + matrix[1][2], matrix[2][3] + matrix[2][2], matrix[3][3] + matrix[3][2]);
+                    break;
+                case PLANE_PZ:
+                    dest = glm::vec4(matrix[0][3] - matrix[0][2], matrix[1][3] - matrix[1][2], matrix[2][3] - matrix[2][2], matrix[3][3] - matrix[3][2]);
+                    break;
+                default:
+                    throw std::runtime_error("Invalid plane index");
             }
 
             // normalize using only XYZ
@@ -93,72 +93,63 @@ namespace ke {
             if (xax < xbx) {
                 xminx = xax;
                 xmaxx = xbx;
-            }
-            else {
+            } else {
                 xminx = xbx;
                 xmaxx = xax;
             }
             if (xay < xby) {
                 xminy = xay;
                 xmaxy = xby;
-            }
-            else {
+            } else {
                 xminy = xby;
                 xmaxy = xay;
             }
             if (xaz < xbz) {
                 xminz = xaz;
                 xmaxz = xbz;
-            }
-            else {
+            } else {
                 xminz = xbz;
                 xmaxz = xaz;
             }
             if (yax < ybx) {
                 yminx = yax;
                 ymaxx = ybx;
-            }
-            else {
+            } else {
                 yminx = ybx;
                 ymaxx = yax;
             }
             if (yay < yby) {
                 yminy = yay;
                 ymaxy = yby;
-            }
-            else {
+            } else {
                 yminy = yby;
                 ymaxy = yay;
             }
             if (yaz < ybz) {
                 yminz = yaz;
                 ymaxz = ybz;
-            }
-            else {
+            } else {
                 yminz = ybz;
                 ymaxz = yaz;
             }
             if (zax < zbx) {
                 zminx = zax;
                 zmaxx = zbx;
-            }
-            else {
+            } else {
                 zminx = zbx;
                 zmaxx = zax;
             }
             if (zay < zby) {
                 zminy = zay;
                 zmaxy = zby;
-            }
-            else {
+            } else {
                 zminy = zby;
                 zmaxy = zay;
             }
             if (zaz < zbz) {
                 zminz = zaz;
                 zmaxz = zbz;
-            }
-            else {
+            } else {
                 zminz = zbz;
                 zmaxz = zaz;
             }
@@ -211,48 +202,120 @@ namespace ke {
             float d1, d2, d3;
             float n1x, n1y, n1z, n2x, n2y, n2z, n3x, n3y, n3z;
             switch (corner) {
-            case CORNER_NXNYNZ: // left, bottom, near
-                n1x = m[0][3] + m[0][0]; n1y = m[1][3] + m[1][0]; n1z = m[2][3] + m[2][0]; d1 = m[3][3] + m[3][0]; // left
-                n2x = m[0][3] + m[0][1]; n2y = m[1][3] + m[1][1]; n2z = m[2][3] + m[2][1]; d2 = m[3][3] + m[3][1]; // bottom
-                n3x = m[0][3] + m[0][2]; n3y = m[1][3] + m[1][2]; n3z = m[2][3] + m[2][2]; d3 = m[3][3] + m[3][2]; // near
-                break;
-            case CORNER_PXNYNZ: // right, bottom, near
-                n1x = m[0][3] - m[0][0]; n1y = m[1][3] - m[1][0]; n1z = m[2][3] - m[2][0]; d1 = m[3][3] - m[3][0]; // right
-                n2x = m[0][3] + m[0][1]; n2y = m[1][3] + m[1][1]; n2z = m[2][3] + m[2][1]; d2 = m[3][3] + m[3][1]; // bottom
-                n3x = m[0][3] + m[0][2]; n3y = m[1][3] + m[1][2]; n3z = m[2][3] + m[2][2]; d3 = m[3][3] + m[3][2]; // near
-                break;
-            case CORNER_PXPYNZ: // right, top, near
-                n1x = m[0][3] - m[0][0]; n1y = m[1][3] - m[1][0]; n1z = m[2][3] - m[2][0]; d1 = m[3][3] - m[3][0]; // right
-                n2x = m[0][3] - m[0][1]; n2y = m[1][3] - m[1][1]; n2z = m[2][3] - m[2][1]; d2 = m[3][3] - m[3][1]; // top
-                n3x = m[0][3] + m[0][2]; n3y = m[1][3] + m[1][2]; n3z = m[2][3] + m[2][2]; d3 = m[3][3] + m[3][2]; // near
-                break;
-            case CORNER_NXPYNZ: // left, top, near
-                n1x = m[0][3] + m[0][0]; n1y = m[1][3] + m[1][0]; n1z = m[2][3] + m[2][0]; d1 = m[3][3] + m[3][0]; // left
-                n2x = m[0][3] - m[0][1]; n2y = m[1][3] - m[1][1]; n2z = m[2][3] - m[2][1]; d2 = m[3][3] - m[3][1]; // top
-                n3x = m[0][3] + m[0][2]; n3y = m[1][3] + m[1][2]; n3z = m[2][3] + m[2][2]; d3 = m[3][3] + m[3][2]; // near
-                break;
-            case CORNER_PXNYPZ: // right, bottom, far
-                n1x = m[0][3] - m[0][0]; n1y = m[1][3] - m[1][0]; n1z = m[2][3] - m[2][0]; d1 = m[3][3] - m[3][0]; // right
-                n2x = m[0][3] + m[0][1]; n2y = m[1][3] + m[1][1]; n2z = m[2][3] + m[2][1]; d2 = m[3][3] + m[3][1]; // bottom
-                n3x = m[0][3] - m[0][2]; n3y = m[1][3] - m[1][2]; n3z = m[2][3] - m[2][2]; d3 = m[3][3] - m[3][2]; // far
-                break;
-            case CORNER_NXNYPZ: // left, bottom, far
-                n1x = m[0][3] + m[0][0]; n1y = m[1][3] + m[1][0]; n1z = m[2][3] + m[2][0]; d1 = m[3][3] + m[3][0]; // left
-                n2x = m[0][3] + m[0][1]; n2y = m[1][3] + m[1][1]; n2z = m[2][3] + m[2][1]; d2 = m[3][3] + m[3][1]; // bottom
-                n3x = m[0][3] - m[0][2]; n3y = m[1][3] - m[1][2]; n3z = m[2][3] - m[2][2]; d3 = m[3][3] - m[3][2]; // far
-                break;
-            case CORNER_NXPYPZ: // left, top, far
-                n1x = m[0][3] + m[0][0]; n1y = m[1][3] + m[1][0]; n1z = m[2][3] + m[2][0]; d1 = m[3][3] + m[3][0]; // left
-                n2x = m[0][3] - m[0][1]; n2y = m[1][3] - m[1][1]; n2z = m[2][3] - m[2][1]; d2 = m[3][3] - m[3][1]; // top
-                n3x = m[0][3] - m[0][2]; n3y = m[1][3] - m[1][2]; n3z = m[2][3] - m[2][2]; d3 = m[3][3] - m[3][2]; // far
-                break;
-            case CORNER_PXPYPZ: // right, top, far
-                n1x = m[0][3] - m[0][0]; n1y = m[1][3] - m[1][0]; n1z = m[2][3] - m[2][0]; d1 = m[3][3] - m[3][0]; // right
-                n2x = m[0][3] - m[0][1]; n2y = m[1][3] - m[1][1]; n2z = m[2][3] - m[2][1]; d2 = m[3][3] - m[3][1]; // top
-                n3x = m[0][3] - m[0][2]; n3y = m[1][3] - m[1][2]; n3z = m[2][3] - m[2][2]; d3 = m[3][3] - m[3][2]; // far
-                break;
-            default:
-                throw std::runtime_error("Somehow hit a bad corner??!"); //$NON-NLS-1$
+                case CORNER_NXNYNZ: // left, bottom, near
+                    n1x = m[0][3] + m[0][0];
+                    n1y = m[1][3] + m[1][0];
+                    n1z = m[2][3] + m[2][0];
+                    d1 = m[3][3] + m[3][0]; // left
+                    n2x = m[0][3] + m[0][1];
+                    n2y = m[1][3] + m[1][1];
+                    n2z = m[2][3] + m[2][1];
+                    d2 = m[3][3] + m[3][1]; // bottom
+                    n3x = m[0][3] + m[0][2];
+                    n3y = m[1][3] + m[1][2];
+                    n3z = m[2][3] + m[2][2];
+                    d3 = m[3][3] + m[3][2]; // near
+                    break;
+                case CORNER_PXNYNZ: // right, bottom, near
+                    n1x = m[0][3] - m[0][0];
+                    n1y = m[1][3] - m[1][0];
+                    n1z = m[2][3] - m[2][0];
+                    d1 = m[3][3] - m[3][0]; // right
+                    n2x = m[0][3] + m[0][1];
+                    n2y = m[1][3] + m[1][1];
+                    n2z = m[2][3] + m[2][1];
+                    d2 = m[3][3] + m[3][1]; // bottom
+                    n3x = m[0][3] + m[0][2];
+                    n3y = m[1][3] + m[1][2];
+                    n3z = m[2][3] + m[2][2];
+                    d3 = m[3][3] + m[3][2]; // near
+                    break;
+                case CORNER_PXPYNZ: // right, top, near
+                    n1x = m[0][3] - m[0][0];
+                    n1y = m[1][3] - m[1][0];
+                    n1z = m[2][3] - m[2][0];
+                    d1 = m[3][3] - m[3][0]; // right
+                    n2x = m[0][3] - m[0][1];
+                    n2y = m[1][3] - m[1][1];
+                    n2z = m[2][3] - m[2][1];
+                    d2 = m[3][3] - m[3][1]; // top
+                    n3x = m[0][3] + m[0][2];
+                    n3y = m[1][3] + m[1][2];
+                    n3z = m[2][3] + m[2][2];
+                    d3 = m[3][3] + m[3][2]; // near
+                    break;
+                case CORNER_NXPYNZ: // left, top, near
+                    n1x = m[0][3] + m[0][0];
+                    n1y = m[1][3] + m[1][0];
+                    n1z = m[2][3] + m[2][0];
+                    d1 = m[3][3] + m[3][0]; // left
+                    n2x = m[0][3] - m[0][1];
+                    n2y = m[1][3] - m[1][1];
+                    n2z = m[2][3] - m[2][1];
+                    d2 = m[3][3] - m[3][1]; // top
+                    n3x = m[0][3] + m[0][2];
+                    n3y = m[1][3] + m[1][2];
+                    n3z = m[2][3] + m[2][2];
+                    d3 = m[3][3] + m[3][2]; // near
+                    break;
+                case CORNER_PXNYPZ: // right, bottom, far
+                    n1x = m[0][3] - m[0][0];
+                    n1y = m[1][3] - m[1][0];
+                    n1z = m[2][3] - m[2][0];
+                    d1 = m[3][3] - m[3][0]; // right
+                    n2x = m[0][3] + m[0][1];
+                    n2y = m[1][3] + m[1][1];
+                    n2z = m[2][3] + m[2][1];
+                    d2 = m[3][3] + m[3][1]; // bottom
+                    n3x = m[0][3] - m[0][2];
+                    n3y = m[1][3] - m[1][2];
+                    n3z = m[2][3] - m[2][2];
+                    d3 = m[3][3] - m[3][2]; // far
+                    break;
+                case CORNER_NXNYPZ: // left, bottom, far
+                    n1x = m[0][3] + m[0][0];
+                    n1y = m[1][3] + m[1][0];
+                    n1z = m[2][3] + m[2][0];
+                    d1 = m[3][3] + m[3][0]; // left
+                    n2x = m[0][3] + m[0][1];
+                    n2y = m[1][3] + m[1][1];
+                    n2z = m[2][3] + m[2][1];
+                    d2 = m[3][3] + m[3][1]; // bottom
+                    n3x = m[0][3] - m[0][2];
+                    n3y = m[1][3] - m[1][2];
+                    n3z = m[2][3] - m[2][2];
+                    d3 = m[3][3] - m[3][2]; // far
+                    break;
+                case CORNER_NXPYPZ: // left, top, far
+                    n1x = m[0][3] + m[0][0];
+                    n1y = m[1][3] + m[1][0];
+                    n1z = m[2][3] + m[2][0];
+                    d1 = m[3][3] + m[3][0]; // left
+                    n2x = m[0][3] - m[0][1];
+                    n2y = m[1][3] - m[1][1];
+                    n2z = m[2][3] - m[2][1];
+                    d2 = m[3][3] - m[3][1]; // top
+                    n3x = m[0][3] - m[0][2];
+                    n3y = m[1][3] - m[1][2];
+                    n3z = m[2][3] - m[2][2];
+                    d3 = m[3][3] - m[3][2]; // far
+                    break;
+                case CORNER_PXPYPZ: // right, top, far
+                    n1x = m[0][3] - m[0][0];
+                    n1y = m[1][3] - m[1][0];
+                    n1z = m[2][3] - m[2][0];
+                    d1 = m[3][3] - m[3][0]; // right
+                    n2x = m[0][3] - m[0][1];
+                    n2y = m[1][3] - m[1][1];
+                    n2z = m[2][3] - m[2][1];
+                    d2 = m[3][3] - m[3][1]; // top
+                    n3x = m[0][3] - m[0][2];
+                    n3y = m[1][3] - m[1][2];
+                    n3z = m[2][3] - m[2][2];
+                    d3 = m[3][3] - m[3][2]; // far
+                    break;
+                default:
+                    throw std::runtime_error("Somehow hit a bad corner??!"); //$NON-NLS-1$
             }
             float c23x = n2y * n3z - n2z * n3y;
             float c23y = n2z * n3x - n2x * n3z;
@@ -268,5 +331,5 @@ namespace ke {
             point.y = (-c23y * d1 - c31y * d2 - c12y * d3) * invDot;
             point.z = (-c23z * d1 - c31z * d2 - c12z * d3) * invDot;
         }
-    }
+    } // namespace matutils
 } // namespace ke

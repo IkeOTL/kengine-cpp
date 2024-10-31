@@ -22,7 +22,8 @@ namespace ke {
         virtual void draw() = 0;
 
     public:
-        ImGuiKEContext(VulkanContext& vkCtx) : vkCtx(vkCtx) {}
+        ImGuiKEContext(VulkanContext& vkCtx)
+            : vkCtx(vkCtx) {}
         ~ImGuiKEContext();
 
         void init(Window& window);

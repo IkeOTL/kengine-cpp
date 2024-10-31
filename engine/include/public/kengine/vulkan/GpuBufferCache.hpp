@@ -44,7 +44,6 @@ namespace ke {
     };
 
     class GpuBufferCache {
-
     private:
         std::atomic<uint32_t> runningId;
         VulkanContext& vkContext;
@@ -53,7 +52,8 @@ namespace ke {
 
     public:
         GpuBufferCache(VulkanContext& vkContext)
-            : vkContext(vkContext), runningId(0) {}
+            : vkContext(vkContext),
+              runningId(0) {}
 
         ~GpuBufferCache() = default;
 

@@ -11,7 +11,9 @@ namespace ke {
         VkCommandBuffer vkCmdBuf;
 
         CommandBuffer(VkDevice vkDevice, VkCommandPool pool, VkCommandBuffer vkCmdBuf)
-            : vkDevice(vkDevice), pool(pool), vkCmdBuf(vkCmdBuf) {}
+            : vkDevice(vkDevice),
+              pool(pool),
+              vkCmdBuf(vkCmdBuf) {}
 
         ~CommandBuffer() {
             vkFreeCommandBuffers(vkDevice, pool, 1, &vkCmdBuf);

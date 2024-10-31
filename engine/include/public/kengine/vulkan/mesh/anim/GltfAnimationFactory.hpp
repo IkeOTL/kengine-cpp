@@ -19,7 +19,8 @@ namespace ke {
 
     public:
         GltfAnimationFactory(VulkanContext& vkContext, AssetIO& assetIo)
-            : vkContext(vkContext), assetIo(assetIo) {}
+            : vkContext(vkContext),
+              assetIo(assetIo) {}
 
         inline static std::unique_ptr<GltfAnimationFactory> create(VulkanContext& vkContext, AssetIO& assetIo) {
             return std::make_unique<GltfAnimationFactory>(vkContext, assetIo);

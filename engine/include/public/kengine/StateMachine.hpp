@@ -15,7 +15,6 @@ namespace ke {
 
     template <typename E>
     class StateMachine {
-
     private:
         E& parent;
         State<E>* globalState;
@@ -25,9 +24,9 @@ namespace ke {
     public:
         StateMachine(E& parent, State<E>* globalState, State<E>* currentState, State<E>* previousState)
             : parent(parent),
-            globalState(globalState),
-            currentState(currentState),
-            previousState(previousState) {}
+              globalState(globalState),
+              currentState(currentState),
+              previousState(previousState) {}
 
         StateMachine(E& parent)
             : parent(parent) {}

@@ -17,7 +17,8 @@ namespace ke {
         TileTerrainChunk& parent;
         uint16_t textureTileId = 0;
 
-        TileTerrainChunkTile(TileTerrainChunk& parent) : parent(parent) {}
+        TileTerrainChunkTile(TileTerrainChunk& parent)
+            : parent(parent) {}
     };
 
     class TileTerrainChunk {

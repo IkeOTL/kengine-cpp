@@ -43,7 +43,8 @@ namespace ke {
         void loadShader(std::string filePath, VkShaderStageFlagBits stage, std::vector<VkPipelineShaderStageCreateInfo>& dest);
 
     public:
-        Pipeline(VkDevice vkDevice) : vkDevice(vkDevice) {}
+        Pipeline(VkDevice vkDevice)
+            : vkDevice(vkDevice) {}
         virtual ~Pipeline();
 
         VkPipeline getVkPipeline() const {
@@ -59,7 +60,7 @@ namespace ke {
         void init(VulkanContext& vkCxt, RenderPass* renderPass, DescriptorSetLayoutCache& layoutCache, glm::uvec2 extents);
 
         virtual VkPipelineLayout createPipelineLayout(VulkanContext& vkCxt, DescriptorSetLayoutCache& layoutCache) = 0;
-        virtual VkPipeline createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2  extents) = 0;
+        virtual VkPipeline createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) = 0;
         virtual void bind(VulkanContext& vkCxt, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) = 0;
     };
 } // namespace ke

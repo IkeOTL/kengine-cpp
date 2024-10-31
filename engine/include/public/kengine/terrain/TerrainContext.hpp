@@ -42,7 +42,7 @@ namespace ke {
             materialsBuf = buf;
         }
 
-        //const glm::vec4& getChunkBoundingSphere();
+        // const glm::vec4& getChunkBoundingSphere();
         const glm::vec4 getChunkBoundingSphere();
         const glm::uvec2 getChunkDimensions();
         const glm::uvec2 getChunkCount();

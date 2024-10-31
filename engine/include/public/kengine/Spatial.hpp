@@ -24,7 +24,8 @@ namespace ke {
         bool transformDirty = true;
 
     public:
-        Spatial(const std::string& name) : name(name) {}
+        Spatial(const std::string& name)
+            : name(name) {}
         ~Spatial() = default;
 
         int32_t getSceneId() const;

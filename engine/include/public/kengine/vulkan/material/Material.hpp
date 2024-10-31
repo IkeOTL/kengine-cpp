@@ -10,7 +10,6 @@ namespace ke {
     class DescriptorSetAllocator;
 
     class Material {
-
     private:
         const uint32_t id;
         std::shared_ptr<MaterialConfig> config;
@@ -20,7 +19,9 @@ namespace ke {
 
     public:
         Material(const uint32_t id, std::shared_ptr<MaterialConfig> config, Pipeline& pipeline)
-            : id(id), config(config), pipeline(pipeline) {}
+            : id(id),
+              config(config),
+              pipeline(pipeline) {}
 
         uint32_t getId() const {
             return id - AsyncMaterialCache::START_ID;

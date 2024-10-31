@@ -14,7 +14,7 @@ namespace ke {
     class RenderTarget {
     public:
         RenderTarget(VkDevice vkDevice)
-            : vkDevice(vkDevice) { }
+            : vkDevice(vkDevice) {}
 
         virtual ~RenderTarget();
 
@@ -26,22 +26,19 @@ namespace ke {
             RenderPass& renderPass,
             VmaAllocator vmaAllocator,
             const std::vector<VkImageView>& sharedImageViews,
-            const glm::uvec2& extents
-        ) = 0;
+            const glm::uvec2& extents) = 0;
 
         virtual void init(
             RenderPass& renderPass,
             VmaAllocator vmaAllocator,
             const std::vector<VkImageView>& sharedImageViews,
-            const glm::uvec2& extents
-        );
+            const glm::uvec2& extents);
 
     protected:
         VkDevice vkDevice;
 
     private:
         VkFramebuffer vkFrameBuffer = VK_NULL_HANDLE;
-
     };
 
     struct RenderPassContext {
@@ -54,7 +51,8 @@ namespace ke {
     class RenderPass {
     public:
         RenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
-            : vkDevice(vkDevice), colorFormatAndSpace(colorFormatAndSpace) { }
+            : vkDevice(vkDevice),
+              colorFormatAndSpace(colorFormatAndSpace) {}
 
         virtual ~RenderPass();
 
@@ -89,8 +87,7 @@ namespace ke {
         virtual void createRenderTargets(
             VmaAllocator vmaAllocator,
             const std::vector<VkImageView> sharedImageViews,
-            const glm::uvec2 extents
-        ) = 0;
+            const glm::uvec2 extents) = 0;
 
     private:
         VkRenderPass vkRenderPass = VK_NULL_HANDLE;

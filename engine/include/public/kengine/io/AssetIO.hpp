@@ -6,7 +6,7 @@
 namespace ke {
     class AssetSerializer;
 
-    // 
+    //
     class AssetData {
     public:
         // need to add byte count or something. maybe implement javas ByteBuffer?

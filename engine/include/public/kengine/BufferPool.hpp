@@ -15,14 +15,12 @@ namespace ke {
         XXLARGE = 512
     };
 
-    struct ByteBuf
-    {
+    struct ByteBuf {
         LeasedBufferSize bufSize;
         void* data;
     };
 
-    class BufferPool
-    {
+    class BufferPool {
     private:
         std::pmr::pool_options poolOptions;
 
@@ -33,7 +31,8 @@ namespace ke {
 
     public:
         BufferPool()
-            : poolOptions({ 100, 512 }), pool(poolOptions) {}
+            : poolOptions({100, 512}),
+              pool(poolOptions) {}
 
         ~BufferPool() = default;
 

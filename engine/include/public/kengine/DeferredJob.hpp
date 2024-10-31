@@ -16,7 +16,7 @@ namespace ke {
         virtual void executeThenFunc(World& world) = 0;
     };
 
-    template<typename T, typename Func>
+    template <typename T, typename Func>
     class DeferredJob : public BaseDeferredJob {
     private:
         std::shared_future<T> future;
@@ -24,7 +24,8 @@ namespace ke {
 
     public:
         DeferredJob(std::shared_future<T> future, Func&& thenFunc)
-            : future(std::move(future)), thenFunc(std::move(thenFunc)) {}
+            : future(std::move(future)),
+              thenFunc(std::move(thenFunc)) {}
 
         bool isDone() const override {
             return future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
@@ -35,13 +36,11 @@ namespace ke {
                 if constexpr (std::is_void_v<T>) {
                     future.get();
                     thenFunc(world);
-                }
-                else {
+                } else {
                     auto result = future.get();
                     thenFunc(world, result);
                 }
-            }
-            catch (const std::exception& e) {
+            } catch (const std::exception& e) {
                 KE_LOG_ERROR(std::format("Follow-up function failed: {}", e.what()));
             }
         }
@@ -55,12 +54,11 @@ namespace ke {
         std::mutex newJobLock;
 
     public:
-
         inline static std::unique_ptr<DeferredJobManager> create() {
             return std::make_unique<DeferredJobManager>();
         }
 
-        template<typename T, typename Func>
+        template <typename T, typename Func>
         void submit(World& world, std::shared_future<T> task, Func&& thenFunc) {
             if constexpr (std::is_void_v<T>)
                 static_assert(std::is_invocable_v<Func, World&>, "`thenFunc` is missing `World&` parameter.");
@@ -69,8 +67,7 @@ namespace ke {
 
             std::lock_guard<std::mutex> lock(newJobLock);
             newJobs.emplace_back(
-                std::make_unique<DeferredJob<T, Func>>(std::move(task), std::forward<Func>(thenFunc))
-            );
+                std::make_unique<DeferredJob<T, Func>>(std::move(task), std::forward<Func>(thenFunc)));
         }
 
         void process(World& world) {

@@ -14,8 +14,7 @@ namespace ke {
             RenderPass& renderPass,
             VmaAllocator vmaAllocator,
             const std::vector<VkImageView>& sharedImageViews,
-            const glm::uvec2& extents
-        ) override;
+            const glm::uvec2& extents) override;
 
         std::unique_ptr<GpuImageView> createAttachmentImage(VmaAllocator vmaAllocator, VkFormat format, VkImageUsageFlags imageUsage,
             VmaMemoryUsage memUsage, VkImageAspectFlags viewAspectMask, const glm::uvec2 extents);
@@ -34,7 +33,7 @@ namespace ke {
     class DeferredPbrRenderPass : public RenderPass {
     public:
         DeferredPbrRenderPass(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace)
-            : RenderPass(vkDevice, colorFormatAndSpace) { }
+            : RenderPass(vkDevice, colorFormatAndSpace) {}
 
         static inline std::unique_ptr<RenderPass> create(VkDevice vkDevice, ColorFormatAndSpace& colorFormatAndSpace) {
             return std::make_unique<DeferredPbrRenderPass>(vkDevice, colorFormatAndSpace);

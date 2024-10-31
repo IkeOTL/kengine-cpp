@@ -8,7 +8,9 @@ namespace ke {
     class ProfileNode {
     public:
         ProfileNode(const std::string& name)
-            : name(name), totalTime(0), callCount(0) {}
+            : name(name),
+              totalTime(0),
+              callCount(0) {}
 
         void Start() {
             startTime = std::chrono::high_resolution_clock::now();
@@ -32,7 +34,7 @@ namespace ke {
     private:
         std::string name;
         std::chrono::high_resolution_clock::time_point startTime;
-        int64_t totalTime;  // in microseconds
+        int64_t totalTime; // in microseconds
         int32_t callCount;
     };
 
@@ -78,7 +80,8 @@ namespace ke {
     //
     class ProfileScope {
     public:
-        ProfileScope(const std::string& name) : node(ProfileManager::Instance().GetProfileNode(name)) {
+        ProfileScope(const std::string& name)
+            : node(ProfileManager::Instance().GetProfileNode(name)) {
             node.Start();
         }
 
@@ -89,4 +92,4 @@ namespace ke {
     private:
         ProfileNode& node;
     };
-}
+} // namespace ke

@@ -24,6 +24,5 @@ namespace ke {
         VkFormat getDepthFormat() const {
             return depthFormat;
         }
-
     };
 } // namespace ke

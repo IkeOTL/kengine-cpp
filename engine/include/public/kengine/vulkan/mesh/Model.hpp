@@ -54,8 +54,7 @@ namespace ke {
         Model(std::vector<std::shared_ptr<Spatial>>&& nodes,
             std::vector<int16_t>&& parentIndices,
             std::vector<std::unique_ptr<MeshGroup>>&& meshGroups,
-            std::vector<uint32_t>&& bones
-        );
+            std::vector<uint32_t>&& bones);
 
         const std::vector<std::shared_ptr<Spatial>>& getNodes() const {
             return nodes;

@@ -28,7 +28,10 @@ namespace ke {
 
     public:
         ShadowContext(GpuBufferCache& bufCache, CachedGpuBuffer& indirectCmdBuf, CameraController& cameraController, SceneData& sceneData)
-            :bufCache(bufCache), indirectCmdBuf(indirectCmdBuf), cameraController(cameraController), sceneData(sceneData) {}
+            : bufCache(bufCache),
+              indirectCmdBuf(indirectCmdBuf),
+              cameraController(cameraController),
+              sceneData(sceneData) {}
 
         void init(VulkanContext& vkContext, glm::vec3 lightDir, CachedGpuBuffer& drawObjectBuf, CachedGpuBuffer& drawInstanceBuffer);
 
@@ -39,6 +42,5 @@ namespace ke {
         void execShadowPass(VulkanContext& vkContext, RenderFrameContext& cxt, Pipeline& p1,
             DescriptorSetAllocator& dAllocator, size_t cascadeIdx,
             IndirectDrawBatch* batches, size_t batchesSize, bool skinned);
-
     };
 } // namespace ke

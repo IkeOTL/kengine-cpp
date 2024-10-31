@@ -12,7 +12,7 @@ namespace ke {
     class MaterialConfig;
 
     struct TileData {
-        uint32_t matIdx : 3 = 0; // 3 bits for material index (bits 0 to 2)
+        uint32_t matIdx : 3 = 0;  // 3 bits for material index (bits 0 to 2)
         uint32_t tileId : 12 = 0; // 12 bits for tile ID (bits 3 to 14)
         uint32_t unused : 17;
 
@@ -42,14 +42,13 @@ namespace ke {
         std::shared_ptr<TerrainPbrMaterialConfig> materialConfig;
         std::unique_ptr<Texture2d> heightTexture;
 
-        std::vector<uint8_t> heights; // size in "verts"    
+        std::vector<uint8_t> heights;   // size in "verts"
         std::vector<TileData> tileData; // sizes in "tiles"
 
     public:
         OptimizedTerrain(uint32_t terrainTilesWidth, uint32_t terrainTilesLength, uint32_t chunkWidth, uint32_t chunkLength, uint8_t unitSize = 10);
 
         float getHeightAt(float x, float z);
-
 
         const uint8_t getUnitSize() const {
             return unitSize;
@@ -175,4 +174,4 @@ namespace ke {
             return l1 * p1.y + l2 * p2.y + l3 * p3.y;
         }
     };
-} // namespace ke 
+} // namespace ke

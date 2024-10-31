@@ -19,5 +19,3 @@ namespace ke {
         virtual bool onCharEvent(GLFWwindow* window, unsigned int codepoint) = 0;
     };
 } // namespace ke
-
-

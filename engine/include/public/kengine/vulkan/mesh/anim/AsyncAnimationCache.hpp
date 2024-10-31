@@ -18,7 +18,8 @@ namespace ke {
 
     public:
         AsyncAnimationCache(AnimationFactory& factory, ExecutorService& workerPool)
-            : AsyncAssetCache(workerPool), factory(factory) {}
+            : AsyncAssetCache(workerPool),
+              factory(factory) {}
 
         inline static std::unique_ptr<AsyncAnimationCache> create(AnimationFactory& factory, ExecutorService& workerPool) {
             return std::make_unique<AsyncAnimationCache>(factory, workerPool);

@@ -17,7 +17,10 @@ namespace ke {
 
         DescriptorSetLayoutBindingConfig(uint32_t bindingIndex, uint32_t descriptorCount,
             VkDescriptorType descriptorType, VkShaderStageFlags stageFlags)
-            : bindingIndex(bindingIndex), descriptorCount(descriptorCount), descriptorType(descriptorType), stageFlags(stageFlags) {}
+            : bindingIndex(bindingIndex),
+              descriptorCount(descriptorCount),
+              descriptorType(descriptorType),
+              stageFlags(stageFlags) {}
 
         size_t hashCode() const noexcept override;
         bool operator==(const DescriptorSetLayoutBindingConfig& other) const;
@@ -28,7 +31,7 @@ namespace ke {
         const std::vector<DescriptorSetLayoutBindingConfig> bindings;
 
         DescriptorSetLayoutConfig(std::initializer_list<DescriptorSetLayoutBindingConfig> b)
-            : bindings(b) { }
+            : bindings(b) {}
 
         const DescriptorSetLayoutBindingConfig& getBinding(size_t idx) const;
 

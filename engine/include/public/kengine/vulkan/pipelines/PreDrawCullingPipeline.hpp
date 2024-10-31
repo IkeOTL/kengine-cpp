@@ -14,8 +14,7 @@ namespace ke {
         };
 
         inline static const DescriptorSetLayoutConfig preCullingLayout = {
-            DescriptorSetLayoutBindingConfig{ 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_COMPUTE_BIT }
-        };
+            DescriptorSetLayoutBindingConfig{0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, VK_SHADER_STAGE_COMPUTE_BIT}};
 
         PreDrawCullingPipeline(VkDevice vkDevice)
             : Pipeline(vkDevice) {}
@@ -25,7 +24,7 @@ namespace ke {
         }
 
         VkPipelineLayout createPipelineLayout(VulkanContext& vkContext, DescriptorSetLayoutCache& layoutCache) override;
-        VkPipeline createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2  extents) override;
+        VkPipeline createPipeline(VkDevice device, RenderPass* renderPass, VkPipelineLayout pipelineLayout, glm::uvec2 extents) override;
         void bind(VulkanContext& engine, DescriptorSetAllocator& descSetAllocator, VkCommandBuffer cmd, uint32_t frameIndex) override;
     };
 } // namespace ke
