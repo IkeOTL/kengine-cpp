@@ -184,8 +184,8 @@ std::unique_ptr<ke::State<ke::Game>> BasicGameTest::init() {
         .setSystem<KinematicPlayerSystem>()
         .setSystem<PhysicsSystem>()
         .setSystem<PhysicsSyncSystem>()
-        .setSystem<CameraSystem>()
         .setSystem<SpatialGridUpdateSystem>()
+        .setSystem<CameraSystem>()
         .setSystem<PlayerCameraSystem>()
         .setSystem<RenderSystem>()
     );
