@@ -1,0 +1,13 @@
+{ 
+    BasedOnStyle: Google, 
+    IndentWidth: 4, 
+    ColumnLimit: 0, 
+    NamespaceIndentation: All, 
+    AllowShortIfStatementsOnASingleLine: true, 
+    AccessModifierOffset: -4,
+    BinaryOperatorStyle: NonAssignment,
+    BinPackArguments: true,
+    BinPackParametersStyle: BinPack,
+    AllowAllArgumentsOnNextLine: true,
+    AlignAfterOpenBracket: DontAlign
+}
