@@ -10,6 +10,10 @@ set(HEADERS
     src/MyPlayerContext.hpp
     src/PlayerMovementManager.hpp
 
+    # networking
+    src/net/GameClient.hpp
+    src/net/GameServer.hpp
+
     # systems
     src/MyPlayerSystem.hpp
     src/RenderSystem.hpp
@@ -40,7 +44,12 @@ set(SOURCES
     src/MyPlayerContext.cpp
     src/PlayerMovementManager.cpp
 
-# systems
+
+    # networking
+    src/net/GameClient.cpp
+    src/net/GameServer.cpp
+
+    # systems
     src/RenderSystem.cpp
     src/CameraSystem.cpp
     src/RenderablePreviousTransformSystem.cpp
