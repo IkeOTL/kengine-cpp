@@ -392,7 +392,7 @@ void BasicGameTest::initCamera(ke::InputManager& inputManager, ke::DebugContext&
     camera->setPosition(glm::vec3(5, 7, 5));
 
     glm::quat camRot = camera->getRotation();
-    camRot = glm::rotate(camRot, glm::radians(35.0f), glm::vec3{1.0f, 0.0f, 0.0f});
+    camRot = glm::rotate(camRot, glm::radians(45.0f), glm::vec3{1.0f, 0.0f, 0.0f});
     auto rot = glm::rotate(camRot, glm::radians(-45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     camera->setRotation(rot);
 
