@@ -8,10 +8,19 @@
 namespace ke {
     class GameClient {
     private:
-        std::unique_ptr<ISteamNetworkingSockets> socketInterface;
+        ISteamNetworkingSockets* socketInterface;
         HSteamNetConnection connectionHandle;
 
+        // need a better approach
+        inline static GameClient* callbackInstance;
+        inline static void connectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo) {
+            callbackInstance->onConnectionStatusChanged(pInfo);
+        }
+
+        void onConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo);
+
     public:
+        GameClient();
         ~GameClient();
 
         void init();

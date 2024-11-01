@@ -2,6 +2,10 @@
 #include <kengine/Logger.hpp>
 
 namespace ke {
+    GameClient::GameClient() {
+        GameClient::callbackInstance = this;
+    }
+
     GameClient::~GameClient() {
         // todo: should probably check connection for any active reliable messages first
 
@@ -11,6 +15,8 @@ namespace ke {
     }
 
     void GameClient::init() {
+        socketInterface = SteamNetworkingSockets();
+
         SteamNetworkingIPAddr serverAddr;
         serverAddr.Clear();
         serverAddr.ParseString("127.0.0.1:8008");
@@ -24,20 +30,25 @@ namespace ke {
         }
 
 // log networking output
-#if KE_ACTIVE_LOG_LEVEL <= KE_LOG_LEVEL_DEBUG
+#if KE_ACTIVE_LOG_LEVEL >= KE_LOG_LEVEL_DEBUG
         SteamNetworkingUtils()->SetDebugOutputFunction(k_ESteamNetworkingSocketsDebugOutputType_Msg,
-            [](ESteamNetworkingSocketsDebugOutputType eType, const char *pszMsg) {
-                KE_LOG_DEBUG(std::format("[Net][{}] {}", eType, pszMsg));
+            [](ESteamNetworkingSocketsDebugOutputType eType, const char* pszMsg) {
+                KE_LOG_DEBUG("[Net][" + std::to_string(eType) + "] " + pszMsg);
             });
 #endif
 
         SteamNetworkingConfigValue_t opt;
-        opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void *)connectionStatusChangedCallback);
+        opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)connectionStatusChanged);
 
         connectionHandle = socketInterface->ConnectByIPAddress(serverAddr, 1, &opt);
+
         if (connectionHandle == k_HSteamNetConnection_Invalid) {
             KE_LOG_ERROR("[Net] Connection failed");
             throw std::runtime_error("[Net] Connection failed");
         }
+    }
+
+    void GameClient::onConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo) {
+        int i = 9;
     }
 } // namespace ke

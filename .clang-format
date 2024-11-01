@@ -22,5 +22,6 @@
   ContinuationIndentWidth: 4,
   ShortNamespaceLines: 0,
   FixNamespaceComments: true,
-  PointerAlignment: Left
+  PointerAlignment: Left,
+  ReferenceAlignment: Pointer
 }
