@@ -19,11 +19,11 @@ void PlayerCameraSystem::processSystem(entt::entity playerEntity) {
     auto spatial = sceneGraph->get(spatials.rootSpatialId);
 
     auto& cameraPos = cameraController->getCamera()->getPosition();
-    auto desiredPosition = spatial->getPosition() + glm::vec3(5, 7, 5);
+    auto desiredPosition = spatial->getPosition() + glm::vec3(7, 9, 7);
 
     auto posDiff = desiredPosition - cameraPos;
     auto distanceSq = glm::dot(posDiff, posDiff);
-    auto speed = glm::clamp(distanceSq * 0.5f, 0.5f, 20.0f);
+    auto speed = glm::clamp(distanceSq * 3.0f, 0.5f, 20.0f);
 
     desiredPosition = glm::mix(cameraPos, desiredPosition, speed * sceneTime->getDelta());
 
