@@ -5,7 +5,6 @@
 
 #include <memory>
 
-
 namespace ke {
     class GameClient {
     private:
@@ -13,6 +12,8 @@ namespace ke {
         HSteamNetConnection connectionHandle;
 
     public:
+        ~GameClient();
+
         void init();
     };
 } // namespace ke

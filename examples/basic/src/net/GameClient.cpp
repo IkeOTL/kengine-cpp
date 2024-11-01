@@ -1,10 +1,6 @@
 #include "GameClient.hpp"
 #include <kengine/Logger.hpp>
 
-static void logOutput(ESteamNetworkingSocketsDebugOutputType eType, const char *pszMsg) {
-    KE_LOG_DEBUG(std::format("[Net][{}] {}", eType, pszMsg));
-}
-
 namespace ke {
     GameClient::~GameClient() {
         // todo: should probably check connection for any active reliable messages first
@@ -27,11 +23,13 @@ namespace ke {
             throw std::runtime_error(std::format("[Net] Initialization failed: {}", errMsg));
         }
 
-        // log networking output
+// log networking output
+#if KE_ACTIVE_LOG_LEVEL <= KE_LOG_LEVEL_DEBUG
         SteamNetworkingUtils()->SetDebugOutputFunction(k_ESteamNetworkingSocketsDebugOutputType_Msg,
             [](ESteamNetworkingSocketsDebugOutputType eType, const char *pszMsg) {
                 KE_LOG_DEBUG(std::format("[Net][{}] {}", eType, pszMsg));
             });
+#endif
 
         SteamNetworkingConfigValue_t opt;
         opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void *)connectionStatusChangedCallback);
