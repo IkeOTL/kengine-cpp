@@ -14,10 +14,14 @@
 #include <kengine/vulkan/renderpass/DeferredPbrRenderPass.hpp>
 
 #include "BasicGameTest.hpp"
+#include "net/GameServer.hpp"
+#include "net/GameClient.hpp"
 
 void showMenu() {
     std::cout << "==== Demo Selection Menu ====\n";
     std::cout << "1. Basic Demo\n";
+    std::cout << "2. Demo Server\n";
+    std::cout << "3. Demo Client\n";
     std::cout << "0. Exit\n";
     std::cout << "Please enter the number of your choice: ";
 }
@@ -41,6 +45,28 @@ int main() {
                 {
                     BasicGameTest game;
                     game.run();
+                }
+                break;
+            case 2:
+                std::cout << "Starting Demo Server...\n";
+                {
+                    ke::GameServer srv;
+                    srv.connect();
+                    while (true) {
+                        srv.tick();
+                        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                    }
+                }
+                break;
+            case 3:
+                std::cout << "Starting Demo Client...\n";
+                {
+                    ke::GameClient c;
+                    c.connect();
+                    while (true) {
+                        c.tick();
+                        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                    }
                 }
                 break;
 

@@ -23,6 +23,7 @@ namespace ke {
         GameClient();
         ~GameClient();
 
-        void init();
+        void connect();
+        void tick();
     };
 } // namespace ke
