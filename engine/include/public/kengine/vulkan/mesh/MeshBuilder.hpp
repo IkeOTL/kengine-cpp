@@ -6,7 +6,7 @@
 #include <memory>
 
 namespace ke {
-    template <typename V>
+    template<typename V>
     class MeshBuilder {
     private:
         static_assert(std::is_base_of<Vertex, V>::value, "V must be derived from Vertex");

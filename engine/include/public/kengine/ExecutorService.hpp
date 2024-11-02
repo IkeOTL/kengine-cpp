@@ -5,10 +5,7 @@
 #include <taskflow/algorithm/for_each.hpp>
 
 #include <thread>
-#include <queue>
 #include <future>
-#include <condition_variable>
-#include <iostream>
 #include <optional>
 #include <memory>
 
@@ -45,7 +42,6 @@ namespace ke {
         /// @brief Submits to pool and returns a single use future.
         template<typename F>
         auto submit(F&& f) -> std::future<std::invoke_result_t<F>> {
-            using ReturnType = std::invoke_result_t<F>;
             return executor.async(std::forward<F>(f));
         }
 

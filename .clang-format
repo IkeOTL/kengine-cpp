@@ -19,5 +19,9 @@
   EmptyLineBeforeAccessModifier: LogicalBlock,
   AlignOperands: DontAlign,
   SpaceAfterTemplateKeyword: false,
-  ContinuationIndentWidth: 4
+  ContinuationIndentWidth: 4,
+  ShortNamespaceLines: 0,
+  FixNamespaceComments: true,
+  PointerAlignment: Left,
+  ReferenceAlignment: Pointer
 }
